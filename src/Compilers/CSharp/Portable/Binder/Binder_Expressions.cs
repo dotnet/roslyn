@@ -5607,7 +5607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// of this method (i.e. not populating a pre-existing <see cref="OverloadResolutionResult{MethodSymbol}"/>).
         /// Presently, rationalizing this behavior is not worthwhile.
         /// </remarks>
-        private bool TryPerformConstructorOverloadResolution(
+        internal bool TryPerformConstructorOverloadResolution(
             NamedTypeSymbol typeContainingConstructors,
             AnalyzedArguments analyzedArguments,
             string errorName,

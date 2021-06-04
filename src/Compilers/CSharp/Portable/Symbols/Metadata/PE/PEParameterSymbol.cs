@@ -925,5 +925,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
         }
+
+        // PROTOTYPE(interp-string)
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw new NotImplementedException();
     }
 }

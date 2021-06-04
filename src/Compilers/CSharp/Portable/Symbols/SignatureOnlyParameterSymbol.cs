@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
         #endregion Not used by MethodSignatureComparer
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)

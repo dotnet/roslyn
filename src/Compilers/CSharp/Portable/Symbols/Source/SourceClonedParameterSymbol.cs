@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _originalParam.InterpolatedStringHandlerArgumentIndexes;
+
         #endregion
     }
 }

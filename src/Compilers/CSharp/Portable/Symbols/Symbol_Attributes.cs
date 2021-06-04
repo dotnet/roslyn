@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// this (base) method.
         /// </para>
         /// </remarks>
-        internal virtual void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal virtual void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
         {
         }
 
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.AttributeSyntaxOpt = attributeSyntax;
                     arguments.Index = i;
 
-                    this.DecodeWellKnownAttribute(ref arguments);
+                    this.DecodeWellKnownAttribute(ref arguments, binder);
                 }
             }
 

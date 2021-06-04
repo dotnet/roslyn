@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableAnnotationExtensions.ObliviousAttributeValue;
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
 
-            base.DecodeWellKnownAttribute(ref arguments);
+            base.DecodeWellKnownAttribute(ref arguments, binder);
         }
 
         protected bool? CalculateReferenceTypeConstraintIsNullable(TypeParameterConstraintKind constraints)

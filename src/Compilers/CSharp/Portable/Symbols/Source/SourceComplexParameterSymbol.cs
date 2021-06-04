@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -128,6 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsCallerMemberName => !HasCallerLineNumberAttribute
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            => GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments ?? ImmutableArray<int>.Empty;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -634,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return !hasAnyDiagnostics ? attribute : null;
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
@@ -745,6 +750,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasEnumeratorCancellationAttribute = true;
                 ValidateCancellationTokenAttribute(arguments.AttributeSyntaxOpt, (BindingDiagnosticBag)arguments.Diagnostics);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute))
+            {
+                DecodeInterpolatedStringHandlerArgumentAttribute(ref arguments, binder, diagnostics);
             }
         }
 
@@ -1047,6 +1056,199 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
         }
+
+#nullable enable
+        private void DecodeInterpolatedStringHandlerArgumentAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(arguments.Attribute.IsTargetAttribute(this, AttributeDescription.InterpolatedStringHandlerArgumentAttribute) && arguments.Attribute.CommonConstructorArguments.Length == 1);
+            Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+
+            var errorLocation = arguments.AttributeSyntaxOpt.Location;
+
+            if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true } handlerType)
+            {
+                // '{0}' is not an interpolated string handler type.
+                diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
+                return;
+            }
+
+            TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
+
+            ImmutableArray<int> parameterOrdinals;
+            ArrayBuilder<ParameterSymbol?> parameters;
+            if (constructorArgument.Kind == TypedConstantKind.Primitive)
+            {
+                if (decodeName(constructorArgument, ref arguments) is (int ordinal, var parameter))
+                {
+                    parameterOrdinals = ImmutableArray.Create(ordinal);
+                    parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
+                    parameters.Add(parameter);
+                }
+                else
+                {
+                    // If an error needs to be reported, it will already have been reported by another step.
+                    return;
+                }
+            }
+            else if (constructorArgument.Kind == TypedConstantKind.Array)
+            {
+                bool hadError = false;
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
+                var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
+                foreach (var nestedArgument in constructorArgument.Values)
+                {
+                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    {
+                        parameters.Add(parameter);
+                        ordinalsBuilder.Add(ordinal);
+                    }
+                    else
+                    {
+                        hadError = true;
+                    }
+                }
+
+                if (hadError)
+                {
+                    parameters.Free();
+                    ordinalsBuilder.Free();
+                    return;
+                }
+
+                parameterOrdinals = ordinalsBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                // There was some error already reported for having an incorrect argument.
+                return;
+            }
+
+            // Validate that the type has a constructor with the correct types.
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            var intType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
+            var intPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(arguments.AttributeSyntaxOpt!, intType, hasErrors: intType.IsErrorType());
+            // literalLength
+            analyzedArguments.Arguments.Add(intPlaceholder);
+            analyzedArguments.RefKinds.Add(RefKind.None);
+            // formattedCount
+            analyzedArguments.Arguments.Add(intPlaceholder);
+            analyzedArguments.RefKinds.Add(RefKind.None);
+
+            foreach (var parameter in parameters)
+            {
+                var argumentType = parameter?.Type ?? ContainingType;
+                analyzedArguments.Arguments.Add(new BoundInterpolatedStringArgumentPlaceholder(arguments.AttributeSyntaxOpt!, argumentType, hasErrors: argumentType.IsErrorType()));
+                analyzedArguments.RefKinds.Add(parameter?.RefKind ?? RefKind.None);
+            }
+
+            // First try without an out parameter
+            bool success = binder.TryPerformConstructorOverloadResolution(
+                handlerType,
+                analyzedArguments,
+                errorName: handlerType.Name,
+                errorLocation,
+                suppressResultDiagnostics: true,
+                BindingDiagnosticBag.Discarded,
+                memberResolutionResult: out _,
+                candidateConstructors: out _,
+                allowProtectedConstructorsOfBaseType: false);
+
+            if (!success)
+            {
+                // Retry with an out parameter
+                var boolType = this.DeclaringCompilation.GetSpecialType(SpecialType.System_Boolean);
+                analyzedArguments.Arguments.Add(new BoundInterpolatedStringArgumentPlaceholder(arguments.AttributeSyntaxOpt!, boolType, hasErrors: boolType.IsErrorType()));
+                analyzedArguments.RefKinds.Add(RefKind.Out);
+
+                success = binder.TryPerformConstructorOverloadResolution(
+                    handlerType,
+                    analyzedArguments,
+                    errorName: handlerType.Name,
+                    errorLocation,
+                    suppressResultDiagnostics: true,
+                    BindingDiagnosticBag.Discarded,
+                    memberResolutionResult: out _,
+                    candidateConstructors: out _,
+                    allowProtectedConstructorsOfBaseType: false);
+            }
+
+            if (success)
+            {
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().InterpolatedStringHandlerArguments = parameterOrdinals;
+            }
+            else
+            {
+                // Could not find a constructor on '{0}' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.
+                diagnostics.Add(ErrorCode.ERR_CouldNotFindApplicableInterpolatedStringHandlerConstructor, errorLocation, handlerType);
+            }
+
+            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            {
+                Debug.Assert(arguments.AttributeSyntaxOpt is not null);
+                if (constant.IsNull)
+                {
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location);
+                    return null;
+                }
+
+                if (constant.TypeInternal is not { SpecialType: SpecialType.System_String })
+                {
+                    // There has already been an error reported. Just return null.
+                    return null;
+                }
+
+                var name = constant.DecodeValue<string>(SpecialType.System_String);
+                Debug.Assert(name != null);
+                if (name == "")
+                {
+                    // Name refers to the "this" instance parameter.
+                    if (ContainingSymbol.IsStatic)
+                    {
+                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
+                    return (-1, null);
+                }
+
+                ImmutableArray<ParameterSymbol> parameters = ContainingSymbol switch
+                {
+                    PropertySymbol { Parameters: var p } => p,
+                    MethodSymbol { Parameters: var p } => p,
+                    _ => throw ExceptionUtilities.UnexpectedValue(ContainingType)
+                };
+
+                foreach (var parameter in parameters)
+                {
+                    if (parameter.Name.Equals(name, StringComparison.Ordinal))
+                    {
+                        if ((object)parameter == this)
+                        {
+                            // Interpolated string handler arguments cannot refer to themselves.
+                            diagnostics.Add(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, errorLocation);
+                            return null;
+                        }
+
+                        if (parameter.Ordinal > Ordinal)
+                        {
+                            // Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions.
+                            // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
+                            // string handler parameter after all arguments involved.
+                            diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter, this);
+                        }
+
+                        return (parameter.Ordinal, parameter);
+                    }
+                }
+
+                // '{0}' is not a valid parameter name from '{1}'.
+                diagnostics.Add(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, name, ContainingSymbol);
+                return null;
+            }
+        }
+#nullable disable
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
