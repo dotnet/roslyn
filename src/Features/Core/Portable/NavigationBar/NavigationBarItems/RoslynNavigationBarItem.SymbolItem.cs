@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 Contract.ThrowIfTrue(inDocumentInfo == null && otherDocumentInfo == null, "Both locations were null");
                 Contract.ThrowIfTrue(inDocumentInfo != null && otherDocumentInfo != null, "Both locations were not null");
 
+                if (inDocumentInfo != null)
+                {
+                    Contract.ThrowIfTrue(inDocumentInfo.Value.spans.IsEmpty, "If location is in document, it must have non-empty spans");
+                }
+
                 InDocumentInfo = inDocumentInfo;
                 OtherDocumentInfo = otherDocumentInfo;
             }
