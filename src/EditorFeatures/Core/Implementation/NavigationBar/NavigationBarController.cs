@@ -388,8 +388,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
-                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task
+                    // below. Note that we only want to refresh if selecting the item had an effect (either navigating
+                    // or generating).  If nothing happened to don't want to refresh.  This is important as some items
+                    // exist in the type list that are only there to show a set a particular set of items in the member
+                    // list.  So selecting such an item should only update the member list, and we do not want a refresh
+                    // to wipe that out.
+                    if (!await navBarService.TryNavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true))
+                        return;
                 }
             }
 
