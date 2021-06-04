@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         }
 
         private Solution GetCurrentCompileTimeSolution()
-            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCurrentCompileTimeSolution();
+            => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
 
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
@@ -169,8 +169,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
         }
 
-        private SolutionActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-           => new((documentId, cancellationToken) => _activeStatementTrackingService.GetSpansAsync(solution.GetRequiredDocument(documentId), cancellationToken));
+        private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
+           => new((documentId, filePath, cancellationToken) => _activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
         /// <summary>
         /// Returns true if any changes have been made to the source since the last changes had been applied.
@@ -210,11 +210,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 var solution = GetCurrentCompileTimeSolution();
 
-                var activeStatementSpanProvider = new SolutionActiveStatementSpanProvider(async (documentId, cancellationToken) =>
-                {
-                    var document = solution.GetRequiredDocument(documentId);
-                    return await _activeStatementTrackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
-                });
+                var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
+                    _activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
                 var span = await _proxy.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
                 return span?.ToSourceSpan();
