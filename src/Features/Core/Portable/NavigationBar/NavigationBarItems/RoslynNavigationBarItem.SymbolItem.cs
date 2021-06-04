@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.NavigationBar
                 => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Name, IsObsolete, Location, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
         }
 
+        [DataContract]
         public readonly struct SymbolItemLocation
         {
             /// <summary>

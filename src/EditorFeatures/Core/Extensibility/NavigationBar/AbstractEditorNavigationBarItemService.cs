@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
         }
 
-        private static (DocumentId documentId, int position) GetNavigationLocation(
+        internal static (DocumentId documentId, int position) GetNavigationLocation(
             Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot)
         {
             if (item.NavigationTrackingSpan != null)
