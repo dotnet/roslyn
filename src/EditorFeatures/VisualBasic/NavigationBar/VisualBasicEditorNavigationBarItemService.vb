@@ -41,6 +41,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             Return TypeOf DirectCast(item, WrappedNavigationBarItem).UnderlyingItem Is SymbolItem
         End Function
 
+        Friend Overrides Async Function GetNavigationLocationAsync(
+                document As Document,
+                item As NavigationBarItem,
+                symbolItem As SymbolItem,
+                textSnapshot As ITextSnapshot,
+                cancellationToken As CancellationToken) As Task(Of (documentId As DocumentId, position As Integer, virtualSpace As Integer))
+
+            Dim navigationLocation = Await MyBase.GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(False)
+
+            Dim destinationDocument = document.Project.Solution.GetDocument(navigationLocation.documentId)
+
+            Dim root = Await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+
+            ' If the symbol is a method symbol, we'll figure out the right location which may be in virtual space
+            Dim methodBlock = root.FindToken(navigationLocation.position).GetAncestor(Of MethodBlockBaseSyntax)()
+            If methodBlock IsNot Nothing Then
+                Dim text = Await destinationDocument.GetTextAsync(cancellationToken).ConfigureAwait(False)
+                Dim navPoint = NavigationPointHelpers.GetNavigationPoint(text, indentSize:=4, methodBlock)
+                Return (navigationLocation.documentId, navPoint.Position, navPoint.VirtualSpaces)
+            End If
+
+            Return navigationLocation
+        End Function
+
         Protected Overrides Async Function TryNavigateToItemAsync(
                 document As Document, item As WrappedNavigationBarItem, textView As ITextView, textSnapshot As ITextSnapshot, cancellationToken As CancellationToken) As Task(Of Boolean)
             Dim underlying = item.UnderlyingItem
@@ -56,30 +80,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
 
             Return False
-        End Function
-
-        Friend Overrides Async Function GetNavigationLocationAsync(
-                document As Document,
-                item As NavigationBarItem,
-                symbolItem As SymbolItem,
-                textSnapshot As ITextSnapshot,
-                cancellationToken As CancellationToken) As Task(Of (documentId As DocumentId, position As Integer, virtualSpace As Integer))
-
-            Dim navigationLocation = Await MyBase.GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(False)
-
-            Dim destinationDocument = document.Project.Solution.GetDocument(navigationLocation.documentId)
-
-            Dim text = Await destinationDocument.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim root = Await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-
-            ' If the symbol is a method symbol, we'll figure out the right location which may be in virtual space
-            Dim methodBlock = root.FindToken(navigationLocation.position).GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock IsNot Nothing Then
-                Dim navPoint = NavigationPointHelpers.GetNavigationPoint(text, indentSize:=4, methodBlock)
-                Return (navigationLocation.documentId, navPoint.Position, navPoint.VirtualSpaces)
-            End If
-
-            Return navigationLocation
         End Function
     End Class
 End Namespace
