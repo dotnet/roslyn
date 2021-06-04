@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
@@ -32,6 +33,17 @@ namespace Microsoft.CodeAnalysis.NavigationBar
 
             var items = await GetItemsInCurrentProcessAsync(document, supportsCodeGeneration, cancellationToken).ConfigureAwait(false);
             return items;
+        }
+
+        protected static TextSpan? GetSelectionSpan(ISymbol symbol, SyntaxTree tree)
+        {
+            foreach (var location in symbol.Locations)
+            {
+                if (location.SourceTree == tree)
+                    return location.SourceSpan;
+            }
+
+            return null;
         }
     }
 }

@@ -26,10 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
         protected abstract Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
-        [Obsolete("Caller should call NavigateToItemAsync instead", error: true)]
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
-            => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
-
         public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();

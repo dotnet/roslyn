@@ -11,27 +11,47 @@ namespace Microsoft.CodeAnalysis.NavigationBar
     {
         public sealed class SymbolItem : RoslynNavigationBarItem
         {
+            public readonly string Name;
+            public readonly bool IsObsolete;
+            /// <summary>
+            /// All the spans in the starting document where this symbol was found.  ANy time the caret is within one of
+            /// these spans, the item should be appropriately 'selected' in whatever UI is displaying these. If this
+            /// symbol's location is in another document then this will be empty.
+            /// </summary>
+            public readonly ImmutableArray<TextSpan> Spans;
+            /// <summary>
+            /// The location in the starting document that should be navigated to when this item is selected. If this
+            /// symbol's location is in another document then this will be <see langword="null"/>.
+            /// </summary>
+            public readonly TextSpan? SelectionSpan;
             public readonly SymbolKey NavigationSymbolId;
             public readonly int NavigationSymbolIndex;
 
             public SymbolItem(
+                string name,
                 string text,
                 Glyph glyph,
+                bool isObsolete,
                 ImmutableArray<TextSpan> spans,
+                TextSpan? selectionSpan,
                 SymbolKey navigationSymbolId,
                 int navigationSymbolIndex,
                 ImmutableArray<RoslynNavigationBarItem> childItems = default,
                 int indent = 0,
                 bool bolded = false,
                 bool grayed = false)
-                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems, spans)
+                : base(RoslynNavigationBarItemKind.Symbol, text, glyph, bolded, grayed, indent, childItems)
             {
+                this.Name = name;
+                this.IsObsolete = isObsolete;
+                this.Spans = spans.NullToEmpty();
+                this.SelectionSpan = selectionSpan;
                 this.NavigationSymbolId = navigationSymbolId;
                 this.NavigationSymbolIndex = navigationSymbolIndex;
             }
 
             protected internal override SerializableNavigationBarItem Dehydrate()
-                => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Spans, NavigationSymbolId, NavigationSymbolIndex, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
+                => SerializableNavigationBarItem.SymbolItem(Text, Glyph, Name, IsObsolete, Spans, SelectionSpan, NavigationSymbolId, NavigationSymbolIndex, SerializableNavigationBarItem.Dehydrate(ChildItems), Indent, Bolded, Grayed);
         }
     }
 }

@@ -9,11 +9,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
 
 Namespace Microsoft.CodeAnalysis.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
@@ -163,16 +163,22 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                           Order By member.Name
                           Select DirectCast(New SymbolItem(
                               member.Name,
+                              member.Name,
                               member.GetGlyph(),
+                              member.IsObsolete,
                               GetSpansInDocument(member, tree, symbolDeclarationService, cancellationToken),
+                              GetSelectionSpan(member, tree),
                               member.GetSymbolKey(cancellationToken),
                               symbolIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken))), RoslynNavigationBarItem)
                           Into ToImmutableArray()
 
             Return New SymbolItem(
                 type.Name,
+                type.Name,
                 type.GetGlyph(),
+                type.IsObsolete,
                 GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
+                GetSelectionSpan(type, tree),
                 type.GetSymbolKey(cancellationToken),
                 typeSymbolIdIndex,
                 members,
@@ -234,9 +240,12 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
             End If
 
             Return New SymbolItem(
+                type.Name,
                 name,
                 type.GetGlyph(),
+                type.IsObsolete,
                 spans:=GetSpansInDocument(type, tree, symbolDeclarationService, cancellationToken),
+                selectionSpan:=GetSelectionSpan(type, tree),
                 navigationSymbolId:=type.GetSymbolKey(cancellationToken),
                 navigationSymbolIndex:=typeSymbolIdIndex,
                 childItems:=childItems.ToImmutableArray(),
@@ -330,8 +339,11 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     rightHandMemberItems.Add(
                         New SymbolItem(
                             e.Name,
+                            e.Name,
                             e.GetGlyph(),
+                            e.IsObsolete,
                             methodSpans,
+                            GetSelectionSpan(e, semanticModel.SyntaxTree),
                             navigationSymbolId,
                             navigationSymbolIndex:=0,
                             bolded:=True))
@@ -361,14 +373,12 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     eventContainer.Name,
                     eventContainer.GetGlyph(),
                     indent:=1,
-                    spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             Else
                 Return New ActionlessItem(
                     String.Format(VBFeaturesResources._0_Events, containingType.Name),
                     Glyph.EventPublic,
                     indent:=1,
-                    spans:=allMethodSpans.ToImmutableArray(),
                     childItems:=rightHandMemberItems.ToImmutableArray())
             End If
         End Function
@@ -416,9 +426,12 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 If method IsNot Nothing AndAlso method.PartialImplementationPart IsNot Nothing Then
                     method = method.PartialImplementationPart
                     items.Add(New SymbolItem(
+                        method.Name,
                         method.ToDisplayString(displayFormat),
                         method.GetGlyph(),
+                        method.IsObsolete,
                         spans,
+                        GetSelectionSpan(method, tree),
                         method.GetSymbolKey(cancellationToken),
                         symbolIdIndexProvider.GetIndexForSymbolId(method.GetSymbolKey(cancellationToken)),
                         bolded:=spans.Count > 0,
@@ -433,9 +446,12 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                     End If
                 Else
                     items.Add(New SymbolItem(
+                        member.Name,
                         member.ToDisplayString(displayFormat),
                         member.GetGlyph(),
+                        member.IsObsolete,
                         spans,
+                        GetSelectionSpan(member, tree),
                         member.GetSymbolKey(cancellationToken),
                         symbolIdIndexProvider.GetIndexForSymbolId(member.GetSymbolKey(cancellationToken)),
                         bolded:=spans.Count > 0,

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Text = text;
             this.Glyph = glyph;
-            this.Spans = spans;
+            this.Spans = spans.NullToEmpty();
             this.ChildItems = childItems.NullToEmpty();
             this.Indent = indent;
             this.Bolded = bolded;
