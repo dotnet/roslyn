@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor
             DocumentId documentId,
             string language)
                 : base(text, glyph,
-                       spans: ImmutableArray<TextSpan>.Empty,
+                       trackingSpans: ImmutableArray<ITrackingSpan>.Empty,
                        childItems: ImmutableArray<NavigationBarItem>.Empty,
                        indent: 0, bolded: false, grayed: false)
         {
