@@ -63,12 +63,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             ITextSnapshot textSnapshot,
             CancellationToken cancellationToken)
         {
+            // If the item points to a location in this document, then just determine the current location
+            // of that item and go directly to it.
             if (item.NavigationTrackingSpan != null)
             {
                 return Task.FromResult((document.Id, item.NavigationTrackingSpan.GetSpan(textSnapshot).Start.Position, 0));
             }
             else
             {
+                // Otherwise, the item pointed to a location in another document.  Just return the position we
+                // computed and stored for it.
                 Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
                 var otherLocation = symbolItem.Location.OtherDocumentInfo.Value;
                 return Task.FromResult((otherLocation.documentId, otherLocation.navigationSpan.Start, 0));
