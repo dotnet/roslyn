@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -89,8 +90,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         //
         internal ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
 
+        internal EditSession EditSession { get; private set; }
+
         private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
         private readonly object _modulesPreparedForUpdateGuard = new();
+
+        internal readonly DebuggingSessionId Id;
 
         /// <summary>
         /// The solution captured when the debugging session entered run mode (application debugging started),
@@ -106,12 +111,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly EditAndContinueCapabilities Capabilities;
 
-        internal readonly DebuggingSessionId Id;
+        /// <summary>
+        /// True if the diagnostics produced by the session should be reported to the diagnotic analyzer.
+        /// </summary>
+        internal readonly bool ReportDiagnostics;
 
         private readonly DebuggingSessionTelemetry _telemetry;
-        internal EditSession EditSession;
+        private readonly EditSessionTelemetry _editSessionTelemetry;
 
         private PendingSolutionUpdate? _pendingUpdate;
+        private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         internal DebuggingSession(
             DebuggingSessionId id,
@@ -120,26 +129,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             EditAndContinueCapabilities capabilities,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
-            DebuggingSessionTelemetry debuggingSessionTelemetry,
-            EditSessionTelemetry editSessionTelemetry)
+            bool reportDiagnostics)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
-            _telemetry = debuggingSessionTelemetry;
+            _telemetry = new DebuggingSessionTelemetry();
+            _editSessionTelemetry = new EditSessionTelemetry();
+            _reportTelemetry = ReportTelemetry;
 
             Id = id;
             Capabilities = capabilities;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
-            EditSession = new EditSession(this, editSessionTelemetry, inBreakState: false);
+            EditSession = new EditSession(this, _editSessionTelemetry, inBreakState: false);
+            ReportDiagnostics = reportDiagnostics;
         }
-
-        internal CancellationToken CancellationToken => _cancellationSource.Token;
 
         public void Dispose()
         {
             _cancellationSource.Cancel();
 
+            // Consider: Some APIs on DebuggingSession (GetDocumentDiagnostics, OnSourceFileUpdated, GetXxxSpansAsync) can be called at any point in time.
+            // These APIs should not be using the readers being disposed here, but there is no guarantee. Consider refactoring that would guarantee correctness.
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
@@ -147,6 +158,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _cancellationSource.Dispose();
         }
+
+        internal Task OnSourceFileUpdatedAsync(Document document)
+            => LastCommittedSolution.OnSourceFileUpdatedAsync(document, _cancellationSource.Token);
 
         internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
         {
@@ -184,8 +198,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             EndEditSession(out documentsToReanalyze);
             telemetryData = _telemetry.GetDataAndClear();
+            _reportTelemetry(telemetryData);
+
             Dispose();
         }
+
+        public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
+            => RestartEditSession(inBreakState: true, out documentsToReanalyze);
 
         internal void RestartEditSession(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
@@ -915,6 +934,69 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return null;
         }
 
+        private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
+        {
+            // report telemetry (fire and forget):
+            _ = Task.Run(() => LogTelemetry(data, Logger.Log, LogAggregator.GetNextId));
+        }
+
+        private static void LogTelemetry(DebuggingSessionTelemetry.Data debugSessionData, Action<FunctionId, LogMessage> log, Func<int> getNextId)
+        {
+            const string SessionId = nameof(SessionId);
+            const string EditSessionId = nameof(EditSessionId);
+
+            var debugSessionId = getNextId();
+
+            log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
+            {
+                map[SessionId] = debugSessionId;
+                map["SessionCount"] = debugSessionData.EditSessionData.Length;
+                map["EmptySessionCount"] = debugSessionData.EmptyEditSessionCount;
+            }));
+
+            foreach (var editSessionData in debugSessionData.EditSessionData)
+            {
+                var editSessionId = getNextId();
+
+                log(FunctionId.Debugging_EncSession_EditSession, KeyValueLogMessage.Create(map =>
+                {
+                    map[SessionId] = debugSessionId;
+                    map[EditSessionId] = editSessionId;
+
+                    map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
+                    map["HadRudeEdits"] = editSessionData.HadRudeEdits;
+                    map["HadValidChanges"] = editSessionData.HadValidChanges;
+                    map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
+
+                    map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
+                    map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
+                }));
+
+                foreach (var errorId in editSessionData.EmitErrorIds)
+                {
+                    log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(map =>
+                    {
+                        map[SessionId] = debugSessionId;
+                        map[EditSessionId] = editSessionId;
+                        map["ErrorId"] = errorId;
+                    }));
+                }
+
+                foreach (var (editKind, syntaxKind) in editSessionData.RudeEdits)
+                {
+                    log(FunctionId.Debugging_EncSession_EditSession_RudeEdit, KeyValueLogMessage.Create(map =>
+                    {
+                        map[SessionId] = debugSessionId;
+                        map[EditSessionId] = editSessionId;
+
+                        map["RudeEditKind"] = editKind;
+                        map["RudeEditSyntaxKind"] = syntaxKind;
+                        map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
+                    }));
+                }
+            }
+        }
+
         internal TestAccessor GetTestAccessor()
             => new(this);
 
@@ -949,6 +1031,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             public PendingSolutionUpdate? GetPendingSolutionUpdate()
                 => _instance._pendingUpdate;
+
+            public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
+                => _instance._reportTelemetry = data => LogTelemetry(data, logger, getNextId);
         }
     }
 }

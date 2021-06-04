@@ -71,6 +71,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
+        private RemoteDebuggingSessionProxy GetDebuggingSession()
+        {
+            var debuggingSession = _debuggingSession;
+            Contract.ThrowIfNull(debuggingSession);
+            return debuggingSession;
+        }
+
         public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
@@ -81,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -98,12 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
             }
 
-            Contract.ThrowIfNull(_debuggingSession);
-
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                var (moduleUpdates, diagnosticData, rudeEdits) = await _debuggingSession.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
                 var updates = moduleUpdates.Updates.SelectAsArray(
                     update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
@@ -135,11 +140,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return;
             }
 
-            Contract.ThrowIfNull(_debuggingSession);
-
             try
             {
-                await _debuggingSession.CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -154,11 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return;
             }
 
-            Contract.ThrowIfNull(_debuggingSession);
-
             try
             {
-                await _debuggingSession.DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -173,11 +174,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return;
             }
 
-            Contract.ThrowIfNull(_debuggingSession);
-
             try
             {
-                await _debuggingSession.EndDebuggingSessionAsync( _diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

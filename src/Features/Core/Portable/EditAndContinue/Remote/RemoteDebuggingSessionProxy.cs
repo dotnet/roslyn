@@ -89,70 +89,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, Document designTimeDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(_sessionId, document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-                if (designTimeDocument != document)
-                {
-                    diagnostics = diagnostics.SelectAsArray(diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(diagnostic, document.Project)));
-                }
-
-                return diagnostics;
-            }
-
-            var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(
-                document.Project.Solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.GetDocumentDiagnosticsAsync(solutionInfo, callbackId, _sessionId, document.Id, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!diagnosticData.HasValue)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            var project = document.Project;
-
-            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
-            foreach (var data in diagnosticData.Value)
-            {
-                Debug.Assert(data.DataLocation != null);
-
-                Diagnostic diagnostic;
-
-                // Workaround for solution crawler not supporting mapped locations to make Razor work.
-                // We pretend the diagnostic is in the original document, but use the mapped line span.
-                // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-                if (designTimeDocument != document && data.DataLocation.IsMapped)
-                {
-                    diagnostic = RemapLocation(designTimeDocument, data);
-                }
-                else
-                {
-                    diagnostic = await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                }
-
-                result.Add(diagnostic);
-            }
-
-            return result.ToImmutable();
-        }
-
-        private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)
-        {
-            Debug.Assert(data.DataLocation != null);
-            Debug.Assert(designTimeDocument.FilePath != null);
-
-            var mappedSpan = data.DataLocation.GetFileLinePositionSpan();
-            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, mappedSpan.Span);
-
-            return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
-        }
-
         public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
@@ -293,21 +229,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : null;
-        }
-
-        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                GetLocalService().OnSourceFileUpdated(_sessionId, document);
-                return;
-            }
-
-            await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-               document.Project.Solution,
-               (service, solutionInfo, cancellationToken) => service.OnSourceFileUpdatedAsync(solutionInfo, _sessionId, document.Id, cancellationToken),
-               cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)

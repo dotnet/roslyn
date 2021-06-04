@@ -79,12 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
             }
+
+            // the service failed, error has been reported - disable further operations
+            _disabled = _debuggingSession == null;
         }
 
         public async Task EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -144,8 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 return;
             }
-
-            Contract.ThrowIfNull(_debuggingSession);
 
             try
             {

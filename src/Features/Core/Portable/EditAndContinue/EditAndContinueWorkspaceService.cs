@@ -46,10 +46,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal static readonly TraceLog Log = new(2048, "EnC");
 
-        private readonly EditSessionTelemetry _editSessionTelemetry;
-        private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
-        private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         /// <summary>
         /// List of active debugging sessions (small number of simoultaneously active sessions is expected).
@@ -59,10 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditAndContinueWorkspaceService()
         {
-            _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
-            _editSessionTelemetry = new EditSessionTelemetry();
             _compilationOutputsProvider = GetCompilationOutputs;
-            _reportTelemetry = ReportTelemetry;
         }
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
@@ -81,17 +75,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void OnSourceFileUpdated(DebuggingSessionId sessionId, Document document)
+        private ImmutableArray<DebuggingSession> GetActiveDebuggingSessions()
         {
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession != null)
+            lock (_debuggingSessions)
             {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
+                return _debuggingSessions.ToImmutableArray();
             }
         }
 
-        public async ValueTask<DebuggingSession> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        private ImmutableArray<DebuggingSession> GetDiagnosticReportingDebuggingSessions()
+        {
+            lock (_debuggingSessions)
+            {
+                return _debuggingSessions.Where(s => s.ReportDiagnostics).ToImmutableArray();
+            }
+        }
+
+        public void OnSourceFileUpdated(Document document)
+        {
+            // notify all active debugging sessions
+            foreach (var debuggingSession in GetActiveDebuggingSessions())
+            {
+                // fire and forget
+                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document));
+            }
+        }
+
+        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
         {
             var initialDocumentStates =
                 captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
@@ -108,14 +118,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var newSession = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, _debuggingSessionTelemetry, _editSessionTelemetry);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
-                _debuggingSessions.Add(newSession);
+                _debuggingSessions.Add(session);
             }
 
-            return newSession;
+            return sessionId;
         }
 
         // internal for testing
@@ -155,30 +165,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
-
-            _reportTelemetry(telemetryData);
         }
 
         public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
-            debuggingSession.RestartEditSession(inBreakState: true, out documentsToReanalyze);
+            debuggingSession.BreakStateEntered(out documentsToReanalyze);
         }
 
-        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(
-            DebuggingSessionId sessionId,
-            Document document,
-            ActiveStatementSpanProvider activeStatementSpanProvider,
-            CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
-            var debuggingSession = TryGetDebuggingSession(sessionId);
-            if (debuggingSession == null)
-            {
-                return ValueTaskFactory.FromResult(ImmutableArray<Diagnostic>.Empty);
-            }
-
-            return debuggingSession.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
+            return GetDiagnosticReportingDebuggingSessions().SelectManyAsArrayAsync(
+                (s, arg, cancellationToken) => s.GetDocumentDiagnosticsAsync(arg.document, arg.activeStatementSpanProvider, cancellationToken),
+                (document, activeStatementSpanProvider),
+                cancellationToken);
         }
 
         /// <summary>
@@ -290,70 +291,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId, cancellationToken);
         }
 
-        private static void ReportTelemetry(DebuggingSessionTelemetry.Data data)
-        {
-            // report telemetry (fire and forget):
-            _ = Task.Run(() => LogDebuggingSessionTelemetry(data, Logger.Log, LogAggregator.GetNextId));
-        }
-
-        // internal for testing
-        internal static void LogDebuggingSessionTelemetry(DebuggingSessionTelemetry.Data debugSessionData, Action<FunctionId, LogMessage> log, Func<int> getNextId)
-        {
-            const string SessionId = nameof(SessionId);
-            const string EditSessionId = nameof(EditSessionId);
-
-            var debugSessionId = getNextId();
-
-            log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
-            {
-                map[SessionId] = debugSessionId;
-                map["SessionCount"] = debugSessionData.EditSessionData.Length;
-                map["EmptySessionCount"] = debugSessionData.EmptyEditSessionCount;
-            }));
-
-            foreach (var editSessionData in debugSessionData.EditSessionData)
-            {
-                var editSessionId = getNextId();
-
-                log(FunctionId.Debugging_EncSession_EditSession, KeyValueLogMessage.Create(map =>
-                {
-                    map[SessionId] = debugSessionId;
-                    map[EditSessionId] = editSessionId;
-
-                    map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
-                    map["HadRudeEdits"] = editSessionData.HadRudeEdits;
-                    map["HadValidChanges"] = editSessionData.HadValidChanges;
-                    map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
-
-                    map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
-                    map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
-                }));
-
-                foreach (var errorId in editSessionData.EmitErrorIds)
-                {
-                    log(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(map =>
-                    {
-                        map[SessionId] = debugSessionId;
-                        map[EditSessionId] = editSessionId;
-                        map["ErrorId"] = errorId;
-                    }));
-                }
-
-                foreach (var (editKind, syntaxKind) in editSessionData.RudeEdits)
-                {
-                    log(FunctionId.Debugging_EncSession_EditSession_RudeEdit, KeyValueLogMessage.Create(map =>
-                    {
-                        map[SessionId] = debugSessionId;
-                        map[EditSessionId] = editSessionId;
-
-                        map["RudeEditKind"] = editKind;
-                        map["RudeEditSyntaxKind"] = syntaxKind;
-                        map["RudeEditBlocking"] = editSessionData.HadRudeEdits;
-                    }));
-                }
-            }
-        }
-
         internal TestAccessor GetTestAccessor()
             => new(this);
 
@@ -366,8 +303,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _service = service;
             }
 
-            internal void SetOutputProvider(Func<Project, CompilationOutputs> value) => _service._compilationOutputsProvider = value;
-            internal void SetReportTelemetry(Action<DebuggingSessionTelemetry.Data> value) => _service._reportTelemetry = value;
+            public void SetOutputProvider(Func<Project, CompilationOutputs> value)
+                => _service._compilationOutputsProvider = value;
+
+            public DebuggingSession GetDebuggingSession(DebuggingSessionId id)
+                => _service._debuggingSessions.Single(s => s.Id == id);
+
         }
     }
 }

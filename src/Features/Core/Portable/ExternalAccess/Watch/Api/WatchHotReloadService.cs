@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly IEditAndContinueWorkspaceService _encService;
-        private DebuggingSession? _session;
+        private DebuggingSessionId _sessionId;
 
         public WatchHotReloadService(HostWorkspaceServices services)
             => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
@@ -67,9 +66,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var newSession = await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
-            var previousSession = Interlocked.Exchange(ref _session, newSession);
-            Contract.ThrowIfFalse(previousSession == null, "Session already started");
+            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(_sessionId == default, "Session already started");
+            _sessionId = newSessionId;
         }
 
         /// <summary>
@@ -83,14 +82,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// </returns>
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var session = _session;
-            Contract.ThrowIfNull(session, "Session has not started");
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            var results = await _encService.EmitSolutionUpdateAsync(session.Id, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate(session.Id, out _);
+                _encService.CommitSolutionUpdate(sessionId, out _);
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -103,9 +102,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
         public void EndSession()
         {
-            var currentSession = Interlocked.Exchange(ref _session, null);
-            Contract.ThrowIfNull(currentSession, "Session has not started");
-            _encService.EndDebuggingSession(currentSession.Id, out _);
+            Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
+            _encService.EndDebuggingSession(_sessionId, out _);
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly WatchHotReloadService _instance;
+
+            internal TestAccessor(WatchHotReloadService instance)
+                => _instance = instance;
+
+            public DebuggingSessionId SessionId
+                => _instance._sessionId;
         }
     }
 }
