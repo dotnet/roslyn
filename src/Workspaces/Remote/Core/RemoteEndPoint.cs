@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Remote
             _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
             {
                 CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
-                TraceSource = logger
+                TraceSource = logger,
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
             if (incomingCallTarget != null)

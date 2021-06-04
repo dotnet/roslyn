@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis
 
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:
+                case TextTags.CodeBlockStart:
+                case TextTags.CodeBlockEnd:
                     // These tags are not visible so classify them as whitespace
                     return ClassificationTypeNames.WhiteSpace;
 

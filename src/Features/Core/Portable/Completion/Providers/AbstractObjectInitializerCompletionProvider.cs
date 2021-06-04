@@ -84,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
+                || symbol.ContainingType.IsAnonymousType
                 || CanSupportObjectInitializer(symbol);
         }
 

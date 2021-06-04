@@ -1087,7 +1087,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-
         private void EnsureEnumUnderlyingTypeIsLoaded(UncommonProperties uncommon)
         {
             if ((object)(uncommon.lazyEnumUnderlyingType) == null
@@ -1961,7 +1960,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
-
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (!_lazyCachedUseSiteInfo.IsInitialized)
@@ -2257,8 +2255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
-
-        public IEnumerable<object> fieldDefs { get; set; }
 
         /// <summary>
         /// Returns the index of the first member of the specific kind.

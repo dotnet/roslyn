@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             Document document,
             TextSpan selection,
-            bool includeSuppressionFixes,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
@@ -43,13 +42,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // it. However, it's deliberate.  We want to make sure that the code runs on 
             // the background so that no one takes an accidentally dependency on running on 
             // the UI thread.
-            var fixes = await Task.Run(
-                () => codeFixService.GetFixesAsync(
-                document, selection, includeSuppressionFixes, isBlocking,
-                addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
+            var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
+                document, selection, includeSuppressionFixes: true, isBlocking, addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
-            var organizedFixes = OrganizeFixes(workspace, filteredFixes, includeSuppressionFixes);
+            var organizedFixes = OrganizeFixes(workspace, filteredFixes);
 
             return organizedFixes;
         }
@@ -59,14 +56,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         /// </summary>
         private static ImmutableArray<UnifiedSuggestedActionSet> OrganizeFixes(
             Workspace workspace,
-            ImmutableArray<CodeFixCollection> fixCollections,
-            bool includeSuppressionFixes)
+            ImmutableArray<CodeFixCollection> fixCollections)
         {
             var map = ImmutableDictionary.CreateBuilder<CodeFixGroupKey, IList<UnifiedSuggestedAction>>();
             using var _ = ArrayBuilder<CodeFixGroupKey>.GetInstance(out var order);
 
             // First group fixes by diagnostic and priority.
-            GroupFixes(workspace, fixCollections, map, order, includeSuppressionFixes);
+            GroupFixes(workspace, fixCollections, map, order);
 
             // Then prioritize between the groups.
             var prioritizedFixes = PrioritizeFixGroups(map.ToImmutable(), order.ToImmutable(), workspace);
@@ -80,21 +76,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
            Workspace workspace,
            ImmutableArray<CodeFixCollection> fixCollections,
            IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
-           ArrayBuilder<CodeFixGroupKey> order,
-           bool includeSuppressionFixes)
+           ArrayBuilder<CodeFixGroupKey> order)
         {
             foreach (var fixCollection in fixCollections)
-            {
-                ProcessFixCollection(
-                    workspace, map, order, includeSuppressionFixes, fixCollection);
-            }
+                ProcessFixCollection(workspace, map, order, fixCollection);
         }
 
         private static void ProcessFixCollection(
             Workspace workspace,
             IDictionary<CodeFixGroupKey, IList<UnifiedSuggestedAction>> map,
             ArrayBuilder<CodeFixGroupKey> order,
-            bool includeSuppressionFixes,
             CodeFixCollection fixCollection)
         {
             var fixes = fixCollection.Fixes;
@@ -108,11 +99,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             // Add suppression fixes to the end of a given SuggestedActionSet so that they
             // always show up last in a group.
-            if (includeSuppressionFixes)
-            {
-                AddCodeActions(workspace, map, order, fixCollection,
-                    GetFixAllSuggestedActionSet, supressionCodeFixes);
-            }
+            AddCodeActions(workspace, map, order, fixCollection,
+                GetFixAllSuggestedActionSet, supressionCodeFixes);
 
             return;
 

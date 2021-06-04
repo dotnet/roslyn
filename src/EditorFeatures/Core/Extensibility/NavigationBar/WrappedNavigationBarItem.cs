@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor
             : base(
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  underlyingItem.Spans,
+                  (underlyingItem as RoslynNavigationBarItem.SymbolItem)?.Spans ?? default,
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,

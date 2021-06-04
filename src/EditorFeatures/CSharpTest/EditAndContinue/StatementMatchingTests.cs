@@ -2057,6 +2057,27 @@ switch(shape)
         #region Switch Expression
 
         [Fact]
+        public void SwitchExpressionArms_Lambda()
+        {
+            var src1 = @"F1() switch { 1 => new Func<int>(() => 1)(), _ => 2 };";
+            var src2 = @"F1() switch { 1 => new Func<int>(() => 3)(), _ => 2 };";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "F1() switch { 1 => new Func<int>(() => 1)(), _ => 2 };", "F1() switch { 1 => new Func<int>(() => 3)(), _ => 2 };" },
+                { "F1() switch { 1 => new Func<int>(() => 1)(), _ => 2 }", "F1() switch { 1 => new Func<int>(() => 3)(), _ => 2 }" },
+                { "1 => new Func<int>(() => 1)()", "1 => new Func<int>(() => 3)()" },
+                { "() => 1", "() => 3" },
+                { "()", "()" },
+                { "_ => 2", "_ => 2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
         public void SwitchExpressionArms_NestedSimilar()
         {
             // The inner switch is mapped to the outer one, which is assumed to be removed.
