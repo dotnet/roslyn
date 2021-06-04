@@ -93,14 +93,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(
-                string text,
-                Glyph glyph,
-                ImmutableArray<ITrackingSpan> trackingSpans,
-                ImmutableArray<NavigationBarItem> childItems,
-                int indent,
-                bool bolded,
-                bool grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
                 : base(text, glyph, trackingSpans, childItems, indent, bolded, grayed)
             {
             }
