@@ -16,14 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarPresentedItem(
             string text,
             Glyph glyph,
-            ImmutableArray<TextSpan> spans,
+            TextSpan? span,
             ImmutableArray<NavigationBarItem> childItems = default,
             bool bolded = false,
             bool grayed = false)
             : base(
                   text,
                   glyph,
-                  spans,
+                  span,
                   childItems,
                   indent: 0,
                   bolded: bolded,

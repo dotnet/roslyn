@@ -299,18 +299,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
+                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Span, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
                 {
-                    TrackingSpans = oldRight.TrackingSpans
+                    TrackingSpan = oldRight.TrackingSpan
                 };
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
+                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Span, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
                 {
-                    TrackingSpans = oldLeft.TrackingSpans
+                    TrackingSpan = oldLeft.TrackingSpan
                 };
                 listOfLeft.Add(newLeft);
             }
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 {
                     var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
+                    item.Span = item.TrackingSpan == null ? null : item.TrackingSpan.GetSpan(snapshot).Span.ToTextSpan();
                     var view = _presenter.TryGetCurrentView();
 
                     // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task

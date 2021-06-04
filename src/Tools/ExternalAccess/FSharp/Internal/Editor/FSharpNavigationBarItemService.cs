@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         public async Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (!item.Spans.IsEmpty)
+            if (item.Span != null)
             {
-                var span = item.Spans.First();
+                var span = item.Span.Value;
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
@@ -77,11 +77,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
         {
             var childItems = item.ChildItems ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>();
+            var spans = item.Spans.ToImmutableArrayOrEmpty();
 
             return new InternalNavigationBarItem(
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                item.Spans.ToImmutableArrayOrEmpty(),
+                spans.Length == 0 ? null : spans[0],
                 childItems.SelectAsArray(x => ConvertToNavigationBarItem(x)),
                 item.Indent,
                 item.Bolded,
@@ -90,8 +91,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, TextSpan? span, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, span, childItems, indent, bolded, grayed)
             {
             }
         }

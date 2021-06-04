@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public async Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
-            if (item.Spans.Length > 0)
+            if (item.Span != null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-                navigationService.TryNavigateToPosition(workspace, document.Id, item.Spans[0].Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, document.Id, item.Span.Value.Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
             }
 
             return true;
@@ -61,10 +61,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item)
         {
+            var spans = item.Spans.NullToEmpty();
             return new InternalNavigationBarItem(
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
-                item.Spans,
+                spans.Length == 0 ? null : spans[0],
                 item.ChildItems.SelectAsArray(x => ConvertToNavigationBarItem(x)),
                 item.Indent,
                 item.Bolded,
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, TextSpan? span, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, span, childItems, indent, bolded, grayed)
             {
             }
         }

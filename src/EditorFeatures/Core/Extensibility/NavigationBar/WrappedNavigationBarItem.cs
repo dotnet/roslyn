@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.NavigationBar;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
             : base(
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  (underlyingItem as RoslynNavigationBarItem.SymbolItem)?.Spans ?? default,
+                  (underlyingItem as RoslynNavigationBarItem.SymbolItem)?.Spans.FirstOrNull(),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,

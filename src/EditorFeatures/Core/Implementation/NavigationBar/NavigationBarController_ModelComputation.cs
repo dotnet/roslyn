@@ -210,28 +210,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             foreach (var item in items)
             {
-                foreach (var span in item.TrackingSpans.Select(s => s.GetSpan(point.Snapshot)))
+                cancellationToken.ThrowIfCancellationRequested();
+                if (item.TrackingSpan == null)
+                    continue;
+
+                var span = item.TrackingSpan.GetSpan(point.Snapshot);
+                if (span.Contains(point) || span.End == point)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // This is the item we should show normally. We'll continue looking at other
+                    // items as there might be a nested type that we're actually in. If there
+                    // are multiple items containing the point, choose whichever containing span
+                    // starts later because that will be the most nested item.
 
-                    if (span.Contains(point) || span.End == point)
+                    if (exactItem == null || span.Start >= exactItemStart)
                     {
-                        // This is the item we should show normally. We'll continue looking at other
-                        // items as there might be a nested type that we're actually in. If there
-                        // are multiple items containing the point, choose whichever containing span
-                        // starts later because that will be the most nested item.
-
-                        if (exactItem == null || span.Start >= exactItemStart)
-                        {
-                            exactItem = item;
-                            exactItemStart = span.Start;
-                        }
+                        exactItem = item;
+                        exactItemStart = span.Start;
                     }
-                    else if (span.Start > point && span.Start <= nextItemStart)
-                    {
-                        nextItem = item;
-                        nextItemStart = span.Start;
-                    }
+                }
+                else if (span.Start > point && span.Start <= nextItemStart)
+                {
+                    nextItem = item;
+                    nextItemStart = span.Start;
                 }
             }
 
@@ -263,35 +263,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // price soon or later to figure out selected item.
             foreach (var type in model.Types)
             {
-                if (!SpanStillValid(type.TrackingSpans, snapshot))
-                {
+                if (!SpanStillValid(type.TrackingSpan, snapshot))
                     return false;
-                }
 
                 foreach (var member in type.ChildItems)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!SpanStillValid(member.TrackingSpans, snapshot))
-                    {
+                    if (!SpanStillValid(member.TrackingSpan, snapshot))
                         return false;
-                    }
                 }
             }
 
             return true;
         }
 
-        private static bool SpanStillValid(IList<ITrackingSpan> spans, ITextSnapshot snapshot)
+        private static bool SpanStillValid(ITrackingSpan span, ITextSnapshot snapshot)
         {
-            for (var i = 0; i < spans.Count; i++)
+            if (span != null)
             {
-                var span = spans[i];
                 var currentSpan = span.GetSpan(snapshot);
                 if (currentSpan.IsEmpty)
-                {
                     return false;
-                }
             }
 
             return true;
