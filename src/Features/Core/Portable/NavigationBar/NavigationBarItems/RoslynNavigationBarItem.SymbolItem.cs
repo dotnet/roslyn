@@ -56,8 +56,18 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             /// navigated to when this item is selected If this symbol's location is in another document then this will
             /// be <see langword="null"/>.
             /// </summary>
+            /// <remarks>Exactly one of <see cref="InDocumentInfo"/> and <see cref="OtherDocumentInfo"/> will be
+            /// non-null.</remarks>
             [DataMember(Order = 0)]
             public readonly (ImmutableArray<TextSpan> spans, TextSpan navigationSpan)? InDocumentInfo;
+
+            /// <summary>
+            /// The document and navigation span this item should navigate to when the definition is not in the
+            /// originating document. This is used for partial symbols where a child symbol is declared in another file,
+            /// but should still be shown in the UI when in a part in a different file.
+            /// </summary>
+            /// <remarks>Exactly one of <see cref="InDocumentInfo"/> and <see cref="OtherDocumentInfo"/> will be
+            /// non-null.</remarks>
             [DataMember(Order = 1)]
             public readonly (DocumentId documentId, TextSpan navigationSpan)? OtherDocumentInfo;
 
