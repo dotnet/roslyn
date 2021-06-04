@@ -116,13 +116,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
-                Dim service = sourceDocument.GetLanguageService(Of INavigationBarItemService)()
+                Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
                 Dim items = Await service.GetItemsAsync(sourceDocument, snapshot, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
 
-                Dim navigationPoint = AbstractEditorNavigationBarItemService.GetNavigationLocation(
+                Dim navigationPoint = Await service.GetNavigationLocationAsync(
                     sourceDocument,
                     rightItem,
                     DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
@@ -133,6 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
                 Dim expectedNavigationPosition = expectedNavigationDocument.CursorPosition.Value
                 Assert.Equal(expectedNavigationPosition, navigationPoint.position)
+                Assert.Equal(expectedVirtualSpace, navigationPoint.virtualSpace)
             End Using
         End Function
 

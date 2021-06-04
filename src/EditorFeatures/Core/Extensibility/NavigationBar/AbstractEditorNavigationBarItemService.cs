@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
             => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textSnapshot, cancellationToken);
 
-        protected static void NavigateToSymbolItem(
+        protected async Task NavigateToSymbolItemAsync(
             Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var (documentId, position) = GetNavigationLocation(document, item, symbolItem, textSnapshot);
+            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot).ConfigureAwait(false);
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-            if (navigationService.CanNavigateToPosition(workspace, documentId, position, cancellationToken))
+            if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
             {
-                navigationService.TryNavigateToPosition(workspace, documentId, position, cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
             }
             else
             {
@@ -56,18 +56,18 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
         }
 
-        internal static (DocumentId documentId, int position) GetNavigationLocation(
+        internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
             Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot)
         {
             if (item.NavigationTrackingSpan != null)
             {
-                return (document.Id, item.NavigationTrackingSpan.GetSpan(textSnapshot).Start);
+                return Task.FromResult((document.Id, item.NavigationTrackingSpan.GetSpan(textSnapshot).Start.Position, 0));
             }
             else
             {
                 Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
                 var otherLocation = symbolItem.Location.OtherDocumentInfo.Value;
-                return (otherLocation.documentId, otherLocation.navigationSpan.Start);
+                return Task.FromResult((otherLocation.documentId, otherLocation.navigationSpan.Start, 0));
             }
         }
 

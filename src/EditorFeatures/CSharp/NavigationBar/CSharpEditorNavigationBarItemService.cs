@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
 {
@@ -26,10 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        protected override Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+        protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            NavigateToSymbolItem(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, textSnapshot, cancellationToken);
-            return SpecializedTasks.True;
+            await NavigateToSymbolItemAsync(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, textSnapshot, cancellationToken).ConfigureAwait(false);
+            return true;
         }
     }
 }

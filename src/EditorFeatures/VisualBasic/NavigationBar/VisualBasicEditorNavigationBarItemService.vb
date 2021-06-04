@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Await GenerateCodeForItemAsync(document, generateCodeItem, textView, cancellationToken).ConfigureAwait(False)
                 Return True
             ElseIf symbolItem IsNot Nothing Then
-                NavigateToSymbolItem(document, item, symbolItem, textSnapshot, cancellationToken)
+                Await NavigateToSymbolItemAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(False)
                 Return True
             End If
 
