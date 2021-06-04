@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#if DEBUG
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+#endif
     partial class BoundDagTemp
     {
         /// <summary>
@@ -29,5 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
         }
+
+#if DEBUG
+        internal new string GetDebuggerDisplay()
+        {
+            return $"t{Source?.Id ?? 0}{(Index != 0 ? $".{Index.ToString()}" : "")}";
+        }
+#endif
     }
 }

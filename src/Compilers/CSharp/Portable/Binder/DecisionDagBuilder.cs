@@ -651,7 +651,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            return new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+#if DEBUG
+            int nextTempNumber = 0;
+            // Note that this leverages the `BoundDagEvaluation.GetHashCode()`
+            // to make "equivalent" evaluation nodes share an ID
+            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+            int tempIdentifier(BoundDagEvaluation e)
+            {
+                return tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
+            }
+
+            var sortedBoundDagNodes = boundDecisionDag.TopologicallySortedNodes;
+            for (int i = 0; i < sortedBoundDagNodes.Length; i++)
+            {
+                sortedBoundDagNodes[i].Id = i;
+                if (sortedBoundDagNodes[i] is BoundEvaluationDecisionDagNode { Evaluation: var evaluation })
+                {
+                    evaluation.Id = tempIdentifier(evaluation);
+                }
+            }
+            tempIdentifierMap.Free();
+#endif
+            return boundDecisionDag;
         }
 
         /// <summary>
