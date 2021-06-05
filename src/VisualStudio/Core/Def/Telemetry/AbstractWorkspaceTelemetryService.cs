@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         protected abstract ILogger CreateLogger(TelemetrySession telemetrySession);
 
-        public Task InitializeTelemetrySessionAsync(TelemetrySession telemetrySession, CancellationToken cancellationToken)
+        public void InitializeTelemetrySession(TelemetrySession telemetrySession)
         {
             Contract.ThrowIfFalse(CurrentSession is null);
 
@@ -32,12 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
             CurrentSession = telemetrySession;
 
-            return TelemetrySessionInitializedAsync(cancellationToken);
+            TelemetrySessionInitialized();
         }
 
-        protected virtual Task TelemetrySessionInitializedAsync(CancellationToken cancellationToken)
+        protected virtual void TelemetrySessionInitialized()
         {
-            return Task.CompletedTask;
         }
 
         public bool HasActiveSession

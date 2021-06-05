@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Remote;
@@ -16,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
-    internal partial class VisualStudioWorkspaceTelemetryService : IProjectTelemetryListener, IDisposable
+    internal partial class VisualStudioWorkspaceTelemetryService : IProjectTelemetryListener, IDisposable, IEventListener<object>
     {
         private const string EventPrefix = "VS/Compilers/Compilation/";
         private const string PropertyPrefix = "VS.Compilers.Compilation.Inputs.";
@@ -44,11 +46,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             _lazyConnection?.Dispose();
         }
 
-        private async Task StartProjectTelemetryWorkerAsync(RemoteHostClient client, CancellationToken cancellationToken)
+        /// <summary>
+        /// Initialize the project statistics telemetry collection only once the VS workspace is created.
+        /// </summary>
+        public void StartListening(Workspace workspace, object serviceOpt)
+        {
+            if (workspace is VisualStudioWorkspace)
+            {
+                _ = StartProjectTelemetryCollectionAsync();
+            }
+        }
+
+        private async Task StartProjectTelemetryCollectionAsync()
+        {
+            // Have to catch all exceptions coming through here as this is called from a
+            // fire-and-forget method and we want to make sure nothing leaks out.
+            try
+            {
+                using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(StartProjectTelemetryWorkerAsync));
+                // Now that telemetry is initialized, we can start the project telemetry collection.
+                await StartProjectTelemetryWorkerAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation is normal (during VS closing).  Just ignore.
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+                // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
+                // a BG service we don't want impacting the user experience.
+            }
+        }
+
+        private async Task StartProjectTelemetryWorkerAsync(CancellationToken cancellationToken)
         {
             if (!HasActiveSession)
             {
                 // Telemetry is disabled, we don't need to start this telemetry collection.
+                return;
+            }
+
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
                 return;
             }
 
