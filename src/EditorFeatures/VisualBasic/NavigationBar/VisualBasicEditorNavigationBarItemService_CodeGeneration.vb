@@ -40,11 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
                 Dim solution = newDocument.Project.Solution
                 NavigateToPosition(
-                    solution.Workspace,
-                    solution.GetRequiredDocument(navigationPoint.Tree).Id,
-                    navigationPoint.Position,
-                    navigationPoint.VirtualSpaces,
-                    cancellationToken)
+                    solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
+                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken)
 
                 transaction.Complete()
             End Using
