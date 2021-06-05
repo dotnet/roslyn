@@ -52,9 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             if (workspace is VisualStudioWorkspace)
-            {
                 _ = StartProjectTelemetryCollectionAsync();
-            }
         }
 
         private async Task StartProjectTelemetryCollectionAsync()
@@ -80,17 +78,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         private async Task StartProjectTelemetryWorkerAsync(CancellationToken cancellationToken)
         {
+            // If telemetry is disabled, we don't need to do all the work required to collect project info data.
             if (!HasActiveSession)
-            {
-                // Telemetry is disabled, we don't need to start this telemetry collection.
                 return;
-            }
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
-            {
                 return;
-            }
 
             // Pass ourselves in as the callback target for the OOP service.  As it discovers
             // designer attributes it will call back into us to notify VS about it.
