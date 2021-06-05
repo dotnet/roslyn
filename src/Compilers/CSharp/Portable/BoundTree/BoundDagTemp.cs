@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         internal new string GetDebuggerDisplay()
         {
-            return $"t{Source?.Id ?? 0}{(Index != 0 ? $".{Index.ToString()}" : "")}";
+            return $"t{Source?.Id ?? 0}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
         }
 #endif
     }

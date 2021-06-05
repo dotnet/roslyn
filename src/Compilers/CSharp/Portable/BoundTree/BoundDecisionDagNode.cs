@@ -118,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return pooledBuilder.ToStringAndFree();
 
-            static string dumpDagTest(BoundDagTest d)
+            static string dumpDagTest(BoundDagTest test)
             {
-                switch (d)
+                switch (test)
                 {
                     case BoundDagTypeEvaluation a:
                         return $"{a.GetDebuggerDisplay()} = ({a.Type}){a.Input.GetDebuggerDisplay()}";
@@ -128,12 +128,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Property.Name}";
                     case BoundDagFieldEvaluation e:
                         return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Field.Name}";
+                    case BoundDagDeconstructEvaluation d:
+                        var output = d.GetDebuggerDisplay();
+                        var result = "(";
+                        var first = true;
+                        foreach (var param in d.DeconstructMethod.Parameters)
+                        {
+                            if (!first)
+                            {
+                                result += ", ";
+                            }
+                            first = false;
+                            result += $"{output}.Item{param.Ordinal + 1}";
+                        }
+                        result += $") = {d.Input.GetDebuggerDisplay()}";
+                        return result;
                     case BoundDagEvaluation e:
                         return $"{e.GetDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
                     case BoundDagTypeTest b:
-                        return $"{d.Input.GetDebuggerDisplay()} is {b.Type}";
+                        var typeName = b.Type.TypeKind == TypeKind.Error ? "<error type>" : b.Type.ToString();
+                        return $"{b.Input.GetDebuggerDisplay()} is {typeName}";
                     case BoundDagValueTest v:
-                        return $"{d.Input.GetDebuggerDisplay()} == {v.Value.GetValueToDisplay()}";
+                        return $"{v.Input.GetDebuggerDisplay()} == {v.Value.GetValueToDisplay()}";
+                    case BoundDagNonNullTest nn:
+                        return $"{nn.Input.GetDebuggerDisplay()} != null";
+                    case BoundDagExplicitNullTest n:
+                        return $"{n.Input.GetDebuggerDisplay()} == null";
                     case BoundDagRelationalTest r:
                         var operatorName = r.Relation.Operator() switch
                         {
@@ -143,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BinaryOperatorKind.GreaterThanOrEqual => ">=",
                             _ => "??"
                         };
-                        return $"{d.Input.GetDebuggerDisplay()} {operatorName} {r.Value.GetValueToDisplay()}";
+                        return $"{r.Input.GetDebuggerDisplay()} {operatorName} {r.Value.GetValueToDisplay()}";
                     default:
-                        return $"{d.Kind}({d.Input.GetDebuggerDisplay()})";
+                        return $"{test.Kind}({test.Input.GetDebuggerDisplay()})";
                 }
             }
         }
