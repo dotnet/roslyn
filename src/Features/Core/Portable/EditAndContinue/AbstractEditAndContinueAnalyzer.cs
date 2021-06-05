@@ -2930,7 +2930,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             // The field/property itself is being updated. Currently we do not allow any modifiers to be updated. Attribute
                             // updates will have been handled already
-                            if (newSymbol is IPropertySymbol or IFieldSymbol)
+                            if (newSymbol is IFieldSymbol or IPropertySymbol)
                             {
                                 continue;
                             }
@@ -3079,17 +3079,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 needsEdit |= HasCustomAttributeChanges(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics);
-
-                //// For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
-                //if (newMethod.AssociatedSymbol is not null)
-                //{
-                //    if (HasCustomAttributeChanges(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics) &&
-                //        semanticEdits is not null)
-                //    {
-                //        var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
-                //        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
-                //    }
-                //}
             }
             else if (newSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null } newType)
             {
@@ -3201,6 +3190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             static SyntaxNode FindSyntaxNode(ISymbol symbol)
             {
                 // In VB parameters of delegates don't have declaring syntax references so we have to go all the way up to the delegate
+                // See: https://github.com/dotnet/roslyn/issues/53337
                 if (symbol.DeclaringSyntaxReferences.Length == 0)
                 {
                     return FindSyntaxNode(symbol.ContainingSymbol);
