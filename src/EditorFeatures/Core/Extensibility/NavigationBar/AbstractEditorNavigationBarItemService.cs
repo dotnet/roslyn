@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
+            // Ensure we're back on the UI thread before either navigating or showing a failure message.
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
             {
                 navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
