@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
             // Ensure we're back on the UI thread before either navigating or showing a failure message.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
