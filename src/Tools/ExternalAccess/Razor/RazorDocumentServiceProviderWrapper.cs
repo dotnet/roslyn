@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private RazorSpanMappingServiceWrapper? _spanMappingService;
         private RazorDocumentExcerptServiceWrapper? _excerptService;
         private RazorDocumentPropertiesServiceWrapper? _documentPropertiesService;
-        private RazorDocumentOptionsProviderWrapper? _documentOptionsProvider;
+        private RazorDocumentOptionSetProviderWrapper? _documentOptionSetProvider;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -105,18 +105,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_documentPropertiesService;
             }
 
-            if (typeof(TService) == typeof(IDocumentOptionsProvider))
+            if (typeof(TService) == typeof(IDocumentOptionSetProvider))
             {
-                if (_documentOptionsProvider == null)
+                if (_documentOptionSetProvider == null)
                 {
                     lock (_lock)
                     {
-                        if (_documentOptionsProvider == null)
+                        if (_documentOptionSetProvider == null)
                         {
-                            var razorOptionsService = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionsProvider>();
+                            var razorOptionsService = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionSetProvider>();
                             if (razorOptionsService != null)
                             {
-                                _documentOptionsProvider = new RazorDocumentOptionsProviderWrapper(razorOptionsService);
+                                _documentOptionSetProvider = new RazorDocumentOptionSetProviderWrapper(razorOptionsService);
                             }
                             else
                             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     }
                 }
 
-                return (TService)(object)_documentOptionsProvider;
+                return (TService)(object)_documentOptionSetProvider;
             }
 
             return this as TService;

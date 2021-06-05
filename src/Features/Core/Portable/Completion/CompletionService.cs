@@ -172,27 +172,6 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
-        /// Gets the change to be applied when the item is committed. Change is generated via a
-        /// custom option set instead of using the document's options.
-        /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
-        /// <param name="optionSet">The set of options to use to generate the change.</param>
-        /// <param name="item">The item to get the change for.</param>
-        /// <param name="commitCharacter">The typed character that caused the item to be committed. 
-        /// This character may be used as part of the change. 
-        /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
-        /// <param name="cancellationToken"></param>
-        internal virtual Task<CompletionChange> GetChangeAsync(
-            Document document,
-            OptionSet optionSet,
-            CompletionItem item,
-            char? commitCharacter = null,
-            CancellationToken cancellationToken = default)
-        {
-            return GetChangeAsync(document, item, commitCharacter, cancellationToken);
-        }
-
-        /// <summary>
         /// Given a list of completion items that match the current code typed by the user,
         /// returns the item that is considered the best match, and whether or not that
         /// item should be selected or not.

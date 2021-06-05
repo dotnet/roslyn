@@ -73,18 +73,6 @@ namespace Microsoft.CodeAnalysis.Completion
             => Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
 
         /// <summary>
-        /// Gets the change to be applied when the specified item is committed. Change is
-        /// generated via a custom option set instead of using the document's options.
-        /// </summary>
-        /// <param name="document">The current document.</param>
-        /// <param name="optionSet">The set of options to use to generate the change.</param>
-        /// <param name="item">The item to be committed.</param>
-        /// <param name="commitKey">The optional key character that caused the commit.</param>
-        /// <param name="cancellationToken"></param>
-        internal virtual Task<CompletionChange> GetChangeAsync(Document document, OptionSet optionSet, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-            => GetChangeAsync(document, item, commitKey, cancellationToken);
-
-        /// <summary>
         /// True if the provider produces snippet items.
         /// </summary>
         internal virtual bool IsSnippetProvider => false;

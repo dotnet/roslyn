@@ -4,14 +4,15 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface IRazorDocumentOptionsProvider
+    internal interface IRazorDocumentOptionSetProvider
     {
         /// <summary>
-        /// Returns the Razor options for a specific document.
+        /// Returns the Razor option set for a given document.
         /// </summary>
-        Task<RazorDocumentOptions> GetDocumentOptionsAsync(Document document, CancellationToken cancellationToken);
+        Task<OptionSet> GetDocumentOptionsAsync(Document document, CancellationToken cancellationToken);
     }
 }

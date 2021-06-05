@@ -4,7 +4,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// This is passed to <see cref="IOptionService.RegisterDocumentOptionsProvider(IDocumentOptionsProvider)"/> to activate it
     /// for a workspace. This instance then lives around for the lifetime of the workspace.
     /// </remarks>
-    internal interface IDocumentOptionsProvider : IDocumentService
+    internal interface IDocumentOptionsProvider
     {
         /// <summary>
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)

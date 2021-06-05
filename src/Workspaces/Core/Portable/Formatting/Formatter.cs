@@ -146,6 +146,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Languages such as Razor can specify their own options instead of using the document's options.
+            var documentOptionSetProvider = document.Services.GetService<IDocumentOptionSetProvider>();
+            if (documentOptionSetProvider is not null)
+            {
+                options = await documentOptionSetProvider.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+
             var documentOptions = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(Format(root, annotation, document.Project.Solution.Workspace, documentOptions, rules, cancellationToken));
         }

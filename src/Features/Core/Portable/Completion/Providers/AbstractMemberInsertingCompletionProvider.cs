@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -33,24 +32,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(
-            Document document,
-            CompletionItem item,
-            char? commitKey = null,
-            CancellationToken cancellationToken = default)
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await GetChangeAsync(document, optionSet, item, commitKey, cancellationToken).ConfigureAwait(false);
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(
-            Document document,
-            OptionSet optionSet,
-            CompletionItem item,
-            char? commitKey,
-            CancellationToken cancellationToken)
-        {
-            var newDocument = await DetermineNewDocumentAsync(document, optionSet, item, cancellationToken).ConfigureAwait(false);
+            var newDocument = await DetermineNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -80,11 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
-        private async Task<Document> DetermineNewDocumentAsync(
-            Document document,
-            OptionSet optionSet,
-            CompletionItem completionItem,
-            CancellationToken cancellationToken)
+        private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -119,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return await Formatter.FormatAsync(document, _annotation, optionSet, cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GenerateMemberAndUsingsAsync(
