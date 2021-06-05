@@ -13,18 +13,18 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="6.0.0-beta.21303.2">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="6.0.0-beta.21304.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>78da7776965b428ff31da8f1ff2cb073506212b7</Sha>
+      <Sha>85a65ea1fca1d0867f699fed44d191358270bf6a</Sha>
       <SourceBuild RepoName="arcade" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.0.0-2.21253.8">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5b972bceb846f5d15f991a479e285067a75103e4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="6.0.0-beta.21303.2">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="6.0.0-beta.21304.1">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>78da7776965b428ff31da8f1ff2cb073506212b7</Sha>
+      <Sha>85a65ea1fca1d0867f699fed44d191358270bf6a</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
