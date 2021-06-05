@@ -128,8 +128,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         MakeMethodAsync = 98,
         MakeMethodIterator = 99,
         InsertNotSupportedByRuntime = 100,
-        DeleteNotSupportedByRuntime = 101,
-        UpdateNotSupportedByRuntime = 102,
-        ChangingAttributesNotSupportedByRuntime = 103
+        ChangingAttributesNotSupportedByRuntime = 101
     }
 }

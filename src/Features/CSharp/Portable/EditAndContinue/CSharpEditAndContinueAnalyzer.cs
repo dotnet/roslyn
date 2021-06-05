@@ -1254,15 +1254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return containingSymbol;
                 }
 
-                if (node.IsKind(SyntaxKind.IndexerDeclaration, SyntaxKind.PropertyDeclaration))
-                {
-                    // The only legitimate update of an indexer/property declaration is an update of its expression body.
-                    // The expression body itself may have been updated, replaced with an explicit getter, or added to replace an explicit getter.
-                    // In any case, the update is to the property getter symbol.
-                    var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
-                    return ((IPropertySymbol)propertyOrIndexer).GetMethod;
-                }
-
                 if (node is FieldDeclarationSyntax field)
                 {
                     // If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable declaration
@@ -1272,12 +1263,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
-            {
-                return null;
-            }
-
-            // Enum declaration update that removes/adds a trailing comma.
-            if (editKind == EditKind.Update && node.IsKind(SyntaxKind.EnumDeclaration))
             {
                 return null;
             }

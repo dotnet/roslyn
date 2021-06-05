@@ -10979,26 +10979,27 @@ class C
         }
 
         [Fact]
-        public void FieldUpdate_AddAttribute()
+        public void FieldUpdate_AddAttribute_SupportedByRuntime()
         {
             var src1 = @"
 class C
 {
-    public int a = 1;
+    public int a;
 }";
             var src2 = @"
 class C
 {
-    [System.Obsolete]public int a = 1;
+    [System.Obsolete]public int a;
 }";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [public int a = 1;]@18 -> [[System.Obsolete]public int a = 1;]@18");
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a"))
+                },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }
 
         [Fact]
@@ -11489,8 +11490,7 @@ class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P")),
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod)
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P"))
                 },
                 capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
         }

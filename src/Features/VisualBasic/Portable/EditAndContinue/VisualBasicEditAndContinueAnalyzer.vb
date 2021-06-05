@@ -1214,7 +1214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
 
             If editKind = EditKind.Delete Then
-                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1222,7 +1222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             If editKind = EditKind.Insert Then
-                If Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1230,8 +1230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             If editKind = EditKind.Update Then
-                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-                   Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                   Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1257,6 +1257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Private Shared Function TryGetSyntaxNodesForEdit(
+            editKind As EditKind,
             node As SyntaxNode,
             model As SemanticModel,
             <Out> ByRef symbols As OneOrMany(Of ISymbol),
@@ -1301,9 +1302,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                             containingSymbol = containingDelegate.ContainingSymbol
                         End If
 
-                        Return containingSymbol
+                        symbols = OneOrMany.Create(containingSymbol)
+                        Return True
                     End If
-                    Return Nothing
+                    Return False
 
                 Case SyntaxKind.ImportsStatement,
                      SyntaxKind.NamespaceBlock
@@ -1331,8 +1333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable name
                         ' Fortunately attributes are shared across all of them, so we don't need to be too fancy
                         Dim field = CType(node, FieldDeclarationSyntax)
-                        Dim declaration = field.Declarators.First().Names.First()
-                        Return model.GetDeclaredSymbol(declaration, cancellationToken)
+                        node = field.Declarators.First().Names.First()
                     End If
 
             End Select

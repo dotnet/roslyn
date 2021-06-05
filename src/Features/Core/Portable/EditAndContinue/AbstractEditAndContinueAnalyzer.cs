@@ -2898,6 +2898,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             processedSymbols.Remove(newSymbol);
                                         }
 
+                                        // Need to check for attribute rude edits for fields and properties
+                                        AnalyzeCustomAttributes(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+
                                         DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
 
                                         // Don't add a separate semantic edit.
@@ -2918,13 +2921,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         {
                             AnalyzeCustomAttributes(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
 
-                            // The only updates to a field that need an edit is an initializer update which is deferred to the constructor edit
-                            // or an attribute change which is reported with the above method
-                            if (newSymbol is IFieldSymbol)
-                            {
-                                continue;
-                            }
-
                             // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                             // which does not have impact on the emitted type metadata.
                             if (newSymbol is INamedTypeSymbol)
@@ -2932,8 +2928,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
-                            // The field/property itself is being updated. Currently we do not allow any modifiers or attributes to be updated.
-                            if (newSymbol is IFieldSymbol or IPropertySymbol)
+                            // The field/property itself is being updated. Currently we do not allow any modifiers to be updated. Attribute
+                            // updates will have been handled already
+                            if (newSymbol is IPropertySymbol or IFieldSymbol)
                             {
                                 continue;
                             }
@@ -3083,16 +3080,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 needsEdit |= HasCustomAttributeChanges(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics);
 
-                // For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
-                if (newMethod.AssociatedSymbol is not null)
-                {
-                    if (HasCustomAttributeChanges(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics) &&
-                        semanticEdits is not null)
-                    {
-                        var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
-                        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
-                    }
-                }
+                //// For properties, we only get called for the get methods, but we want to check the property itself for attribute changes
+                //if (newMethod.AssociatedSymbol is not null)
+                //{
+                //    if (HasCustomAttributeChanges(oldMethod.AssociatedSymbol?.GetAttributes(), newMethod.AssociatedSymbol.GetAttributes(), newMethod.AssociatedSymbol, capabilities, diagnostics) &&
+                //        semanticEdits is not null)
+                //    {
+                //        var symbolKey = SymbolKey.Create(newMethod.AssociatedSymbol, cancellationToken);
+                //        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+                //    }
+                //}
             }
             else if (newSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null } newType)
             {
@@ -3124,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Most symbol types will automatically have an edit added, so we just need to handle a few
-            if (newSymbol is INamedTypeSymbol or IFieldSymbol)
+            if (newSymbol is INamedTypeSymbol or IFieldSymbol or IPropertySymbol)
             {
                 var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
