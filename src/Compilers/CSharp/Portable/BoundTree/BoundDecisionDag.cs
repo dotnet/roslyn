@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var state in allStates)
             {
-                result.Append(state.GetDebuggerDisplay());
+                result.AppendLine(state.GetDebuggerDisplay());
             }
 
             return resultBuilder.ToStringAndFree();

@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -109,12 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     break;
                 case BoundLeafDecisionDagNode node:
-                    builder.Append($"leaf {node.Label.Name}");
+                    builder.Append(node.Label is GeneratedLabelSymbol generated
+                        ? $"leaf {generated.NameNoSequence} `{node.Syntax}`"
+                        : $"leaf `{node.Label.Name}`");
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this);
             }
-            builder.AppendLine();
 
             return pooledBuilder.ToStringAndFree();
 
@@ -129,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagFieldEvaluation e:
                         return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Field.Name}";
                     case BoundDagDeconstructEvaluation d:
-                        var output = d.GetDebuggerDisplay();
                         var result = "(";
                         var first = true;
                         foreach (var param in d.DeconstructMethod.Parameters)
@@ -139,10 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 result += ", ";
                             }
                             first = false;
-                            result += $"{output}.Item{param.Ordinal + 1}";
+                            result += $"Item{param.Ordinal + 1}";
                         }
-                        result += $") = {d.Input.GetDebuggerDisplay()}";
+                        result += $") {d.GetDebuggerDisplay()} = {d.Input.GetDebuggerDisplay()}";
                         return result;
+                    case BoundDagIndexEvaluation i:
+                        return $"{i.GetDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
                     case BoundDagEvaluation e:
                         return $"{e.GetDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
                     case BoundDagTypeTest b:
