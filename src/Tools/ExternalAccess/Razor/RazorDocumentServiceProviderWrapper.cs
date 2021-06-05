@@ -113,10 +113,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     {
                         if (_documentOptionSetProvider == null)
                         {
-                            var razorOptionsService = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionSetProvider>();
-                            if (razorOptionsService != null)
+                            var razorOptionSetProvider = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionSetProvider>();
+                            if (razorOptionSetProvider != null)
                             {
-                                _documentOptionSetProvider = new RazorDocumentOptionSetProviderWrapper(razorOptionsService);
+                                _documentOptionSetProvider = new RazorDocumentOptionSetProviderWrapper(razorOptionSetProvider);
                             }
                             else
                             {
