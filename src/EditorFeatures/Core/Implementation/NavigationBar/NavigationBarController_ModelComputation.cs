@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -259,14 +258,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // price soon or later to figure out selected item.
             foreach (var type in model.Types)
             {
-                if (!SpansStillValid(type.TrackingSpans, snapshot))
+                if (!SpansStillValid(type, snapshot))
                     return false;
 
                 foreach (var member in type.ChildItems)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!SpansStillValid(member.TrackingSpans, snapshot))
+                    if (!SpansStillValid(member, snapshot))
                         return false;
                 }
             }
@@ -274,12 +273,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             return true;
         }
 
-        private static bool SpansStillValid(ImmutableArray<ITrackingSpan> spans, ITextSnapshot snapshot)
+        private static bool SpansStillValid(NavigationBarItem item, ITextSnapshot snapshot)
         {
-            foreach (var span in spans)
+            if (item.NavigationTrackingSpan != null)
+            {
+                var currentSpan = item.NavigationTrackingSpan.GetSpan(snapshot);
+                if (currentSpan.IsEmpty)
+                    return false;
+            }
+
+            foreach (var span in item.TrackingSpans)
             {
                 var currentSpan = span.GetSpan(snapshot);
                 if (currentSpan.IsEmpty)
+                    return false;
+            }
+
+            foreach (var childItem in item.ChildItems)
+            {
+                if (!SpansStillValid(childItem, snapshot))
                     return false;
             }
 

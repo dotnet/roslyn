@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor
                   underlyingItem.Text,
                   underlyingItem.Glyph,
                   GetTrackingSpans(underlyingItem, textSnapshot),
+                  GetNavigationTrackingSpan(underlyingItem, textSnapshot),
                   underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
@@ -31,9 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static ImmutableArray<ITrackingSpan> GetTrackingSpans(RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
         {
-            return underlyingItem is not RoslynNavigationBarItem.SymbolItem symbolItem
-                ? ImmutableArray<ITrackingSpan>.Empty
-                : GetTrackingSpans(textSnapshot, symbolItem.Spans);
+            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
+                ? GetTrackingSpans(textSnapshot, symbolItem.Location.InDocumentInfo.Value.spans)
+                : ImmutableArray<ITrackingSpan>.Empty;
+        }
+
+        private static ITrackingSpan? GetNavigationTrackingSpan(RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
+        {
+            return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
+                ? GetTrackingSpan(textSnapshot, symbolItem.Location.InDocumentInfo.Value.navigationSpan)
+                : null;
         }
     }
 }

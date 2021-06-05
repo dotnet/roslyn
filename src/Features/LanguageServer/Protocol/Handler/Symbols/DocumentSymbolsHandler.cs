@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static SymbolInformation? GetSymbolInformation(
             RoslynNavigationBarItem item, Document document, SourceText text, string? containerName = null)
         {
-            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.SelectionSpan == null)
+            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
                 return null;
 
             return new VSSymbolInformation
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Location = new LSP.Location
                 {
                     Uri = document.GetURI(),
-                    Range = ProtocolConversions.TextSpanToRange(symbolItem.SelectionSpan.Value, text),
+                    Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
                 },
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 ContainerName = containerName,
@@ -105,7 +104,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private static DocumentSymbol? GetDocumentSymbol(
             RoslynNavigationBarItem item, SourceText text, CancellationToken cancellationToken)
         {
-            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Spans.Length == 0 || symbolItem.SelectionSpan == null)
+            if (item is not RoslynNavigationBarItem.SymbolItem symbolItem ||
+                symbolItem.Location.InDocumentInfo == null)
+            {
+                return null;
+            }
+
+            var inDocumentInfo = symbolItem.Location.InDocumentInfo.Value;
+            if (inDocumentInfo.spans.Length == 0)
                 return null;
 
             return new DocumentSymbol
@@ -114,8 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 Deprecated = symbolItem.IsObsolete,
-                Range = ProtocolConversions.TextSpanToRange(symbolItem.Spans.First(), text),
-                SelectionRange = ProtocolConversions.TextSpanToRange(symbolItem.SelectionSpan.Value, text),
+                Range = ProtocolConversions.TextSpanToRange(inDocumentInfo.spans.First(), text),
+                SelectionRange = ProtocolConversions.TextSpanToRange(inDocumentInfo.navigationSpan, text),
                 Children = GetChildren(item.ChildItems, text, cancellationToken),
             };
 
