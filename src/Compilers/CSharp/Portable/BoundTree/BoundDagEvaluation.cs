@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new string GetDebuggerDisplay()
         {
-            return "t" + (Id == -1 ? "_" : Id);
+            var id = Id;
+            return id == -1 ? "<uninitialized>" : $"t{id}";
         }
 #endif
     }
