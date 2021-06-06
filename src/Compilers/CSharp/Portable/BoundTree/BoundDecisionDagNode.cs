@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (this)
             {
                 case BoundTestDecisionDagNode node:
-                    builder.Append($"{dumpDagTest(node.Test)} ");
+                    builder.Append($"{node.Test.GetDebuggerDisplay()} ");
                     builder.Append(node.WhenTrue != null
                         ? $"? [{node.WhenTrue.Id}] "
                         : "? <unreachable> ");
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ": <unreachable>");
                     break;
                 case BoundEvaluationDecisionDagNode node:
-                    builder.Append($"{dumpDagTest(node.Evaluation)}; ");
+                    builder.Append($"{node.Evaluation.GetDebuggerDisplay()}; ");
                     builder.Append(node.Next != null
                         ? $"[{node.Next.Id}]"
                         : "<unreachable>");
@@ -124,58 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pooledBuilder.ToStringAndFree();
-
-            static string dumpDagTest(BoundDagTest test)
-            {
-                switch (test)
-                {
-                    case BoundDagTypeEvaluation a:
-                        return $"{a.GetDebuggerDisplay()} = ({a.Type}){a.Input.GetDebuggerDisplay()}";
-                    case BoundDagPropertyEvaluation e:
-                        return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Property.Name}";
-                    case BoundDagFieldEvaluation e:
-                        return $"{e.GetDebuggerDisplay()} = {e.Input.GetDebuggerDisplay()}.{e.Field.Name}";
-                    case BoundDagDeconstructEvaluation d:
-                        var result = "(";
-                        var first = true;
-                        foreach (var param in d.DeconstructMethod.Parameters)
-                        {
-                            if (!first)
-                            {
-                                result += ", ";
-                            }
-                            first = false;
-                            result += $"Item{param.Ordinal + 1}";
-                        }
-                        result += $") {d.GetDebuggerDisplay()} = {d.Input.GetDebuggerDisplay()}";
-                        return result;
-                    case BoundDagIndexEvaluation i:
-                        return $"{i.GetDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
-                    case BoundDagEvaluation e:
-                        return $"{e.GetDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
-                    case BoundDagTypeTest b:
-                        var typeName = b.Type.TypeKind == TypeKind.Error ? "<error type>" : b.Type.ToString();
-                        return $"{b.Input.GetDebuggerDisplay()} is {typeName}";
-                    case BoundDagValueTest v:
-                        return $"{v.Input.GetDebuggerDisplay()} == {v.Value.GetValueToDisplay()}";
-                    case BoundDagNonNullTest nn:
-                        return $"{nn.Input.GetDebuggerDisplay()} != null";
-                    case BoundDagExplicitNullTest n:
-                        return $"{n.Input.GetDebuggerDisplay()} == null";
-                    case BoundDagRelationalTest r:
-                        var operatorName = r.Relation.Operator() switch
-                        {
-                            BinaryOperatorKind.LessThan => "<",
-                            BinaryOperatorKind.LessThanOrEqual => "<=",
-                            BinaryOperatorKind.GreaterThan => ">",
-                            BinaryOperatorKind.GreaterThanOrEqual => ">=",
-                            _ => "??"
-                        };
-                        return $"{r.Input.GetDebuggerDisplay()} {operatorName} {r.Value.GetValueToDisplay()}";
-                    default:
-                        return $"{test.Kind}({test.Input.GetDebuggerDisplay()})";
-                }
-            }
         }
 #endif
     }

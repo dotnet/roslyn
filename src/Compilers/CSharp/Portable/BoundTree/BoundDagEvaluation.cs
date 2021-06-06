@@ -8,9 +8,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-#if DEBUG
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-#endif
     partial class BoundDagEvaluation
     {
         public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal new string GetDebuggerDisplay()
+        internal string GetOutputTempDebuggerDisplay()
         {
             var id = Id;
             return id == -1 ? "<uninitialized>" : $"t{id}";
