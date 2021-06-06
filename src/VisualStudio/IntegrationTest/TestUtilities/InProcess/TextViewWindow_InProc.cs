@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +74,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 const VSConstants.VSStd2KCmdID ECMD_SMARTTASKS = (VSConstants.VSStd2KCmdID)147;
                 var cmdID = ECMD_SMARTTASKS;
-                object obj = null;
+                object? obj = null;
                 shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
             });
         }
@@ -116,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetCurrentClassifications()
             => InvokeOnUIThread(cancellationToken =>
             {
-                IClassifier classifier = null;
+                IClassifier? classifier = null;
                 try
                 {
                     var textView = GetActiveTextView();
@@ -424,11 +422,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     }
 
                     var actionSetsForAction = await action.GetActionSetsAsync(CancellationToken.None);
-                    action = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
-                    if (action == null)
+                    var fixAllAction = await GetFixAllSuggestedActionAsync(actionSetsForAction, fixAllScope.Value);
+                    if (fixAllAction == null)
                     {
                         throw new InvalidOperationException($"Unable to find FixAll in {fixAllScope.ToString()} code fix for suggested action '{action.DisplayText}'.");
                     }
+
+                    action = fixAllAction;
 
                     if (willBlockUntilComplete
                         && action is FixAllSuggestedAction fixAllSuggestedAction
@@ -481,7 +481,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static async Task<FixAllSuggestedAction> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -501,10 +501,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     if (action.HasActionSets)
                     {
                         var nestedActionSets = await action.GetActionSetsAsync(CancellationToken.None);
-                        fixAllSuggestedAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
-                        if (fixAllSuggestedAction != null)
+                        var fixAllCodeAction = await GetFixAllSuggestedActionAsync(nestedActionSets, fixAllScope);
+                        if (fixAllCodeAction != null)
                         {
-                            return fixAllSuggestedAction;
+                            return fixAllCodeAction;
                         }
                     }
                 }

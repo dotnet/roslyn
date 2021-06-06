@@ -307,6 +307,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             var rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter))
             {
                 CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
             };
 
             if (incomingCallTarget != null)
