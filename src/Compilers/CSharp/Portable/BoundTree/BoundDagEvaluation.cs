@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#if DEBUG
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+#endif
     partial class BoundDagEvaluation
     {
         public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
@@ -37,6 +41,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
+
+#if DEBUG
+        private int _id = -1;
+        private bool _idWasRead;
+
+        public int Id
+        {
+            get
+            {
+                if (_id != -1)
+                {
+                    _idWasRead = true;
+                }
+                return _id;
+            }
+            internal set
+            {
+                Debug.Assert(!_idWasRead, "Id was set after reading it");
+                Debug.Assert(value >= 0, "Id must be non-negative but was set to " + value);
+                _id = value;
+            }
+        }
+
+        internal new string GetDebuggerDisplay()
+        {
+            return "t" + (Id == -1 ? "_" : Id);
+        }
+#endif
     }
 
     partial class BoundDagIndexEvaluation

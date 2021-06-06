@@ -37,7 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
         internal new string GetDebuggerDisplay()
         {
-            return $"t{Source?.Id ?? 0}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
+            var name = Source?.Id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to have a non-null source with id 0
+                // because id 0 is reserved for the original input.
+                // However, we also don't want to assert in a debugger display method.
+                0 => "<error>",
+
+                null => "t0",
+                var id => $"t{id}"
+            };
+            return $"{name}{(Source is BoundDagDeconstructEvaluation ? $".Item{(Index + 1).ToString()}" : "")}";
         }
 #endif
     }

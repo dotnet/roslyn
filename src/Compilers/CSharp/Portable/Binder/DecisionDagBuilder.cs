@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
             int nextTempNumber = 0;
-            // Note that this leverages the `BoundDagEvaluation.GetHashCode()`
+            // Note that this uses the custom equality in `BoundDagEvaluation`
             // to make "equivalent" evaluation nodes share an ID
             var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
             int tempIdentifier(BoundDagEvaluation e)
@@ -665,14 +665,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sortedBoundDagNodes = boundDecisionDag.TopologicallySortedNodes;
             for (int i = 0; i < sortedBoundDagNodes.Length; i++)
             {
-                sortedBoundDagNodes[i].Id = i;
-                if (sortedBoundDagNodes[i] is BoundEvaluationDecisionDagNode { Evaluation: var evaluation })
+                var node = sortedBoundDagNodes[i];
+                node.Id = i;
+                switch (node)
                 {
-                    evaluation.Id = tempIdentifier(evaluation);
-                    if (evaluation.Input.Source is { } source)
-                    {
-                        source.Id = tempIdentifier(source);
-                    }
+                    case BoundEvaluationDecisionDagNode { Evaluation: var evaluation }:
+                        evaluation.Id = tempIdentifier(evaluation);
+                        if (evaluation.Input.Source is { } source)
+                        {
+                            source.Id = tempIdentifier(source);
+                        }
+                        break;
+                    case BoundTestDecisionDagNode { Test: var test }:
+                        if (test.Input.Source is { } testSource)
+                        {
+                            testSource.Id = tempIdentifier(testSource);
+                        }
+                        break;
                 }
             }
             tempIdentifierMap.Free();
