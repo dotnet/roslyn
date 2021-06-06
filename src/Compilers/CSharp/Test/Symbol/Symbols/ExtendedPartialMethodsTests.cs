@@ -2817,13 +2817,13 @@ partial class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (7,22): warning CS8826: Partial method declarations 'U C.M1<U>()' and 'V C.M1<V>()' have differences in parameter names, parameter types, or return types.
+                // (7,22): warning CS8826: Partial method declarations 'U C.M1<U>()' and 'V C.M1<V>()' have signature differences.
                 //     public partial V M1<V>() => default;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("U C.M1<U>()", "V C.M1<V>()").WithLocation(7, 22),
-                // (13,22): warning CS8826: Partial method declarations 'U C.M3<U>()' and 'V C.M3<V>()' have differences in parameter names, parameter types, or return types.
+                // (13,22): warning CS8826: Partial method declarations 'U C.M3<U>()' and 'V C.M3<V>()' have signature differences.
                 //     public partial V M3<V>() => default;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("U C.M3<U>()", "V C.M3<V>()").WithLocation(13, 22),
-                // (16,35): warning CS8826: Partial method declarations 'IEnumerable<U> C.M4<U>()' and 'IEnumerable<V> C.M4<V>()' have differences in parameter names, parameter types, or return types.
+                // (16,35): warning CS8826: Partial method declarations 'IEnumerable<U> C.M4<U>()' and 'IEnumerable<V> C.M4<V>()' have signature differences.
                 //     public partial IEnumerable<V> M4<V>() => default;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M4").WithArguments("IEnumerable<U> C.M4<U>()", "IEnumerable<V> C.M4<V>()").WithLocation(16, 35)
             );
@@ -2930,13 +2930,13 @@ partial class C
                 // (5,24): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 24),
-                // (5,24): warning CS8826: Partial method declarations 'ref int C.M1()' and 'int C.M1()' have differences in parameter names, parameter types, or return types.
+                // (5,24): warning CS8826: Partial method declarations 'ref int C.M1()' and 'int C.M1()' have signature differences.
                 //     public partial int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "int C.M1()").WithLocation(5, 24),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
-                // (8,28): warning CS8826: Partial method declarations 'int C.M2()' and 'ref int C.M2()' have differences in parameter names, parameter types, or return types.
+                // (8,28): warning CS8826: Partial method declarations 'int C.M2()' and 'ref int C.M2()' have signature differences.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
@@ -3031,10 +3031,10 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (5,28): warning CS8824: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have differences in parameter or return types.
+                // (5,28): warning CS8826: Partial method declarations 'object C.M1()' and 'dynamic C.M1()' have signature differences.
                 //     public partial dynamic M1() => null;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("object C.M1()", "dynamic C.M1()").WithLocation(5, 28),
-                // (8,27): warning CS8824: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' have differences in parameter or return types.
+                // (8,27): warning CS8826: Partial method declarations 'dynamic C.M2()' and 'object C.M2()' have signature differences.
                 //     public partial object M2() => null;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("dynamic C.M2()", "object C.M2()").WithLocation(8, 27));
         }
@@ -3058,10 +3058,10 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6), parseOptions: TestOptions.RegularWithExtendedPartialMethods);
             comp.VerifyDiagnostics(
-                // (7,25): warning CS8824: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have differences in parameter or return types.
+                // (7,25): warning CS8826: Partial method declarations 'IntPtr C.M1()' and 'nint C.M1()' have signature differences.
                 //     public partial nint M1() => 0;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("IntPtr C.M1()", "nint C.M1()").WithLocation(7, 25),
-                // (10,27): warning CS8824: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' have differences in parameter or return types.
+                // (10,27): warning CS8826: Partial method declarations 'nint C.M2()' and 'IntPtr C.M2()' have signature differences.
                 //     public partial IntPtr M2() => default;
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("nint C.M2()", "IntPtr C.M2()").WithLocation(10, 27));
         }
@@ -3083,13 +3083,13 @@ partial class C
                 // (5,37): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref readonly int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M1").WithLocation(5, 37),
-                // (5,37): warning CS8826: Partial method declarations 'ref int C.M1()' and 'ref readonly int C.M1()' have differences in parameter names, parameter types, or return types.
+                // (5,37): warning CS8826: Partial method declarations 'ref int C.M1()' and 'ref readonly int C.M1()' have signature differences.
                 //     public partial ref readonly int M1() => throw null!; // 1
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("ref int C.M1()", "ref readonly int C.M1()").WithLocation(5, 37),
                 // (8,28): error CS8818: Partial method declarations must have matching ref return values.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "M2").WithLocation(8, 28),
-                // (8,28): warning CS8826: Partial method declarations 'ref readonly int C.M2()' and 'ref int C.M2()' have differences in parameter names, parameter types, or return types.
+                // (8,28): warning CS8826: Partial method declarations 'ref readonly int C.M2()' and 'ref int C.M2()' have signature differences.
                 //     public partial ref int M2() => throw null!; // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("ref readonly int C.M2()", "ref int C.M2()").WithLocation(8, 28));
         }
@@ -3163,7 +3163,7 @@ partial class C
                 // (6,28): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
                 //     public partial string? M1() => null; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, "M1").WithLocation(6, 28),
-                // (9,27): warning CS8824: Partial method declarations 'string? C.M2()' and 'string C.M2()' have differences in parameter or return types.
+                // (9,27): warning CS8826: Partial method declarations 'string? C.M2()' and 'string C.M2()' have signature differences.
                 //     public partial string M2() => "hello"; // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("string? C.M2()", "string C.M2()").WithLocation(9, 27),
                 // (13,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
@@ -3172,7 +3172,7 @@ partial class C
                 // (15,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public partial string? M4(); // 4
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 26),
-                // (22,27): warning CS8824: Partial method declarations 'string? C.M8()' and 'string C.M8()' have differences in parameter or return types.
+                // (22,27): warning CS8826: Partial method declarations 'string? C.M8()' and 'string C.M8()' have signature differences.
                 //     public partial string M8() => null!; // 5
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M8").WithArguments("string? C.M8()", "string C.M8()").WithLocation(22, 27),
                 // (31,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
@@ -3222,7 +3222,7 @@ partial class C
                     // (4,31): error CS8818: Partial method declarations must have matching ref return values.
                     //     public partial (int, int) F1() => default;
                     Diagnostic(ErrorCode.ERR_PartialMethodRefReturnDifference, "F1").WithLocation(4, 31),
-                    // (4,31): warning CS8826: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' have differences in parameter names, parameter types, or return types.
+                    // (4,31): warning CS8826: Partial method declarations 'ref (int x, int y) C.F1()' and '(int, int) C.F1()' have signature differences.
                     //     public partial (int, int) F1() => default;
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("ref (int x, int y) C.F1()", "(int, int) C.F1()").WithLocation(4, 31));
         }
@@ -3246,13 +3246,13 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
-                // (4,18): warning CS8824: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have differences in parameter or return types.
+                // (4,18): warning CS8826: Partial method declarations 'void C.F1(object o)' and 'void C.F1(dynamic o)' have signature differences.
                 //     partial void F1(dynamic o) { } // 1
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1", isSuppressed: false).WithArguments("void C.F1(object o)", "void C.F1(dynamic o)").WithLocation(4, 18),
-                // (6,27): warning CS8824: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' have differences in parameter or return types.
+                // (6,27): warning CS8826: Partial method declarations 'void C.F2(object o)' and 'void C.F2(dynamic o)' have signature differences.
                 //     internal partial void F2(dynamic o) { } // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2", isSuppressed: false).WithArguments("void C.F2(object o)", "void C.F2(dynamic o)").WithLocation(6, 27),
-                // (8,29): warning CS8824: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' have differences in parameter or return types.
+                // (8,29): warning CS8826: Partial method declarations 'dynamic C.F3()' and 'object C.F3()' have signature differences.
                 //     internal partial object F3() => null; // 3
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3", isSuppressed: false).WithArguments("dynamic C.F3()", "object C.F3()").WithLocation(8, 29));
         }
@@ -3311,7 +3311,7 @@ partial class C
                 // (12,27): warning CS8611: Nullability of reference types in type of parameter 's' doesn't match partial method declaration.
                 //     internal partial void F4(IEnumerable<string> s) { } // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, "F4").WithArguments("s").WithLocation(12, 27),
-                // (14,29): warning CS8824: Partial method declarations 'string? C.F5()' and 'string C.F5()' have differences in parameter or return types.
+                // (14,29): warning CS8826: Partial method declarations 'string? C.F5()' and 'string C.F5()' have signature differences.
                 //     internal partial string F5() => null!; // 5
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F5").WithArguments("string? C.F5()", "string C.F5()").WithLocation(14, 29),
                 // (16,43): warning CS8819: Nullability of reference types in return type doesn't match partial method declaration.
@@ -3386,16 +3386,16 @@ partial class C
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics(
-                // (5,18): warning CS8824: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have differences in parameter or return types.
+                // (5,18): warning CS8826: Partial method declarations 'void C.F1(nint i)' and 'void C.F1(IntPtr i)' have signature differences.
                 //     partial void F1(System.IntPtr i) { } // 1
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F1").WithArguments("void C.F1(nint i)", "void C.F1(IntPtr i)").WithLocation(5, 18),
-                // (7,18): warning CS8824: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' have differences in parameter or return types.
+                // (7,18): warning CS8826: Partial method declarations 'void C.F2(dynamic x, nint y)' and 'void C.F2(object x, IntPtr y)' have signature differences.
                 //     partial void F2(object x, System.IntPtr y) { } // 2
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F2").WithArguments("void C.F2(dynamic x, nint y)", "void C.F2(object x, IntPtr y)").WithLocation(7, 18),
-                // (9,27): warning CS8824: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' have differences in parameter or return types.
+                // (9,27): warning CS8826: Partial method declarations 'void C.F3(nint i)' and 'void C.F3(IntPtr i)' have signature differences.
                 //     internal partial void F3(System.IntPtr i) { } // 3
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F3").WithArguments("void C.F3(nint i)", "void C.F3(IntPtr i)").WithLocation(9, 27),
-                // (11,40): warning CS8824: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' have differences in parameter or return types.
+                // (11,40): warning CS8826: Partial method declarations 'IEnumerable<IntPtr> C.F4()' and 'IEnumerable<nint> C.F4()' have signature differences.
                 //     internal partial IEnumerable<nint> F4() => null; // 4
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F4").WithArguments("IEnumerable<IntPtr> C.F4()", "IEnumerable<nint> C.F4()").WithLocation(11, 40));
         }

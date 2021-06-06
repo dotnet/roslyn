@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CreateCompilationWithMscorlib45(source)
                 .WithEventQueue(q)
                 .VerifyDiagnostics(
-                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have differences in parameter names, parameter types, or return types.
+                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
                     //     partial void M(int x2) {}
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
 
                 )  // force diagnostics twice
                 .VerifyDiagnostics(
-                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have differences in parameter names, parameter types, or return types.
+                    // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
                     //     partial void M(int x2) {}
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
                 );
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             q = new AsyncQueue<CompilationEvent>();
             comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have differences in parameter names, parameter types, or return types.
+                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
                 //     partial void M(int x2) {}
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
                 );
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
             comp.GetUsedAssemblyReferences();
             comp.VerifyDiagnostics(
-                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have differences in parameter names, parameter types, or return types.
+                // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
                 //     partial void M(int x2) {}
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C<T1>.M(int x1)", "void C<T1>.M(int x2)").WithLocation(12, 18)
                 );

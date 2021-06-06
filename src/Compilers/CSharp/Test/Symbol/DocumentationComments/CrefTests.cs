@@ -3626,7 +3626,7 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have differences in parameter names, parameter types, or return types.
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
                 //     partial void M(int x) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
@@ -3702,7 +3702,7 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (23,18): warning CS8826: Partial method declarations 'void P.M(int q, int r)' and 'void P.M(int x, int y)' have differences in parameter names, parameter types, or return types.
+                // (23,18): warning CS8826: Partial method declarations 'void P.M(int q, int r)' and 'void P.M(int x, int y)' have signature differences.
                 //     partial void M(int x, int y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int q, int r)", "void P.M(int x, int y)").WithLocation(23, 18),
                 // (5,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
@@ -3809,7 +3809,7 @@ partial class P
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have differences in parameter names, parameter types, or return types.
+                // (28,18): warning CS8826: Partial method declarations 'void P.M(int y)' and 'void P.M(int x)' have signature differences.
                 //     partial void M(int x) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void P.M(int y)", "void P.M(int x)").WithLocation(28, 18),
                 // (16,25): warning CS0067: The event 'C.E' is never used
@@ -4032,7 +4032,7 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have differences in parameter names, parameter types, or return types.
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
                 //     partial void M1<V>() { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,22): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
@@ -4168,7 +4168,7 @@ partial class P<T>
 }
 ";
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have differences in parameter names, parameter types, or return types.
+                // (29,18): warning CS8826: Partial method declarations 'void P<T>.M1<U>()' and 'void P<T>.M1<V>()' have signature differences.
                 //     partial void M1<V>() { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void P<T>.M1<U>()", "void P<T>.M1<V>()").WithLocation(29, 18),
                 // (2,25): warning CS1735: XML comment on 'C' has a typeparamref tag for 'T', but there is no type parameter by that name

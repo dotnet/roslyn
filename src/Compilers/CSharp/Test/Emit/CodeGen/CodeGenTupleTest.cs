@@ -20548,16 +20548,16 @@ public partial class C
                 // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
-                // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have differences in parameter names, parameter types, or return types.
+                // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
                 //     partial void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
                 // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int, int) y) { }
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
-                // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have differences in parameter names, parameter types, or return types.
+                // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
                 //     partial void M2((int, int) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
-                // (12,18): warning CS8826: Partial method declarations 'void C.M3((int a, int b) x)' and 'void C.M3((int a, int b) y)' have differences in parameter names, parameter types, or return types.
+                // (12,18): warning CS8826: Partial method declarations 'void C.M3((int a, int b) x)' and 'void C.M3((int a, int b) y)' have signature differences.
                 //     partial void M3((int a, int b) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("void C.M3((int a, int b) x)", "void C.M3((int a, int b) y)").WithLocation(12, 18)
                 );

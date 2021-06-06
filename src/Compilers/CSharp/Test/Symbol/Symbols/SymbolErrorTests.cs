@@ -3663,7 +3663,7 @@ class BAttribute : System.Attribute { }
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<T, U>(T tt)' have differences in parameter names, parameter types, or return types.
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<T, U>(T tt)' have signature differences.
                 //         partial void F<T, U>(T tt) where T : class {}
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<T, U>(T tt)").WithLocation(6, 22)
                 );
@@ -3692,7 +3692,7 @@ class BAttribute : System.Attribute { }
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<U, T>(U u)' have differences in parameter names, parameter types, or return types.
+                // (6,22): warning CS8826: Partial method declarations 'void MyClass.F<T, U>(T t)' and 'void MyClass.F<U, T>(U u)' have signature differences.
                 //         partial void F<U, T>(U u) where U : class {}
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "F").WithArguments("void MyClass.F<T, U>(T t)", "void MyClass.F<U, T>(U u)").WithLocation(6, 22)
                 );

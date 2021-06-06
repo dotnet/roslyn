@@ -3227,7 +3227,7 @@ partial class C
         where T2 : I<T1>;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,18): warning CS8826: Partial method declarations 'void C.M<T, U>(T t, U u)' and 'void C.M<X, Y>(X x, Y y)' have differences in parameter names, parameter types, or return types.
+                // (7,18): warning CS8826: Partial method declarations 'void C.M<T, U>(T t, U u)' and 'void C.M<X, Y>(X x, Y y)' have signature differences.
                 //     partial void M<X, Y>(X x, Y y)
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M<T, U>(T t, U u)", "void C.M<X, Y>(X x, Y y)").WithLocation(7, 18),
                 // (13,9): error CS0103: The name 't' does not exist in the current context
