@@ -3506,6 +3506,7 @@ class Class1
                 );
         }
 
+#if DEBUG
         [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
         public void DecisionDag_Dump_SwitchStatement_01()
         {
@@ -3818,5 +3819,6 @@ class C
 [11]: leaf <arm> `_ => 4`
 ", boundSwitch.DecisionDag.Dump());
         }
+#endif
     }
 }
