@@ -1287,6 +1287,7 @@ interface I
                 Diagnostic(RudeEditKind.InsertOperator, "public static int operator +(I a, I b)", FeaturesResources.operator_),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty1", FeaturesResources.auto_property),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "static int StaticProperty2", CSharpFeaturesResources.property_getter),
                 Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty1", FeaturesResources.auto_property),
                 Diagnostic(RudeEditKind.InsertVirtual, "virtual int VirtualProperty2", FeaturesResources.auto_property),
                 Diagnostic(RudeEditKind.InsertVirtual, "int VirtualProperty3", FeaturesResources.auto_property),
@@ -1294,7 +1295,9 @@ interface I
                 Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty1", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertVirtual, "abstract int AbstractProperty2", FeaturesResources.property_),
                 Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoInterface, "sealed int NonVirtualProperty", CSharpFeaturesResources.property_getter),
                 Diagnostic(RudeEditKind.InsertVirtual, "int this[byte virtualIndexer]", FeaturesResources.indexer_),
+                Diagnostic(RudeEditKind.InsertVirtual, "int this[byte virtualIndexer]", CSharpFeaturesResources.indexer_getter),
                 Diagnostic(RudeEditKind.InsertVirtual, "int this[sbyte virtualIndexer]", FeaturesResources.indexer_),
                 Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[ushort virtualIndexer]", FeaturesResources.indexer_),
                 Diagnostic(RudeEditKind.InsertVirtual, "virtual int this[short virtualIndexer]", FeaturesResources.indexer_),
@@ -12380,9 +12383,6 @@ class C
         [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Partial_InsertDeleteUpdate_LiftedParameter()
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/51297
-            // The test fails if "+ 10" and "+ 11" are removed. 
-
             var srcA1 = @"
 partial class C
 {
@@ -12390,13 +12390,13 @@ partial class C
             var srcB1 = @"
 partial class C
 {
-    int this[int a] => new System.Func<int>(() => a + 1) + 10;
+    int this[int a] => new System.Func<int>(() => a + 1);
 }";
 
             var srcA2 = @"
 partial class C
 {
-    int this[int a] => new System.Func<int>(() => 2) + 11; // no capture
+    int this[int a] => new System.Func<int>(() => 2); // no capture
 }";
             var srcB2 = @"
 partial class C

@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // PERF: We need to flip this to false when we do actual diffing.
                     var avoidLoadingData = true;
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(PersistentStorageService, project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
+                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
                     // We can't return here if we have open file only analyzers since saved data for open file only analyzer
                     // is incomplete -- it only contains info on open files rather than whole project.
