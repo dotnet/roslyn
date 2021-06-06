@@ -653,14 +653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(rootDecisionDagNode != null);
             var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
 #if DEBUG
-            int nextTempNumber = 0;
             // Note that this uses the custom equality in `BoundDagEvaluation`
-            // to make "equivalent" evaluation nodes share an ID
+            // to make "equivalent" evaluation nodes share the same ID.
+            var nextTempNumber = 0;
             var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
-            int tempIdentifier(BoundDagEvaluation e)
-            {
-                return tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
-            }
 
             var sortedBoundDagNodes = boundDecisionDag.TopologicallySortedNodes;
             for (int i = 0; i < sortedBoundDagNodes.Length; i++)
@@ -669,15 +665,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Id = i;
                 switch (node)
                 {
-                    case BoundEvaluationDecisionDagNode { Evaluation: var evaluation }:
+                    case BoundEvaluationDecisionDagNode { Evaluation: { Id: -1 } evaluation }:
                         evaluation.Id = tempIdentifier(evaluation);
-                        if (evaluation.Input.Source is { } source)
+                        // Note that "equivalent" evaluations may be different object instances.
+                        // Therefore we have to dig into the Input.Source of evaluations and tests to set their IDs.
+                        if (evaluation.Input.Source is { Id: -1 } source)
                         {
                             source.Id = tempIdentifier(source);
                         }
                         break;
                     case BoundTestDecisionDagNode { Test: var test }:
-                        if (test.Input.Source is { } testSource)
+                        if (test.Input.Source is { Id: -1 } testSource)
                         {
                             testSource.Id = tempIdentifier(testSource);
                         }
@@ -685,6 +683,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             tempIdentifierMap.Free();
+
+            int tempIdentifier(BoundDagEvaluation e)
+            {
+                return tempIdentifierMap.TryGetValue(e, out int value)
+                    ? value
+                    : tempIdentifierMap[e] = ++nextTempNumber;
+            }
 #endif
             return boundDecisionDag;
         }

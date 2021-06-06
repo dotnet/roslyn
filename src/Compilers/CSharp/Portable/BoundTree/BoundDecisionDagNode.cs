@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!_idWasRead, "Id was set after reading it");
                 Debug.Assert(value >= 0, "Id must be non-negative but was set to " + value);
+                Debug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
                 _id = value;
             }
         }
