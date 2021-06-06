@@ -375,7 +375,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
-            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback);
+            using var jsonRpc = new JsonRpc(clientStream, clientStream, callback)
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
 
             // The json rpc messages won't necessarily come back in order by default.
             // So use a synchronization context to preserve the original ordering.
@@ -399,7 +402,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
 
-                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream));
+                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))
+                {
+                    ExceptionStrategy = ExceptionProcessing.ISerializable,
+                };
 
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
