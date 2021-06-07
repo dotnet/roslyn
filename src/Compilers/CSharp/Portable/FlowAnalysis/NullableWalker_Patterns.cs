@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Learn something about the input from a test of a given expression against a given pattern.  The given
         /// state is updated to note that any slots that are tested against `null` may be null.
         /// </summary>
-        /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
             BoundExpression expression,
             BoundPattern pattern)
@@ -216,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclareLocals(section.Locals);
             }
 
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -287,7 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             BoundDecisionDag decisionDag,
             BoundExpression expression,
-            TypeWithState expressionType)
+            TypeWithState expressionType,
+            PossiblyConditionalState? stateWhenNotNullOpt)
         {
             // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
             // not copying the input to evaluate the patterns.  In this way we infer non-nullability of the original
@@ -512,7 +512,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagValueTest t:
                                     Debug.Assert(t.Value != ConstantValue.Null);
-                                    if (inputSlot > 0)
+                                    // When we compare `bool?` inputs to bool constants, we follow a graph roughly like the following:
+                                    // [0]: t0 != null ? [1] : [5]
+                                    // [1]: t1 = (bool)t0; [2]
+                                    // [2] (this node): t1 == boolConstant ? [3] : [4]
+                                    // ...(remaining states)
+                                    if (stateWhenNotNullOpt is { } stateWhenNotNull
+                                        && t.Input.Source is BoundDagTypeEvaluation { Input: { IsOriginalInput: true } })
+                                    {
+                                        SetPossiblyConditionalState(stateWhenNotNull);
+                                    }
+                                    else if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);
                                     }
@@ -600,7 +610,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void learnFromNonNullTest(int inputSlot, ref LocalState state)
             {
-                LearnFromNonNullTest(inputSlot, ref state);
+                if (stateWhenNotNullOpt is { } stateWhenNotNull && inputSlot == originalInputSlot)
+                {
+                    state = CloneAndUnsplit(ref stateWhenNotNull);
+                }
+                else
+                {
+                    LearnFromNonNullTest(inputSlot, ref state);
+                }
                 if (originalInputMap.TryGetValue(inputSlot, out var expression))
                     LearnFromNonNullTest(expression, ref state);
             }
@@ -732,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
@@ -840,94 +857,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             LearnFromAnyNullPatterns(node.Expression, node.Pattern);
             VisitPatternForRewriting(node.Pattern);
-            if (!VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull)
-                || !trySetStateWhenNotNull(node.Pattern, conditionalStateWhenNotNull))
-            {
-                var expressionState = ResultType;
-                var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState);
-                var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
-                var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
-                labelStateMap.Free();
-                SetConditionalState(trueState, falseState);
-            }
+            var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
+            var expressionState = ResultType;
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
+            var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
+            var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
+            labelStateMap.Free();
+            SetConditionalState(trueState, falseState);
             SetNotNullResult(node);
             return null;
-
-            bool trySetStateWhenNotNull(BoundPattern pattern, PossiblyConditionalState conditionalStateWhenNotNull)
-            {
-                Debug.Assert(!IsConditionalState);
-
-                if (conditionalStateWhenNotNull.IsConditionalState)
-                {
-                    switch (getMatchingBoolValues(pattern))
-                    {
-                        case (hasTrue: true, hasFalse: false, hasNull: false):
-                            SetConditionalState(conditionalStateWhenNotNull.StateWhenTrue, State);
-                            return true;
-                        case (hasTrue: false, hasFalse: true, hasNull: false):
-                            SetConditionalState(conditionalStateWhenNotNull.StateWhenFalse, State);
-                            return true;
-                        case (hasTrue: false, hasFalse: true, hasNull: true):
-                            SetConditionalState(State, conditionalStateWhenNotNull.StateWhenTrue);
-                            return true;
-                        case (hasTrue: true, hasFalse: false, hasNull: true):
-                            SetConditionalState(State, conditionalStateWhenNotNull.StateWhenFalse);
-                            return true;
-                    }
-                }
-
-                switch (IsTopLevelNonNullTest(node.Pattern))
-                {
-                    case true:
-                        SetConditionalState(CloneAndUnsplit(ref conditionalStateWhenNotNull), State);
-                        return true;
-                    case false:
-                        SetConditionalState(State, CloneAndUnsplit(ref conditionalStateWhenNotNull));
-                        return true;
-                }
-
-                return false;
-            }
-
-            // Returns a struct with flags set to 'true' for each nullable boolean value that is accepted by the pattern.
-            static (bool hasTrue, bool hasFalse, bool hasNull) getMatchingBoolValues(BoundPattern pattern)
-            {
-                switch (pattern)
-                {
-                    case BoundConstantPattern { ConstantValue: { IsBoolean: true, BooleanValue: var boolValue } }:
-                        return (hasTrue: boolValue, hasFalse: !boolValue, hasNull: false);
-
-                    case BoundConstantPattern { ConstantValue: { IsNull: true } }:
-                        return (hasTrue: false, hasFalse: false, hasNull: true);
-
-                    case BoundConstantPattern:
-                        return (hasTrue: false, hasFalse: false, hasNull: false);
-
-                    case BoundDeclarationPattern { IsVar: true }:
-                    case BoundDiscardPattern:
-                        return (hasTrue: true, hasFalse: true, hasNull: true);
-
-                    case BoundDeclarationPattern { IsVar: false }:
-                    case BoundTypePattern:
-                    case BoundRecursivePattern:
-                    case BoundITuplePattern:
-                    case BoundRelationalPattern:
-                        return (hasTrue: true, hasFalse: true, hasNull: false);
-
-                    case BoundNegatedPattern negated:
-                        var innerValues = getMatchingBoolValues(negated.Negated);
-                        return (hasTrue: !innerValues.hasTrue, hasFalse: !innerValues.hasFalse, hasNull: !innerValues.hasNull);
-
-                    case BoundBinaryPattern binary:
-                        var (innerLeft, innerRight) = (getMatchingBoolValues(binary.Left), getMatchingBoolValues(binary.Right));
-
-                        return binary.Disjunction
-                            ? (hasTrue: innerLeft.hasTrue || innerRight.hasTrue, hasFalse: innerLeft.hasFalse || innerRight.hasFalse, hasNull: innerLeft.hasNull || innerRight.hasNull)
-                            : (hasTrue: innerLeft.hasTrue && innerRight.hasTrue, hasFalse: innerLeft.hasFalse && innerRight.hasFalse, hasNull: innerLeft.hasNull && innerRight.hasNull);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
-                }
-            }
         }
     }
 }
