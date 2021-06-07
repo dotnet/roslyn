@@ -969,15 +969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);
-                switch (IsTopLevelNonNullTest(pattern))
-                {
-                    case true:
-                        SetConditionalState(stateWhenNotNull, State);
-                        break;
-                    case false:
-                        SetConditionalState(State, stateWhenNotNull);
-                        break;
-                }
+                SetConditionalState(PatternMatchesNull(pattern)
+                    ? (State, stateWhenNotNull)
+                    : (stateWhenNotNull, State));
             }
             else if (IsConditionalState)
             {
@@ -1059,12 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// Returns <see langword="true"/> if the pattern only matches if the top-level input is not null.
-        /// Returns <see langword="false"/> if the pattern only matches if the top-level input is null.
-        /// Otherwise, returns <see langword="null"/>.
-        /// </summary>
-        protected static bool? IsTopLevelNonNullTest(BoundPattern pattern)
+        private static bool PatternMatchesNull(BoundPattern pattern)
         {
             switch (pattern)
             {
@@ -1074,30 +1063,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundRelationalPattern:
                 case BoundDeclarationPattern { IsVar: false }:
                 case BoundConstantPattern { ConstantValue: { IsNull: false } }:
-                    return true;
-                case BoundConstantPattern { ConstantValue: { IsNull: true } }:
                     return false;
+                case BoundConstantPattern { ConstantValue: { IsNull: true } }:
+                    return true;
                 case BoundNegatedPattern negated:
-                    return !IsTopLevelNonNullTest(negated.Negated);
+                    return !PatternMatchesNull(negated.Negated);
                 case BoundBinaryPattern binary:
                     if (binary.Disjunction)
                     {
                         // `a?.b(out x) is null or C`
-                        // both subpatterns must have the same null test for the test to propagate out
-                        var leftNullTest = IsTopLevelNonNullTest(binary.Left);
-                        return leftNullTest is null ? null :
-                            leftNullTest != IsTopLevelNonNullTest(binary.Right) ? null :
-                            leftNullTest;
+                        // pattern matches null if either subpattern matches null
+                        var leftNullTest = PatternMatchesNull(binary.Left);
+                        return PatternMatchesNull(binary.Left) || PatternMatchesNull(binary.Right);
                     }
 
-                    // `a?.b(out x) is not null and var c`
-                    // if any pattern performs a test, we know that test applies at the top level
-                    // note that if the tests are different, e.g. `null and not null`,
-                    // the pattern is a contradiction, so we expect an error diagnostic
-                    return IsTopLevelNonNullTest(binary.Left) ?? IsTopLevelNonNullTest(binary.Right);
+                    // `a?.b out x is not null and var c`
+                    // pattern matches null only if both subpatterns match null
+                    return PatternMatchesNull(binary.Left) && PatternMatchesNull(binary.Right);
                 case BoundDeclarationPattern { IsVar: true }:
                 case BoundDiscardPattern:
-                    return null;
+                    return true;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
