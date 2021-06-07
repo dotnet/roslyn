@@ -93,10 +93,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
                 var optional = ReadColumn(
-                        key,
-                        static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
-                        this,
-                        cancellationToken);
+                    key,
+                    static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
+                    this,
+                    cancellationToken);
                 return optional.HasValue && checksum == optional.Value;
             }
 
