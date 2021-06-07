@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -140,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
         private ThreeState _lazyIsParams;
+        private ImmutableArray<int> _lazyInterpolatedStringHandlerAttributeIndexes;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
@@ -702,6 +704,82 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return annotations;
         }
 
+#nullable enable
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+        {
+            get
+            {
+                ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
+                if (indexes.IsDefault)
+                {
+                    indexes = DecodeInterpolatedStringHandlerArgumentAttribute();
+                    Debug.Assert(!indexes.IsDefault);
+                    var initialized = ImmutableInterlocked.InterlockedInitialize(ref _lazyInterpolatedStringHandlerAttributeIndexes, indexes);
+                    Debug.Assert(initialized || indexes.SequenceEqual(_lazyInterpolatedStringHandlerAttributeIndexes));
+                }
+
+                return indexes;
+            }
+        }
+
+        private ImmutableArray<int> DecodeInterpolatedStringHandlerArgumentAttribute()
+        {
+            // If we encounter an invalid attribute, we ignore the contents and just use the empty list.
+
+            if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
+            {
+                return ImmutableArray<int>.Empty;
+            }
+
+            var paramNames = _moduleSymbol.Module.GetInterpolatedStringHandlerArgumentAttributeValues(_handle);
+            Debug.Assert(!paramNames.IsDefault);
+
+            if (paramNames.IsEmpty)
+            {
+                return ImmutableArray<int>.Empty;
+            }
+
+            var builder = ArrayBuilder<int>.GetInstance(paramNames.Length);
+            var parameters = ContainingSymbol switch
+            {
+                MethodSymbol { Parameters: var p } => p,
+                PropertySymbol { Parameters: var p } => p,
+                _ => throw ExceptionUtilities.UnexpectedValue(ContainingSymbol)
+            };
+
+            foreach (var name in paramNames)
+            {
+                switch (name)
+                {
+                    case null:
+                    case { Length: 0 } when ContainingSymbol.IsStatic:
+                        // Invalid data, bail
+                        builder.Free();
+                        return ImmutableArray<int>.Empty;
+
+                    case { Length: 0 }:
+                        builder.Add(-1);
+                        break;
+
+                    default:
+                        var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
+                        if (param is not null)
+                        {
+                            builder.Add(param.Ordinal);
+                            break;
+                        }
+                        else
+                        {
+                            builder.Free();
+                            return ImmutableArray<int>.Empty;
+                        }
+                }
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+#nullable disable
+
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get
@@ -925,8 +1003,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
         }
-
-        // PROTOTYPE(interp-string)
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw new NotImplementedException();
     }
 }

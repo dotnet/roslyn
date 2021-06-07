@@ -454,6 +454,19 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>

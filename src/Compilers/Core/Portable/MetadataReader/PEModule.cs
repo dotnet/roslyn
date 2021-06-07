@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1188,6 +1188,31 @@ namespace Microsoft.CodeAnalysis
             }
 
             return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
+        }
+
+        internal ImmutableArray<string?> GetInterpolatedStringHandlerArgumentAttributeValues(EntityHandle token)
+        {
+            var targetAttribute = FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerArgumentAttribute);
+            if (!targetAttribute.HasValue)
+            {
+                return ImmutableArray<string?>.Empty;
+            }
+
+            Debug.Assert(AttributeDescription.InterpolatedStringHandlerArgumentAttribute.Signatures.Length == 2);
+            if (targetAttribute.SignatureIndex == 0)
+            {
+                if (TryExtractStringValueFromAttribute(targetAttribute.Handle, out string? paramName))
+                {
+                    return ImmutableArray.Create(paramName);
+                }
+            }
+            else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
+            {
+                Debug.Assert(targetAttribute.SignatureIndex == 1);
+                return paramNames.NullToEmpty();
+            }
+
+            return ImmutableArray<string?>.Empty;
         }
 #nullable disable
 

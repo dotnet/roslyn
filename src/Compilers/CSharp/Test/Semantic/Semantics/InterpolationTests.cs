@@ -5241,6 +5241,29 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        private const string InterpolatedStringHandlerAttributesVB = @"
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct, AllowMultiple:=False, Inherited:=False)>
+    Public NotInheritable Class InterpolatedStringHandlerAttribute
+        Inherits Attribute
+    End Class
+    <AttributeUsage(AttributeTargets.Parameter, AllowMultiple:=False, Inherited:=False)>
+    Public NotInheritable Class InterpolatedStringHandlerArgumentAttribute
+        Inherits Attribute
+
+        Public Sub New(argument As String)
+            Arguments = { argument }
+        End Sub
+
+        Public Sub New(ParamArray arguments() as String)
+            Me.Arguments = arguments
+        End Sub
+
+        Public ReadOnly Property Arguments As String()
+    End Class
+End Namespace
+";
+
         [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NonHandlerType()
         {
@@ -5258,6 +5281,29 @@ class C
                 //     void M([InterpolatedStringHandlerArgumentAttribute] string s) {}
                 Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgumentAttribute").WithArguments("string").WithLocation(5, 13)
             );
+
+            var sParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           sParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(sParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NonHandlerType_Metadata()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i as Integer, <InterpolatedStringHandlerArgument(""i"")> c As String)
+    End Sub
+End Class
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
 
             var sParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
@@ -5285,7 +5331,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(5, 56)
             );
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Single();
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
                            cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
@@ -5318,6 +5364,35 @@ class C
         }
 
         [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_01_FromMetadata()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(<InterpolatedStringHandlerArgument(""NonExistant"")> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_02()
         {
             var code = @"
@@ -5338,6 +5413,35 @@ class C
             );
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_02_FromMetadata()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i As Integer, <InterpolatedStringHandlerArgument(""i"", ""NonExistant"")> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
                            cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
@@ -5367,6 +5471,35 @@ class C
             );
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_03_FromMetadata()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i As Integer, <InterpolatedStringHandlerArgument(""NonExistant1"", ""NonExistant2"")> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
                            cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
@@ -5425,6 +5558,64 @@ class C
         }
 
         [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_01()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i As Integer, <InterpolatedStringHandlerArgument({ Nothing })> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_02()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i As Integer, <InterpolatedStringHandlerArgument({ Nothing, ""i"" })> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnStaticMethod()
         {
             var code = @"
@@ -5451,13 +5642,42 @@ class C
         }
 
         [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_ThisOnStaticMethod_FromMetadata()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Shared Sub M(<InterpolatedStringHandlerArgument({ """" })> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+        }
+
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeWarn_ParameterAfterHandler()
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M([InterpolatedStringHandlerArgumentAttribute(""i"")] CustomHandler c, int i) {}
+    public static void M([InterpolatedStringHandlerArgumentAttribute(""i"")] CustomHandler c, int i) {}
 }
 
 public partial struct CustomHandler
@@ -5472,15 +5692,20 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,20): warning CS9009: Parameter int occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
-                //     static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) {}
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("int", "CustomHandler").WithLocation(5, 20)
+                // (5,27): warning CS9009: Parameter int occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) {}
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("int", "CustomHandler").WithLocation(5, 27)
             );
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.First();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(1, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+            CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.First();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(1, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+            }
         }
 
         [Fact]
@@ -5640,37 +5865,32 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, [InterpolatedStringHandlerArgumentAttribute(""i"")] CustomHandler c) {}
+    public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(""i"")] CustomHandler c) {}
 }
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, int i" + extraConstructorArg + @") : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int i" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
-            {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(0, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+            static void verifier(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(0, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
+            }
         }
 
         [Theory]
@@ -5680,37 +5900,32 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"")] CustomHandler c) {}
+    public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"")] CustomHandler c) {}
 }
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, int i, string s" + extraConstructorArg + @") : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int i, string s" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
-            {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(new[] { 0, 1 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            static void verifier(ModuleSymbol verifier)
+            {
+                var cParam = verifier.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 0, 1 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            }
         }
 
         [Theory]
@@ -5720,37 +5935,33 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(in int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c) { o = null; }
+    public static void M(in int i, ref string s, out object o, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"", ""o"")] CustomHandler c) { o = null; }
 }
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, in int i, ref string s, out object o" + extraConstructorArg + @") : this() { o = null; }
+    public CustomHandler(int literalLength, int formattedCount, in int i, ref string s, out object o" + extraConstructorArg + @") : this()
+    {
+        o = null;
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
-            {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(3).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(new[] { 0, 1, 2 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            static void verifier(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(3).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 0, 1, 2 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            }
         }
 
         [Theory]
@@ -5760,37 +5971,32 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""s"", ""i"")] CustomHandler c) { }
+    public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""s"", ""i"")] CustomHandler c) { }
 }
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, string s, int i" + extraConstructorArg + @") : this() { }
+    public CustomHandler(int literalLength, int formattedCount, string s, int i" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
-            {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(new[] { 1, 0 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            static void verifier(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 1, 0 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            }
         }
 
         [Theory]
@@ -5800,37 +6006,32 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", ""i"")] CustomHandler c) { }
+    public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", ""i"")] CustomHandler c) { }
 }
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, int i1, int i2" + extraConstructorArg + @") : this() { }
+    public CustomHandler(int literalLength, int formattedCount, int i1, int i2" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
-            {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
-            }
-            else
-            {
-                comp.VerifyDiagnostics();
-            }
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Equal(new[] { 0, 0 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            static void verifier(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 0, 0 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            }
         }
 
         [Theory]
@@ -5840,30 +6041,61 @@ public partial struct CustomHandler
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
+    public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
 }
 [InterpolatedStringHandler]
 public struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount" + extraConstructorArg + @") {}
+    public CustomHandler(int literalLength, int formattedCount" + extraConstructorArg + @")
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview);
-            if (extraConstructorArg != "")
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
+
+            static void verifier(ModuleSymbol module)
             {
-                comp.VerifyDiagnostics(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
             }
-            else
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(", out bool success")]
+        public void InterpolatedStringHandlerArgumentAttributeError_EmptyWithoutMatchingConstructor(string extraConstructorArg)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
+}
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int i" + extraConstructorArg + @")
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(new[]
             {
-                comp.VerifyDiagnostics();
-            }
+                // (5,44): error CS9011: Could not find a constructor on 'CustomHandler' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.
+                //     public static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
+                Diagnostic(ErrorCode.ERR_CouldNotFindApplicableInterpolatedStringHandlerConstructor, "InterpolatedStringHandlerArgumentAttribute()").WithArguments("CustomHandler").WithLocation(5, 44)
+            });
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
@@ -5874,44 +6106,71 @@ public struct CustomHandler
         [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
-        public void InterpolatedStringHandlerArgumentAttributeError_EmptyWithoutMatchingConstructor(string extraConstructorArg)
+        public void InterpolatedStringHandlerArgumentAttribute_OnIndexer(string extraConstructorArg)
         {
             var code = @"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
+    public int this[int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", ""s"")] CustomHandler c] { get => throw null; }
 }
-[InterpolatedStringHandler]
-public struct CustomHandler
+
+public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, int i" + extraConstructorArg + @") {}
+    public CustomHandler(int literalLength, int formattedCount, int i1, string s" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview);
-            var expected = new[]
-            {
-                // (5,37): error CS9011: Could not find a constructor on 'CustomHandler' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.
-                //     static void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute()] CustomHandler c) { }
-                Diagnostic(ErrorCode.ERR_CouldNotFindApplicableInterpolatedStringHandlerConstructor, "InterpolatedStringHandlerArgumentAttribute()").WithArguments("CustomHandler").WithLocation(5, 37),
-            };
+            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            if (extraConstructorArg != "")
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
+
+            static void verifier(ModuleSymbol module)
             {
-                expected = expected.Append(
-                    // (10,12): error CS0177: The out parameter 'success' must be assigned to before control leaves the current method
-                    //     public CustomHandler(int literalLength, int formattedCount, int i, out bool success) : this() {}
-                    Diagnostic(ErrorCode.ERR_ParamUnassigned, "CustomHandler").WithArguments("success").WithLocation(10, 12)
-                );
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetIndexer<PropertySymbol>("Item").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 0, 1 }, cParam.InterpolatedStringHandlerArgumentIndexes);
             }
+        }
 
-            comp.VerifyDiagnostics(expected);
+        [Theory]
+        [InlineData("")]
+        [InlineData(", out bool success")]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter(string extraConstructorArg)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void M(int i, string s, [InterpolatedStringHandlerArgumentAttribute(""i"", """", ""s"")] CustomHandler c) { }
+}
 
-            var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
-            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
-                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
-            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int i1, C c, string s" + extraConstructorArg + @") : this()
+    {
+" + (extraConstructorArg != "" ? "success = true;" : "") + @"
+    }
+}
+";
+
+            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp, sourceSymbolValidator: verifier, symbolValidator: verifier);
+
+            static void verifier(ModuleSymbol module)
+            {
+                var cParam = module.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(2).Single();
+                AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                               cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+                Assert.Equal(new[] { 0, -1, 1 }, cParam.InterpolatedStringHandlerArgumentIndexes);
+            }
         }
     }
 }
