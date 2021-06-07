@@ -521,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         && t.Input.Source is BoundDagTypeEvaluation { Input: { IsOriginalInput: true } })
                                     {
                                         SetPossiblyConditionalState(stateWhenNotNull);
+                                        Split();
                                     }
                                     else if (inputSlot > 0)
                                     {
