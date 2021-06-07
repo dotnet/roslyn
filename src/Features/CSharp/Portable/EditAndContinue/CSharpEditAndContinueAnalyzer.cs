@@ -641,6 +641,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
+            // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
+            // for the purposes of declaration rude edits
+            if (oldNode.IsKind(SyntaxKind.CompilationUnit) || newNode.IsKind(SyntaxKind.CompilationUnit))
+            {
+                return;
+            }
+
             // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
             // but their explicitly implemented counterparts reference the actual member. Compiler generated properties
             // of records reference the parameter that names them.
@@ -1247,6 +1254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (editKind == EditKind.Update && node.IsKind(SyntaxKind.EnumDeclaration))
             {
                 return null;
+            }
+
+            // Top level code always lives in a synthesized Main method
+            if (node.IsKind(SyntaxKind.GlobalStatement))
+            {
+                return model.GetEnclosingSymbol(node.SpanStart, cancellationToken);
             }
 
             var symbol = model.GetDeclaredSymbol(node, cancellationToken);

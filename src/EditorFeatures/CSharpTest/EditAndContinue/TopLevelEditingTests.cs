@@ -13297,7 +13297,7 @@ Console.WriteLine(""Hello World"");
         }
 
         [Fact]
-        public void TopLevelStatements_Insert()
+        public void TopLevelStatements_Insert_NoImplicitMain()
         {
             var src1 = @"
 using System;
@@ -13315,7 +13315,28 @@ Console.WriteLine(""Hello World"");
         }
 
         [Fact]
-        public void TopLevelStatements_Delete()
+        public void TopLevelStatements_Insert_ImplicitMain()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+Console.WriteLine(""World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [Console.WriteLine(\"World\");]@48");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Delete_NoImplicitMain()
         {
             var src1 = @"
 using System;
@@ -13331,6 +13352,27 @@ using System;
             edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
 
             edits.VerifySemantics(SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Delete_ImplicitMain()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+Console.WriteLine(""World"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [Console.WriteLine(\"World\");]@48");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
         }
 
         #endregion
