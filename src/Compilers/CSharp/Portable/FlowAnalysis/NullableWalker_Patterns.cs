@@ -614,10 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     state = CloneAndUnsplit(ref stateWhenNotNull);
                 }
-                else
-                {
-                    LearnFromNonNullTest(inputSlot, ref state);
-                }
+                LearnFromNonNullTest(inputSlot, ref state);
                 if (originalInputMap.TryGetValue(inputSlot, out var expression))
                     LearnFromNonNullTest(expression, ref state);
             }
