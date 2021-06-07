@@ -5732,5 +5732,82 @@ static class Program
   IL_002a:  ret
 }");
         }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericMethod_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            message = i.ToString();
+            StaticMethod(param, _ => message);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.TestMethod<T>(T)",
+                @"{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
+                int V_1, //i
+                System.Func<T, string> V_2)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldsfld     ""string string.Empty""
+  IL_000c:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_004b
+  IL_0015:  ldloc.0
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0022:  ldarg.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0042
+  IL_002c:  pop
+  IL_002d:  ldloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__0(T)""
+  IL_0035:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stloc.2
+  IL_003c:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.1
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  blt.s      IL_0015
+  IL_004f:  ret
+}");
+        }
     }
 }
