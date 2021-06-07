@@ -13383,6 +13383,11 @@ class Test
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }
 
+        /// <summary>
+        /// Verify that a synthesized (and emitted) parameterless constructor can be referenced
+        /// in metadata for an "attribute type", even if the attribute type is a struct. Compare
+        /// with previous test where no parameterless constructor is emitted for the struct type.
+        /// </summary>
         [Theory]
         [InlineData(
 @"#pragma warning disable 414

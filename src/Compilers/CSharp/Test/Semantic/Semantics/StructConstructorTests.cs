@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         public void PublicParameterlessConstructor(bool useCompilationReference)
         {
             var sourceA =
-@"public struct S
+@"public struct S<T>
 {
     public readonly bool Initialized;
     public S() { Initialized = true; }
@@ -42,15 +42,22 @@ class Program
     static T CreateStruct<T>() where T : struct => new T();
     static void Main()
     {
-        Console.WriteLine(new S().Initialized);
-        Console.WriteLine(CreateNew<S>().Initialized);
-        Console.WriteLine(CreateStruct<S>().Initialized);
+        Console.WriteLine(new S<int>().Initialized);
+        Console.WriteLine(CreateNew<S<int>>().Initialized);
+        Console.WriteLine(CreateStruct<S<int>>().Initialized);
+        Console.WriteLine(CreateStruct<S<string>>().Initialized);
+        Console.WriteLine(CreateNew<S<string>>().Initialized);
+        Console.WriteLine(new S<string>().Initialized);
     }
 }";
+            bool secondCall = ExecutionConditionUtil.IsCoreClr; // .NET Framework ignores constructor in second call to Activator.CreateInstance<T>().
             CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput:
 $@"True
 True
-{ExecutionConditionUtil.IsCoreClr}"); // Desktop framework ignores constructor in Activator.CreateInstance<T>() where T : struct.
+{secondCall}
+True
+{secondCall}
+True");
         }
 
         [Fact]
@@ -202,9 +209,15 @@ System.MissingMethodException");
             var sourceA =
 $@"public struct S
 {{
-    {accessibility} S() {{ }}
+    {accessibility}
+    S() {{ }}
 }}";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,5): error CS8918: The parameterless struct constructor must be 'public'.
+                //     S() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S").WithLocation(4, 5));
+
             var refA = comp.ToMetadataReference();
 
             var sourceB =
@@ -414,61 +427,70 @@ True");
 @"using System;
 struct S0
 {
-    internal bool Initialized = true;
+    internal bool Initialized = GetTrue();
     internal S0(object obj) : this() { }
+    private static bool GetTrue() { Console.WriteLine(""S0.GetTrue()""); return true; }
 }
 struct S1
 {
-    internal bool Initialized = true;
+    internal bool Initialized = GetTrue();
     public S1() { }
     internal S1(object obj) : this() { }
+    private static bool GetTrue() { Console.WriteLine(""S1.GetTrue()""); return true; }
 }
 struct S2
 {
-    internal bool Initialized = true;
+    internal bool Initialized = GetTrue();
     public S2() : this(null) { }
     S2(object obj) { }
+    private static bool GetTrue() { Console.WriteLine(""S2.GetTrue()""); return true; }
 }
 class Program
 {
     static void Main()
     {
-        Console.WriteLine(new S0().Initialized);
-        Console.WriteLine(new S0(null).Initialized);
-        Console.WriteLine(new S1().Initialized);
-        Console.WriteLine(new S1(null).Initialized);
-        Console.WriteLine(new S2().Initialized);
+        Console.WriteLine($""new S0().Initialized: {new S0().Initialized}"");
+        Console.WriteLine($""new S0(null).Initialized: {new S0(null).Initialized}"");
+        Console.WriteLine($""new S1().Initialized: {new S1().Initialized}"");
+        Console.WriteLine($""new S1(null).Initialized: {new S1(null).Initialized}"");
+        Console.WriteLine($""new S2().Initialized: {new S2().Initialized}"");
     }
 }";
 
             var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
-@"False
-False
-True
-True
-True");
+@"new S0().Initialized: False
+S0.GetTrue()
+new S0(null).Initialized: False
+S1.GetTrue()
+new S1().Initialized: True
+S1.GetTrue()
+new S1(null).Initialized: True
+S2.GetTrue()
+new S2().Initialized: True
+");
+
             verifier.VerifyMissing("S0..ctor()");
             // PROTOTYPE: S0.Initialized should be set after initobj, not before, and
             // expectedOutput should be False, True, ...
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       15 (0xf)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S0.Initialized""
-  IL_0007:  ldarg.0
-  IL_0008:  initobj    ""S0""
-  IL_000e:  ret
+  IL_0001:  call       ""bool S0.GetTrue()""
+  IL_0006:  stfld      ""bool S0.Initialized""
+  IL_000b:  ldarg.0
+  IL_000c:  initobj    ""S0""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S1.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""bool S1.GetTrue()""
+  IL_0006:  stfld      ""bool S1.Initialized""
+  IL_000b:  ret
 }");
             verifier.VerifyIL("S1..ctor(object)",
 @"{
@@ -489,15 +511,17 @@ True");
 }");
             verifier.VerifyIL("S2..ctor(object)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S2.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""bool S2.GetTrue()""
+  IL_0006:  stfld      ""bool S2.Initialized""
+  IL_000b:  ret
 }");
         }
 
+        // Similar to previous test but where the initializers use the default value,
+        // to verify that the decision whether is independent of the initialized value.
         [Fact]
         public void ThisInitializer_04()
         {

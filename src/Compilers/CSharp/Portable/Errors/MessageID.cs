@@ -342,8 +342,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGlobalUsing:
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                 case MessageID.IDS_FeatureLambdaAttributes: // semantic check
-                case MessageID.IDS_FeatureParameterlessStructConstructors:
-                case MessageID.IDS_FeatureStructFieldInitializers:
+                case MessageID.IDS_FeatureParameterlessStructConstructors: // semantic check
+                case MessageID.IDS_FeatureStructFieldInitializers: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.

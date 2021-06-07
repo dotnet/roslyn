@@ -1287,14 +1287,15 @@ hasRelatedInterfaces:
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) != false;
+                    return getParameterlessConstructor((NamedTypeSymbol)typeArgument) is null or { DeclaredAccessibility: Accessibility.Public };
 
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) == true && !typeArgument.IsAbstract;
+                    return getParameterlessConstructor((NamedTypeSymbol)typeArgument) is { DeclaredAccessibility: Accessibility.Public } &&
+                        !typeArgument.IsAbstract;
 
                 case TypeKind.TypeParameter:
                     {
@@ -1309,24 +1310,13 @@ hasRelatedInterfaces:
                 default:
                     return false;
             }
-        }
 
-        /// <summary>
-        /// Return true if the type has a public parameterless constructor;
-        /// false if the parameterless constructor is not public; and
-        /// null if no parameterless constructor.
-        /// </summary>
-        private static bool? HasPublicParameterlessConstructor(NamedTypeSymbol type)
-        {
-            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
-            foreach (var constructor in type.InstanceConstructors)
+            // Returns parameterless constructor if any.
+            static MethodSymbol getParameterlessConstructor(NamedTypeSymbol type)
             {
-                if (constructor.ParameterCount == 0)
-                {
-                    return constructor.DeclaredAccessibility == Accessibility.Public;
-                }
+                Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
+                return type.InstanceConstructors.FirstOrDefault(constructor => constructor.ParameterCount == 0);
             }
-            return null;
         }
 
         /// <summary>
