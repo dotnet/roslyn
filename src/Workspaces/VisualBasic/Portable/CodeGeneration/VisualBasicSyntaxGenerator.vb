@@ -2511,7 +2511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
             End Select
 
-            Dim isClass = kind = DeclarationKind.Class OrElse declaration.IsKind(SyntaxKind.ClassBlock)
+            Dim isClass = kind = DeclarationKind.Class OrElse declaration.IsKind(SyntaxKind.ClassStatement)
             If modifiers.IsAbstract Then
                 If isClass Then
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustInheritKeyword))
