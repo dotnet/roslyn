@@ -13336,7 +13336,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "Console.WriteLine(\"Hello World\");", CSharpFeaturesResources.global_statement));
         }
 
         [Fact]
@@ -13376,7 +13376,7 @@ using System;
 
             edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("<Program>$.<Main>$")));
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.global_statement));
         }
 
         [Fact]
