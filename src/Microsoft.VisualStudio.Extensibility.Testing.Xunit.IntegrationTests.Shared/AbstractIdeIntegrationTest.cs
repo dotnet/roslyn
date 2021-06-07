@@ -24,7 +24,9 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             }
             else
             {
+#pragma warning disable VSSDK005 // Avoid instantiating JoinableTaskContext (Will not be instantiated if provided by the host)
                 JoinableTaskContext = new JoinableTaskContext();
+#pragma warning restore VSSDK005 // Avoid instantiating JoinableTaskContext
             }
         }
 

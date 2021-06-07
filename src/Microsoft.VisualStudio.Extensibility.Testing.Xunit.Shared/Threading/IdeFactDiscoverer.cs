@@ -47,10 +47,22 @@ namespace Xunit.Threading
             minVersion = minVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2012 : minVersion;
 
             var maxVersion = theoryAttribute.GetNamedArgument<VisualStudioVersion>(nameof(IdeFactAttribute.MaxVersion));
-            maxVersion = maxVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2019 : maxVersion;
+            maxVersion = maxVersion == VisualStudioVersion.Unspecified ? VisualStudioVersion.VS2022 : maxVersion;
 
             for (var version = minVersion; version <= maxVersion; version++)
             {
+#if MERGED_PIA
+                if (version >= VisualStudioVersion.VS2012 && version < VisualStudioVersion.VS2022)
+                {
+                    continue;
+                }
+#else
+                if (version >= VisualStudioVersion.VS2022)
+                {
+                    continue;
+                }
+#endif
+
                 yield return version;
             }
         }
