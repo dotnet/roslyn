@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     /// <summary>
     /// Factory to create a project context for a new Workspace project that can be initialized on a background thread.
     /// </summary>
-    internal interface IWorkspaceProjectContextFactory
+    public interface IWorkspaceProjectContextFactory
     {
         /// <inheritdoc cref="CreateProjectContextAsync"/>
         [Obsolete("Use CreateProjectContextAsync instead")]
