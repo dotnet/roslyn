@@ -1132,7 +1132,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -1725,7 +1725,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Alias '{0}' conflicts with {1} definition</value>
   </data>
   <data name="ERR_ConditionalOnSpecialMethod" xml:space="preserve">
-    <value>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation</value>
+    <value>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</value>
   </data>
   <data name="ERR_ConditionalMustReturnVoid" xml:space="preserve">
     <value>The Conditional attribute is not valid on '{0}' because its return type is not void</value>
@@ -3789,7 +3789,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
-    <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
+    <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
@@ -3940,6 +3940,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="ERR_AttributesNotAllowed" xml:space="preserve">
     <value>Attributes are not valid in this context.</value>
+  </data>
+  <data name="ERR_AttributesRequireParenthesizedLambdaExpression" xml:space="preserve">
+    <value>Attributes on lambda expressions require a parenthesized parameter list.</value>
   </data>
   <data name="ERR_ExternAliasNotAllowed" xml:space="preserve">
     <value>'extern alias' is not valid in this context</value>
@@ -5833,6 +5836,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DefaultLiteralNoTargetType" xml:space="preserve">
     <value>There is no target type for the default literal.</value>
   </data>
+  <data name="ERR_CannotInferDelegateType" xml:space="preserve">
+    <value>The delegate type could not be inferred.</value>
+  </data>
   <data name="ERR_SingleElementPositionalPatternRequiresDisambiguation" xml:space="preserve">
     <value>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</value>
   </data>
@@ -6274,8 +6280,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
-  <data name="ERR_NoSingleCloneMethod" xml:space="preserve">
-    <value>The receiver type '{0}' is not a valid record type.</value>
+  <data name="ERR_CannotClone" xml:space="preserve">
+    <value>The receiver type '{0}' is not a valid record type and is not a struct type.</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
@@ -6419,7 +6425,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Only records may inherit from records.</value>
   </data>
   <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
-    <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
+    <value>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</value>
   </data>
   <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
     <value>No accessible copy constructor found in base type '{0}'.</value>
@@ -6563,6 +6569,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction" xml:space="preserve">
     <value>Mixed declarations and expressions in deconstruction</value>
   </data>
+  <data name="IDS_FeatureRecordStructs" xml:space="preserve">
+    <value>record structs</value>
+    <comment>'record structs' is not localizable.</comment>
+  </data>
+  <data name="IDS_FeatureWithOnStructs" xml:space="preserve">
+    <value>with on structs</value>
+  </data>
+  <data name="IDS_FeatureWithOnAnonymousTypes" xml:space="preserve">
+    <value>with on anonymous types</value>
+  </data>
+  <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
+    <value>positional fields in records</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6591,6 +6610,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RecordAmbigCtor" xml:space="preserve">
     <value>The primary constructor conflicts with the synthesized copy constructor.</value>
   </data>
+  <data name="IDS_FeatureLambdaAttributes" xml:space="preserve">
+    <value>lambda attributes</value>
+  </data>
+  <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
+    <value>inferred delegate type</value>
+  </data>
   <data name="WRN_DoNotCompareFunctionPointers" xml:space="preserve">
     <value>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</value>
   </data>
@@ -6606,6 +6631,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
     <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
+<<<<<<< HEAD
   <data name="IDS_FeatureListPattern" xml:space="preserve">
     <value>list pattern</value>
   </data>
@@ -6626,5 +6652,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_MisplacedSlicePattern" xml:space="preserve">
     <value>Slice patterns may only be used once and directly inside a list pattern.</value>
+=======
+  <data name="ERR_HiddenPositionalMember" xml:space="preserve">
+    <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
+  </data>
+  <data name="IDS_FeatureGlobalUsing" xml:space="preserve">
+    <value>global using directive</value>
+  </data>
+  <data name="ERR_GlobalUsingInNamespace" xml:space="preserve">
+    <value>A global using directive cannot be used in a namespace declaration.</value>
+  </data>
+  <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
+    <value>A global using directive must precede all non-global using directives.</value>
+>>>>>>> dotnet/main
   </data>
 </root>

@@ -2109,6 +2109,33 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestApplyChanges_UpdateAdditionalDocumentText()
+        {
+            CreateFiles(GetSimpleCSharpSolutionWithAdditionaFile());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+            var documents = solution.GetProjectsByName("CSharpProject").FirstOrDefault().AdditionalDocuments.ToList();
+            var document = documents.Single(d => d.Name.Contains("ValidAdditionalFile"));
+            var text = await document.GetTextAsync();
+            var newText = SourceText.From("New Text In Additional File.\r\n" + text.ToString());
+            var newSolution = solution.WithAdditionalDocumentText(document.Id, newText);
+
+            workspace.TryApplyChanges(newSolution);
+
+            // check workspace current solution
+            var solution2 = workspace.CurrentSolution;
+            var document2 = solution2.GetAdditionalDocument(document.Id);
+            var text2 = await document2.GetTextAsync();
+            Assert.Equal(newText.ToString(), text2.ToString());
+
+            // check actual file on disk...
+            var textOnDisk = File.ReadAllText(document.FilePath);
+            Assert.Equal(newText.ToString(), textOnDisk);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestApplyChanges_AddDocument()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());

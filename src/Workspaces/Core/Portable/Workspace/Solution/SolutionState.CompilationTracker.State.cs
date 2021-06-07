@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis
                 public static State Create(
                     Compilation compilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                     // if our referenced projects are changing, so we'll have to rerun to consume changes.
                     return intermediateProjects.Length == 0
                         ? new FullDeclarationState(compilation, generatedDocuments, generatedDocumentsAreFinal: false)
-                        : (State)new InProgressState(compilation, generatedDocuments, intermediateProjects);
+                        : (State)new InProgressState(compilation, generatedDocuments, compilationWithGeneratedDocuments, intermediateProjects);
                 }
 
                 public static ValueSource<Optional<Compilation>> CreateValueSource(
@@ -120,11 +121,24 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class InProgressState : State
             {
-                public ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+                /// <summary>
+                /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
+                /// the state of the project prior to the mutation.
+                /// </summary>
+                public ImmutableArray<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)> IntermediateProjects { get; }
+
+                /// <summary>
+                /// The result of taking the original completed compilation that had generated documents and updating them by
+                /// apply the <see cref="CompilationAndGeneratorDriverTranslationAction" />; this is not a correct snapshot in that
+                /// the generators have not been rerun, but may be reusable if the generators are later found to give the
+                /// same output.
+                /// </summary>
+                public Compilation? CompilationWithGeneratedDocuments { get; }
 
                 public InProgressState(
                     Compilation inProgressCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
@@ -135,6 +149,7 @@ namespace Microsoft.CodeAnalysis
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
 
                     this.IntermediateProjects = intermediateProjects;
+                    this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
                 }
             }
 
@@ -244,7 +259,7 @@ namespace Microsoft.CodeAnalysis
                     // Keep track of information about symbols from this Compilation.  This will help support other APIs
                     // the solution exposes that allows the user to map back from symbols to project information.
 
-                    var unrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
+                    var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilation);
                     RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
 
                     return new FinalState(
@@ -291,36 +306,6 @@ namespace Microsoft.CodeAnalysis
                         // we attempt to record the association.
                         Debug.Assert(tmp == projectId);
                     }
-                }
-
-                private static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
-                {
-                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
-
-                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
-                    // underlying compilation is GC'ed.
-                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
-                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
-
-                    // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
-                    using var _ = ArrayBuilder<(int hashcode, WeakReference<ISymbol> symbol)>.GetInstance(
-                        compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
-
-                    foreach (var reference in compilation.References)
-                    {
-                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                        if (symbol == null)
-                            continue;
-
-                        secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
-                    }
-
-                    // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
-                    // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
-                    // search algorithm will account for that.
-                    secondarySymbols.Sort(WeakSymbolComparer.Instance);
-                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
                 }
             }
         }

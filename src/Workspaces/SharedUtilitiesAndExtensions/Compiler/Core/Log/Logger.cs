@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// log a specific event with a simple context message which should be very cheap to create
         /// </summary>
-        public static void Log(FunctionId functionId, string? message = null)
+        public static void Log(FunctionId functionId, string? message = null, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -55,14 +55,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            logger.Log(functionId, LogMessage.Create(message ?? ""));
+            logger.Log(functionId, LogMessage.Create(message ?? "", logLevel: logLevel));
         }
 
         /// <summary>
         /// log a specific event with a context message that will only be created when it is needed.
         /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
         /// </summary>
-        public static void Log(FunctionId functionId, Func<string> messageGetter)
+        public static void Log(FunctionId functionId, Func<string> messageGetter, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var logMessage = LogMessage.Create(messageGetter);
+            var logMessage = LogMessage.Create(messageGetter, logLevel);
             logger.Log(functionId, logMessage);
 
             logMessage.Free();
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// log a specific event with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static void Log<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg)
+        public static void Log<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var logMessage = LogMessage.Create(messageGetter, arg);
+            var logMessage = LogMessage.Create(messageGetter, arg, logLevel);
             logger.Log(functionId, logMessage);
             logMessage.Free();
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// log a specific event with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static void Log<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1)
+        public static void Log<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var logMessage = LogMessage.Create(messageGetter, arg0, arg1);
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, logLevel);
             logger.Log(functionId, logMessage);
             logMessage.Free();
         }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// log a specific event with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static void Log<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2)
+        public static void Log<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2);
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel);
             logger.Log(functionId, logMessage);
             logMessage.Free();
         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// log a specific event with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static void Log<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        public static void Log<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, LogLevel logLevel = LogLevel.Debug)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3);
+            var logMessage = LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3, logLevel);
             logger.Log(functionId, logMessage);
             logMessage.Free();
         }
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// simplest way to log a start and end pair with a simple context message which should be very cheap to create
         /// </summary>
-        public static IDisposable LogBlock(FunctionId functionId, string? message, CancellationToken token)
+        public static IDisposable LogBlock(FunctionId functionId, string? message, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -217,14 +217,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(message ?? ""), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(message ?? "", logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
         /// log a start and end pair with a context message that will only be created when it is needed.
         /// the messageGetter should be cheap to create. in another word, it shouldn't capture any locals
         /// </summary>
-        public static IDisposable LogBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token)
+        public static IDisposable LogBlock(FunctionId functionId, Func<string> messageGetter, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -237,14 +237,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(messageGetter), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token)
+        public static IDisposable LogBlock<TArg>(FunctionId functionId, Func<TArg, string> messageGetter, TArg arg, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -257,14 +257,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg, logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static IDisposable LogBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token)
+        public static IDisposable LogBlock<TArg0, TArg1>(FunctionId functionId, Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -277,14 +277,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token)
+        public static IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -297,14 +297,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>
         /// log a start and end pair with a context message that requires some arguments to be created when requested.
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
-        public static IDisposable LogBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token)
+        public static IDisposable LogBlock<TArg0, TArg1, TArg2, TArg3>(FunctionId functionId, Func<TArg0, TArg1, TArg2, TArg3, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
         {
             var logger = GetLogger();
             if (logger == null)
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return EmptyLogBlock.Instance;
             }
 
-            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3), GetNextUniqueBlockId(), token);
+            return CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, arg3, logLevel), GetNextUniqueBlockId(), token);
         }
 
         /// <summary>

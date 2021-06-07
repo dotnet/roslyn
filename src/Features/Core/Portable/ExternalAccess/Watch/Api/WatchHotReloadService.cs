@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
+            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
         }
@@ -48,8 +51,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
         }
 
-        private static readonly SolutionActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _) => ValueTaskFactory.FromResult(ImmutableArray<TextSpan>.Empty);
+        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly IEditAndContinueWorkspaceService _encService;
 

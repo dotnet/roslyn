@@ -16,77 +16,45 @@ namespace BuildValidator
 {
     internal class LocalSourceResolver
     {
-        private readonly Options _options;
-        private readonly ILogger _logger;
+        internal Options Options { get; }
+        internal ImmutableArray<SourceLinkEntry> SourceLinkEntries { get; }
+        internal ILogger Logger { get; }
 
-        public LocalSourceResolver(Options options, ILoggerFactory loggerFactory)
+        public LocalSourceResolver(Options options, ImmutableArray<SourceLinkEntry> sourceLinkEntries, ILogger logger)
         {
-            _options = options;
-            _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
+            Options = options;
+            SourceLinkEntries = sourceLinkEntries;
+            Logger = logger;
         }
 
-        public ResolvedSource ResolveSource(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
+        public SourceText ResolveSource(SourceTextInfo sourceTextInfo)
         {
-            var pdbDocumentPath = sourceFileInfo.SourceFilePath;
-            if (sourceFileInfo.EmbeddedText is { } embeddedText)
+            var originalFilePath = sourceTextInfo.OriginalSourceFilePath;
+            string? onDiskPath = null;
+            foreach (var link in SourceLinkEntries)
             {
-                return new ResolvedSource(OnDiskPath: null, embeddedText, sourceFileInfo);
-            }
-            else
-            {
-                string? onDiskPath = null;
-                foreach (var link in sourceLinks)
+                if (originalFilePath.StartsWith(link.Prefix, FileNameEqualityComparer.StringComparison))
                 {
-                    if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
+                    onDiskPath = Path.GetFullPath(Path.Combine(Options.SourcePath, originalFilePath.Substring(link.Prefix.Length)));
+                    if (File.Exists(onDiskPath))
                     {
-                        onDiskPath = Path.GetFullPath(Path.Combine(_options.SourcePath, pdbDocumentPath.Substring(link.Prefix.Length)));
-                        if (File.Exists(onDiskPath))
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
-
-                // if no source links exist to let us prefix the source path,
-                // then assume the file path in the pdb points to the on-disk location of the file.
-                onDiskPath ??= pdbDocumentPath;
-
-                using var fileStream = File.OpenRead(onDiskPath);
-                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
-                if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
-                {
-                    throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
-                }
-
-                return new ResolvedSource(onDiskPath, sourceText, sourceFileInfo);
             }
 
-            throw new FileNotFoundException(pdbDocumentPath);
-        }
+            // if no source links exist to let us prefix the source path,
+            // then assume the file path in the pdb points to the on-disk location of the file.
+            onDiskPath ??= originalFilePath;
 
-        internal ImmutableArray<ResolvedSource>? ResolveSources(
-            ImmutableArray<SourceFileInfo> sourceFileInfos,
-            ImmutableArray<SourceLink> sourceLinks,
-            Encoding encoding)
-        {
-            _logger.LogInformation("Locating source files");
-
-            var sources = ImmutableArray.CreateBuilder<ResolvedSource>(sourceFileInfos.Length);
-            var isError = false;
-            foreach (var sourceFileInfo in sourceFileInfos)
+            using var fileStream = File.OpenRead(onDiskPath);
+            var sourceText = SourceText.From(fileStream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
+            if (!sourceText.GetChecksum().SequenceEqual(sourceTextInfo.Hash))
             {
-                try
-                {
-                    sources.Add(ResolveSource(sourceFileInfo, sourceLinks, encoding));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Unable to resolve {sourceFileInfo.SourceFilePath}: {ex.Message}");
-                    isError = true;
-                }
+                throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
             }
 
-            return isError ? null : sources.MoveToImmutable();
+            return sourceText;
         }
     }
 }

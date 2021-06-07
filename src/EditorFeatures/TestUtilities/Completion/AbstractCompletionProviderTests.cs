@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionList.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
@@ -527,7 +527,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             CompletionServiceWithProviders service,
             Document document,
             RoslynCompletion.CompletionItem completionItem,
-            TextSpan completionListSpan,
             string codeBeforeCommit,
             string expectedCodeAfterCommit,
             char? commitChar = null)
@@ -548,9 +547,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
 
             var options = await document.GetOptionsAsync().ConfigureAwait(false);
-            var disallowAddingImports = options.GetOption(CompletionServiceOptions.DisallowAddingImports);
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionListSpan, commitChar, disallowAddingImports, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
@@ -637,7 +635,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (commitChar == '\t' ||
                 CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar))
             {
-                var textChange = (await service.GetChangeAsync(document, firstItem, completionList.Span, commitChar, disallowAddingImports: false, CancellationToken.None)).TextChange;
+                var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')

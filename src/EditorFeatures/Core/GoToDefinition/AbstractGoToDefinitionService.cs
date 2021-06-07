@@ -40,10 +40,28 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
+        private static bool TryNavigateToSpan(Document document, int position, CancellationToken cancellationToken)
+        {
+            var solution = document.Project.Solution;
+            var workspace = solution.Workspace;
+            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            options = options.WithChangedOption(NavigationOptions.ActivateTab, true);
+
+            return service.TryNavigateToPosition(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken);
+        }
+
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
         {
-            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+            var targetPositionOfControlFlow = symbolService.GetTargetIfControlFlowAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (targetPositionOfControlFlow is not null)
+            {
+                return TryNavigateToSpan(document, targetPositionOfControlFlow.Value, cancellationToken);
+            }
+
+            // Try to compute the referenced symbol and attempt to go to definition for the symbol.
             var (symbol, _) = symbolService.GetSymbolAndBoundSpanAsync(document, position, includeType: true, cancellationToken).WaitAndGetResult(cancellationToken);
             if (symbol is null)
                 return false;
