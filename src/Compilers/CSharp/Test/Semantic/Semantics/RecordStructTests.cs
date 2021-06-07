@@ -9742,7 +9742,6 @@ public class C
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            // TODO2
             var expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)

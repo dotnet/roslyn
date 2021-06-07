@@ -1055,6 +1055,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
                     hasErrors = true;
                 }
+                else if (this.HasMethodLevelBuilder(out _))
+                {
+                    hasErrors = MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                }
 
                 for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
                 {

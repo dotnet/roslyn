@@ -1638,7 +1638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the AsyncBuilder attribute.
+                // Find the AsyncMethodBuilder attribute.
                 foreach (var attr in type.GetAttributes())
                 {
                     if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
