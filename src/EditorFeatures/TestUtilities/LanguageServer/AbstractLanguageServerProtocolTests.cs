@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -68,10 +69,31 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private class TestSpanMapperProvider : IDocumentServiceProvider
+        private class TestDocumentServiceProvider : IDocumentServiceProvider
         {
             TService IDocumentServiceProvider.GetService<TService>()
-                => (TService)(object)new TestSpanMapper();
+            {
+                if (typeof(IDocumentOptionSetProvider).IsAssignableFrom(typeof(TService)))
+                {
+                    return (TService)(object)new TestDocumentOptionSetProvider();
+                }
+                else if (typeof(ISpanMappingService).IsAssignableFrom(typeof(TService)))
+                {
+                    return (TService)(object)new TestSpanMapper();
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
+        internal class TestDocumentOptionSetProvider : IDocumentOptionSetProvider
+        {
+            public async Task<OptionSet> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+            {
+                return await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         internal class TestSpanMapper : ISpanMappingService
@@ -353,7 +375,7 @@ namespace Roslyn.Test.Utilities
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(SourceText.From(markup), version, TestSpanMapper.GeneratedFileName));
             var generatedDocumentInfo = DocumentInfo.Create(generatedDocumentId, TestSpanMapper.GeneratedFileName, SpecializedCollections.EmptyReadOnlyList<string>(),
-                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
+                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestDocumentServiceProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
         }
