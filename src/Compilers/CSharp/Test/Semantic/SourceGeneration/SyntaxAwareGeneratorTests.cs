@@ -1474,6 +1474,143 @@ class C
             Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, outputCalledFor);
         }
 
+        [Fact]
+        public void IncrementalGenerator_Throws_In_Syntax_Filter()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new Exception("Test Exception");
+            var testGenerator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.Sources.Syntax.Transform(s => { if (s is AssignmentExpressionSyntax) throw exception; return true; }, c => c.Node).GenerateSource((spc, s) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.Empty(results.GeneratedTrees);
+            Assert.Single(results.Diagnostics);
+
+            Assert.Single(results.Results[0].Diagnostics);
+            Assert.NotNull(results.Results[0].Exception);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
+
+            outputDiagnostics.Verify(
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Throws_In_Syntax_Transform()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new Exception("Test Exception");
+            var testGenerator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.Sources.Syntax.Transform<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.Empty(results.GeneratedTrees);
+            Assert.Single(results.Diagnostics);
+
+            Assert.Single(results.Results[0].Diagnostics);
+            Assert.NotNull(results.Results[0].Exception);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
+
+            outputDiagnostics.Verify(
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Throws_In_Syntax_Transform_Doesnt_Stop_Other_Generators()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var exception = new Exception("Test Exception");
+            var testGenerator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.Sources.Syntax.Transform<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
+            });
+
+            var testGenerator2 = new PipelineCallbackGenerator2(ctx =>
+            {
+                ctx.Sources.Compilation.GenerateSource((spc, s) => spc.AddSource("test", ""));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator), new IncrementalGeneratorWrapper(testGenerator2) }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+
+            Assert.Single(results.GeneratedTrees);
+            Assert.Single(results.Diagnostics);
+
+            Assert.Single(results.Results[0].Diagnostics);
+            Assert.NotNull(results.Results[0].Exception);
+            Assert.Equal("Test Exception", results.Results[0].Exception?.Message);
+
+            Assert.Single(results.Results[1].GeneratedSources);
+            Assert.Null(results.Results[1].Exception);
+
+            outputDiagnostics.Verify(
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("PipelineCallbackGenerator", "Exception", "Test Exception").WithLocation(1, 1)
+                );
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

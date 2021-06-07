@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
     // to date, the removed entries are no longer needed, and the remaining entries can be considered to
     // be cached. This process is called 'compaction' and results in the actual tables which are stored
     // between runs, as opposed to the 'live' tables that exist during an update.
-    // 
+    //
     // Modified entries are similar to added inputs, but with a subtle difference. When an input is Added
     // all outputs are unconditionally added too. However when an input is modified, the outputs may still
     // be the same (for instance something changed elsewhere in a file that had no bearing on the produced
@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private readonly Exception? _exception;
 
         private NodeStateTable(ImmutableArray<TableEntry> states, bool isCompacted)
         {
@@ -67,14 +66,6 @@ namespace Microsoft.CodeAnalysis
 
             _states = states;
             IsCached = isCompacted;
-            _exception = null;
-        }
-
-        private NodeStateTable(Exception exception)
-        {
-            _exception = exception;
-            _states = ImmutableArray<TableEntry>.Empty;
-            IsCached = false;
         }
 
         public int Count { get => _states.Length; }
@@ -83,14 +74,6 @@ namespace Microsoft.CodeAnalysis
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
         /// </summary>
         public bool IsCached { get; }
-
-        public bool IsFaulted { get => _exception is not null; }
-
-        public UserFunctionException GetException()
-        {
-            Debug.Assert(_exception is not null);
-            return _exception is UserFunctionException ufe ? ufe : new UserFunctionException(_exception);
-        }
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
@@ -105,7 +88,7 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> AsCached()
         {
-            if (IsCached || IsFaulted)
+            if (IsCached)
                 return this;
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance();
@@ -138,21 +121,13 @@ namespace Microsoft.CodeAnalysis
 
         public Builder ToBuilder()
         {
-            Debug.Assert(!this.IsFaulted);
             return new Builder(this);
-        }
-
-        public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
-        {
-            Debug.Assert(table._exception is object);
-            return new NodeStateTable<T>(table._exception);
         }
 
         public sealed class Builder
         {
             private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
-            private Exception? _exception = null;
 
             internal Builder(NodeStateTable<T> previous)
             {
@@ -264,19 +239,9 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(new TableEntry(values, state));
             }
 
-            public void SetFaulted(Exception e)
-            {
-                _exception = e;
-            }
-
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                if (_exception is object)
-                {
-                    _states.Free();
-                    return new NodeStateTable<T>(_exception);
-                }
-                else if (_states.Count == 0)
+                if (_states.Count == 0)
                 {
                     _states.Free();
                     return NodeStateTable<T>.Empty;

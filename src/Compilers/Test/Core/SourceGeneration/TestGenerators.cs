@@ -110,6 +110,18 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
     }
 
+    internal sealed class PipelineCallbackGenerator2 : IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorPipelineContext> _registerPipelineCallback;
+
+        public PipelineCallbackGenerator2(Action<IncrementalGeneratorPipelineContext> registerPipelineCallback)
+        {
+            _registerPipelineCallback = registerPipelineCallback;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
+    }
+
     internal sealed class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
     {
         private readonly Action<IncrementalGeneratorInitializationContext> _onInit;

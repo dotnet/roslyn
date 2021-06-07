@@ -37,10 +37,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return previousTable;
             }
-            if (sourceTable.IsFaulted)
-            {
-                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
-            }
 
             // Semantics of a batch transform:
             // Batches will always exist (a batch of the empty table is still [])

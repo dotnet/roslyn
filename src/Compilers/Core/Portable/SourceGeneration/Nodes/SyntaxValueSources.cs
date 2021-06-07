@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValueSource<T> Transform<T>(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc, transformFunc, RegisterOutputAndDeferredInput));
+            return new IncrementalValueSource<T>(new SyntaxInputNode<T>(filterFunc.WrapUserFunction(), transformFunc.WrapUserFunction(), RegisterOutputAndDeferredInput));
         }
 
         /// <summary>

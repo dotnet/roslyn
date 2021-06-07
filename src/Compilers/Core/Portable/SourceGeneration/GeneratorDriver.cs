@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(GeneratorDriverState state)
         {
-            Debug.Assert(state.Generators.GroupBy(s => s.GetType()).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
+            Debug.Assert(state.Generators.GroupBy(s => GetGeneratorType(s)).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
             _state = state;
         }
 
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetType().Name, e.GetType().Name, e.Message);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, GetGeneratorType(generator).Name, e.GetType().Name, e.Message);
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);

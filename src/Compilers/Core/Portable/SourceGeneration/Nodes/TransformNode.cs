@@ -37,10 +37,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return previousTable;
             }
-            if (sourceTable.IsFaulted)
-            {
-                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
-            }
 
             // Semantics of a transform:
             // Element-wise comparison of upstream table

@@ -31,14 +31,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return previousTable;
             }
-            if (input1Table.IsFaulted)
-            {
-                return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input1Table);
-            }
-            if (input2Table.IsFaulted)
-            {
-                return NodeStateTable<(TInput1, ImmutableArray<TInput2>)>.FromFaultedTable(input2Table);
-            }
 
             var builder = previousTable.ToBuilder();
 

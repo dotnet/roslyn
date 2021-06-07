@@ -1368,6 +1368,93 @@ class C { }
         }
 
         [Fact]
+        public void Incremental_Generators_Exception_During_Execution()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.Sources.Compilation.GenerateSource((spc, c) => throw e)));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Execution_Doesnt_Produce_AnySource()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
+                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Single(runResults.Results);
+            Assert.Empty(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Exception_During_Execution_Doesnt_Stop_Other_Generators()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var e = new InvalidOperationException("abc");
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+            }));
+
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ctx) =>
+            {
+                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2 }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Single(runResults.Diagnostics);
+            Assert.Equal(2, runResults.Results.Length);
+            Assert.Single(runResults.GeneratedTrees);
+            Assert.Equal(e, runResults.Results[0].Exception);
+        }
+
+        [Fact]
         public void IncrementalGenerator_With_No_Pipeline_Callback_Is_Valid()
         {
             var source = @"
