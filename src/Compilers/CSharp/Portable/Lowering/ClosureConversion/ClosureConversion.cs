@@ -1634,19 +1634,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        // Also we want to substitute the type according to the type map for the method that uses the delegate.
-                        // Such substitution handles cases when the delegate type uses a type parameter from the method
-                        // and the parameter is not captured by the container.
-                        if (TryGetGenericMethodTypeMap(referencedMethod.ConstructedFrom, out var typeMap))
-                        {
-                            cacheVariableType = typeMap.SubstituteType(cacheVariableType).Type;
-                        }
+                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsTypeParameterFromSymbol(containingSymbol => containingSymbol is MethodSymbol);
 
-                        var hasTypeParametersFromSynthesizedMethod = cacheVariableType.ContainsTypeParameter(referencedMethod.ConstructedFrom);
-
-                        // We cannot reference type parameters from the parent method outside the method,
-                        // so if the delegate type refers to such type parameter we cannot cache it in a field.
-                        if (!hasTypeParametersFromSynthesizedMethod)
+                        // If we want to cache a variable by moving its value into a field,
+                        // the variable cannot use any type parameter from the method it is currently declared within.
+                        if (!hasTypeParametersFromAnyMethod)
                         {
                             var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                                 // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already,
@@ -1682,30 +1674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-
-            static bool TryGetGenericMethodTypeMap(MethodSymbol method, out TypeMap typeMap)
-            {
-                if (!method.IsGenericMethod)
-                {
-                    typeMap = null;
-                    return false;
-                }
-
-                if (method is SynthesizedMethodBaseSymbol synthesizedMethod)
-                {
-                    typeMap = synthesizedMethod.TypeMap;
-                    return true;
-                }
-
-                if (method is SubstitutedMethodSymbol substitutedMethod)
-                {
-                    typeMap = substitutedMethod.TypeSubstitution;
-                    return true;
-                }
-
-                typeMap = null;
-                return false;
-            }
         }
 
         // This helper checks syntactically whether there is a loop or lambda expression
