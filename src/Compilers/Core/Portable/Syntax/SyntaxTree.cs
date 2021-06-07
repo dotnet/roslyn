@@ -220,12 +220,24 @@ namespace Microsoft.CodeAnalysis
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
         /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
-        /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
+        /// otherwise it's <see cref="FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
-        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
+        /// A location path is considered mapped if it is preceded by a line mapping directive that
+        /// either specifies an explicit file path or is <c>#line default</c>.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns empty sequence if there are no line mapping directives in the tree.
+        /// Otherwise, returns a sequence of pairs of spans: each describing a mapping of a span of the tree between two consecutive #line directives.
+        /// If the first directive is not on the first line the first pair describes mapping of the span preceding the first directive.
+        /// The last pair of the sequence describes mapping of the span following the last #line directive.
+        /// </summary>
+        /// <returns>
+        /// Empty sequence if the tree does not contain a line mapping directive.
+        /// Otherwise a non-empty sequence of <see cref="LineMapping"/>.
+        /// </returns>
+        public abstract IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the visibility for the line at the given position.

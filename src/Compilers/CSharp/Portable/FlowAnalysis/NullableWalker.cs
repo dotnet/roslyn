@@ -2404,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {

@@ -7697,6 +7697,31 @@ record struct Person(string First, string Last);
                 SymbolDisplayPartKind.RecordStructName);
         }
 
+        [Fact]
+        public void ReadOnlyRecordStructDeclaration()
+        {
+            var text = @"
+readonly record struct Person(string First, string Last);
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global => global.GetTypeMembers("Person").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, kindOptions: SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview),
+                "readonly record struct Person",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.RecordStructName);
+        }
+
         [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
         public void TestFunctionPointerWithoutIncludeTypesInParameterOptions()
         {
