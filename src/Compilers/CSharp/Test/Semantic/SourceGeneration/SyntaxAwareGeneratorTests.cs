@@ -1384,7 +1384,7 @@ class C
         }
 
         [Fact]
-        public void IncrementalGenerator_With_Syntax_Filter_Isnt_Duplicated_By_Joins()
+        public void IncrementalGenerator_With_Syntax_Filter_Isnt_Duplicated_By_Combines()
         {
             var source1 = @"
 #pragma warning disable CS0414
@@ -1410,9 +1410,9 @@ class C
                     return ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText;
                 });
 
-                var source2 = source.Associate(context.AdditionalTextsProvider.AsSingleValue())
-                                    .Associate(context.AnalyzerConfigOptionsProvider)
-                                    .Associate(context.ParseOptionsProvider);
+                var source2 = source.Combine(context.AdditionalTextsProvider.AsSingleValue())
+                                    .Combine(context.AnalyzerConfigOptionsProvider)
+                                    .Combine(context.ParseOptionsProvider);
 
                 source2.GenerateSource((spc, output) =>
                 {
@@ -1429,7 +1429,7 @@ class C
         }
 
         [Fact]
-        public void IncrementalGenerator_With_Syntax_Filter_And_Comparer_Survive_Joins()
+        public void IncrementalGenerator_With_Syntax_Filter_And_Comparer_Survive_Combines()
         {
             var source1 = @"
 #pragma warning disable CS0414
@@ -1458,7 +1458,7 @@ class C
                 var comparerSource = source.WithComparer(new LambdaComparer<string>((a, b) => false));
 
                 // now join the two sources together
-                var joinedSource = source.Associate(comparerSource.AsSingleValue());
+                var joinedSource = source.Combine(comparerSource.AsSingleValue());
                 joinedSource.GenerateSource((spc, fieldName) =>
                 {
                     outputCalledFor.Add(fieldName.Item1);

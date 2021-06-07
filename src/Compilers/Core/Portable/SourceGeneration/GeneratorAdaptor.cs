@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis
             {
                 var contextBuilderSource = executionContext.CompilationProvider
                                             .Select(c => new GeneratorContextBuilder(c))
-                                            .Associate(executionContext.ParseOptionsProvider).Select(p => p.Item1 with { ParseOptions = p.Item2 })
-                                            .Associate(executionContext.AnalyzerConfigOptionsProvider).Select(p => p.Item1 with { ConfigOptions = p.Item2 })
-                                            .Associate(executionContext.AdditionalTextsProvider.AsSingleValue()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
+                                            .Combine(executionContext.ParseOptionsProvider).Select(p => p.Item1 with { ParseOptions = p.Item2 })
+                                            .Combine(executionContext.AnalyzerConfigOptionsProvider).Select(p => p.Item1 with { ConfigOptions = p.Item2 })
+                                            .Combine(executionContext.AdditionalTextsProvider.AsSingleValue()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
 
                 if (syntaxContextReceiverCreator is object)
                 {
                     contextBuilderSource = contextBuilderSource
-                                           .Associate(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
+                                           .Combine(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
                                            .Select(p => p.Item1 with { Receiver = p.Item2 });
                 }
 
