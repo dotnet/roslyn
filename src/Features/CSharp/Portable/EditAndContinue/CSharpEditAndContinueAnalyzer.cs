@@ -2401,7 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.AttributeList:
                     case SyntaxKind.Attribute:
                         // To allow removal of attributes we need to check if the removed attribute
-                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
+                        // is a pseudo-custom attribute that CLR does not allow us to change, or if it is a compiler well-know attribute
                         // that affects the generated IL, so we defer those checks until semantic analysis.
 
                         // Unless the attribute is a module/assembly attribute

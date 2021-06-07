@@ -578,7 +578,7 @@ namespace N
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -3470,7 +3470,7 @@ record C(int X)
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -3615,7 +3615,7 @@ record C(int X)
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -3651,7 +3651,7 @@ record C(int X)
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -6236,7 +6236,7 @@ class Test
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.Main")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -6273,7 +6273,7 @@ class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -10999,7 +10999,7 @@ class C
                 new[] {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -11492,7 +11492,7 @@ class C
                 new[] {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -11530,7 +11530,7 @@ class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -11544,7 +11544,7 @@ class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -13240,7 +13240,7 @@ public class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -13255,7 +13255,7 @@ public class C
                 "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes,
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
@@ -13273,7 +13273,7 @@ public class C
                 "Update [int a]@101 -> [[A]int a]@101");
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes,
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
@@ -13292,7 +13292,7 @@ public class C
                 "Update [int a]@143 -> [[A]int a]@143");
 
             edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes,
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes,
                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
         }
 
@@ -13684,7 +13684,7 @@ public class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
-                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]

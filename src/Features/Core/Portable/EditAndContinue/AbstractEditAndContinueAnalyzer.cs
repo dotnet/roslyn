@@ -2941,18 +2941,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             {
                                 continue;
                             }
-
-#if TODO_ACCESSORS
-                            // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
-                            // so the only case when this happens is in C# for a property/indexer that has an expression body.
-                            // The symbol that's actually being updated is the getter.
-                            // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/52300
-                            if (newSymbol is IPropertySymbol { GetMethod: var propertyGetter and not null })
-                            {
-                                newSymbol = propertyGetter;
-                                lazySymbolKey = null;
-                            }
-#endif
                         }
 
                         lazySymbolKey ??= SymbolKey.Create(newSymbol, cancellationToken);
@@ -3096,13 +3084,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var parameter in newSymbol.GetParameters())
             {
-                var oldParameter = oldSymbol?.GetParameters().SingleOrDefault(p => p.Name.Equals(parameter.Name));
+                var oldParameter = oldSymbol?.GetParameters().FirstOrDefault(p => p.Name.Equals(parameter.Name));
                 needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, capabilities, diagnostics);
             }
 
             foreach (var typeParam in newSymbol.GetTypeParameters())
             {
-                var oldParameter = oldSymbol?.GetTypeParameters().SingleOrDefault(p => p.Name.Equals(typeParam.Name));
+                var oldParameter = oldSymbol?.GetTypeParameters().FirstOrDefault(p => p.Name.Equals(typeParam.Name));
                 needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, capabilities, diagnostics);
             }
 
@@ -3120,12 +3108,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             if (newSymbol is INamedTypeSymbol or IFieldSymbol or IPropertySymbol)
             {
                 var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
             }
             else if (newSymbol is ITypeParameterSymbol or IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
             {
                 var symbolKey = SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken);
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
             }
         }
 
@@ -3146,7 +3134,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We need diagnostics reported if the runtime doesn't support changing attributes,
             // but even if it does, only attributes stored in the CustomAttributes table are editable
-            if (!capabilities.HasFlag(EditAndContinueCapabilities.UpdateCustomAttributes) ||
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes) ||
                 changedAttributes.Any(IsNonCustomAttribute))
             {
                 var newNode = FindSyntaxNode(newSymbol);
@@ -4663,6 +4651,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        private sealed class TypedConstantComparer : IEqualityComparer<TypedConstant>
+        {
+            public static TypedConstantComparer Instance = new TypedConstantComparer();
+
+            public bool Equals(TypedConstant x, TypedConstant y)
+                => x.Kind.Equals(y.Kind) &&
+                   x.IsNull.Equals(y.IsNull) &&
+                   SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
+                   x.Kind switch
+                   {
+                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
+                       _ => object.Equals(x.Value, y.Value)
+                   };
+
+            public int GetHashCode(TypedConstant obj)
+                => obj.GetHashCode();
+        }
+
+        private sealed class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
+        {
+            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
+
+            public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
+                => x.Key.Equals(y.Key) &&
+                   TypedConstantComparer.Instance.Equals(x.Value, y.Value);
+
+            public int GetHashCode(KeyValuePair<string, TypedConstant> obj)
+                 => obj.GetHashCode();
+        }
+
         #endregion
 
         #region Testing
@@ -4710,40 +4728,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 _abstractEditAndContinueAnalyzer.AnalyzeTrivia(topMatch, editMap, triviaEdits, lineEdits, diagnostics, cancellationToken);
             }
-        }
-
-        #endregion
-
-        #region Comparers
-
-        private class TypedConstantComparer : IEqualityComparer<TypedConstant>
-        {
-            public static TypedConstantComparer Instance = new TypedConstantComparer();
-
-            public bool Equals(TypedConstant x, TypedConstant y)
-                => x.Kind.Equals(y.Kind) &&
-                   x.IsNull.Equals(y.IsNull) &&
-                   SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
-                   x.Kind switch
-                   {
-                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
-                       _ => object.Equals(x.Value, y.Value)
-                   };
-
-            public int GetHashCode(TypedConstant obj)
-                => obj.GetHashCode();
-        }
-
-        private class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
-        {
-            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
-
-            public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
-                => x.Key.Equals(y.Key) &&
-                   TypedConstantComparer.Instance.Equals(x.Value, y.Value);
-
-            public int GetHashCode(KeyValuePair<string, TypedConstant> obj)
-                 => obj.GetHashCode();
         }
 
         #endregion

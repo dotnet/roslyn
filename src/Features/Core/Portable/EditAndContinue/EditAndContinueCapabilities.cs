@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         NewTypeDefinition = 1 << 4,
 
         /// <summary>
-        /// Adding, updating and deleting of custom attributes (as distinct from attributes that effect metadata)
+        /// Adding, updating and deleting of custom attributes (as distinct from pseudo-custom attributes)
         /// </summary>
-        UpdateCustomAttributes = 1 << 5,
+        ChangeCustomAttributes = 1 << 5,
     }
 }
