@@ -260,6 +260,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
+        protected abstract bool IsGlobalStatement(SyntaxNode node);
+
         /// <summary>
         /// Returns all symbols associated with an edit.
         /// Returns an empty set if the edit is not associated with any symbols.
@@ -2478,7 +2480,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             continue;
                                         }
 
-                                        if (!newSymbol.IsImplicitlyDeclared)
+                                        if (IsGlobalStatement(edit.OldNode))
+                                        {
+                                            // A delete of a global statement, when newSymbol isn't null, is an update to the implicit Main method
+                                            editKind = SemanticEditKind.Update;
+                                        }
+                                        else if (!newSymbol.IsImplicitlyDeclared)
                                         {
                                             // Ignore the delete. The new symbol is explicitly declared and thus there will be an insert edit that will issue a semantic update.
                                             // Note that this could also be the case for deleting properties of records, but they will be handled when we see
@@ -2649,6 +2656,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             ReportTypeDeclarationInsertDeleteRudeEdits(diagnostics, oldTypeSymbol, newTypeSymbol, newDeclaration, cancellationToken);
 
                                             continue;
+                                        }
+                                        else if (IsGlobalStatement(edit.NewNode))
+                                        {
+                                            // An insert of a global statement, when oldSymbol isn't null, is an update to the implicit Main method
+                                            editKind = SemanticEditKind.Update;
                                         }
                                         else if (oldSymbol.DeclaringSyntaxReferences.Length == 1 && newSymbol.DeclaringSyntaxReferences.Length == 1)
                                         {

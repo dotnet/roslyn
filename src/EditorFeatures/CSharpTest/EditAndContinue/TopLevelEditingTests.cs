@@ -13297,6 +13297,31 @@ Console.WriteLine(""Hello World"");
         }
 
         [Fact]
+        public void TopLevelStatements_InsertAndUpdate()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+Console.WriteLine(""What is your name?"");
+var name = Console.ReadLine();
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19",
+                "Insert [Console.WriteLine(\"What is your name?\");]@54",
+                "Insert [var name = Console.ReadLine();]@96");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
         public void TopLevelStatements_Insert_NoImplicitMain()
         {
             var src1 = @"

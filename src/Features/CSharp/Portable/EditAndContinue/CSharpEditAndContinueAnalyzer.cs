@@ -773,6 +773,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Syntax and Semantic Utils
 
+        protected override bool IsGlobalStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.GlobalStatement);
+
         protected override string LineDirectiveKeyword
             => "line";
 
