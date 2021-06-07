@@ -195,7 +195,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var jsonMessageFormatter = new JsonMessageFormatter();
             VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
-            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+            };
+
             var serverTypeName = languageClient.GetType().Name;
 
             var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
