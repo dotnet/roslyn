@@ -685,6 +685,213 @@ class D
         }
 
         [Fact]
+        public void ModifyMethod_DeleteAttributes1()
+        {
+            var source0 =
+@"class C
+{
+    static void Main() { }
+    [System.ComponentModel.Description(""The F method"")]
+    static string F() { return null; }
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    static string F() { return string.Empty; }
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor", /*DescriptionAttribute*/".ctor");
+
+            CheckAttributes(reader0,
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F");
+            CheckNames(readers, reader1.GetMemberRefNames(), /*String.*/"Empty");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, so updating existing CustomAttribute
+
+            CheckEncMap(reader1,
+                Handle(7, TableIndex.TypeRef),
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(6, TableIndex.MemberRef),
+                Handle(7, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
+        public void ModifyMethod_DeleteAttributes2()
+        {
+            var source0 =
+@"class C
+{
+    static void Main() { }
+    static string F() { return null; }
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    [System.ComponentModel.Description(""The F method"")]
+    static string F() { return string.Empty; }
+}";
+            var source2 = source0; // Remove the attribute we just added
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", /*DebuggableAttribute*/".ctor");
+
+            CheckAttributes(reader0,
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)));
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F");
+            CheckNames(readers, reader1.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*String.*/"Empty");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, so updating existing CustomAttribute
+
+            CheckEncMap(reader1,
+                Handle(7, TableIndex.TypeRef),
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(6, TableIndex.MemberRef),
+                Handle(7, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "F");
+            CheckNames(readers, reader2.GetMemberRefNames(), /*String.*/"Empty");
+
+            CheckAttributes(reader2,
+                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
+
+            CheckEncLog(reader2,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, so updating existing CustomAttribute
+
+            CheckEncMap(reader2,
+                Handle(7, TableIndex.TypeRef),
+                Handle(8, TableIndex.TypeRef),
+                Handle(9, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(6, TableIndex.MemberRef),
+                Handle(7, TableIndex.MemberRef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
         public void AddMethod_WithAttributes()
         {
             var source0 =
