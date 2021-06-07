@@ -24,9 +24,9 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 {
@@ -118,15 +118,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             var document1 = localWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            var activeSpans1 = ImmutableArray.Create(TextSpan.FromBounds(1, 2), TextSpan.FromBounds(3, 4));
+            var activeSpans1 = ImmutableArray.Create(
+                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.IsNonLeafFrame, document.Id));
 
-            var solutionActiveStatementSpanProvider = new SolutionActiveStatementSpanProvider((documentId, cancellationToken) =>
+            var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
             {
                 Assert.Equal(document1.Id, documentId);
+                Assert.Equal("test.cs", path);
                 return new(activeSpans1);
             });
-
-            var documentActiveStatementSpanProvider = new DocumentActiveStatementSpanProvider(cancellationToken => new(activeSpans1));
 
             var proxy = new RemoteEditAndContinueServiceProxy(localWorkspace);
 
@@ -191,11 +191,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 Assert.Equal("test.cs", sourceFilePath);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
                 return true;
             };
 
-            Assert.True(await proxy.HasChangesAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
+            Assert.True(await proxy.HasChangesAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, "test.cs", CancellationToken.None).ConfigureAwait(false));
 
             // EmitSolutionUpdate
 
@@ -205,7 +205,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 var project = solution.Projects.Single();
                 Assert.Equal("proj", project.Name);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
 
                 var deltas = ImmutableArray.Create(new ManagedModuleUpdate(
                     module: moduleId1,
@@ -213,6 +213,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                     metadataDelta: ImmutableArray.Create<byte>(3, 4),
                     pdbDelta: ImmutableArray.Create<byte>(5, 6),
                     updatedMethods: ImmutableArray.Create(0x06000001),
+                    updatedTypes: ImmutableArray.Create(0x02000001),
                     sequencePoints: ImmutableArray.Create(new SequencePointUpdates("file.cs", ImmutableArray.Create(new SourceLineUpdate(1, 2)))),
                     activeStatements: ImmutableArray.Create(new ManagedActiveStatementUpdate(instructionId1.Method.Method, instructionId1.ILOffset, span1.ToSourceSpan())),
                     exceptionRegions: ImmutableArray.Create(exceptionRegionUpdate1)));
@@ -229,7 +230,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 return new(updates, diagnostics, documentsWithRudeEdits);
             };
 
-            var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            var (updates, _, _) = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+
             VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
 
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
@@ -256,6 +258,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);
             AssertEx.Equal(new byte[] { 5, 6 }, delta.PdbDelta);
             AssertEx.Equal(new[] { 0x06000001 }, delta.UpdatedMethods);
+            AssertEx.Equal(new[] { 0x02000001 }, delta.UpdatedTypes);
 
             var lineEdit = delta.SequencePoints.Single();
             Assert.Equal("file.cs", lineEdit.FileName);
@@ -290,13 +293,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 Assert.Equal(instructionId1, instructionId);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, CancellationToken.None).Result);
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document1.Id, "test.cs", CancellationToken.None).Result);
                 return new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
             };
 
             Assert.Equal(span1, await proxy.GetCurrentActiveStatementPositionAsync(
                 localWorkspace.CurrentSolution,
-                solutionActiveStatementSpanProvider,
+                activeStatementSpanProvider,
                 instructionId1,
                 CancellationToken.None).ConfigureAwait(false));
 
@@ -312,32 +315,34 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetBaseActiveStatementSpans
 
+            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
+
             mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
             {
                 AssertEx.Equal(new[] { document1.Id }, documentIds);
-                return ImmutableArray.Create(ImmutableArray.Create((span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted)));
+                return ImmutableArray.Create(ImmutableArray.Create(activeStatementSpan1));
             };
 
             var baseActiveSpans = await proxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal((span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted), baseActiveSpans.Single().Single());
+            Assert.Equal(activeStatementSpan1, baseActiveSpans.Single().Single());
 
             // GetDocumentActiveStatementSpans
 
             mockEncService.GetAdjustedActiveStatementSpansImpl = (document, activeStatementSpanProvider) =>
             {
                 Assert.Equal("test.cs", document.Name);
-                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(CancellationToken.None).Result);
-                return ImmutableArray.Create((span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted));
+                AssertEx.Equal(activeSpans1, activeStatementSpanProvider(document.Id, "test.cs", CancellationToken.None).Result);
+                return ImmutableArray.Create(activeStatementSpan1);
             };
 
-            var documentActiveSpans = await proxy.GetAdjustedActiveStatementSpansAsync(document1, documentActiveStatementSpanProvider, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal((span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted), documentActiveSpans.Single());
+            var documentActiveSpans = await proxy.GetAdjustedActiveStatementSpansAsync(document1, activeStatementSpanProvider, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(activeStatementSpan1, documentActiveSpans.Single());
 
             // GetDocumentActiveStatementSpans (default array)
 
             mockEncService.GetAdjustedActiveStatementSpansImpl = (document, _) => default;
 
-            documentActiveSpans = await proxy.GetAdjustedActiveStatementSpansAsync(document1, documentActiveStatementSpanProvider, CancellationToken.None).ConfigureAwait(false);
+            documentActiveSpans = await proxy.GetAdjustedActiveStatementSpansAsync(document1, activeStatementSpanProvider, CancellationToken.None).ConfigureAwait(false);
             Assert.True(documentActiveSpans.IsDefault);
 
             // OnSourceFileUpdatedAsync

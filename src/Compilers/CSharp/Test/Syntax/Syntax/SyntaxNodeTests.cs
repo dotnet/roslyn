@@ -693,6 +693,70 @@ a + b";
             Assert.False(tree1.GetCompilationUnitRoot().IsEquivalentTo(tree2.GetCompilationUnitRoot()));
         }
 
+        [Fact]
+        public void TestNodeIncrementallyEquivalentToSelf()
+        {
+            var text = "class goo { }";
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.True(tree.GetCompilationUnitRoot().IsIncrementallyIdenticalTo(tree.GetCompilationUnitRoot()));
+        }
+
+        [Fact]
+        public void TestTokenIncrementallyEquivalentToSelf()
+        {
+            var text = "class goo { }";
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.True(tree.GetCompilationUnitRoot().EndOfFileToken.IsIncrementallyIdenticalTo(tree.GetCompilationUnitRoot().EndOfFileToken));
+        }
+
+        [Fact]
+        public void TestDifferentTokensFromSameTreeNotIncrementallyEquivalentToSelf()
+        {
+            var text = "class goo { }";
+            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.False(tree.GetCompilationUnitRoot().GetFirstToken().IsIncrementallyIdenticalTo(tree.GetCompilationUnitRoot().GetFirstToken().GetNextToken()));
+        }
+
+        [Fact]
+        public void TestCachedTokensFromDifferentTreesIncrementallyEquivalentToSelf()
+        {
+            var text = "class goo { }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(text);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.True(tree1.GetCompilationUnitRoot().GetFirstToken().IsIncrementallyIdenticalTo(tree2.GetCompilationUnitRoot().GetFirstToken()));
+        }
+
+        [Fact]
+        public void TestNodesFromSameContentNotIncrementallyParsedNotIncrementallyEquivalent()
+        {
+            var text = "class goo { }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(text);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(text);
+            Assert.False(tree1.GetCompilationUnitRoot().IsIncrementallyIdenticalTo(tree2.GetCompilationUnitRoot()));
+        }
+
+        [Fact]
+        public void TestNodesFromIncrementalParseIncrementallyEquivalent1()
+        {
+            var text = "class goo { void M() { } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(text);
+            var tree2 = tree1.WithChangedText(tree1.GetText().WithChanges(new TextChange(default, " ")));
+            Assert.True(
+                tree1.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single().IsIncrementallyIdenticalTo(
+                tree2.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
+        }
+
+        [Fact]
+        public void TestNodesFromIncrementalParseNotIncrementallyEquivalent1()
+        {
+            var text = "class goo { void M() { } }";
+            var tree1 = SyntaxFactory.ParseSyntaxTree(text);
+            var tree2 = tree1.WithChangedText(tree1.GetText().WithChanges(new TextChange(new TextSpan(22, 0), " return; ")));
+            Assert.False(
+                tree1.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single().IsIncrementallyIdenticalTo(
+                tree2.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
+        }
+
         [Fact, WorkItem(536664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536664")]
         public void TestTriviaNodeCached()
         {

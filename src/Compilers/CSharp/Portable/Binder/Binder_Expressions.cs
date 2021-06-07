@@ -1322,7 +1322,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
             return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
-#nullable disable
 
         private BoundExpression BindSizeOf(SizeOfExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -1340,7 +1339,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
-#nullable enable
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics)
         {
@@ -3029,7 +3027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
+        private static TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
             int paramNum = result.ParameterFromArgument(arg);
             var type = parameters[paramNum].TypeWithAnnotations;
@@ -3176,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
+                    size = ConvertToArrayIndex(size, diagnostics, allowIndexAndRange: false);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
@@ -5930,7 +5928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var isSemanticModel = this.IsSemanticModelBinder;
             for (var chain = this.ImportChain; chain != null; chain = chain.ParentOpt)
             {
-                if (chain.Imports.IsUsingAlias(name, isSemanticModel))
+                if (IsUsingAlias(chain.Imports.UsingAliases, name, isSemanticModel))
                 {
                     return true;
                 }
@@ -7340,7 +7338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1);
+                BoundExpression index = ConvertToArrayIndex(argument, diagnostics, allowIndexAndRange: rank == 1);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -7369,7 +7367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
         {
             Debug.Assert(index != null);
 
@@ -7382,6 +7380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ((BoundDiscardExpression)index).FailInference(this, diagnostics);
             }
 
+            var node = index.Syntax;
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics) ??
@@ -7424,7 +7423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -7533,7 +7532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false);
+            index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
@@ -7928,6 +7927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]))
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
@@ -7989,6 +7990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,
@@ -8314,7 +8317,151 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReportDelegateInvokeUseSiteDiagnostic(BindingDiagnosticBag diagnostics, TypeSymbol possibleDelegateType,
+#nullable enable
+        internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (GetUniqueSignatureFromMethodGroup(node) is { } method &&
+                GetMethodGroupOrLambdaDelegateType(method.RefKind, method.ReturnsVoid ? default : method.ReturnTypeWithAnnotations, method.ParameterRefKinds, method.ParameterTypesWithAnnotations, ref useSiteInfo) is { } delegateType)
+            {
+                return delegateType;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns one of the methods from the method group if all methods in the method group
+        /// have the same signature, ignoring parameter names and custom modifiers. The particular
+        /// method returned is not important since the caller is interested in the signature only.
+        /// </summary>
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
+        {
+            MethodSymbol? method = null;
+            foreach (var m in node.Methods)
+            {
+                switch (node.ReceiverOpt)
+                {
+                    case BoundTypeExpression:
+                        if (!m.IsStatic) continue;
+                        break;
+                    case BoundThisReference { WasCompilerGenerated: true }:
+                        break;
+                    default:
+                        if (m.IsStatic) continue;
+                        break;
+                }
+                if (!isCandidateUnique(ref method, m))
+                {
+                    return null;
+                }
+            }
+            if (node.SearchExtensionMethods)
+            {
+                var receiver = node.ReceiverOpt!;
+                foreach (var scope in new ExtensionMethodScopes(this))
+                {
+                    var methodGroup = MethodGroup.GetInstance();
+                    PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
+                    foreach (var m in methodGroup.Methods)
+                    {
+                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
+                            !isCandidateUnique(ref method, reduced))
+                        {
+                            methodGroup.Free();
+                            return null;
+                        }
+                    }
+                    methodGroup.Free();
+                }
+            }
+            if (method is null)
+            {
+                return null;
+            }
+            int n = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
+            if (method.Arity != n)
+            {
+                return null;
+            }
+            else if (n > 0)
+            {
+                method = method.ConstructedFrom.Construct(node.TypeArgumentsOpt);
+            }
+            return method;
+
+            static bool isCandidateUnique(ref MethodSymbol? method, MethodSymbol candidate)
+            {
+                if (method is null)
+                {
+                    method = candidate;
+                    return true;
+                }
+                if (MemberSignatureComparer.MethodGroupSignatureComparer.Equals(method, candidate))
+                {
+                    return true;
+                }
+                method = null;
+                return false;
+            }
+        }
+
+        // This method was adapted from LoweredDynamicOperationFactory.GetDelegateType().
+        // Consider using that method directly since it also synthesizes delegates if necessary.
+        internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
+            RefKind returnRefKind,
+            TypeWithAnnotations returnTypeOpt,
+            ImmutableArray<RefKind> parameterRefKinds,
+            ImmutableArray<TypeWithAnnotations> parameterTypes,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (returnRefKind == RefKind.None &&
+                (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
+            {
+                var wkDelegateType = returnTypeOpt.HasType ?
+                    WellKnownTypes.GetWellKnownFunctionDelegate(invokeArgumentCount: parameterTypes.Length) :
+                    WellKnownTypes.GetWellKnownActionDelegate(invokeArgumentCount: parameterTypes.Length);
+
+                if (wkDelegateType != WellKnownType.Unknown)
+                {
+                    var delegateType = Compilation.GetWellKnownType(wkDelegateType);
+                    delegateType.AddUseSiteInfo(ref useSiteInfo);
+                    if (returnTypeOpt.HasType)
+                    {
+                        parameterTypes = parameterTypes.Add(returnTypeOpt);
+                    }
+                    if (parameterTypes.Length == 0)
+                    {
+                        return delegateType;
+                    }
+                    if (checkConstraints(Compilation, Conversions, delegateType, parameterTypes))
+                    {
+                        return delegateType.Construct(parameterTypes);
+                    }
+                }
+            }
+
+            return null;
+
+            static bool checkConstraints(CSharpCompilation compilation, ConversionsBase conversions, NamedTypeSymbol delegateType, ImmutableArray<TypeWithAnnotations> typeArguments)
+            {
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                var typeParameters = delegateType.TypeParameters;
+                var substitution = new TypeMap(typeParameters, typeArguments);
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+                var result = delegateType.CheckConstraints(
+                    new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded),
+                    substitution,
+                    typeParameters,
+                    typeArguments,
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder);
+                diagnosticsBuilder.Free();
+                return result;
+            }
+        }
+#nullable disable
+
+        internal static bool ReportDelegateInvokeUseSiteDiagnostic(BindingDiagnosticBag diagnostics, TypeSymbol possibleDelegateType,
             Location location = null, SyntaxNode node = null)
         {
             Debug.Assert((location == null) ^ (node == null));

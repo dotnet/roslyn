@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis
 
         private AnalyzerOptions? _lazyAnalyzerOptions;
 
+        /// <summary>
+        /// Backing field for <see cref="SourceGenerators"/>; this is a default ImmutableArray if it hasn't been computed yet.
+        /// </summary>
+        private ImmutableArray<ISourceGenerator> _lazySourceGenerators;
+
         private ProjectState(
             ProjectInfo projectInfo,
             HostLanguageServices languageServices,
@@ -579,6 +584,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             return With(projectInfo: ProjectInfo.WithAnalyzerReferences(analyzerReferences).WithVersion(Version.GetNewerVersion()));
+        }
+
+        public ImmutableArray<ISourceGenerator> SourceGenerators
+        {
+            get
+            {
+                if (_lazySourceGenerators.IsDefault)
+                {
+                    var generators = AnalyzerReferences.SelectMany(a => a.GetGenerators(this.Language)).ToImmutableArray();
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazySourceGenerators, generators);
+                }
+
+                return _lazySourceGenerators;
+            }
         }
 
         public ProjectState AddDocuments(ImmutableArray<DocumentState> documents)
