@@ -60,6 +60,7 @@ Microsoft.CodeAnalysis.SyntaxNodeOrToken.IsIncrementallyIdenticalTo(Microsoft.Co
 Microsoft.CodeAnalysis.SyntaxToken.IsIncrementallyIdenticalTo(Microsoft.CodeAnalysis.SyntaxToken token) -> bool
 Microsoft.CodeAnalysis.SyntaxValueProvider
 Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxProvider<T>(System.Func<Microsoft.CodeAnalysis.SyntaxNode!, bool>! predicate, System.Func<Microsoft.CodeAnalysis.GeneratorSyntaxContext, T>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T>
+Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxValueProvider() -> void
 override Microsoft.CodeAnalysis.Text.TextChangeRange.ToString() -> string!
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Compare(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> int
 static Microsoft.CodeAnalysis.CaseInsensitiveComparison.Equals(System.ReadOnlySpan<char> left, System.ReadOnlySpan<char> right) -> bool

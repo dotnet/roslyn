@@ -1511,6 +1511,12 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
+                var filePaths = ctx.CompilationProvider.SelectMany(c => c.SyntaxTrees).Select(tree => tree.FilePath);
+                ctx.GenerateSource(filePaths, (SourceProductionContext, c) =>
+                {
+
+                });
+
                 ctx.CompilationProvider.GenerateSource((spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
