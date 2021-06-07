@@ -41,22 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
         private int _id = -1;
-        private bool _idWasRead;
 
         public int Id
         {
             get
             {
-                if (_id != -1)
-                {
-                    _idWasRead = true;
-                }
                 return _id;
             }
             internal set
             {
-                Debug.Assert(!_idWasRead, "Id was set after reading it");
-                Debug.Assert(value >= 0, "Id must be non-negative but was set to " + value);
+                Debug.Assert(value > 0, "Id must be positive but was set to " + value);
                 Debug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
                 _id = value;
             }
@@ -65,7 +59,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal string GetOutputTempDebuggerDisplay()
         {
             var id = Id;
-            return id == -1 ? "<uninitialized>" : $"t{id}";
+            return id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to create an evaluation with id 0
+                // To do so would imply that dag evaluation assigns to the original input
+                0 => "<error>",
+
+                _ => $"t{id}"
+            };
         }
 #endif
     }
