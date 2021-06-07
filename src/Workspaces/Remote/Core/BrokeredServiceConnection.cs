@@ -286,54 +286,30 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // After this point, the full cancellation sequence is as follows:
             //  1. 'cancellationToken' indicates cancellation is requested
-            //  2. 'invocation' has cancellation requested
+            //  2. 'invocation' and 'readerTask' have cancellation requested
             //  3. 'invocation' stops writing to 'pipe.Writer'
-            //  4. 'readerTask' has cancellation requested
-            //  5. 'readerTask' stops reading from 'pipe.Reader'
-            //  6. 'pipe.Writer' is completed
-            //  7. 'pipe.Reader' is completed
-            //  8. OperationCanceledException is thrown back to the caller
-            //
-            // Since StreamJsonRpc will automatically complete writers when an error occurs (and cancellation is
-            // treated as an error), we create a buffered reader to isolate callback actions from this
-            // implementation.
+            //  4. 'pipe.Writer' is completed
+            //  5. 'readerTask' continues reading until EndOfStreamException (workaround for https://github.com/AArnott/Nerdbank.Streams/issues/361)
+            //  6. 'pipe.Reader' is completed
+            //  7. OperationCanceledException is thrown back to the caller
 
-            // Create a separate cancellation token for the reader, which we keep open until after the call to invoke
-            // completes. If we close the reader before cancellation is processed by the remote call, it might block
-            // (deadlock) while writing to a stream which is no longer processing data.
-            using var readerCancellationSource = new CancellationTokenSource();
-
-            var writeBufferPipe = new Pipe();
-            var readBufferPipe = new Pipe();
+            var pipe = new Pipe();
 
             // Create new tasks that both start executing, rather than invoking the delegates directly
             // to make sure both invocation and reader start executing and transfering data.
 
             var writerTask = Task.Run(async () =>
             {
-                var copyTask = writeBufferPipe.Reader.CopyToAsync(readBufferPipe.Writer, cancellationToken);
-
                 try
                 {
-                    await invocation(service, writeBufferPipe.Writer, cancellationToken).ConfigureAwait(false);
-
-                    // Complete the copy and mark the operation complete
-                    await copyTask.NoThrowAwaitable(captureContext: false);
-                    await readBufferPipe.Writer.CompleteAsync().ConfigureAwait(false);
+                    await invocation(service, pipe.Writer, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    // Make sure the reader is aware of a cancellation request before completing the writer. Otherwise,
-                    // the reader could attempt to read past the end of a completed stream without realizing that
-                    // cancellation is expected.
-                    readerCancellationSource.Cancel();
-
                     // Ensure that the writer is complete if an exception is thrown
-                    // before the writer is passed to the RPC proxy. Once it's passed to the proxy
+                    // before the writer is passed to the RPC proxy. Once it's passed to the proxy 
                     // the proxy should complete it as soon as the remote side completes it.
-                    await writeBufferPipe.Writer.CompleteAsync(e).ConfigureAwait(false);
-                    await copyTask.NoThrowAwaitable(captureContext: false);
-                    await readBufferPipe.Writer.CompleteAsync(e).ConfigureAwait(false);
+                    await pipe.Writer.CompleteAsync(e).ConfigureAwait(false);
 
                     throw;
                 }
@@ -346,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     try
                     {
-                        return await reader(readBufferPipe.Reader, readerCancellationSource.Token).ConfigureAwait(false);
+                        return await reader(pipe.Reader, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when ((exception = e) == null)
                     {
@@ -354,9 +330,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                     finally
                     {
-                        await readBufferPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
+                        await pipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
                     }
-                }, readerCancellationSource.Token);
+                }, mustNotCancelToken);
 
             await Task.WhenAll(writerTask, readerTask).ConfigureAwait(false);
 
