@@ -487,7 +487,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (typeSymbol.TypeKind == TypeKind.Class)
                     {
-                        // prototype(inheritdoc): when does base class take precedence over interface?
+                        // Classes use the base type as the default inheritance candidate. A different target (e.g. an
+                        // interface) can be provided via the 'path' attribute.
                         return typeSymbol.BaseType;
                     }
                     else if (typeSymbol.TypeKind == TypeKind.Interface)
