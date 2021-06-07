@@ -136,11 +136,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
 
-                    // We're in the reading path, so we can't allow TryGetDatabaseId to write.  Note that this is ok,
-                    // and actually provides the semantics we want.  Specifically, we can be trying to read data that
-                    // either exists in the DB or not.  If it doesn't exist in the DB, then it's fine to fail to map
-                    // from the key to a DB id (since there's nothing to lookup anyways).  And if it does exist in
-                    // the db then finding the ID would succeed (without writing) and we could continue.
+                    // We're in the reading-only scheduler path, so we can't allow TryGetDatabaseId to write.  Note that
+                    // this is ok, and actually provides the semantics we want.  Specifically, we can be trying to read
+                    // data that either exists in the DB or not.  If it doesn't exist in the DB, then it's fine to fail
+                    // to map from the key to a DB id (since there's nothing to lookup anyways).  And if it does exist
+                    // in the db then finding the ID would succeed (without writing) and we could continue.
                     if (TryGetDatabaseId(connection, key, allowWrite: false, out var dataId))
                     {
                         try
