@@ -1,6 +1,6 @@
-This document provides specific guidance and best practices for reporting crashes and performance issues in Visual Studio by gathering heap dumps / performance traces as part of Visual Studio's built-in Report a Problem workflow. For a general overview of how to report problems in Visual Studio, see "[How to Report a Problem with Visual Studio 2017](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)". 
+This document provides specific guidance and best practices for reporting crashes and performance issues in Visual Studio by gathering heap dumps / performance traces as part of Visual Studio's built-in Report a Problem workflow. For a general overview of how to report problems in Visual Studio, see "[How to Report a Problem with Visual Studio](https://docs.microsoft.com/visualstudio/ide/how-to-report-a-problem-with-visual-studio)". 
 
-:arrow_right: **The product teams review all feedback submitted through the [Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017) tool.** Users are not required to follow the steps in this document to provide feedback.
+:arrow_right: **The product teams review all feedback submitted through the [Report a Problem](https://docs.microsoft.com/visualstudio/ide/how-to-report-a-problem-with-visual-studio) tool.** Users are not required to follow the steps in this document to provide feedback.
 
 # Audience
 
@@ -27,7 +27,7 @@ Directly reproducible crashes are cases which have all of the following characte
 2. Can be observed on multiple computers (if available)
 3. If the steps involve opening a project or document, can be reproduced in sample code or a project which can be linked to or provided as part of the feedback
 
-For these issues, follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" and be sure to include:
+For these issues, follow the steps in "[How to Report a Problem](https://docs.microsoft.com/visualstudio/ide/how-to-report-a-problem-with-visual-studio)" and be sure to include:
 - The steps to reproduce the problem
 - A standalone repro project as described above. If this is not possible, then please include:
     - The language of the open projects (C#, C++, etc.)
@@ -65,7 +65,7 @@ Then, use Visual Studio's "Report a Problem..." feature. It will allow you to at
 
 1. Locate the dump file for the crash you are reporting (look for a file with the correct Creation time)
 2. If possible, zip the file (*.zip) to reduce its size before submitting feedback
-3. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)", and attach the heap dump to a new feedback item.
+3. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/visualstudio/ide/how-to-report-a-problem-with-visual-studio)", and attach the heap dump to a new feedback item.
 
 ⚠️ Do not attach heap dumps to existing feedback items. Please create a new feedback item for each heap dump you would like to submit. If you were requested to provide a heap dump in order to resolve a previous feedback item, simply reply to the request with a link to the new feedback item where the heap dump is attached.
 
@@ -84,7 +84,7 @@ For best results in capturing the performance, follow these steps:
     * If you are *not* reporting a problem specific to loading a solution, try to wait 5-10 minutes (or more, depending on solution size) after opening the solution before recording the performance trace. The solution load process produces a large amount of data, so waiting for a few minutes helps us focus on the specific problem you are reporting.
 2. Start a second copy of Visual Studio *with no solution open*
 3. In the new copy of Visual Studio, open the **Report a Problem** tool
-4. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/en-us/visualstudio/ide/how-to-report-a-problem-with-visual-studio-2017)" until you reach the "Provide a trace and heap dump (optional)" step.
+4. Follow the steps in "[How to Report a Problem](https://docs.microsoft.com/visualstudio/ide/how-to-report-a-problem-with-visual-studio)" until you reach the "Provide a trace and heap dump (optional)" step.
 5. Choose to record the first copy of Visual Studio (the one encountering performance problems), and start recording.
     * The Steps Recorder application will appear begin recording. 
     * **During the recording,** perform the problematic action in the separate copy of Visual Studio. It is very difficult for us to correct specific performance problems if they do not appear within the recorded time.
