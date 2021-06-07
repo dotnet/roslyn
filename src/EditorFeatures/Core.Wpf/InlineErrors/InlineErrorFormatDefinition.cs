@@ -18,15 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal sealed class ClassificationTypeDefinitions
     {
-        public const string InlineErrorName = "Inline Errors: ";
-
         [Export]
-        [Name(InlineErrorName + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsErrorTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorName + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsErrorFormatDefinition : EditorFormatDefinition
@@ -37,17 +35,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Error;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(252, 62, 54));
-                ForegroundBrush = new SolidColorBrush(Color.FromRgb(33, 33, 33));
+                ForegroundBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
             }
         }
 
         [Export]
-        [Name(InlineErrorName + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.Warning)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsWarningTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorName + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.Warning)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsWarningFormatDefinition : EditorFormatDefinition
@@ -58,17 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Warning;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(149, 219, 125));
-                ForegroundBrush = new SolidColorBrush(Color.FromRgb(33, 33, 33));
+                ForegroundBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
             }
         }
 
         [Export]
-        [Name(InlineErrorName + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineErrorTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsRudeEditTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorName + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineErrorTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
         private class InlineErrorsRudeEditFormatDefinition : EditorFormatDefinition
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Rude_Edit;
                 BackgroundBrush = Brushes.Purple;
-                ForegroundBrush = new SolidColorBrush(Color.FromRgb(180, 180, 180));
+                ForegroundBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
             }
         }
     }

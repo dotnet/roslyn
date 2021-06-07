@@ -10,6 +10,8 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal class InlineErrorTag : GraphicsTag
     {
+        public const string TagID = "inline error - ";
         public readonly string ErrorType;
         private readonly DiagnosticData _diagnostic;
 
@@ -42,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 Foreground = format.ForegroundBrush,
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
                 VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TextAlignment = TextAlignment.Center
             };
 
             var id = new Run(_diagnostic.Id);
@@ -50,7 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 NavigateUri = new Uri(_diagnostic.HelpLink)
             };
 
+            var image = new CrispImage
+            {
+                Moniker = GetMoniker()
+            };
+
+            var statusImage = new InlineUIContainer(image);
             link.RequestNavigate += HandleRequestNavigate;
+            block.Inlines.Add(statusImage);
             block.Inlines.Add(link);
             block.Inlines.Add(": " + _diagnostic.Message);
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -58,12 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             var border = new Border
             {
-                Background = format.BackgroundBrush,
+                BorderBrush = format.BackgroundBrush,
+                BorderThickness = new Thickness(1),
+                Background = Brushes.Transparent,
                 Child = block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(0, top: 0, 0, bottom: 2),
-                Padding = new Thickness(2)
+                Margin = new Thickness(0, top: 0, 0, bottom: 0),
+                Padding = new Thickness(1)
             };
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -77,14 +91,27 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
 
             Canvas.SetTop(border, bounds.Bounds.Bottom - border.DesiredSize.Height);
-            Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+            //Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
 
             return new GraphicsResult(border,
                 () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {
-                Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+                //Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+            }
+        }
+
+        private ImageMoniker GetMoniker()
+        {
+            switch (_diagnostic.Severity)
+            {
+                case DiagnosticSeverity.Warning:
+                    return KnownMonikers.StatusWarning;
+                case DiagnosticSeverity.Error:
+                    return KnownMonikers.StatusError;
+                default:
+                    throw new NotSupportedException();
             }
         }
 

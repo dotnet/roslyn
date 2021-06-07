@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 {
     internal class InlineErrorAdornmentManager : AdornmentManager<InlineErrorTag>
     {
-        public const string InlineErrorName = "Inline Errors: ";
-
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
         private readonly Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> _tagSpanToPointMap;
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 foreach (var element in elements)
                 {
                     var tag = (InlineErrorTag)element.Tag;
-                    var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorName + tag.ErrorType);
+                    var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
                     var format = GetFormat(classificationType);
                     tag.UpdateColor(format, element.Adornment);
                 }
@@ -60,15 +60,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         /// <summary>
         /// Get the spans located on each line so that I can only display the first one that appears on the line
         /// </summary>
-        private IDictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private ImmutableDictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             _tagSpanToPointMap.Clear();
             if (changedSpanCollection.IsEmpty())
             {
-                return SpecializedCollections.EmptyDictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
+                return ImmutableDictionary<int, List<IMappingTagSpan<InlineErrorTag>>>.Empty;
             }
 
-            var map = new Dictionary<int, List<IMappingTagSpan<InlineErrorTag>>>();
+            var map = ImmutableDictionary.CreateBuilder<int, List<IMappingTagSpan<InlineErrorTag>>>();
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 }
             }
 
-            return map;
+            return map.ToImmutable();
         }
 
         protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     if (geometry != null)
                     {
                         var tag = tagMappingSpanList[0].Tag;
-                        var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorName + tag.ErrorType);
+                        var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
                         var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
                         if (!_tagSpanToPointMap.TryGetValue(tagMappingSpanList[0], out var point))
                         {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                         }
 
                         var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
-
+                        Canvas.SetLeft(graphicsResult.VisualElement, lineView.Right);
                         if (lineView.Right < TextView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
                         {
                             AdornmentLayer.AddAdornment(
