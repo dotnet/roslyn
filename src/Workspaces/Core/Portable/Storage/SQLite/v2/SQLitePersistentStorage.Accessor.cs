@@ -87,79 +87,57 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public async Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
-                var (succeeded, dataId) = await TryGetDatabaseIdAsync(key, cancellationToken).ConfigureAwait(false);
-                if (!succeeded)
-                    return false;
+                // First, attempt to do the check just on the concurrent, read-only, queue.  This will succeed
+                // if the data-id for the provided key is already in the db and 
+                var (missingDataId, matches) = await Storage.PerformReadAsync(
+                    static t => t.self.ChecksumMatches(t.key, t.checksum, allowWrite: false, t.cancellationToken),
+                    (self: this, key, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                return await Storage.PerformReadAsync(
-                    static t => t.self.ChecksumMatches(t.dataId, t.checksum, t.cancellationToken),
-                    (self: this, dataId, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
+                if (missingDataId)
+                {
+                    (missingDataId, matches) = await Storage.PerformWriteAsync(
+                        static t => t.self.ChecksumMatches(t.key, t.checksum, allowWrite: true, t.cancellationToken),
+                        (self: this, key, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
+                }
+
+                return matches;
             }
 
-            private bool ChecksumMatches(TDatabaseId dataId, Checksum checksum, CancellationToken cancellationToken)
+            private (bool missingDataId, bool matches) ChecksumMatches(TKey key, Checksum checksum, bool allowWrite, CancellationToken cancellationToken)
             {
-                var hashData = ReadChecksumColumn(dataId, cancellationToken);
-                return hashData != null && checksum == hashData.Value;
+                var (missingDataId, hashData) = ReadChecksumColumn(key, allowWrite, cancellationToken);
+                if (missingDataId)
+                    return (missingDataId, false);
+
+                return (missingDataId: false, hashData != null && checksum == hashData.Value);
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public async Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
             {
-                var (succeeded, dataId) = await TryGetDatabaseIdAsync(key, cancellationToken).ConfigureAwait(false);
-                if (!succeeded)
-                    return null;
+                var (missingDataId, stream) = await Storage.PerformReadAsync(
+                    static t => t.self.ReadStream(t.key, t.checksum, allowWrite: false, t.cancellationToken),
+                    (self: this, key, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
 
-                return await Storage.PerformReadAsync(
-                    static t => t.self.ReadStream(t.dataId, t.checksum, t.cancellationToken),
-                    (self: this, dataId, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
-            }
-
-            private async Task<(bool succeeded, TDatabaseId dataId)> TryGetDatabaseIdAsync(TKey key, CancellationToken cancellationToken)
-            {
-                if (Storage._shutdownTokenSource.IsCancellationRequested)
-                    return default;
-
-                // Getting the database ID may end up needing to write to the DB (to create a unique DB key corresponding
-                // to the data-key the client is passing in).  As such, we have to try to acquire the DB-key in a fashion
-                // that has exclusive write access to the DB to prevent locking errors.
-
-                // First, just try to optimistically read the data id from the db.  This can be done with
-                // just a read connection, so we can run concurrently with all other readers.
-                var (succeeded, dataId) = await Storage.PerformReadAsync(
-                    static t => TryGetDatabaseId(t.self, t.key, allowWrite: false, t.cancellationToken),
-                    (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                if (succeeded)
-                    return (succeeded, dataId);
-
-                // Data id was not in the db.  Switch over to an exclusive write lock to add it.  This will
-                // always happen the first time we write anything new into the DB.  But from that point on
-                // will very rarely be hit as most read requests will be to a key already written in the past.
-                return await Storage.PerformWriteAsync(
-                    static t => TryGetDatabaseId(t.self, t.key, allowWrite: true, t.cancellationToken),
-                    (self: this, key, cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                static (bool succeeded, TDatabaseId dataId) TryGetDatabaseId(
-                    Accessor<TKey, TWriteQueueKey, TDatabaseId> self, TKey key, bool allowWrite, CancellationToken cancellationToken)
+                if (missingDataId)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using var _ = self.Storage._connectionPool.Target.GetPooledConnection(out var connection);
-
-                    // Determine the appropriate data-id to store this stream at.
-                    var succeeded = self.TryGetDatabaseId(connection, key, allowWrite, out var dataId);
-                    return (succeeded, dataId);
+                    (missingDataId, stream) = await Storage.PerformWriteAsync(
+                        static t => t.self.ReadStream(t.key, t.checksum, allowWrite: true, t.cancellationToken),
+                        (self: this, key, checksum, cancellationToken), cancellationToken).ConfigureAwait(false);
                 }
+
+                return stream;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
-            private Stream? ReadStream(TDatabaseId dataId, Checksum? checksum, CancellationToken cancellationToken)
-                => ReadDataBlobColumn(dataId, checksum, cancellationToken);
+            private (bool missingDataId, Stream? stream) ReadStream(TKey key, Checksum? checksum, bool allowWrite, CancellationToken cancellationToken)
+                => ReadDataBlobColumn(key, checksum, allowWrite, cancellationToken);
 
-            private Optional<T> ReadColumn<T, TData>(
-                TDatabaseId dataId,
+            private (bool missingDataId, Optional<T>) ReadColumn<T, TData>(
+                TKey key,
                 Func<TData, SqlConnection, Database, long, Optional<T>> readColumn,
                 TData data,
+                bool allowWrite,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -167,6 +145,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 if (!Storage._shutdownTokenSource.IsCancellationRequested)
                 {
                     using var _ = Storage._connectionPool.Target.GetPooledConnection(out var connection);
+                    if (!TryGetDatabaseId(connection, key, allowWrite, out var dataId))
+                        return (missingDataId: true, default);
+
                     try
                     {
                         // First, try to see if there was a write to this key in our in-memory db.
@@ -174,11 +155,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                         var optional = ReadColumnHelper(connection, Database.WriteCache, dataId);
                         if (optional.HasValue)
-                            return optional;
+                            return (missingDataId: false, optional);
 
                         optional = ReadColumnHelper(connection, Database.Main, dataId);
                         if (optional.HasValue)
-                            return optional;
+                            return (missingDataId: false, optional);
                     }
                     catch (Exception ex)
                     {
@@ -201,27 +182,35 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 }
             }
 
-            private Stream? ReadDataBlobColumn(
-                TDatabaseId dataId, Checksum? checksum, CancellationToken cancellationToken)
+            private (bool missingDataId, Stream? stream) ReadDataBlobColumn(
+                TKey key, Checksum? checksum, bool allowWrite, CancellationToken cancellationToken)
             {
-                var optional = ReadColumn(
-                    dataId,
+                var (missingDataId, optional) = ReadColumn(
+                    key,
                     static (t, connection, database, rowId) => t.self.ReadDataBlob(connection, database, rowId, t.checksum),
                     (self: this, checksum),
+                    allowWrite,
                     cancellationToken);
+                if (missingDataId)
+                    return (missingDataId, null);
 
                 Contract.ThrowIfTrue(optional.HasValue && optional.Value == null);
-                return optional.HasValue ? optional.Value : null;
+                return (missingDataId: false, optional.HasValue ? optional.Value : null);
             }
 
-            private Checksum.HashData? ReadChecksumColumn(TDatabaseId dataId, CancellationToken cancellationToken)
+            private (bool missingDataId, Checksum.HashData? data) ReadChecksumColumn(
+                TKey key, bool allowWrite, CancellationToken cancellationToken)
             {
-                var optional = ReadColumn(
-                    dataId,
+                var (missingDataId, optional) = ReadColumn(
+                    key,
                     static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
-                    this, cancellationToken);
+                    this,
+                    allowWrite,
+                    cancellationToken);
+                if (missingDataId)
+                    return (missingDataId, null);
 
-                return optional.HasValue ? optional.Value : null;
+                return (missingDataId: false, optional.HasValue ? optional.Value : null);
             }
 
             public Task<bool> WriteStreamAsync(TKey key, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
