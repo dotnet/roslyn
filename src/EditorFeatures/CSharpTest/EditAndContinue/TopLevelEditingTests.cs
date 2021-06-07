@@ -13669,6 +13669,25 @@ public class C
         }
 
         [Fact]
+        public void TypeTypeParameterAttributeInsert_SupportedByRuntime()
+        {
+            var attribute = "public class AAttribute : System.Attribute { }\n\n";
+
+            var src1 = attribute + @"class C<T> {}";
+            var src2 = attribute + @"class C<[A]T> {}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [T]@56 -> [[A]T]@56");
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
+                capabilities: EditAndContinueTestHelpers.Net5RuntimeCapabilities | EditAndContinueCapabilities.UpdateCustomAttributes);
+        }
+
+        [Fact]
         public void TypeTypeParameterAttributeDelete()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";

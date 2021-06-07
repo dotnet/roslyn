@@ -1290,22 +1290,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return False
                     End If
 
-                Case SyntaxKind.TypeParameter,
-                     SyntaxKind.Parameter
-                    ' Return containing symbol for parameters when updated, to check attributes
+                Case SyntaxKind.Parameter
                     If editKind = EditKind.Update Then
-                        Dim containingSymbol = model.GetDeclaredSymbol(node, cancellationToken).ContainingSymbol
-
                         ' for delegate invoke methods we need to go one step higher, to the delegate itself
-                        Dim containingDelegate = TryCast(containingSymbol, IMethodSymbol)
+                        Dim parameterSymbol = model.GetDeclaredSymbol(node, cancellationToken)
+                        Dim containingDelegate = TryCast(parameterSymbol.ContainingSymbol, IMethodSymbol)
                         If containingDelegate IsNot Nothing AndAlso containingDelegate.MethodKind = MethodKind.DelegateInvoke Then
-                            containingSymbol = containingDelegate.ContainingSymbol
+                            parameterSymbol = containingDelegate.ContainingSymbol
                         End If
 
-                        symbols = OneOrMany.Create(containingSymbol)
+                        symbols = OneOrMany.Create(parameterSymbol)
                         Return True
                     End If
                     Return False
+
+                Case SyntaxKind.TypeParameter
+                    If editKind <> EditKind.Update Then
+                        Return False
+                    End If
 
                 Case SyntaxKind.ImportsStatement,
                      SyntaxKind.NamespaceBlock

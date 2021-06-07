@@ -1240,18 +1240,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (editKind == EditKind.Update)
             {
-                if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
+                if (node.IsKind(SyntaxKind.Parameter))
                 {
-                    // for parameter and type parameter updates, we want to deal with symbol info of the member that contains it
-                    // to process attributes. All other updates would have been reported as syntactic rude edits already.
-                    var containingSymbol = model.GetRequiredDeclaredSymbol(node, cancellationToken).ContainingSymbol;
-
-                    // if this was a parameter of a delegate, the symbol will be the Invoke method, but we need to go back up to the delegate itself
-                    if (containingSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
+                    // If this is a parameter of a delegate, the symbol will be the Invoke method, but we need to go back up to the delegate itself
+                    // so the analysis can see the attributes
+                    var parameterSymbol = model.GetRequiredDeclaredSymbol(node, cancellationToken);
+                    if (parameterSymbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } invokeMethodSymbol)
                     {
-                        containingSymbol = containingSymbol.ContainingSymbol;
+                        parameterSymbol = invokeMethodSymbol.ContainingSymbol;
                     }
-                    return containingSymbol;
+                    return parameterSymbol;
                 }
 
                 if (node is FieldDeclarationSyntax field)
@@ -1261,8 +1259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return model.GetDeclaredSymbol(field.Declaration.Variables.First(), cancellationToken);
                 }
             }
+            else if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
+            {
+                return null;
+            }
 
-            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
             {
                 return null;
             }

@@ -2935,6 +2935,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
+                            // The only updates allowed for a parameter or type parameter is an attribute change, but we only need the edit
+                            // for the containing symbol which will be handled elsewhere.
+                            if (newSymbol is IParameterSymbol or ITypeParameterSymbol)
+                            {
+                                continue;
+                            }
+
 #if TODO_ACCESSORS
                             // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
                             // so the only case when this happens is in C# for a property/indexer that has an expression body.
@@ -3115,7 +3122,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
             }
-            else if (newSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
+            else if (newSymbol is ITypeParameterSymbol or IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
             {
                 var symbolKey = SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, null, null));
