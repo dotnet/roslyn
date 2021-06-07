@@ -86,11 +86,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<bool> ChecksumMatchesAsync(TKey key, Checksum checksum, CancellationToken cancellationToken)
-            {
-                return Storage.PerformReadAsync(
+                => Storage.PerformReadAsync(
                     static t => t.self.ChecksumMatches(t.key, t.checksum, t.cancellationToken),
                     (self: this, key, checksum, cancellationToken), cancellationToken);
-            }
 
             private bool ChecksumMatches(TKey key, Checksum checksum, CancellationToken cancellationToken)
             {
@@ -104,11 +102,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             public Task<Stream?> ReadStreamAsync(TKey key, Checksum? checksum, CancellationToken cancellationToken)
-            {
-                return Storage.PerformReadAsync(
+                => Storage.PerformReadAsync(
                     static t => t.self.ReadStream(t.key, t.checksum, t.cancellationToken),
                     (self: this, key, checksum, cancellationToken), cancellationToken);
-            }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
             private Stream? ReadStream(TKey key, Checksum? checksum, CancellationToken cancellationToken)
