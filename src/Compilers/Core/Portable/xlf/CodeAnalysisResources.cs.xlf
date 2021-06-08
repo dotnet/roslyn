@@ -125,9 +125,9 @@
         <note>{0}: type name</note>
       </trans-unit>
       <trans-unit id="SourceTextRequiresEncoding">
-        <source>The provided SourceText must have an explicit encoding set.</source>
-        <target state="translated">Zadaný SourceText musí mít explicitní sadu kódování.</target>
-        <note>'SourceText' is not localizable.</note>
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="new">The SourceText with hintName '{0}' must have an explicit encoding set.</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>

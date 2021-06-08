@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
 
             if (source.Encoding is null)
             {
-                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
