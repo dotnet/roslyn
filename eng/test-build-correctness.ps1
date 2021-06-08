@@ -47,7 +47,7 @@ try {
     Write-Host "Checking no PROTOTYPE markers in source"
     $prototypes = Get-ChildItem -Path src/*.cs, src/*.vb, src/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
-      Write-Host "Found PROTOTYPE markers in compiler source:"
+      Write-Host "Found PROTOTYPE markers in source:"
       Write-Host $prototypes
       throw "PROTOTYPE markers disallowed in compiler source"
     }
