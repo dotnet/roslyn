@@ -80,7 +80,7 @@ public class C2
                 </Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
-                ' We don't yet offer expression completion in this context (could be a constant for a list-pattern)
+                ' This is the expected behavior until we implement support for list-patterns.
                 state.SendTypeChars("CP")
                 Await state.AssertNoCompletionSession()
             End Using
