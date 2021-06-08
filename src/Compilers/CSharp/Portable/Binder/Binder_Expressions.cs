@@ -3174,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
+                    size = ConvertToArrayIndex(size, diagnostics, allowIndexAndRange: false);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
@@ -7338,7 +7338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1);
+                BoundExpression index = ConvertToArrayIndex(argument, diagnostics, allowIndexAndRange: rank == 1);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -7367,7 +7367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
         {
             Debug.Assert(index != null);
 
@@ -7380,6 +7380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ((BoundDiscardExpression)index).FailInference(this, diagnostics);
             }
 
+            var node = index.Syntax;
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics) ??
@@ -7422,7 +7423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -7531,7 +7532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false);
+            index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
@@ -7926,6 +7927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]))
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
@@ -7987,6 +7990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,

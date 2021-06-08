@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly LogAggregator _logAggregator;
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
-            private readonly IDocumentTrackingService? _documentTrackingService;
+            private readonly IDocumentTrackingService _documentTrackingService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             // points to processor task
             private readonly IncrementalAnalyzerProcessor _documentAndProjectWorkerProcessor;
             private readonly SemanticChangeProcessor _semanticChangeProcessor;
-
-            private Document? _lastActiveDocument;
 
             public WorkCoordinator(
                  IAsynchronousOperationListener listener,
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
-                _documentTrackingService = _registration.Workspace.Services.GetService<IDocumentTrackingService>();
+                _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -85,11 +83,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _optionService.OptionChanged += OnOptionChanged;
 
                 // subscribe to active document changed event for active file background analysis scope.
-                if (_documentTrackingService != null)
-                {
-                    _lastActiveDocument = _documentTrackingService.GetActiveDocument(_registration.GetSolutionToAnalyze());
-                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
-                }
+                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -107,11 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-
-                if (_documentTrackingService != null)
-                {
-                    _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
-                }
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -218,36 +208,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId activeDocumentId)
+            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
             {
                 var solution = _registration.GetSolutionToAnalyze();
+                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                    return;
 
-                // Check if we are only performing backgroung analysis for active file.
-                if (activeDocumentId != null)
+                RoslynDebug.AssertNotNull(activeDocumentId);
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
+                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
                 {
-                    // Change to active document needs to trigger following events in active file analysis scope:
-                    //  1. Request analysis for newly active file, similar to a newly opened file.
-                    //  2. Clear analysis data for prior active file, similar to a closed file.
-                    // Note that if 'activeDocumentId' is null, i.e. user navigated to a non-source file,
-                    // we are treating it as a no-op here.
-                    // As soon as user switches to a source document, we will perform the appropriate analysis callbacks
-                    // on the next active document changed event.
-                    var activeDocument = solution.GetDocument(activeDocumentId);
-                    if (activeDocument != null &&
-                        SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeDocument.Project) == BackgroundAnalysisScope.ActiveFile)
-                    {
-                        lock (_gate)
-                        {
-                            if (_lastActiveDocument != null)
-                            {
-                                EnqueueEvent(_lastActiveDocument.Project.Solution, _lastActiveDocument.Id, InvocationReasons.DocumentClosed, "OnDocumentClosed");
-                            }
-
-                            _lastActiveDocument = activeDocument;
-                        }
-
-                        EnqueueEvent(activeDocument.Project.Solution, activeDocument.Id, InvocationReasons.DocumentOpened, "OnDocumentOpened");
-                    }
+                    // When the active document changes and we are only analyzing the active file, trigger a document
+                    // changed event to reanalyze the newly-active file.
+                    EnqueueEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
                 }
             }
 
@@ -272,7 +245,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     ae = ae.Flatten();
 
                     // If we had a mix of exceptions, don't eat it
-                    if (ae.InnerExceptions.Any(e => !(e is OperationCanceledException)) ||
+                    if (ae.InnerExceptions.Any(e => e is not OperationCanceledException) ||
                         ae.InnerExceptions.Cast<OperationCanceledException>().Any(NotOurShutdownToken))
                     {
                         // We had a cancellation with a different token, so don't eat it

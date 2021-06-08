@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -36,11 +38,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
             }
 
-            public ValueTask<ImmutableArray<TextSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-                => ((DocumentActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(cancellationToken);
-
-            public ValueTask<ImmutableArray<TextSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-                => ((SolutionActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(documentId, cancellationToken);
+            public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
+                => ((ActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(documentId, filePath, cancellationToken);
 
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetActiveStatementsAsync(cancellationToken);
@@ -55,45 +54,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => ((EditSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
         }
 
-        private sealed class DocumentActiveStatementSpanProviderCallback
+        private sealed class ActiveStatementSpanProviderCallback
         {
-            private readonly DocumentActiveStatementSpanProvider _documentProvider;
+            private readonly ActiveStatementSpanProvider _provider;
 
-            public DocumentActiveStatementSpanProviderCallback(DocumentActiveStatementSpanProvider documentProvider)
-                => _documentProvider = documentProvider;
-
-            public async ValueTask<ImmutableArray<TextSpan>> GetSpansAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    return await _documentProvider(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    return ImmutableArray<TextSpan>.Empty;
-                }
-            }
-        }
-
-        private sealed class SolutionActiveStatementSpanProviderCallback
-        {
-            private readonly SolutionActiveStatementSpanProvider _solutionProvider;
-
-            public SolutionActiveStatementSpanProviderCallback(SolutionActiveStatementSpanProvider solutionProvider)
-                => _solutionProvider = solutionProvider;
+            public ActiveStatementSpanProviderCallback(ActiveStatementSpanProvider provider)
+                => _provider = provider;
 
             /// <summary>
             /// Remote API.
             /// </summary>
-            public async ValueTask<ImmutableArray<TextSpan>> GetSpansAsync(DocumentId documentId, CancellationToken cancellationToken)
+            public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(DocumentId? documentId, string filePath, CancellationToken cancellationToken)
             {
                 try
                 {
-                    return await _solutionProvider(documentId, cancellationToken).ConfigureAwait(false);
+                    return await _provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    return ImmutableArray<TextSpan>.Empty;
+                    return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
             }
         }
@@ -243,18 +222,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics();
         }
 
-        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, Document designTimeDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                return await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+                if (designTimeDocument != document)
+                {
+                    diagnostics = diagnostics.SelectAsArray(diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(diagnostic, document.Project)));
+                }
+
+                return diagnostics;
             }
 
             var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(
                 document.Project.Solution,
                 (service, solutionInfo, callbackId, cancellationToken) => service.GetDocumentDiagnosticsAsync(solutionInfo, callbackId, document.Id, cancellationToken),
-                callbackTarget: new DocumentActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
             if (!diagnosticData.HasValue)
@@ -262,16 +248,45 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
+            var project = document.Project;
+
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
             foreach (var data in diagnosticData.Value)
             {
-                result.Add(await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false));
+                Debug.Assert(data.DataLocation != null);
+
+                Diagnostic diagnostic;
+
+                // Workaround for solution crawler not supporting mapped locations to make Razor work.
+                // We pretend the diagnostic is in the original document, but use the mapped line span.
+                // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
+                if (designTimeDocument != document && data.DataLocation.IsMapped)
+                {
+                    diagnostic = RemapLocation(designTimeDocument, data);
+                }
+                else
+                {
+                    diagnostic = await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                }
+
+                result.Add(diagnostic);
             }
 
             return result.ToImmutable();
         }
 
-        public async ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
+        private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)
+        {
+            Debug.Assert(data.DataLocation != null);
+            Debug.Assert(designTimeDocument.FilePath != null);
+
+            var mappedSpan = data.DataLocation.GetFileLinePositionSpan();
+            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, mappedSpan.Span);
+
+            return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
+        }
+
+        public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -282,7 +297,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, bool>(
                 solution,
                 (service, solutionInfo, callbackId, cancellationToken) => service.HasChangesAsync(solutionInfo, callbackId, sourceFilePath, cancellationToken),
-                callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : true;
@@ -293,7 +308,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ImmutableArray<DiagnosticData> diagnostics,
                 ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>)> EmitSolutionUpdateAsync(
             Solution solution,
-            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            ActiveStatementSpanProvider activeStatementSpanProvider,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             CancellationToken cancellationToken)
@@ -315,7 +330,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, cancellationToken),
-                    callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                    callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                     cancellationToken).ConfigureAwait(false);
 
                 if (result.HasValue)
@@ -380,7 +395,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
+        public async ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -391,7 +406,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, LinePositionSpan?>(
                 solution,
                 (service, solutionInfo, callbackId, cancellationToken) => service.GetCurrentActiveStatementPositionAsync(solutionInfo, callbackId, instructionId, cancellationToken),
-                callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : null;
@@ -413,7 +428,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.HasValue ? result.Value : null;
         }
 
-        public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -421,15 +436,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return await GetLocalService().GetBaseActiveStatementSpansAsync(solution, documentIds, cancellationToken).ConfigureAwait(false);
             }
 
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>>(
+            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>(
                 solution,
                 (service, solutionInfo, cancellationToken) => service.GetBaseActiveStatementSpansAsync(solutionInfo, documentIds, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>.Empty;
+            return result.HasValue ? result.Value : ImmutableArray<ImmutableArray<ActiveStatementSpan>>.Empty;
         }
 
-        public async ValueTask<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -437,13 +452,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return await GetLocalService().GetAdjustedActiveStatementSpansAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
             }
 
-            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>(
+            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<ActiveStatementSpan>>(
                 document.Project.Solution,
                 (service, solutionInfo, callbackId, cancellationToken) => service.GetAdjustedActiveStatementSpansAsync(solutionInfo, callbackId, document.Id, cancellationToken),
-                callbackTarget: new DocumentActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
                 cancellationToken).ConfigureAwait(false);
 
-            return result.HasValue ? result.Value : default;
+            return result.HasValue ? result.Value : ImmutableArray<ActiveStatementSpan>.Empty;
         }
 
         public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)

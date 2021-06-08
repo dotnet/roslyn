@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
 
     <!-- VS Insertion -->
     <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
@@ -138,9 +138,7 @@
 
 package name=$(VisualStudioInsertionComponent)
         version=$(VsixVersion)
-
-vs.dependencies
-  vs.dependency id=Microsoft.Net.PackageGroup.4.7.2.Redist
+        vs.package.productArch=neutral
 
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"

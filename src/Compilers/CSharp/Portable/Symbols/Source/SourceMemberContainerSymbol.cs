@@ -1508,16 +1508,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member = e;
             }
 
-            var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
-            RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
+            var membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
 
-            if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
-                Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
+            if (isMemberInCompleteMemberList(membersAndInitializers, member))
             {
                 return;
             }
 
+            if (membersAndInitializers is null)
+            {
+                var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
+                RoslynDebug.AssertOrFailFast(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
+
+                if (declared is object)
+                {
+                    if (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    // It looks like there was a race and we need to check _lazyMembersAndInitializers again
+                    membersAndInitializers = Volatile.Read(ref _lazyMembersAndInitializers);
+                    RoslynDebug.AssertOrFailFast(membersAndInitializers is object);
+
+                    if (isMemberInCompleteMemberList(membersAndInitializers, member))
+                    {
+                        return;
+                    }
+                }
+            }
+
             RoslynDebug.AssertOrFailFast(false, "Premature symbol exposure.");
+
+            static bool isMemberInCompleteMemberList(MembersAndInitializers? membersAndInitializers, Symbol member)
+            {
+                return membersAndInitializers?.NonTypeMembers.Contains(m => m == (object)member) == true;
+            }
         }
 
         protected Dictionary<string, ImmutableArray<Symbol>> GetMembersByName()

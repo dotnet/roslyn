@@ -364,6 +364,10 @@ function TestUsingRunTests() {
     }
   }
 
+  if ($ci) {
+    $env:ROSLYN_TEST_CI = "true"
+  }
+
   if ($testIOperation) {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
@@ -413,7 +417,8 @@ function TestUsingRunTests() {
     $args += " --tfm net472"
     $args += " --retry"
     $args += " --sequential"
-    $args += " --include '\.IntegrationTests'"
+    # Skip VS integration tests prior to having a build of dev17 available for testing
+    # $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
@@ -455,6 +460,10 @@ function TestUsingRunTests() {
     Exec-Console $dotnetExe "$runTests $args"
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
+    if ($ci) {
+      Remove-Item env:\ROSLYN_TEST_CI
+    }
+
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }

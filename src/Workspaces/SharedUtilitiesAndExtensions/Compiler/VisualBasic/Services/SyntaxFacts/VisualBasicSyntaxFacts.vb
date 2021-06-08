@@ -1301,6 +1301,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return If(arguments.HasValue, arguments.Value, Nothing)
         End Function
 
+        Public Function GetArgumentListOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfInvocationExpression
+            Return DirectCast(node, InvocationExpressionSyntax).ArgumentList
+        End Function
+
+        Public Function GetArgumentListOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfObjectCreationExpression
+            Return DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
+        End Function
+
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
@@ -1459,6 +1467,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetIdentifierOfVariableDeclarator(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfVariableDeclarator
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
+        End Function
+
+        Public Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfParameter
+            Return DirectCast(node, ParameterSyntax).Identifier.Identifier
+        End Function
+
+        Public Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
+            Return DirectCast(node, IdentifierNameSyntax).Identifier
         End Function
 
         Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunctionStatement

@@ -33,12 +33,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly DiagnosticAnalyzerTelemetry _telemetry;
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
-        private readonly IDocumentTrackingService? _documentTrackingService;
+        private readonly IDocumentTrackingService _documentTrackingService;
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
         internal Workspace Workspace { get; }
-        internal IPersistentStorageService PersistentStorageService { get; }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public DiagnosticIncrementalAnalyzer(
@@ -51,12 +50,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            PersistentStorageService = workspace.Services.GetRequiredService<IPersistentStorageService>();
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
 
-            _stateManager = new StateManager(PersistentStorageService, analyzerInfoCache);
+            _stateManager = new StateManager(analyzerInfoCache);
             _stateManager.ProjectAnalyzerReferenceChanged += OnProjectAnalyzerReferenceChanged;
             _telemetry = new DiagnosticAnalyzerTelemetry();
 

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         internal static void ConnectProjectCacheServiceToDocumentTracking(HostWorkspaceServices workspaceServices, ProjectCacheService projectCacheService)
         {
-            var documentTrackingService = workspaceServices.GetService<IDocumentTrackingService>();
+            var documentTrackingService = workspaceServices.GetRequiredService<IDocumentTrackingService>();
 
             // Subscribe to events so that we can cache items from the active document's project
             var manager = new ActiveProjectCacheManager(documentTrackingService, projectCacheService);
@@ -98,11 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             {
                 _projectCacheService = projectCacheService;
 
-                if (documentTrackingService != null)
-                {
-                    documentTrackingService.ActiveDocumentChanged += UpdateCache;
-                    UpdateCache(null, documentTrackingService.TryGetActiveDocument());
-                }
+                documentTrackingService.ActiveDocumentChanged += UpdateCache;
+                UpdateCache(null, documentTrackingService.TryGetActiveDocument());
             }
 
             private void UpdateCache(object sender, DocumentId activeDocument)

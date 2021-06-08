@@ -417,6 +417,11 @@
         <target state="translated">запись</target>
         <note />
       </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="switch_statement">
         <source>switch statement</source>
         <target state="translated">оператор switch</target>
