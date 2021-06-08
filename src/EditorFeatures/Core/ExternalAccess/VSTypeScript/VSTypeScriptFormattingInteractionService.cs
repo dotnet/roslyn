@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public bool SupportsFormatOnReturn => _implementation.SupportsFormatOnReturn;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
-            => _implementation.SupportsFormattingOnCharacterTyped(document, ch);
+            => _implementation.SupportsFormattingOnTypedCharacter(document, ch);
 
         public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _implementation.GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken);
