@@ -4079,11 +4079,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void SerializeDeterminismKey(StringBuilder builder)
-        {
-
-        }
-
         private ImmutableArray<string> GetPreprocessorSymbols()
         {
             CSharpSyntaxTree? firstTree = (CSharpSyntaxTree?)SyntaxTrees.FirstOrDefault();
