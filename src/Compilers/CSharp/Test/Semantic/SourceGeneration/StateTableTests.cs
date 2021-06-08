@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        public void Node_Table_Entries_Are_Cached_Or_Removed_When_Compacted()
+        public void Node_Table_Entries_Are_Cached_Or_Dropped_When_Cached()
         {
             var builder = NodeStateTable<int>.Empty.ToBuilder();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Removed), (5, EntryState.Removed), (6, EntryState.Removed), (7, EntryState.Added), (8, EntryState.Added), (9, EntryState.Added));
             AssertTableEntries(table, expected);
 
-            var compactedTable = table.Compact();
+            var compactedTable = table.AsCached();
             expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (7, EntryState.Cached), (8, EntryState.Cached), (9, EntryState.Cached));
             AssertTableEntries(compactedTable, expected);
         }
 
         [Fact]
-        public void Node_Table_Compaction_Occurs_Only_Once()
+        public void Node_Table_AsCached_Occurs_Only_Once()
         {
             var builder = NodeStateTable<int>.Empty.ToBuilder();
             builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
@@ -117,43 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var expected = ImmutableArray.Create((1, EntryState.Added), (2, EntryState.Added), (3, EntryState.Added), (4, EntryState.Removed), (5, EntryState.Removed), (6, EntryState.Removed), (7, EntryState.Added), (8, EntryState.Added), (9, EntryState.Added));
             AssertTableEntries(table, expected);
 
-            var compactedTable = table.Compact();
+            var compactedTable = table.AsCached();
             expected = ImmutableArray.Create((1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached), (7, EntryState.Cached), (8, EntryState.Cached), (9, EntryState.Cached));
             AssertTableEntries(compactedTable, expected);
 
-            // calling compact a second time just returns the same instance
-            var compactedTable2 = compactedTable.Compact();
+            // calling as cached a second time just returns the same instance
+            var compactedTable2 = compactedTable.AsCached();
             Assert.Same(compactedTable, compactedTable2);
-        }
-
-        [Fact]
-        public void Faulted_Node_TableBuilder_Drops_Entries()
-        {
-            var builder = NodeStateTable<int>.Empty.ToBuilder();
-            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
-            builder.SetFaulted(new Exception());
-            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Added);
-            var table = builder.ToImmutableAndFree();
-
-            Assert.True(table.IsFaulted);
-            Assert.False(table.IsCompacted);
-            AssertTableEntries(table, ImmutableArray<(int, EntryState)>.Empty);
-        }
-
-        [Fact]
-        public void Faulted_Node_Table_Compaction_Is_No_Op()
-        {
-            var builder = NodeStateTable<int>.Empty.ToBuilder();
-            builder.SetFaulted(new Exception());
-            var table = builder.ToImmutableAndFree();
-
-            Assert.True(table.IsFaulted);
-            Assert.False(table.IsCompacted);
-
-            table = table.Compact();
-
-            Assert.True(table.IsFaulted);
-            Assert.False(table.IsCompacted);
         }
 
         [Fact]

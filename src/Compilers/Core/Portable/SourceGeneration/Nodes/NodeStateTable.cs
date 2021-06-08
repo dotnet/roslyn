@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
     // to date, the removed entries are no longer needed, and the remaining entries can be considered to
     // be cached. This process is called 'compaction' and results in the actual tables which are stored
     // between runs, as opposed to the 'live' tables that exist during an update.
-    // 
+    //
     // Modified entries are similar to added inputs, but with a subtle difference. When an input is Added
     // all outputs are unconditionally added too. However when an input is modified, the outputs may still
     // be the same (for instance something changed elsewhere in a file that had no bearing on the produced
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
 
     internal interface IStateTable
     {
-        IStateTable Compact();
+        IStateTable AsCached();
     }
 
     /// <summary>
@@ -59,22 +59,13 @@ namespace Microsoft.CodeAnalysis
 
         private readonly ImmutableArray<TableEntry> _states;
 
-        private readonly Exception? _exception;
 
         private NodeStateTable(ImmutableArray<TableEntry> states, bool isCompacted)
         {
             Debug.Assert(!isCompacted || states.All(s => s.IsCached));
 
             _states = states;
-            IsCompacted = isCompacted;
-            _exception = null;
-        }
-
-        private NodeStateTable(Exception exception)
-        {
-            _exception = exception;
-            _states = ImmutableArray<TableEntry>.Empty;
-            IsCompacted = false;
+            IsCached = isCompacted;
         }
 
         public int Count { get => _states.Length; }
@@ -82,15 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates if every entry in this table has a state of <see cref="EntryState.Cached"/>
         /// </summary>
-        public bool IsCompacted { get; }
-
-        public bool IsFaulted { get => _exception is not null; }
-
-        public UserFunctionException GetException()
-        {
-            Debug.Assert(_exception is not null);
-            return _exception is UserFunctionException ufe ? ufe : new UserFunctionException(_exception);
-        }
+        public bool IsCached { get; }
 
         public IEnumerator<(T item, EntryState state)> GetEnumerator()
         {
@@ -103,9 +86,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public NodeStateTable<T> Compact()
+        public NodeStateTable<T> AsCached()
         {
-            if (IsCompacted || IsFaulted)
+            if (IsCached)
                 return this;
 
             var compacted = ArrayBuilder<TableEntry>.GetInstance();
@@ -119,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             return new NodeStateTable<T>(compacted.ToImmutableAndFree(), isCompacted: true);
         }
 
-        IStateTable IStateTable.Compact() => Compact();
+        IStateTable IStateTable.AsCached() => AsCached();
 
         public ImmutableArray<T> Batch()
         {
@@ -138,21 +121,13 @@ namespace Microsoft.CodeAnalysis
 
         public Builder ToBuilder()
         {
-            Debug.Assert(!this.IsFaulted);
             return new Builder(this);
-        }
-
-        public static NodeStateTable<T> FromFaultedTable<U>(NodeStateTable<U> table)
-        {
-            Debug.Assert(table._exception is object);
-            return new NodeStateTable<T>(table._exception);
         }
 
         public sealed class Builder
         {
             private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
-            private Exception? _exception = null;
 
             internal Builder(NodeStateTable<T> previous)
             {
@@ -185,15 +160,27 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries(out ImmutableArray<T> usedEntries)
+            public bool TryUseCachedEntries(out ImmutableArray<T> entries)
             {
                 if (!TryUseCachedEntries())
                 {
-                    usedEntries = default;
+                    entries = default;
                     return false;
                 }
 
-                usedEntries = _states[_states.Count - 1].ToImmutableArray();
+                entries = _states[_states.Count - 1].ToImmutableArray();
+                return true;
+            }
+
+            public bool TryModifyEntry(T value, IEqualityComparer<T> comparer)
+            {
+                if (_previous._states.Length <= _states.Count)
+                {
+                    return false;
+                }
+
+                Debug.Assert(_previous._states[_states.Count].Count == 1);
+                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[0].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
                 return true;
             }
 
@@ -251,19 +238,9 @@ namespace Microsoft.CodeAnalysis
                 _states.Add(new TableEntry(values, state));
             }
 
-            public void SetFaulted(Exception e)
-            {
-                _exception = e;
-            }
-
             public NodeStateTable<T> ToImmutableAndFree()
             {
-                if (_exception is object)
-                {
-                    _states.Free();
-                    return new NodeStateTable<T>(_exception);
-                }
-                else if (_states.Count == 0)
+                if (_states.Count == 0)
                 {
                     _states.Free();
                     return NodeStateTable<T>.Empty;

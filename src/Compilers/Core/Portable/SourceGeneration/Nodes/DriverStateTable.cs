@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
+            private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly DriverStateTable _previousTable;
             private readonly CancellationToken _cancellationToken;
 
@@ -69,9 +71,21 @@ namespace Microsoft.CodeAnalysis
                     {
                         var root = tree.GetRoot(_cancellationToken);
                         var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
-                        foreach (var builder in builders)
+                        for (int i = 0; i < builders.Count; i++)
                         {
-                            builder.VisitTree(root, state, model);
+                            try
+                            {
+                                builders[i].VisitTree(root, state, model);
+                            }
+                            catch (UserFunctionException ufe)
+                            {
+                                // we're evaluating this node ahead of time, so we can't just throw the exception
+                                // instead we'll hold onto it, and throw the exception when a downstream node actually
+                                // attempts to read the value
+                                _syntaxExceptions[builders[i].SyntaxInputNode] = ufe;
+                                builders.RemoveAt(i);
+                                i--;
+                            }
                         }
                     }
 
@@ -82,6 +96,12 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
                     }
                     builders.Free();
+                }
+
+                // if we don't have an entry for this node, it must have thrown an exception
+                if (!_tableBuilder.ContainsKey(syntaxInputNode))
+                {
+                    throw _syntaxExceptions[syntaxInputNode];
                 }
 
                 return _tableBuilder[syntaxInputNode];
@@ -110,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                 var keys = _tableBuilder.Keys.ToArray();
                 foreach (var key in keys)
                 {
-                    _tableBuilder[key] = _tableBuilder[key].Compact();
+                    _tableBuilder[key] = _tableBuilder[key].AsCached();
                 }
 
                 return new DriverStateTable(_tableBuilder.ToImmutable());

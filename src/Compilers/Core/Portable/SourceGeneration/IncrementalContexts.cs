@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
         public void ReportDiagnostic(Diagnostic diagnostic) => Diagnostics.Add(diagnostic);
     }
 
-    // PROTOTYPE(source-generators): right now we only support generating source + diagnostics, but actively want to support generation of other things
+    // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things
     internal readonly struct IncrementalExecutionContext
     {
         internal readonly DiagnosticBag Diagnostics;

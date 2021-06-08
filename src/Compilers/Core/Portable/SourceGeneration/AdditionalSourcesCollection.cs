@@ -53,19 +53,19 @@ namespace Microsoft.CodeAnalysis
                     && c != '{'
                     && c != '}')
                 {
-                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, c, i), nameof(hintName));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, hintName, c, i), nameof(hintName));
                 }
             }
 
             hintName = AppendExtensionIfRequired(hintName);
             if (this.Contains(hintName))
             {
-                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, hintName), nameof(hintName));
             }
 
             if (source.Encoding is null)
             {
-                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));

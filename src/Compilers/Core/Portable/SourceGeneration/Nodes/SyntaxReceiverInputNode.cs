@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis
             private readonly NodeStateTable<ISyntaxContextReceiver>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
-            private Exception? _exception;
 
             public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable)
             {
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    _exception = e;
+                    throw new UserFunctionException(e);
                 }
 
                 if (_receiver is object)
@@ -68,11 +67,7 @@ namespace Microsoft.CodeAnalysis
 
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
-                if (_exception is object)
-                {
-                    _nodeStateTable.SetFaulted(_exception);
-                }
-                else if (_receiver is object)
+                if (_receiver is object)
                 {
                     _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 }
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
             public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
             {
-                if (_walker is object && _exception is null && state != EntryState.Removed)
+                if (_walker is object && state != EntryState.Removed)
                 {
                     Debug.Assert(model is object);
                     try
@@ -90,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     catch (Exception e)
                     {
-                        _exception = e;
+                        throw new UserFunctionException(e);
                     }
                 }
             }

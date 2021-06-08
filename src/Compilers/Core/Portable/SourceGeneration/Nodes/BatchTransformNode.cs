@@ -33,13 +33,9 @@ namespace Microsoft.CodeAnalysis
         {
             // grab the source inputs
             var sourceTable = builder.GetLatestStateTableForNode(_sourceNode);
-            if (sourceTable.IsCompacted)
+            if (sourceTable.IsCached)
             {
                 return previousTable;
-            }
-            if (sourceTable.IsFaulted)
-            {
-                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
             }
 
             // Semantics of a batch transform:

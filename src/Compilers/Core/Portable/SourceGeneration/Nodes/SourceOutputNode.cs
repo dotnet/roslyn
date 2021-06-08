@@ -27,13 +27,9 @@ namespace Microsoft.CodeAnalysis
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
-            if (sourceTable.IsCompacted)
+            if (sourceTable.IsCached)
             {
                 return previousTable;
-            }
-            if (sourceTable.IsFaulted)
-            {
-                return NodeStateTable<TOutput>.FromFaultedTable(sourceTable);
             }
 
             var nodeTable = previousTable.ToBuilder();
@@ -80,13 +76,6 @@ namespace Microsoft.CodeAnalysis
             // get our own state table
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
-            if (table.IsFaulted)
-            {
-                // PROTOTYPE (source-generators): we're essentially using exceptions as control flow here.
-                //                                instead we should append the exceptions to the context and allow the driver to handle it there
-                throw table.GetException();
-            }
-
             // add each non-removed entry to the context
             foreach (var ((sources, diagnostics), state) in table)
             {
@@ -100,8 +89,6 @@ namespace Microsoft.CodeAnalysis
                         }
                         catch (ArgumentException e)
                         {
-                            //PROTOTYPE(source-generators): we should update the error messages to be specific about *which* file errored as it now won't happen
-                            //                              at the same time the file is added.
                             throw new UserFunctionException(e);
                         }
                     }

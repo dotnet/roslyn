@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(GeneratorDriverState state)
         {
-            Debug.Assert(state.Generators.GroupBy(s => s.GetType()).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
+            Debug.Assert(state.Generators.GroupBy(s => GetGeneratorType(s)).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
             _state = state;
         }
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
             {
-                return _state;
+                return _state.With(stateTable: DriverStateTable.Empty);
             }
 
             // run the actual generation
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var output in generatorState.OutputNodes)
                     {
-                        // PROTOTYPE(source-generators):
+                        // https://github.com/dotnet/roslyn/issues/53608
                         // right now, we always run all output types. We'll add a mechanism to allow the host
                         // to control what types they care about in the future
                         output.AppendOutputs(context);
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetType().Name, e.GetType().Name, e.Message);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, GetGeneratorType(generator).Name, e.GetType().Name, e.Message);
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
