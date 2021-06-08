@@ -772,7 +772,7 @@ class C { }
 
             Assert.Single(outputDiagnostics);
             outputDiagnostics.Verify(
-                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The provided SourceText must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
+                Diagnostic("CS" + (int)ErrorCode.WRN_GeneratorFailedDuringGeneration).WithArguments("CallbackGenerator", "ArgumentException", "The SourceText with hintName 'a.cs' must have an explicit encoding set. (Parameter 'source')").WithLocation(1, 1)
                 );
         }
 
@@ -1665,6 +1665,55 @@ class C { }
             driver = driver.RunGenerators(newCompilation);
             Assert.Equal(1, compilationsCalledFor.Count);
             Assert.Equal(compilation, compilationsCalledFor[0]);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_Can_Add_Comparer_To_Join_Node()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<AdditionalText> texts = new List<AdditionalText>() { new InMemoryAdditionalText("abc", "") };
+
+            List<(Compilation, ImmutableArray<AdditionalText>)> calledFor = new List<(Compilation, ImmutableArray<AdditionalText>)>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var compilationSource = ctx.Sources.Compilation.Join(ctx.Sources.AdditionalTexts)
+                                                // comparer that ignores the LHS (additional texts)
+                                                .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
+                compilationSource.GenerateSource((spc, c) =>
+                {
+                    calledFor.Add(c);
+                });
+            }));
+
+            // run the generator once, and check it was passed the compilation + additional texts
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: texts);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, calledFor.Count);
+            Assert.Equal(compilation, calledFor[0].Item1);
+            Assert.Equal(texts[0], calledFor[0].Item2.Single());
+
+            // edit the additional texts, and verify that the output was *not* called again on the next run
+            driver = driver.RemoveAdditionalTexts(texts.ToImmutableArray());
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, calledFor.Count);
+
+            // now edit the compilation, run the generator, and confirm that the output *was* called again this time with the new compilation and no additional texts
+            Compilation newCompilation = compilation.WithOptions(compilation.Options.WithModuleName("newCompilation"));
+            driver = driver.RunGenerators(newCompilation);
+            Assert.Equal(2, calledFor.Count);
+            Assert.Equal(newCompilation, calledFor[1].Item1);
+            Assert.Empty(calledFor[1].Item2);
         }
 
         [Fact]
