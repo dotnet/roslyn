@@ -117,6 +117,11 @@
         <target state="translated">类型明显时首选隐式对象创建</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_check_over_is_object">
+        <source>Prefer 'is null' check over 'is object'</source>
+        <target state="new">Prefer 'is null' check over 'is object'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">引用相等检查偏好 “is null”</target>

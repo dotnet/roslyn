@@ -117,6 +117,11 @@
         <target state="translated">형식이 명백한 경우 암시적 개체 만들기 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_check_over_is_object">
+        <source>Prefer 'is null' check over 'is object'</source>
+        <target state="new">Prefer 'is null' check over 'is object'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>

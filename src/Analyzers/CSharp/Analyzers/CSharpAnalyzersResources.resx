@@ -314,4 +314,7 @@
   <data name="Blank_line_not_allowed_after_constructor_initializer_colon" xml:space="preserve">
     <value>Blank line not allowed after constructor initializer colon</value>
   </data>
+  <data name="Null_check_can_be_clarified" xml:space="preserve">
+    <value>Null check can be clarified</value>
+  </data>
 </root>

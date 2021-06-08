@@ -117,6 +117,11 @@
         <target state="translated">Upřednostňovat implicitní vytvoření objektu, pokud je typ zřejmý</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_check_over_is_object">
+        <source>Prefer 'is null' check over 'is object'</source>
+        <target state="new">Prefer 'is null' check over 'is object'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">U kontrol rovnosti odkazů dávat přednost možnosti is null</target>

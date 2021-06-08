@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
-    using VerifyCS = CSharpCodeFixVerifier<CSharpUseIsNullCheckOverIsObject, Testing.EmptyCodeFixProvider>;
+    using VerifyCS = CSharpCodeFixVerifier<CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer, Testing.EmptyCodeFixProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
     public class UseIsNullCheckOverIsObjectTests

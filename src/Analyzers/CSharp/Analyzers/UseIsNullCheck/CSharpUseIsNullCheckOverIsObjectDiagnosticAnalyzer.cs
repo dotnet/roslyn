@@ -12,14 +12,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseIsNullCheckOverIsObject : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseIsNullCheckOverIsObject()
+        public CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullOverIsObjectDiagnosticId,
                    EnforceOnBuildValues.UseIsNullCheck,
                    CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject,
                    CSharpAnalyzersResources.Use_is_null_check,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Null_check_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 

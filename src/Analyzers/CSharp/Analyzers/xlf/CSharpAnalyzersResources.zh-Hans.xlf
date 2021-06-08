@@ -87,6 +87,11 @@
         <target state="translated">请使用求反表达式(更改语义)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="new">Null check can be clarified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">请删除运算符(保留语义)</target>

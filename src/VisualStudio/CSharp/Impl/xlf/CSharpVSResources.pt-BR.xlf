@@ -117,6 +117,11 @@
         <target state="translated">Preferir a criação de objeto implícito quando o tipo for aparente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_check_over_is_object">
+        <source>Prefer 'is null' check over 'is object'</source>
+        <target state="new">Prefer 'is null' check over 'is object'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferir 'is null' para as verificações de igualdade de referência</target>

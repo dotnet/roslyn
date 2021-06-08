@@ -239,8 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferIsNullCheckOverIsObject
         {
-            get { return GetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverIsObject); }
-            set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverIsObject, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject, value); }
         }
 
         public string Style_PreferConditionalExpressionOverAssignment
