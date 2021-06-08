@@ -44,3 +44,4 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
             => _implementation.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
     }
+}
