@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             DkmDataAddress address,
             ReadOnlyCollection<DkmCustomUIVisualizerInfo> customUIVisualizers,
             ReadOnlyCollection<DkmModuleInstance> externalModules,
-            DkmDataItem dataItem) :
-            base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
+            DkmDataItem dataItem)
+            : base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
         {
             this.Value = value;
             this.EditableValue = editableValue;

@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string typeName,
             string methodName,
             CompilationContext context,
-            GenerateMethodBody generateMethodBody) :
-            this(container, baseType, currentFrame, typeName, (m, t) => ImmutableArray.Create<MethodSymbol>(context.CreateMethod(t, methodName, syntax, generateMethodBody)))
+            GenerateMethodBody generateMethodBody)
+            : this(container, baseType, currentFrame, typeName, (m, t) => ImmutableArray.Create<MethodSymbol>(context.CreateMethod(t, methodName, syntax, generateMethodBody)))
         {
         }
 

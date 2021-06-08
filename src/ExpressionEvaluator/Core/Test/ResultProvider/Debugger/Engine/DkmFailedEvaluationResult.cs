@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             string errorMessage,
             DkmEvaluationResultFlags flags,
             string type,
-            DkmDataItem dataItem) :
-            base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
+            DkmDataItem dataItem)
+            : base(inspectionContext, stackFrame, name, fullName, flags, type, dataItem)
         {
             this.ErrorMessage = errorMessage;
         }

@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ImmutableArray<Alias> aliases,
             MethodSymbol containingMethod,
             EETypeNameDecoder typeNameDecoder,
-            Binder next) :
-            base(next)
+            Binder next)
+            : base(next)
         {
             _syntax = syntax;
             _containingMethod = containingMethod;
