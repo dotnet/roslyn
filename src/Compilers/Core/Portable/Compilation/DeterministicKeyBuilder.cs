@@ -6,6 +6,8 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis.Debugging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -24,111 +26,100 @@ namespace Microsoft.CodeAnalysis
     internal abstract class DeterministicKeyBuilder
     {
         internal StringBuilder Builder { get; } = new StringBuilder();
+        internal StringWriter StringWriter { get; }
+        internal JsonWriter Writer { get; }
 
         public DeterministicKeyBuilder()
         {
+            StringWriter = new StringWriter(Builder);
+            Writer = new JsonWriter(StringWriter);
         }
 
         internal string GetKey() => Builder.ToString();
 
         internal void Reset() => Builder.Length = 0;
 
-        protected void AppendEnum<T>(string name, T value) where T : struct, Enum
+        protected void WriteEnum<T>(string name, T value) where T : struct, Enum
         {
-            Builder.Append(name);
-            Builder.Append('=');
-            Builder.Append(value.ToString());
-            Builder.AppendLine();
+            Writer.Write(name, value.ToString());
         }
 
-        protected void AppendInt(string name, int value)
+        protected void WriteInt(string name, int value)
         {
-            Builder.Append(name);
-            Builder.Append('=');
-            Builder.Append(value.ToString());
-            Builder.AppendLine();
+            Writer.Write(name, value);
         }
 
-        protected void AppendBool(string name, bool? value)
+        protected void WriteBool(string name, bool? value)
         {
             if (value is bool b)
             {
-                Builder.Append(name);
-                Builder.Append('=');
-                Builder.Append(b.ToString());
-                Builder.AppendLine();
+                Writer.Write(name, b);
             }
         }
 
-        protected void AppendString(string name, string? value)
+        protected void WriteString(string name, string? value)
         {
             // Skip null values for brevity. The lack of the value is just as significant in the 
             // key and overall makes it more readable
             if (value is object)
             {
-                Builder.Append(name);
-                Builder.Append('=');
-                Builder.Append(value);
-                Builder.AppendLine();
+                Writer.Write(name, value);
             }
         }
 
-        protected void AppendLine(string? line)
-        {
-            Builder.AppendLine(line);
-        }
-
-        protected void AppendSpaces(int spaceCount)
-        {
-            for (int i = 0; i < spaceCount; i++)
-            {
-                Builder.Append(' ');
-            }
-        }
-
-        protected void AppendByteArray(string name, ImmutableArray<byte> value)
+        protected void WriteByteArray(string name, ImmutableArray<byte> value)
         {
             if (!value.IsDefault)
             {
-                Builder.Append(name);
-                Builder.Append('=');
+                var builder = new StringBuilder();
                 foreach (var b in value)
                 {
-                    Builder.Append(b.ToString("x"));
+                    builder.Append(b.ToString("x"));
                 }
-                Builder.AppendLine();
+                Writer.Write(name, builder.ToString());
             }
         }
 
         internal virtual void AppendCompilation(Compilation compilation)
         {
-            AppendLine("Options");
+            Writer.WriteObjectStart();
+            Writer.WriteKey("options");
             AppendCompilationOptions(compilation.Options);
-            AppendLine("=== Start Syntax Trees ===");
+            Writer.WriteKey("syntaxTrees");
+            Writer.WriteArrayStart();
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
                 AppendSyntaxTree(syntaxTree);
             }
-            AppendLine("=== End Syntax Trees ===");
+            Writer.WriteArrayEnd();
 
+            Writer.WriteKey("references");
+            Writer.WriteArrayStart();
             foreach (var reference in compilation.References)
             {
                 AppendMetadataReference(reference);
             }
-            AppendLine("=== End References ===");
+            Writer.WriteArrayEnd();
+            Writer.WriteObjectEnd();
         }
 
         internal void AppendSyntaxTree(SyntaxTree syntaxTree)
         {
-            AppendString("File Name", Path.GetFileName(syntaxTree.FilePath));
-            AppendString("Encoding", syntaxTree.Encoding?.EncodingName);
-            AppendByteArray("Checksum", syntaxTree.GetDebugSourceInfo().Checksum);
-            AppendLine("Parse Options");
+            Writer.WriteObjectStart();
+            WriteString("fileName", Path.GetFileName(syntaxTree.FilePath));
+            WriteString("encoding", syntaxTree.Encoding?.EncodingName);
+
+            var debugSourceInfo = syntaxTree.GetDebugSourceInfo();
+            WriteByteArray("checksum", debugSourceInfo.Checksum);
+            WriteEnum("checksumAlgorithm", SourceHashAlgorithms.GetSourceHashAlgorithm(debugSourceInfo.ChecksumAlgorithmId));
+            Writer.WriteKey("parseOptions");
             AppendParseOptions(syntaxTree.Options);
+            Writer.WriteObjectEnd();
         }
 
         internal void AppendMetadataReference(MetadataReference reference)
         {
+            Writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
             {
                 Guid mvid;
@@ -158,61 +149,76 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException();
                 }
 
-                AppendString("Name", Path.GetFileName(peReference.FilePath));
-                AppendString("MVID", mvid.ToString());
+                WriteString("name", Path.GetFileName(peReference.FilePath));
+                WriteString("mvid", mvid.ToString());
+                Writer.WriteKey("properties");
                 AppendMetadataReferenceProperties(reference.Properties);
             }
             else
             {
                 throw new InvalidOperationException();
             }
+            Writer.WriteObjectEnd();
         }
 
         internal void AppendMetadataReferenceProperties(MetadataReferenceProperties properties)
         {
-            AppendEnum(nameof(MetadataReferenceProperties.Kind), properties.Kind);
-            AppendBool(nameof(MetadataReferenceProperties.EmbedInteropTypes), properties.EmbedInteropTypes);
+            Writer.WriteObjectStart();
+            WriteEnum("kind", properties.Kind);
+            WriteBool("embedInteropTypes", properties.EmbedInteropTypes);
             if (properties.Aliases is { Length: > 0 } aliases)
             {
-                AppendLine(nameof(MetadataReferenceProperties.Aliases));
+                Writer.WriteKey("aliases");
+                Writer.WriteArrayStart();
                 foreach (var alias in aliases)
                 {
-                    AppendSpaces(spaceCount: 4);
-                    AppendLine(alias);
+                    Writer.Write(alias);
                 }
+                Writer.WriteArrayEnd();
             }
+            Writer.WriteObjectEnd();
         }
 
-        internal virtual void AppendCompilationOptions(CompilationOptions options)
+        internal void AppendCompilationOptions(CompilationOptions options)
+        {
+            Writer.WriteObjectStart();
+            AppendCompilationOptionsCore(options);
+            Writer.WriteObjectEnd();
+        }
+
+        protected virtual void AppendCompilationOptionsCore(CompilationOptions options)
         {
             // CompilationOption values
-            AppendEnum(nameof(CompilationOptions.OutputKind), options.OutputKind);
-            AppendString(nameof(CompilationOptions.ModuleName), options.ModuleName);
-            AppendString(nameof(CompilationOptions.ScriptClassName), options.ScriptClassName);
-            AppendString(nameof(CompilationOptions.MainTypeName), options.MainTypeName);
-            AppendByteArray(nameof(CompilationOptions.CryptoPublicKey), options.CryptoPublicKey);
-            AppendString(nameof(CompilationOptions.CryptoKeyFile), options.CryptoKeyFile);
-            AppendBool(nameof(CompilationOptions.DelaySign), options.DelaySign);
-            AppendBool(nameof(CompilationOptions.PublicSign), options.PublicSign);
-            AppendBool(nameof(CompilationOptions.CheckOverflow), options.CheckOverflow);
-            AppendEnum(nameof(CompilationOptions.Platform), options.Platform);
-            AppendEnum(nameof(CompilationOptions.OptimizationLevel), options.OptimizationLevel);
-            AppendEnum(nameof(CompilationOptions.GeneralDiagnosticOption), options.GeneralDiagnosticOption);
-            AppendInt(nameof(CompilationOptions.WarningLevel), options.WarningLevel);
-            AppendBool(nameof(CompilationOptions.Deterministic), options.Deterministic);
-            AppendBool(nameof(CompilationOptions.DebugPlusMode), options.DebugPlusMode);
-            AppendBool(nameof(CompilationOptions.ReferencesSupersedeLowerVersions), options.ReferencesSupersedeLowerVersions);
-            AppendBool(nameof(CompilationOptions.ReportSuppressedDiagnostics), options.ReportSuppressedDiagnostics);
-            AppendEnum(nameof(CompilationOptions.NullableContextOptions), options.NullableContextOptions);
+            WriteEnum("outputKind", options.OutputKind);
+            WriteString("moduleName", options.ModuleName);
+            WriteString("scriptClassName", options.ScriptClassName);
+            WriteString("mainTypeName", options.MainTypeName);
+            WriteByteArray("cryptoPublicKey", options.CryptoPublicKey);
+            WriteString("cryptoKeyFile", options.CryptoKeyFile);
+            WriteBool("delaySign", options.DelaySign);
+            WriteBool("publicSign", options.PublicSign);
+            WriteBool("checkOverflow", options.CheckOverflow);
+            WriteEnum("platform", options.Platform);
+            WriteEnum("optimizationLevel", options.OptimizationLevel);
+            WriteEnum("generalDiagnosticOption", options.GeneralDiagnosticOption);
+            WriteInt("warningLevel", options.WarningLevel);
+            WriteBool("deterministic", options.Deterministic);
+            WriteBool("debugPlusMode", options.DebugPlusMode);
+            WriteBool("referencesSupersedeLowerVersions", options.ReferencesSupersedeLowerVersions);
+            WriteBool("reportSuppressedDiagnostics", options.ReportSuppressedDiagnostics);
+            WriteEnum("nullableContextOptions", options.NullableContextOptions);
 
             if (options.SpecificDiagnosticOptions.Count > 0)
             {
-                AppendLine(nameof(CompilationOptions.SpecificDiagnosticOptions));
+                Writer.WriteKey("specificDiagnosticOptions");
+                Writer.WriteArrayStart();
                 foreach (var kvp in options.SpecificDiagnosticOptions)
                 {
-                    AppendSpaces(spaceCount: 4);
-                    AppendEnum(kvp.Key, kvp.Value);
+                    Writer.WriteObjectStart();
+                    WriteEnum(kvp.Key, kvp.Value);
+                    Writer.WriteObjectEnd();
                 }
+                Writer.WriteArrayEnd();
             }
 
             // Skipped values
@@ -233,24 +239,33 @@ namespace Microsoft.CodeAnalysis
             // - AssemblyIdentityComparer
         }
 
-        internal virtual void AppendParseOptions(ParseOptions parseOptions)
+        internal void AppendParseOptions(ParseOptions parseOptions)
         {
-            AppendEnum(nameof(ParseOptions.Kind), parseOptions.Kind);
-            AppendEnum(nameof(ParseOptions.SpecifiedKind), parseOptions.SpecifiedKind);
-            AppendEnum(nameof(ParseOptions.DocumentationMode), parseOptions.DocumentationMode);
-            AppendString(nameof(ParseOptions.Language), parseOptions.Language);
+            Writer.WriteObjectStart();
+            AppendParseOptionsCore(parseOptions);
+            Writer.WriteObjectEnd();
+        }
+
+        protected virtual void AppendParseOptionsCore(ParseOptions parseOptions)
+        {
+            WriteEnum("kind", parseOptions.Kind);
+            WriteEnum("specifiedKind", parseOptions.SpecifiedKind);
+            WriteEnum("documentationMode", parseOptions.DocumentationMode);
+            WriteString("language", parseOptions.Language);
 
             var features = parseOptions.Features;
             if (features.Count > 0)
             {
-                AppendLine("Features");
+                Writer.WriteKey("features");
+                Writer.WriteArrayStart();
                 foreach (var kvp in features)
                 {
-                    AppendSpaces(spaceCount: 4);
-                    AppendString(kvp.Key, kvp.Value);
+                    Writer.WriteObjectStart();
+                    WriteString(kvp.Key, kvp.Value);
+                    Writer.WriteObjectEnd();
                 }
+                Writer.WriteArrayEnd();
             }
-
             // Skipped values
             // - Errors: not sure if we need that in the key file or not
             // - PreprocessorSymbolNames: handled at the language specific level
