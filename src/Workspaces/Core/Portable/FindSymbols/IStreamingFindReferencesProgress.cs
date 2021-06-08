@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public SymbolGroup(ImmutableArray<ISymbol> symbols)
         {
-            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
+            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty, "Symbols should be non empty");
+            
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);
         }
