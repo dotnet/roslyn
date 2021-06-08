@@ -7295,6 +7295,384 @@ class Test
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+
+    static void M02((int, C<I1>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, C<I1>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1((int, C<I1>) a)
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b " + op + @" b).ToString());
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (9,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
+                // (14,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
+                // (22,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
+                // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator true (T x);
+    abstract static bool operator false (T x);
+}
+
+class Test
+{
+    static void M02<T, U>((int, C<T>) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0034
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_False(T)""
+  IL_002f:  ldc.i4.0
+  IL_0030:  ceq
+  IL_0032:  br.s       IL_0035
+  IL_0034:  ldc.i4.0
+  IL_0035:  pop
+  IL_0036:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_True(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.1
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0033
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_False(T)""
+  IL_002e:  ldc.i4.0
+  IL_002f:  ceq
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldc.i4.0
+  IL_0034:  pop
+  IL_0035:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_True(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.1
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (21,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(21, 35),
+                // (22,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(22, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(21, 35),
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
@@ -7704,6 +8082,64 @@ class Test
             }
 
             throw TestExceptionUtilities.UnexpectedValue(op);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+
+    abstract static bool operator == (I1<T> x, I1<T> y);
+    abstract static bool operator != (I1<T> x, I1<T> y);
+
+    static void M02((int, I1<T>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, I1<T>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1<T>((int, I1<T>) a) where T : I1<T>
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1<T>
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b " + op + @" b).ToString());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (12,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(12, 13),
+                // (17,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(17, 13),
+                // (25,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(25, 13),
+                // (30,92): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(30, 92)
+                );
         }
 
         [Theory]
@@ -9203,6 +9639,183 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + operatorKind + @") (Operato
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+
+class Test
+{
+    static void M02<T, U>((int, T) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0011:  bne.un.s   IL_002c
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001f:  constrained. ""T""
+  IL_0025:  call       ""bool I1<T>.op_Equality(T, T)""
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldc.i4.0
+  IL_002d:  pop
+  IL_002e:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0011:  bne.un.s   IL_002c
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001f:  constrained. ""T""
+  IL_0025:  call       ""bool I1<T>.op_Inequality(T, T)""
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldc.i4.1
+  IL_002d:  pop
+  IL_002e:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0010:  bne.un.s   IL_002b
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""bool I1<T>.op_Equality(T, T)""
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.0
+  IL_002c:  pop
+  IL_002d:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0010:  bne.un.s   IL_002b
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""bool I1<T>.op_Inequality(T, T)""
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.1
+  IL_002c:  pop
+  IL_002d:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, T)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, T)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
@@ -9394,6 +10007,57 @@ class Test
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, T) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (12,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator == (T x, T y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "==").WithLocation(12, 35),
+                // (13,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator != (T x, T y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(13, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
@@ -9580,6 +10244,57 @@ class Test
                 // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static T operator<< (T x, int y);
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, T) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator == (T x, T y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator != (T x, T y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
                 );
         }
 
@@ -24096,6 +24811,73 @@ class Test<T> where T : I1<T>
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static implicit operator bool(I1 x);
+
+
+    static void M02((int, C<I1>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, C<I1>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1((int, C<I1>) a)
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b " + op + @" b).ToString());
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS0552: 'I1.implicit operator bool(I1)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator bool(I1 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "bool").WithArguments("I1.implicit operator bool(I1)").WithLocation(4, 39),
+                // (9,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x " + op + " x").WithArguments("I1", "bool").WithLocation(9, 13),
+                // (14,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y " + op + " y").WithArguments("I1", "bool").WithLocation(14, 13),
+                // (22,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a " + op + " a").WithArguments("I1", "bool").WithLocation(22, 13),
+                // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractConversionOperator_03([CombinatorialValues("implicit", "explicit")] string op)
         {
             string metadataName = ConversionOperatorName(op);
@@ -24305,6 +25087,195 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCa
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool (T x);
+}
+
+class Test
+{
+    static void M02<T, U>((int, C<T>) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.0
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.1
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.1
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractConversionOperator_04([CombinatorialValues("implicit", "explicit")] string op)
         {
             bool needCast = op == "explicit";
@@ -24354,6 +25325,62 @@ class Test
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (21,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static implicit operator bool(T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "bool").WithLocation(21, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractConversionOperator_06([CombinatorialValues("implicit", "explicit")] string op)
         {
             bool needCast = op == "explicit";
@@ -24398,6 +25425,62 @@ class Test
                 // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static implicit operator bool(T x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments("abstract", "9.0", "preview").WithLocation(21, 39)
                 );
         }
 
