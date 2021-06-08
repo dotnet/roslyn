@@ -1,10 +1,8 @@
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecordStructDeclaration = 9068 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
-<<<<<<< HEAD
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SlicePattern = 9034 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LengthPatternClause = 9035 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ListPatternClause = 9036 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-=======
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AddAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.WithAttributeLists(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax> attributeLists) -> Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
@@ -33,4 +31,3 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Update(Microsoft.CodeA
 Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithGlobalKeyword(Microsoft.CodeAnalysis.SyntaxToken globalKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8441 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetLineMappings(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.LineMapping>
->>>>>>> dotnet/main

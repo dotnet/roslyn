@@ -7930,6 +7930,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
             {
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                // PROTOTYPE we should check whether lengthOrCountProperty.GetMethod might be obsolete
+                ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
+
                 lookupResult.Free();
                 return true;
             }
@@ -7975,12 +7978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
-<<<<<<< HEAD
-=======
-                            CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
-                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
->>>>>>> dotnet/main
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
                             checkWellKnown(WellKnownMember.System_Index__GetOffset);
@@ -8035,18 +8033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             patternSymbol = method;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-<<<<<<< HEAD
-=======
                             ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
-                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
-                            patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
-                                syntax,
-                                receiverOpt,
-                                lengthOrCountProperty,
-                                method,
-                                BindToNaturalType(argument, diagnostics),
-                                method.ReturnType);
->>>>>>> dotnet/main
                             checkWellKnown(WellKnownMember.System_Range__get_Start);
                             checkWellKnown(WellKnownMember.System_Range__get_End);
                             checkWellKnown(WellKnownMember.System_Index__GetOffset);

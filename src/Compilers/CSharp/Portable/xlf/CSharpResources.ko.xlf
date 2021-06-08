@@ -1027,18 +1027,6 @@
         <target state="translated">대상으로 형식화된 개체 만들기</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureListPattern">
-        <source>list pattern</source>
-        <target state="new">list pattern</target>
-        <note />
-      </trans-unit>
-=======
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="new">inferred delegate type</target>
@@ -1047,6 +1035,16 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLengthPattern">
+        <source>length pattern</source>
+        <target state="new">length pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureListPattern">
+        <source>list pattern</source>
+        <target state="new">list pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -1059,10 +1057,14 @@
         <target state="new">record structs</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
->>>>>>> dotnet/main
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">레코드의 봉인된 ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSlicePattern">
+        <source>slice pattern</source>
+        <target state="new">slice pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -1073,11 +1075,6 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureSlicePattern">
-        <source>slice pattern</source>
-        <target state="new">slice pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

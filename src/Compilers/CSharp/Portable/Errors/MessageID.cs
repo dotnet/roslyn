@@ -191,11 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExternLocalFunctions = MessageBase + 12767,
         IDS_FeatureMemberNotNull = MessageBase + 12768,
 
-        // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved eventually.
-        IDS_FeatureListPattern = MessageBase + 12800,
-        IDS_FeatureSlicePattern,
-        IDS_FeatureLengthPattern,
-
         IDS_FeatureNativeInt = MessageBase + 12769,
         IDS_FeatureImplicitObjectCreation = MessageBase + 12770,
         IDS_FeatureTypePattern = MessageBase + 12771,
@@ -229,6 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
+
+        // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved/indexed eventually.
+        IDS_FeatureListPattern = MessageBase + 12850,
+        IDS_FeatureSlicePattern,
+        IDS_FeatureLengthPattern,
     }
 
     // Message IDs may refer to strings that need to be localized.

@@ -1930,20 +1930,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
-        // PROTOTYPE(list-patterns)
-        ERR_UnsupportedTypeForListPattern = 9200,
-        ERR_UnsupportedTypeForSlicePattern,
-        ERR_UnsupportedTypeForLengthPattern,
-        ERR_MisplacedSlicePattern,
-
         #region diagnostics introduced for C# 10.0
-
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
         ERR_GlobalUsingInNamespace = 8914,
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
+
+        // PROTOTYPE(list-patterns)
+        ERR_UnsupportedTypeForListPattern = 9200,
+        ERR_UnsupportedTypeForSlicePattern,
+        ERR_UnsupportedTypeForLengthPattern,
+        ERR_MisplacedSlicePattern,
 
         #endregion
 
