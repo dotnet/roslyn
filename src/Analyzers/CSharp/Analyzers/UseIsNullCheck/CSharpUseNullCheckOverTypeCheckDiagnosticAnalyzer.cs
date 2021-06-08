@@ -13,12 +13,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseIsNullOverIsObjectDiagnosticId,
-                   EnforceOnBuildValues.UseIsNullCheck,
-                   CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject,
+        public CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer()
+            : base(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
+                   EnforceOnBuildValues.UseNullCheckOverTypeCheck,
+                   CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
                    CSharpAnalyzersResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
             if (!option.Value)
             {
                 return;

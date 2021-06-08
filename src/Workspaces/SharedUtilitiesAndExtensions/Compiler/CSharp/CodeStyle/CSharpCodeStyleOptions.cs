@@ -268,11 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_implicit_object_creation_when_type_is_apparent",
             "TextEditor.CSharp.Specific.ImplicitObjectCreationWhenTypeIsApparent");
 
-        internal static readonly Option2<CodeStyleOption2<bool>> PreferIsNullCheckOverIsObject = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferIsNullCheckOverIsObject),
+        internal static readonly Option2<CodeStyleOption2<bool>> PreferNullCheckOverTypeCheck = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNullCheckOverTypeCheck),
             defaultValue: s_trueWithSuggestionEnforcement,
-            "csharp_style_prefer_is_null_check_over_is_object",
-            $"TextEditor.CSharp.Specific.{nameof(PreferIsNullCheckOverIsObject)}");
+            "csharp_style_prefer_null_check_over_type_check",
+            $"TextEditor.CSharp.Specific.{nameof(PreferNullCheckOverTypeCheck)}");
 
         public static Option2<CodeStyleOption2<bool>> AllowEmbeddedStatementsOnSameLine { get; } = CreateOption(
             CSharpCodeStyleOptionGroups.NewLinePreferences, nameof(AllowEmbeddedStatementsOnSameLine),

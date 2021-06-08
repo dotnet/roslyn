@@ -11,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
-    using VerifyCS = CSharpCodeFixVerifier<CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer, CSharpUseIsNullCheckOverIsObjectCodeFixProvider>;
+    using VerifyCS = CSharpCodeFixVerifier<CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer, CSharpUseIsNullCheckOverIsObjectCodeFixProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-    public class UseIsNullCheckOverIsObjectTests
+    public class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzerTests
     {
         private static async Task VerifyAsync(string source, string fixedSource, LanguageVersion languageVersion)
         {
