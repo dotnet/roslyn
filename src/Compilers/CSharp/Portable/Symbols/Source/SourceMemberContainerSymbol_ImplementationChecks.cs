@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 HasBaseTypeDeclaringInterfaceResult? hasBaseClassDeclaringInterface = null;
 
-                foreach (var interfaceMember in @interface.GetMembersUnordered())
+                foreach (var interfaceMember in @interface.GetMembers())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

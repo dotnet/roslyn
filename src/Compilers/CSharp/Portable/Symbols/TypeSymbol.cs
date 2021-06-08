@@ -1690,8 +1690,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (member.DeclaredAccessibility != Accessibility.Public || member.IsStatic || member == implicitImpl)
                     {
                         //do nothing - not an ambiguous implementation
-
-                        // https://github.com/dotnet/roslyn/issues/53802: We likely need to do something here for static members.
                     }
                     else if (MemberSignatureComparer.RuntimeImplicitImplementationComparer.Equals(interfaceMember, member) && !member.IsAccessor())
                     {
