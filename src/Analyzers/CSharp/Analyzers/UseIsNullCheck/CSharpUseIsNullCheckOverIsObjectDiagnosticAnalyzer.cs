@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
@@ -30,12 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             context.RegisterCompilationStartAction(context =>
             {
-                var objectType = context.Compilation.ObjectType;
-                if (objectType.TypeKind == TypeKind.Error)
-                {
-                    return;
-                }
-
                 // All trees should have the same language version. Bail-out early in compilation start instead of checking every tree.
                 var tree = context.Compilation.SyntaxTrees.FirstOrDefault();
                 if (tree is null || ((CSharpParseOptions)tree.Options).LanguageVersion < LanguageVersion.CSharp9)
@@ -43,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     return;
                 }
 
-                context.RegisterOperationAction(c => AnalyzeOperation(c, objectType), OperationKind.IsType, OperationKind.NegatedPattern);
+                context.RegisterOperationAction(c => AnalyzeOperation(c), OperationKind.IsType, OperationKind.NegatedPattern);
             });
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol objectType)
+        private void AnalyzeOperation(OperationAnalysisContext context)
         {
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
             if (!option.Value)
@@ -55,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            if (ShouldReportDiagnostic(context.Operation, objectType))
+            if (ShouldReportDiagnostic(context.Operation))
             {
                 var severity = option.Notification.Severity;
                 context.ReportDiagnostic(
@@ -64,16 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
         }
 
-        private static bool ShouldReportDiagnostic(IOperation operation, INamedTypeSymbol objectType)
+        private static bool ShouldReportDiagnostic(IOperation operation)
         {
             if (operation is IIsTypeOperation isTypeOperation)
             {
-                return objectType.Equals(isTypeOperation.TypeOperand, SymbolEqualityComparer.Default);
+                // Matches 'x is MyType'
+                // isTypeOperation.TypeOperand is 'MyType'
+                // isTypeOperation.ValueOperand.Type is the type of 'x'.
+                return isTypeOperation.ValueOperand.Type is not null &&
+                    isTypeOperation.ValueOperand.Type.InheritsFromOrEquals(isTypeOperation.TypeOperand);
             }
             else if (operation is INegatedPatternOperation negatedPattern)
             {
+                // Matches 'x is not MyType'
+                // InputType is the type of 'x'
+                // MatchedType is 'MyType'
                 return negatedPattern.Pattern is ITypePatternOperation typePatternOperation &&
-                    objectType.Equals(typePatternOperation.MatchedType, SymbolEqualityComparer.Default);
+                    typePatternOperation.InputType.InheritsFromOrEquals(typePatternOperation.MatchedType);
             }
 
             // Only OperationKind.IsType and OperationKind.NegatedPattern are registered.

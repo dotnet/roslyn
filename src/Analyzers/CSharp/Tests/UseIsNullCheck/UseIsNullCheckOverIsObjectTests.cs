@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
 {
-    using VerifyCS = CSharpCodeFixVerifier<CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer, Testing.EmptyCodeFixProvider>;
+    using VerifyCS = CSharpCodeFixVerifier<CSharpUseIsNullCheckOverIsObjectDiagnosticAnalyzer, CSharpUseIsNullCheckOverIsObjectCodeFixProvider>;
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
     public class UseIsNullCheckOverIsObjectTests
@@ -72,6 +72,21 @@ public class C
         }
 
         [Fact]
+        public async Task TestIsObject2()
+        {
+            var source = @"
+public class C
+{
+    public bool M(string value)
+    {
+        return value is object x;
+    }
+}
+";
+            await VerifyCSharp9Async(source, source);
+        }
+
+        [Fact]
         public async Task TestIsNotObject()
         {
             var source = @"
@@ -113,17 +128,25 @@ public class C
         [Fact]
         public async Task TestIsStringAgainstString()
         {
-            // Currently no diagnostic, but a diagnostic is reasonable too.
             var source = @"
 public class C
 {
     public bool M(string value)
     {
-        return value is string;
+        return [|value is string|];
     }
 }
 ";
-            await VerifyCSharp9Async(source, source);
+            var fixedSource = @"
+public class C
+{
+    public bool M(string value)
+    {
+        return value is not null;
+    }
+}
+";
+            await VerifyCSharp9Async(source, fixedSource);
         }
 
         [Fact]
@@ -144,17 +167,25 @@ public class C
         [Fact]
         public async Task TestIsNotStringAgainstString()
         {
-            // Currently no diagnostic, but a diagnostic is reasonable too.
             var source = @"
 public class C
 {
     public bool M(string value)
     {
-        return value is not string;
+        return value is [|not string|];
     }
 }
 ";
-            await VerifyCSharp9Async(source, source);
+            var fixedSource = @"
+public class C
+{
+    public bool M(string value)
+    {
+        return value is null;
+    }
+}
+";
+            await VerifyCSharp9Async(source, fixedSource);
         }
     }
 }
