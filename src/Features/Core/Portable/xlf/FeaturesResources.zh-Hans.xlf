@@ -2095,6 +2095,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">更新活动语句周围的“{0}”将阻止调试会话继续执行。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">对 lambda 表达式使用块主体</target>
