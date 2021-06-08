@@ -1938,6 +1938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
+        ERR_CantConvAnonMethReturnType = 8918,
 
         #endregion
 

@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasExplicitReturnType => (Syntax as ParenthesizedLambdaExpressionSyntax)?.ReturnType is not null;
+
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
@@ -281,6 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
+            AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, _declarationDiagnostics);
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
         }
 

@@ -4329,6 +4329,487 @@ class Program
             Assert.Equal(FlowAnalysisAnnotations.NotNullWhenTrue, lambda.Parameters[0].FlowAnalysisAnnotations);
         }
 
+        [Fact]
+        public void LambdaReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>()
+    {
+        Func<T> f1 = T () => default;
+        Func<T, T> f2 = T (x) => { return x; };
+        Func<T, T> f3 = T (T x) => x;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<T> f1 = T () => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(6, 22),
+                // (7,25): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<T, T> f2 = T (x) => { return x; };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(7, 25),
+                // (8,25): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         Func<T, T> f3 = T (T x) => x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(8, 25));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaReturnType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U>()
+    {
+        Func<T> f1;
+        Func<U> f2;
+        f1 = T () => default;
+        f2 = T () => default;
+        f1 = U () => default;
+        f2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8918: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                //         f2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
+                // (10,14): error CS8918: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                //         f1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_03()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F<T, U>()
+    {
+        Expression<Func<T>> e1;
+        Expression<Func<U>> e2;
+        e1 = T () => default;
+        e2 = T () => default;
+        e1 = U () => default;
+        e2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8918: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
+                //         e2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<U>>").WithLocation(10, 14),
+                // (11,14): error CS8918: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
+                //         e1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<T>>").WithLocation(11, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_04()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void Main()
+    {
+        Func<dynamic> f1 = object () => default!;
+        Func<(int, int)> f2 = (int X, int Y) () => default;
+        Func<string?> f3 = string () => default!;
+        Func<IntPtr> f4 = nint () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaReturnType_05()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<object>> e1 = dynamic () => default!;
+        Expression<Func<(int X, int Y)>> e2 = (int, int) () => default;
+        Expression<Func<string>> e3 = string? () => default;
+        Expression<Func<nint>> e4 = IntPtr () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            // PROTOTYPE: Should not report nullability warning.
+            comp.VerifyDiagnostics(
+                // (10,53): warning CS8603: Possible null reference return.
+                //         Expression<Func<string>> e3 = string? () => default;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(10, 53));
+        }
+
+        [Fact]
+        public void LambdaReturnType_06()
+        {
+            var source =
+@"delegate T D1<T>(ref T t);
+delegate ref T D2<T>(ref T t);
+class Program
+{
+    static void F<T>()
+    {
+        D1<T> d1;
+        D2<T> d2;
+        d1 = T (ref T t) => t;
+        d2 = T (ref T t) => t;
+        d1 = (ref T (ref T t) => ref t);
+        d2 = (ref T (ref T t) => ref t);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8918: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                //         d2 = T (ref T t) => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(10, 14),
+                // (11,15): error CS8918: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                //         d1 = (ref T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(11, 15));
+        }
+
+        [Fact]
+        public void LambdaReturnType_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = (ref void () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8917: The delegate type could not be inferred.
+                //         d = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
+                // (7,18): error CS1547: Keyword 'void' cannot be used in this context
+                //         d = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LambdaReturnType_08()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = TypedReference () => throw null;
+        d = RuntimeArgumentHandle () => throw null;
+        d = ArgIterator () => throw null;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //         d = TypedReference () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 13),
+                // (7,13): error CS8917: The delegate type could not be inferred.
+                //         d = TypedReference () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "TypedReference () => throw null").WithLocation(7, 13),
+                // (8,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
+                //         d = RuntimeArgumentHandle () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13),
+                // (8,13): error CS8917: The delegate type could not be inferred.
+                //         d = RuntimeArgumentHandle () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "RuntimeArgumentHandle () => throw null").WithLocation(8, 13),
+                // (9,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
+                //         d = ArgIterator () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13),
+                // (9,13): error CS8917: The delegate type could not be inferred.
+                //         d = ArgIterator () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ArgIterator () => throw null").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void LambdaReturnType_09()
+        {
+            var source =
+@"static class S { }
+delegate S D();
+class Program
+{
+    static void Main()
+    {
+        D d = S () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0722: 'S': static types cannot be used as return types
+                //         D d = S () => default;
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(7, 15));
+        }
+
+        [Fact]
+        public void LambdaReturnType_10()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = async int () => 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //         Delegate d = async int () => 0;
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=>").WithLocation(6, 35),
+                // (6,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Delegate d = async int () => 0;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 35));
+        }
+
+        [Fact]
+        public void LambdaReturnType_11()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate ref Task D(string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8917: The delegate type could not be inferred.
+                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
+                // (8,29): error CS1073: Unexpected token 'ref'
+                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         D d2 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void LambdaReturnType_12()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate ref Task D(string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8917: The delegate type could not be inferred.
+                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
+                // (8,29): error CS1073: Unexpected token 'ref'
+                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         D d2 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
+        }
+
+        // PROTOTYPE: Test use-site error from explicit return type.
+
+        [Fact]
+        public void AsyncLambdaParameters_01()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate Task D(ref string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8917: The delegate type could not be inferred.
+                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async (ref string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
+                // (8,41): error CS1988: Async methods cannot have ref, in or out parameters
+                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(8, 41),
+                // (9,34): error CS1988: Async methods cannot have ref, in or out parameters
+                //         D d2 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(9, 34));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void AsyncLambdaParameters_02()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate void D1(TypedReference r);
+delegate void D2(RuntimeArgumentHandle h);
+delegate void D3(ArgIterator i);
+class Program
+{
+    static void Main()
+    {
+        D1 d1 = async (TypedReference r) => { await Task.Yield(); };
+        D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
+        D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,39): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
+                //         D1 d1 = async (TypedReference r) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
+                // (11,46): error CS4012: Parameters or locals of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
+                //         D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
+                // (12,36): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                //         D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
+        }
+
+        [Fact]
+        public void BestType_01()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+interface I { }
+class C1 : I { }
+class C2 : I { }
+class Program
+{
+    static void F<T>(Func<bool, T> f) { }
+    static void Main()
+    {
+        F((bool b) => { if (b) return new B1(); return new B2(); });
+        F((bool b) => { if (b) return new C1(); return new C2(); });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'Program.F<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F((bool b) => { if (b) return new B1(); return new B2(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<bool, T>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.F<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F((bool b) => { if (b) return new C1(); return new C2(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<bool, T>)").WithLocation(14, 9));
+        }
+
+        // As above but with explicit return type.
+        [Fact]
+        public void BestType_02()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+interface I { }
+class C1 : I { }
+class C2 : I { }
+class Program
+{
+    static void F<T>(Func<bool, T> f) { Console.WriteLine(typeof(T)); }
+    static void Main()
+    {
+        F(A (bool b) => { if (b) return new B1(); return new B2(); });
+        F(I (bool b) => { if (b) return new C1(); return new C2(); });
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"A
+I");
+        }
+
+        // CS4031 is not reported for async lambda in [SecurityCritical] type.
+        [Fact]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
+        public void SecurityCritical_AsyncLambda()
+        {
+            var source =
+@"using System;
+using System.Security;
+using System.Threading.Tasks;
+[SecurityCritical]
+class Program
+{
+    static void Main()
+    {
+        Func<Task> f = async () => await Task.Yield();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // CS4031 is not reported for async lambda in [SecurityCritical] type.
+        [Fact]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
+        public void SecurityCritical_AsyncLambda_AttributeArgument()
+        {
+            var source =
+@"using System;
+using System.Security;
+using System.Threading.Tasks;
+class A : Attribute
+{
+    internal A(int i) { }
+}
+[SecurityCritical]
+[A(F(async () => await Task.Yield()))]
+class Program
+{
+    internal static int F(Func<Task> f) => 0;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(F(async () => await Task.Yield()))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F(async () => await Task.Yield())").WithLocation(9, 4));
+        }
+
         private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)
         {
             return model.GetSymbolInfo(syntax).Symbol.GetSymbol<LambdaSymbol>();
