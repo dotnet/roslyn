@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
@@ -57,14 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private readonly CancellationTokenSource _disposalTokenSource = new();
-
-            /// <summary>
-            /// Work queue that collects event notifications and kicks off the work to process them.
-            /// The value that is passed here tells us if this is the initial tag computation or not.
-            /// </summary>
-            private readonly AsyncBatchingWorkQueue<bool> _eventWorkQueue;
-
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
@@ -74,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Work queue that collects normal priority requests to call TagsChanged with.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
+
+            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
 
             #endregion
 
@@ -120,19 +115,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _eventWorkQueue = new AsyncBatchingWorkQueue<bool>(
-                    _dataSource.EventChangeDelay.ComputeTimeDelay(),
-                    ProcessEventsAsync,
-                    EqualityComparer<bool>.Default,
-                    asyncListener,
-                    _disposalTokenSource.Token);
-
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _disposalTokenSource.Token);
+                    _tagSourceState.Target.DisposalToken);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -147,18 +135,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _disposalTokenSource.Token);
+                        _tagSourceState.Target.DisposalToken);
                 }
 
                 DebugRecordInitialStackTrace();
 
                 _eventSource = CreateEventSource();
-
                 Connect();
 
                 // Start computing the initial set of tags immediately.  We want to get the UI
                 // to a complete state as soon as possible.
-                _eventWorkQueue.AddWork(/*initialTags*/ true);
+                EnqueueWork(initialTags: true);
 
                 return;
 
@@ -191,15 +178,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
+                _tagSourceState.Dispose();
 
-                // Stop computing any initial tags if we've been asked for them.
-                _disposalTokenSource.Cancel();
-                _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
 

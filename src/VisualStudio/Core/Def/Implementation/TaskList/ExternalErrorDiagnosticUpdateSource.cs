@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             return;
 
-            async Task ClearErrorsCoreAsync(ProjectId projectId, Solution solution, InProgressState? state)
+            async ValueTask ClearErrorsCoreAsync(ProjectId projectId, Solution solution, InProgressState? state)
             {
                 Debug.Assert(state == null || !state.WereProjectErrorsCleared(projectId));
 
@@ -313,9 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // pause live analyzer
                     using var operation = _notificationService.Start("BuildDone");
                     if (_diagnosticService is DiagnosticAnalyzerService diagnosticService)
-                    {
                         await SyncBuildErrorsAndReportOnBuildCompletedAsync(diagnosticService, inProgressState).ConfigureAwait(false);
-                    }
 
                     // Mark build as complete.
                     OnBuildProgressChanged(inProgressState, BuildProgress.Done);
@@ -332,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// It raises diagnostic update events for both the Build-only diagnostics and Build + Intellisense diagnostics
         /// in the error list.
         /// </summary>
-        private async Task SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
+        private ValueTask SyncBuildErrorsAndReportOnBuildCompletedAsync(DiagnosticAnalyzerService diagnosticService, InProgressState inProgressState)
         {
             var solution = inProgressState.Solution;
             var cancellationToken = inProgressState.CancellationToken;
@@ -359,7 +357,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // Report pending live errors
-            await diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: true, cancellationToken).ConfigureAwait(false);
+            return diagnosticService.SynchronizeWithBuildAsync(_workspace, pendingLiveErrorsToSync, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: true, cancellationToken);
         }
 
         private void ReportBuildErrors<T>(T item, Solution solution, ImmutableArray<DiagnosticData> buildErrors)
@@ -431,9 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 await ReportPreviousProjectErrorsIfRequiredAsync(projectId, state).ConfigureAwait(false);
 
                 foreach (var kv in documentErrorMap)
-                {
                     state.AddErrors(kv.Key, kv.Value);
-                }
 
                 state.AddErrors(projectId, projectErrors);
             }, state.CancellationToken);
@@ -447,30 +443,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// This ensures that error list keeps getting refreshed while a build is in progress, as opposed to doing all the work
         /// and a single refresh when the build completes.
         /// </summary>
-        private async Task ReportPreviousProjectErrorsIfRequiredAsync(ProjectId projectId, InProgressState state)
+        private ValueTask ReportPreviousProjectErrorsIfRequiredAsync(ProjectId projectId, InProgressState state)
         {
             if (state.TryGetLastProjectWithReportedErrors() is ProjectId lastProjectId &&
                 lastProjectId != projectId)
             {
-                await SetLiveErrorsForProjectAsync(lastProjectId, state).ConfigureAwait(false);
+                return SetLiveErrorsForProjectAsync(lastProjectId, state);
             }
+
+            return default;
         }
 
-        private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state)
+        private async ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, InProgressState state)
         {
             var diagnostics = await state.GetLiveErrorsForProjectAsync(projectId).ConfigureAwait(false);
             await SetLiveErrorsForProjectAsync(projectId, diagnostics, state.CancellationToken).ConfigureAwait(false);
             state.MarkLiveErrorsReported(projectId);
         }
 
-        private async Task SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        private ValueTask SetLiveErrorsForProjectAsync(ProjectId projectId, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
         {
             if (_diagnosticService is DiagnosticAnalyzerService diagnosticAnalyzerService)
             {
                 // make those errors live errors
                 var map = ProjectErrorMap.Empty.Add(projectId, diagnostics);
-                await diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: false, cancellationToken).ConfigureAwait(false);
+                return diagnosticAnalyzerService.SynchronizeWithBuildAsync(_workspace, map, _postBuildAndErrorListRefreshTaskQueue, onBuildCompleted: false, cancellationToken);
             }
+
+            return default;
         }
 
         private CancellationToken GetApplicableCancellationToken(InProgressState? state)

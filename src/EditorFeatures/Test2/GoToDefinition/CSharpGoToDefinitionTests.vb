@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         class CSharpClass
         {
-            VBCl$$ass vb
+            VB$$Class vb
         }
         </Document>
     </Project>

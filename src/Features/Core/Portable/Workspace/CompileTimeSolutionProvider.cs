@@ -36,18 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
 
-        private readonly Workspace _workspace;
         private readonly object _gate = new();
 
         private Solution? _lazyCompileTimeSolution;
         private int? _correspondingDesignTimeSolutionVersion;
-        private readonly bool _enabled;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
-            _workspace = workspace;
-            _enabled = workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.RazorLspEditorFeatureFlag);
-
             workspace.WorkspaceChanged += (s, e) =>
             {
                 if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
@@ -64,19 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         private static bool IsRazorAnalyzerConfig(TextDocumentState documentState)
             => documentState.FilePath != null && documentState.FilePath.EndsWith(RazorEncConfigFileName, StringComparison.OrdinalIgnoreCase);
 
-        public Solution GetCurrentCompileTimeSolution()
+        public Solution GetCompileTimeSolution(Solution designTimeSolution)
         {
-            if (!_enabled)
-            {
-                return _workspace.CurrentSolution;
-            }
-
             lock (_gate)
             {
-                var currentDesignTimeSolution = _workspace.CurrentSolution;
-
                 // Design time solution hasn't changed since we calculated the last compile-time solution:
-                if (currentDesignTimeSolution.WorkspaceVersion == _correspondingDesignTimeSolutionVersion)
+                if (designTimeSolution.WorkspaceVersion == _correspondingDesignTimeSolutionVersion)
                 {
                     Contract.ThrowIfNull(_lazyCompileTimeSolution);
                     return _lazyCompileTimeSolution;
@@ -85,9 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
                 using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var documentIdsToRemove);
 
-                var compileTimeSolution = currentDesignTimeSolution;
+                var compileTimeSolution = designTimeSolution;
 
-                foreach (var (_, projectState) in currentDesignTimeSolution.State.ProjectStates)
+                foreach (var (_, projectState) in designTimeSolution.State.ProjectStates)
                 {
                     var anyConfigs = false;
 
@@ -113,11 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServices
                     }
                 }
 
-                _lazyCompileTimeSolution = currentDesignTimeSolution
+                _lazyCompileTimeSolution = designTimeSolution
                     .RemoveAnalyzerConfigDocuments(configIdsToRemove.ToImmutable())
                     .RemoveDocuments(documentIdsToRemove.ToImmutable());
 
-                _correspondingDesignTimeSolutionVersion = currentDesignTimeSolution.WorkspaceVersion;
+                _correspondingDesignTimeSolutionVersion = designTimeSolution.WorkspaceVersion;
                 return _lazyCompileTimeSolution;
             }
         }

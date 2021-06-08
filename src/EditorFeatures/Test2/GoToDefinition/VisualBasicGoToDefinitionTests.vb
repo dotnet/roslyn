@@ -694,7 +694,7 @@ class C
         <Document>
             Class SomeClass
             End Class
-            Cl$$ass OtherClass
+            C$$lass OtherClass
                 Dim obj As SomeClass
             End Class
         </Document>

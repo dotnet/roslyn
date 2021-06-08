@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     [Shared]
-    [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [Export(typeof(IManagedHotReloadLanguageService))]
     [ExportMetadata("UIContext", Guids.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
     {
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 => Task.CompletedTask;
         }
 
-        private static readonly SolutionActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _) => ValueTaskFactory.FromResult(ImmutableArray<TextSpan>.Empty);
+        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly RemoteEditAndContinueServiceProxy _proxy;
         private readonly IDiagnosticAnalyzerService _diagnosticService;

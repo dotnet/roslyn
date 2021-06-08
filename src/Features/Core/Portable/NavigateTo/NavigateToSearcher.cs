@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchPattern = searchPattern;
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
-            _progress = new StreamingProgressTracker((current, maximum) =>
+            _progress = new StreamingProgressTracker((current, maximum, ct) =>
             {
                 callback.ReportProgress(current, maximum);
                 return new ValueTask();
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // We didn't have any items reported *and* we weren't fully loaded.  If it turns out that some of our
             // projects were using cached data then we can try searching them again, but this tell them to use the
             // latest data.  The ensures the user at least gets some result instead of nothing.
-            var projectsUsingCache = projectResults.Where(t => t.location == NavigateToSearchLocation.Cache).SelectAsArray(t => t.project);
+            var projectsUsingCache = projectResults.SelectAsArray(t => t.location == NavigateToSearchLocation.Cache, t => t.project);
             await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
 
             // We attempted a full oop sync and an uncached search.  However, we still may need to tell the user that
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task<(int itemsReported, ImmutableArray<(Project project, NavigateToSearchLocation location)>)> ProcessProjectsAsync(
             ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length)).ConfigureAwait(false);
+            await _progress.AddItemsAsync(orderedProjects.Sum(p => p.Length), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<(Project project, NavigateToSearchLocation location)>.GetInstance(out var result);
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                await _progress.ItemCompletedAsync().ConfigureAwait(false);
+                await _progress.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

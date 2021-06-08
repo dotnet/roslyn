@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Test
         {
         }
 
+        public bool SupportsDocumentTracking => true;
+
         public event EventHandler<DocumentId?>? ActiveDocumentChanged;
 
         public event EventHandler<EventArgs> NonRoslynBufferTextChanged

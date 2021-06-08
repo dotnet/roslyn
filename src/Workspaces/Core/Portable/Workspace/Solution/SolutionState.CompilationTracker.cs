@@ -129,13 +129,33 @@ namespace Microsoft.CodeAnalysis
 
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
-                        : ImmutableArray.Create<(ProjectState, CompilationAndGeneratorDriverTranslationAction)>();
+                        : ImmutableArray.Create<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>();
 
-                    var newIntermediateProjects = translate == null
-                         ? intermediateProjects
-                         : intermediateProjects.Add((ProjectState, translate));
+                    if (translate is not null)
+                    {
+                        // We have a translation action; are we able to merge it with the prior one?
+                        var merged = false;
+                        if (intermediateProjects.Any())
+                        {
+                            var (priorState, priorAction) = intermediateProjects.Last();
+                            var mergedTranslation = translate.TryMergeWithPrior(priorAction);
+                            if (mergedTranslation != null)
+                            {
+                                // We can replace the prior action with this new one
+                                intermediateProjects = intermediateProjects.SetItem(intermediateProjects.Length - 1,
+                                    (oldState: priorState, mergedTranslation));
+                                merged = true;
+                            }
+                        }
 
-                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), newIntermediateProjects);
+                        if (!merged)
+                        {
+                            // Just add it to the end
+                            intermediateProjects = intermediateProjects.Add((oldState: this.ProjectState, translate));
+                        }
+                    }
+
+                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
                 }
@@ -248,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                     return;
                 }
 
-                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().state : this.ProjectState;
+                inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
 
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
@@ -629,6 +649,17 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     var compilationWithGenerators = state.CompilationWithGeneratedDocuments;
+
+                    // If compilationWithGenerators is the same as compilationWithoutGenerators, then it means a prior run of generators
+                    // didn't produce any files. In that case, we'll just make compilationWithGenerators null so we avoid doing any
+                    // transformations of it multiple times. Otherwise the transformations below and in FinalizeCompilationAsync will try
+                    // to update both at once, which is functionally fine but just unnecessary work. This function is always allowed to return
+                    // null for compilationWithGenerators in the end, so there's no harm there.
+                    if (compilationWithGenerators == compilationWithoutGenerators)
+                    {
+                        compilationWithGenerators = null;
+                    }
+
                     var intermediateProjects = state.IntermediateProjects;
 
                     while (intermediateProjects.Length > 0)
@@ -645,7 +676,7 @@ namespace Microsoft.CodeAnalysis
                             // Also transform the compilation that has generated files; we won't do that though if the transformation either would cause problems with
                             // the generated documents, or if don't have any source generators in the first place.
                             if (intermediateProject.action.CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput &&
-                                intermediateProject.state.SourceGenerators.Any())
+                                intermediateProject.oldState.SourceGenerators.Any())
                             {
                                 compilationWithGenerators = await intermediateProject.action.TransformCompilationAsync(compilationWithGenerators, cancellationToken).ConfigureAwait(false);
                             }
