@@ -221,6 +221,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        public void AnonymousMethod_01()
+        {
+            string source = "delegate T { return default; }";
+            verify(source, TestOptions.Regular9);
+            verify(source, TestOptions.RegularPreview);
+
+            void verify(string source, CSharpParseOptions parseOptions)
+            {
+                UsingExpression(source, parseOptions,
+                    // (1,1): error CS1073: Unexpected token 'T'
+                    // delegate T { return default; }
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate ").WithArguments("T").WithLocation(1, 1),
+                    // (1,10): error CS1514: { expected
+                    // delegate T { return default; }
+                    Diagnostic(ErrorCode.ERR_LbraceExpected, "T").WithLocation(1, 10));
+
+                N(SyntaxKind.AnonymousMethodExpression);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    M(SyntaxKind.Block);
+                    {
+                        M(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void AnonymousMethod_02()
+        {
+            string source = "delegate int (int x) { return x; }";
+            verify(source, TestOptions.Regular9);
+            verify(source, TestOptions.RegularPreview);
+
+            void verify(string source, CSharpParseOptions parseOptions)
+            {
+                UsingExpression(source, parseOptions,
+                    // (1,1): error CS1073: Unexpected token 'int'
+                    // delegate int (int x) { return x; }
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "delegate ").WithArguments("int").WithLocation(1, 1),
+                    // (1,10): error CS1514: { expected
+                    // delegate int (int x) { return x; }
+                    Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(1, 10));
+
+                N(SyntaxKind.AnonymousMethodExpression);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    M(SyntaxKind.Block);
+                    {
+                        M(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
         public void PrimitiveReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
@@ -428,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void FunctionPointerReturnType(string modifiers, params SyntaxKind[] modifierKinds)
+        public void FunctionPointerReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " delegate*<void> () => default";
             UsingExpression(source);
@@ -446,6 +506,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.FunctionPointerParameterList);
                     {
                         N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void FunctionPointerReturnType_02()
+        {
+            string source = "delegate* unmanaged[Cdecl]<ref delegate*<void>, void> () => default";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.FunctionPointerType);
+                {
+                    N(SyntaxKind.DelegateKeyword);
+                    N(SyntaxKind.AsteriskToken);
+                    N(SyntaxKind.FunctionPointerCallingConvention);
+                    {
+                        N(SyntaxKind.UnmanagedKeyword);
+                        N(SyntaxKind.FunctionPointerUnmanagedCallingConventionList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.FunctionPointerUnmanagedCallingConvention);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Cdecl");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.FunctionPointerParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.FunctionPointerParameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.FunctionPointerType);
+                            {
+                                N(SyntaxKind.DelegateKeyword);
+                                N(SyntaxKind.AsteriskToken);
+                                N(SyntaxKind.FunctionPointerParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.FunctionPointerParameter);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
                         N(SyntaxKind.FunctionPointerParameter);
                         {
                             N(SyntaxKind.PredefinedType);
@@ -2613,6 +2747,83 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void InvocationOrLambda_08()
         {
+            string source = "F(a, b) =>";
+            UsingExpression(source,
+                // (1,11): error CS1733: Expected expression
+                // F(a, b) =>
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "F");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvocationOrLambda_09()
+        {
+            string source = "F(a, b) => {";
+            UsingExpression(source,
+                // (1,13): error CS1513: } expected
+                // F(a, b) => {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 13));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "F");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "b");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvocationOrLambda_10()
+        {
             string source = "F(a, b) => { }";
             UsingExpression(source);
 
@@ -2647,7 +2858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvocationOrLambda_09()
+        public void InvocationOrLambda_11()
         {
             string source = "F(ref a, out b, in c) => { }";
             UsingExpression(source,
@@ -2712,7 +2923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvocationOrLambda_10()
+        public void InvocationOrLambda_12()
         {
             string source = "F(A a, B b) => { }";
             UsingExpression(source);
@@ -2756,7 +2967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvocationOrLambda_11()
+        public void InvocationOrLambda_13()
         {
             string source = "F(ref A a, out B b, in C c) => { }";
             UsingExpression(source);

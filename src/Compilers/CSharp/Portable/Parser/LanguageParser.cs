@@ -10466,7 +10466,14 @@ tryAgain:
                 case SyntaxKind.InterpolatedStringToken:
                     return this.ParseInterpolatedStringToken();
                 case SyntaxKind.OpenParenToken:
-                    return this.ParseCastOrParenExpressionOrLambdaOrTuple(precedence);
+                    if (IsPossibleLambdaExpression(precedence))
+                    {
+                        if (this.TryParseLambdaExpression() is { } lambda)
+                        {
+                            return lambda;
+                        }
+                    }
+                    return this.ParseCastOrParenExpressionOrTuple();
                 case SyntaxKind.NewKeyword:
                     return this.ParseNewExpression();
                 case SyntaxKind.StackAllocKeyword:
@@ -11223,14 +11230,9 @@ tryAgain:
             }
         }
 
-        private ExpressionSyntax ParseCastOrParenExpressionOrLambdaOrTuple(Precedence precedence)
+        private ExpressionSyntax ParseCastOrParenExpressionOrTuple()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.OpenParenToken);
-
-            if (IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
-            {
-                return lambda;
-            }
 
             var resetPoint = this.GetResetPoint();
             try
