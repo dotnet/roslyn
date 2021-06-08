@@ -2237,11 +2237,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         // Location is in generated code if either the containing tree is a generated code file OR if it is a hidden source location.
         protected bool IsGeneratedOrHiddenCodeLocation(SyntaxTree syntaxTree, TextSpan span)
-            => IsGeneratedCode(syntaxTree) || IsHiddenSourceLocation(syntaxTree, span);
+        {
+            return IsGeneratedCode(syntaxTree) || isHiddenSourceLocation(syntaxTree, span);
 
-        protected bool IsHiddenSourceLocation(SyntaxTree syntaxTree, TextSpan span)
-            => HasHiddenRegions(syntaxTree) &&
-               syntaxTree.IsHiddenPosition(span.Start);
+            // Local function
+            bool isHiddenSourceLocation(SyntaxTree syntaxTree, TextSpan span)
+                => HasHiddenRegions(syntaxTree) && syntaxTree.IsHiddenPosition(span.Start);
+        }
+
+        private bool IsGeneratedOrHiddenCodeLocation(SyntaxTree syntaxTree, SyntaxNode node)
+        {
+            // Avoid accessing node.Span unless the node is in a non-generated tree with hidden locations
+            return IsGeneratedCode(syntaxTree) || isHiddenSourceLocation(syntaxTree, node);
+
+            // Local function
+            bool isHiddenSourceLocation(SyntaxTree syntaxTree, SyntaxNode node)
+                => HasHiddenRegions(syntaxTree) && syntaxTree.IsHiddenPosition(node.SpanStart);
+        }
 
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/pull/23637",
