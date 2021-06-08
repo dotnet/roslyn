@@ -45,7 +45,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// A compound value for indicating there are multiple targets both implementing the member and overriden by the member.
         /// </summary>
-        ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden
+        ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden,
 
+        ImplementedInterface,
+        BaseType,
+        DerivedType,
+        InheritedInterface,
+        ImplementedType,
+        ImplmentedMember,
+        OverriddenMember,
+        OverridingMember,
+        ImplementingMember
     }
 }
