@@ -2363,8 +2363,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && canLearnFromOperator(binary)
                 && isKnownNullOrNotNull(binary.Right))
             {
-                VisitRvalue(binary.Right);
-                Meet(ref stateWhenNotNull, ref State);
+                if (_nonMonotonicTransfer)
+                {
+                    // In this very specific scenario, we need to do extra work to track unassignments for region analysis.
+                    // See `AbstractFlowPass.VisitCatchBlockWithAnyTransferFunction` for a similar scenario in catch blocks.
+                    Optional<TLocalState> oldState = NonMonotonicState;
+                    NonMonotonicState = ReachableBottomState();
+
+                    VisitRvalue(binary.Right);
+
+                    var tempStateValue = NonMonotonicState.Value;
+                    Join(ref stateWhenNotNull, ref tempStateValue);
+                    if (oldState.HasValue)
+                    {
+                        var oldStateValue = oldState.Value;
+                        Join(ref oldStateValue, ref tempStateValue);
+                        oldState = oldStateValue;
+                    }
+
+                    NonMonotonicState = oldState;
+                }
+                else
+                {
+                    VisitRvalue(binary.Right);
+                    Meet(ref stateWhenNotNull, ref State);
+                }
+
                 var isNullConstant = binary.Right.ConstantValue?.IsNull == true;
                 SetConditionalState(isNullConstant == isEquals(binary)
                     ? (State, stateWhenNotNull)
