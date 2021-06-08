@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public static class Extensions
     {
@@ -17,13 +17,18 @@ namespace BuildValidator
             var b = blobReader.ReadByte();
             if (b != '\0')
             {
-                throw new InvalidDataException($"Encountered unexpected byte \"{b}\" when expecting a null terminator");
+                throw new InvalidDataException(string.Format(RebuildResources.Encountered_unexpected_byte_0_when_expecting_a_null_terminator, b));
             }
         }
 
-        public static MetadataReader GetEmbeddedPdbMetadataReader(this PEReader peReader)
+        public static MetadataReader? GetEmbeddedPdbMetadataReader(this PEReader peReader)
         {
-            var entry = peReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            if (entry.Type == DebugDirectoryEntryType.Unknown)
+            {
+                return null;
+            }
+
             var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
             return provider.GetMetadataReader();
         }

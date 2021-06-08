@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EncapsulateField;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.ProjectTelemetry;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
             (typeof(IRemoteSymbolFinderService), typeof(IRemoteSymbolFinderService.ICallback)),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
-            (typeof(IRemoteNavigateToSearchService), null),
+            (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteMissingImportDiscoveryService), typeof(IRemoteMissingImportDiscoveryService.ICallback)),
             (typeof(IRemoteSymbolSearchUpdateService), typeof(IRemoteSymbolSearchUpdateService.ICallback)),
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
             (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
+            (typeof(IRemoteInheritanceMarginService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;

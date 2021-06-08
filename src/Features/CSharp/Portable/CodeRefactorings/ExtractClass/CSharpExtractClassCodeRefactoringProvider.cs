@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ExtractClass)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ExtractClass), Shared]
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.ExtractInterface)]
     internal class CSharpExtractClassCodeRefactoringProvider : AbstractExtractClassRefactoringProvider
     {

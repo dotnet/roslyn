@@ -33,10 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             var project = new Project(ProjectName);
             VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.ConsoleApplication, Microsoft.CodeAnalysis.LanguageNames.CSharp);
 
-            VisualStudio.SolutionExplorer.UpdateFile(
-                ProjectName,
-                FileName,
-                @"using System;
+            VisualStudio.Editor.SetText(@"using System;
 
  namespace TestProj
  {
@@ -64,8 +61,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
          }
      }
  }
-",
-                open: true);
+");
+            VisualStudio.Editor.Activate();
 
             VisualStudio.InteractiveWindow.SubmitText("using System;");
         }

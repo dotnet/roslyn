@@ -1635,6 +1635,9 @@ I agree to all of the foregoing:</value>
   <data name="Reference" xml:space="preserve">
     <value>Reference</value>
   </data>
+  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
+    <value>Enable all features in opened files from source generators (experimental)</value>
+  </data>
   <data name="Remove_Unused_References" xml:space="preserve">
     <value>Remove Unused References</value>
   </data>
@@ -1650,7 +1653,98 @@ I agree to all of the foregoing:</value>
   <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
     <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
   </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
+  </data>
+  <data name="Show_inheritance_margin" xml:space="preserve">
+    <value>Show inheritance margin</value>
+  </data>
+  <data name="Inheritance_Margin_experimental" xml:space="preserve">
+    <value>Inheritance Margin (experimental)</value>
+  </data>
+  <data name="Analyzers" xml:space="preserve">
+    <value>Analyzers</value>
+  </data>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
+  </data>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Code_Style" xml:space="preserve">
+    <value>Code Style</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Formatting" xml:space="preserve">
+    <value>Formatting</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="Newline_n" xml:space="preserve">
+    <value>Newline (\\n)</value>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Search_Settings" xml:space="preserve">
+    <value>Search Settings</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
+  <data name="Multiple_members_are_inherited" xml:space="preserve">
+    <value>Multiple members are inherited</value>
+  </data>
+  <data name="_0_is_inherited" xml:space="preserve">
+    <value>'{0}' is inherited</value>
+  </data>
+  <data name="Navigate_to_0" xml:space="preserve">
+    <value>Navigate to '{0}'</value>
+  </data>
+  <data name="Multiple_members_are_inherited_on_line_0" xml:space="preserve">
+    <value>Multiple members are inherited on line {0}</value>
+    <comment>Line number info is needed for accessibility purpose.</comment>
+  </data>
+  <data name="Implemented_members" xml:space="preserve">
+    <value>Implemented members</value>
+  </data>
+  <data name="Implementing_members" xml:space="preserve">
+    <value>Implementing members</value>
+  </data>
+  <data name="Overriding_members" xml:space="preserve">
+    <value>Overriding members</value>
+  </data>
+  <data name="Overridden_members" xml:space="preserve">
+    <value>Overridden members</value>
   </data>
 </root>

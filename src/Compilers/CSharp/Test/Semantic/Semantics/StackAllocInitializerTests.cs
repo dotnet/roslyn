@@ -745,7 +745,7 @@ class Test
                 // (8,38): error CS0150: A constant value is expected
                 //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "await Task.FromResult(1)").WithLocation(8, 38),
-                // (8,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (8,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(8, 9)
                 );

@@ -13516,5 +13516,46 @@ class C
                 //         [Deprecated("don't use this", DeprecationType.Remove, 50331648u)]
                 Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
         }
+
+        [Fact, WorkItem(53418, "https://github.com/dotnet/roslyn/issues/53418")]
+        public void TestObsoleteIndexerSlice()
+        {
+            var code = @"
+using System;
+
+public class C
+{
+    [Obsolete(""error"", error: true)]
+    public int Slice(int i, int j) => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int this[int i] => 0;
+
+    [Obsolete(""error"", error: true)]
+    public int Count => 0;
+
+    public void M()
+    {
+        _ = this[^1];
+        _ = this[..];
+    }
+}
+";
+
+            CreateCompilation(code, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (17,13): error CS0619: 'C.this[int]' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.this[int]", "error").WithLocation(17, 13),
+                // (17,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[^1];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[^1]").WithArguments("C.Count", "error").WithLocation(17, 13),
+                // (18,13): error CS0619: 'C.Slice(int, int)' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Slice(int, int)", "error").WithLocation(18, 13),
+                // (18,13): error CS0619: 'C.Count' is obsolete: 'error'
+                //         _ = this[..];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "this[..]").WithArguments("C.Count", "error").WithLocation(18, 13)
+                );
+        }
     }
 }

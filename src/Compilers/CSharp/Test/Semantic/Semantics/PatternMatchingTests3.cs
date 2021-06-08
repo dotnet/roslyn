@@ -1567,7 +1567,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ...  default })')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C?, IsInvalid) (Syntax: 'o switch {  ... > default }')
                     Value: 
                       IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
                         Instance Receiver: 
@@ -1590,7 +1590,7 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
               IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid) (Syntax: '(C)(o switc ... ow null! })')
                 Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 Operand: 
-                  ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
+                  ISwitchExpressionOperation (1 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: C, IsInvalid) (Syntax: 'o switch {  ... row null! }')
                     Value: 
                       IFieldReferenceOperation: System.Object C.o (Static) (OperationKind.FieldReference, Type: System.Object, IsInvalid) (Syntax: 'o')
                         Instance Receiver: 
@@ -3014,7 +3014,7 @@ class C
                 );
 
             VerifyOperationTreeForTest<SwitchExpressionSyntax>(compilation, @"
-ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
+ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'c switch ... }')
   Value: 
     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.UInt32) (Syntax: 'c')
   Arms(3):
@@ -7418,6 +7418,103 @@ static class Program
                 // (13,25): error CS0133: The expression being assigned to 'red' must be constant
                 //         const int red = Color.Red.ToArgb();
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        public void MismatchedConstantType_01(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100.0 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13),
+                // (5,42): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "100.0").WithArguments("double", type).WithLocation(5, 42));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        public void MismatchedConstantType_02(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Fact]
+        public void MismatchedConstantType_03()
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+@"class Circle
+{
+    public event System.Func<double> Radius;
+}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (3,38): warning CS0067: The event 'Circle.Radius' is never used
+                //     public event System.Func<double> Radius;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Radius").WithArguments("Circle.Radius").WithLocation(3, 38),
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
         }
     }
 }

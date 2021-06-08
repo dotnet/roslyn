@@ -1665,13 +1665,13 @@ class C
                 // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
-                // (6,65): error CS8915: The delegate type could not be inferred.
+                // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
                 // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
-                // (6,65): error CS8915: The delegate type could not be inferred.
+                // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
                 // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -1690,10 +1690,10 @@ class C
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,65): error CS8915: The delegate type could not be inferred.
+                // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,65): error CS8915: The delegate type could not be inferred.
+                // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65));
             verify(comp);

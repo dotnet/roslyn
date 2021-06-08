@@ -3349,12 +3349,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(recordDecl.ParameterList is object);
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             Binder bodyBinder = this.GetBinder(recordDecl);
             Debug.Assert(bodyBinder != null);
 
             BoundExpressionStatement initializer = null;
-            if (recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
             }
@@ -3454,6 +3455,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return ImmutableArray<LabelSymbol>.Empty;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndExternAliasDirective> ExternAliases
+        {
+            get
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// Note, only aliases syntactically declared within the enclosing declaration are included. For example, global aliases
+        /// declared in a different compilation units are not included.
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases
+        {
+            get
+            {
+                return default;
             }
         }
 

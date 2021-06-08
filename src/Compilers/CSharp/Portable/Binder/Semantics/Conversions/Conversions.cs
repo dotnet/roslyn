@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        protected override Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString

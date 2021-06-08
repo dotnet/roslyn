@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
 
         // Values for all these are created on demand.
-        private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
+        private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis
         private ConditionalWeakTable<ISymbol, ProjectId?>? _unrootedSymbolToProjectId;
         private static readonly Func<ConditionalWeakTable<ISymbol, ProjectId?>> s_createTable = () => new ConditionalWeakTable<ISymbol, ProjectId?>();
 
+        private readonly SourceGeneratedDocumentState? _frozenSourceGeneratedDocumentState;
+
         private SolutionState(
             BranchId branchId,
             int workspaceVersion,
@@ -72,10 +74,11 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
+            ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
-            Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
+            Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers,
+            SourceGeneratedDocumentState? frozenSourceGeneratedDocument)
         {
             _branchId = branchId;
             _workspaceVersion = workspaceVersion;
@@ -89,6 +92,7 @@ namespace Microsoft.CodeAnalysis
             _filePathToDocumentIdsMap = filePathToDocumentIdsMap;
             _dependencyGraph = dependencyGraph;
             _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
+            _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
             _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
@@ -115,10 +119,11 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
+                projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
-                lazyAnalyzers: null)
+                lazyAnalyzers: null,
+                frozenSourceGeneratedDocument: null)
         {
         }
 
@@ -136,6 +141,8 @@ namespace Microsoft.CodeAnalysis
         public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
 
         public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
+
+        public SourceGeneratedDocumentState? FrozenSourceGeneratedDocumentState => _frozenSourceGeneratedDocumentState;
 
         public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
 
@@ -183,7 +190,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // [Conditional("DEBUG")]
+        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+        [Conditional("DEBUG")]
         private void CheckInvariants()
         {
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
@@ -203,9 +211,10 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
+            ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
-            ProjectDependencyGraph? dependencyGraph = null)
+            ProjectDependencyGraph? dependencyGraph = null,
+            Optional<SourceGeneratedDocumentState?> frozenSourceGeneratedDocument = default)
         {
             var branchId = GetBranchId();
 
@@ -217,6 +226,7 @@ namespace Microsoft.CodeAnalysis
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
             dependencyGraph ??= _dependencyGraph;
+            var newFrozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument.HasValue ? frozenSourceGeneratedDocument.Value : _frozenSourceGeneratedDocumentState;
 
             var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
@@ -228,7 +238,8 @@ namespace Microsoft.CodeAnalysis
                 idToProjectStateMap == _projectIdToProjectStateMap &&
                 projectIdToTrackerMap == _projectIdToTrackerMap &&
                 filePathToDocumentIdsMap == _filePathToDocumentIdsMap &&
-                dependencyGraph == _dependencyGraph)
+                dependencyGraph == _dependencyGraph &&
+                newFrozenSourceGeneratedDocumentState == _frozenSourceGeneratedDocumentState)
             {
                 return this;
             }
@@ -245,7 +256,8 @@ namespace Microsoft.CodeAnalysis
                 projectIdToTrackerMap,
                 filePathToDocumentIdsMap,
                 dependencyGraph,
-                analyzerReferencesEqual ? _lazyAnalyzers : null);
+                analyzerReferencesEqual ? _lazyAnalyzers : null,
+                newFrozenSourceGeneratedDocumentState);
         }
 
         private SolutionState CreatePrimarySolution(
@@ -272,7 +284,8 @@ namespace Microsoft.CodeAnalysis
                 _projectIdToTrackerMap,
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
-                _lazyAnalyzers);
+                _lazyAnalyzers,
+                frozenSourceGeneratedDocument: null);
         }
 
         private BranchId GetBranchId()
@@ -419,7 +432,7 @@ namespace Microsoft.CodeAnalysis
             return id == null ? null : this.GetProjectState(id);
         }
 
-        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
+        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
             => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
@@ -431,7 +444,7 @@ namespace Microsoft.CodeAnalysis
             return new CompilationTracker(projectState);
         }
 
-        private CompilationTracker GetCompilationTracker(ProjectId projectId)
+        private ICompilationTracker GetCompilationTracker(ProjectId projectId)
         {
             if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
             {
@@ -1504,9 +1517,9 @@ namespace Microsoft.CodeAnalysis
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
+        private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
+            var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
             IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
@@ -1554,9 +1567,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState GetIsolatedSolution()
         {
-            var forkedMap = ImmutableDictionary.CreateRange<ProjectId, CompilationTracker>(
+            var forkedMap = ImmutableDictionary.CreateRange(
                 _projectIdToTrackerMap.Where(kvp => kvp.Value.HasCompilation)
-                                     .Select(kvp => new KeyValuePair<ProjectId, CompilationTracker>(kvp.Key, kvp.Value.Clone())));
+                                     .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.Clone())));
 
             return this.Branch(projectIdToTrackerMap: forkedMap);
         }
@@ -1673,7 +1686,7 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1778,6 +1791,64 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a new SolutionState that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        public SolutionState WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText sourceText)
+        {
+            // We won't support freezing multiple source generated documents at once. Although nothing in the implementation
+            // of this method would have problems, this simplifies the handling of serializing this solution to out-of-proc.
+            // Since we only produce these snapshots from an open document, there should be no way to observe this, so this assertion
+            // also serves as a good check on the system. If down the road we need to support this, we can remove this check and
+            // update the out-of-process serialization logic accordingly.
+            Contract.ThrowIfTrue(_frozenSourceGeneratedDocumentState != null, "We shouldn't be calling WithFrozenSourceGeneratedDocument on a solution with a frozen source generated document.");
+
+            var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            SourceGeneratedDocumentState newGeneratedState;
+
+            if (existingGeneratedState != null)
+            {
+                newGeneratedState = existingGeneratedState.WithUpdatedGeneratedContent(sourceText, existingGeneratedState.ParseOptions);
+
+                // If the content already matched, we can just reuse the existing state
+                if (newGeneratedState == existingGeneratedState)
+                {
+                    return this;
+                }
+            }
+            else
+            {
+                var projectState = GetRequiredProjectState(documentIdentity.DocumentId.ProjectId);
+                newGeneratedState = SourceGeneratedDocumentState.Create(
+                    documentIdentity,
+                    sourceText,
+                    projectState.ParseOptions!,
+                    projectState.LanguageServices,
+                    _solutionServices);
+            }
+
+            var projectId = documentIdentity.DocumentId.ProjectId;
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, _dependencyGraph);
+
+            // We want to create a new snapshot with a new compilation tracker that will do this replacement.
+            // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
+            // computations). If we don't have one, we'll create one and then wrap it.
+            if (!newTrackerMap.TryGetValue(projectId, out var existingTracker))
+            {
+                existingTracker = CreateCompilationTracker(projectId, this);
+            }
+
+            newTrackerMap = newTrackerMap.SetItem(
+                projectId,
+                new GeneratedFileReplacingCompilationTracker(existingTracker, newGeneratedState));
+
+            return this.Branch(
+                projectIdToTrackerMap: newTrackerMap,
+                frozenSourceGeneratedDocument: newGeneratedState);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
@@ -1794,7 +1865,7 @@ namespace Microsoft.CodeAnalysis
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
                 return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

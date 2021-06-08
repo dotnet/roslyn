@@ -23,7 +23,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(ReplaceMethodWithPropertyCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty), Shared]
     internal class ReplaceMethodWithPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string GetPrefix = "Get";
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var methodName = generator.GetName(methodDeclaration);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetDeclaredSymbol(methodDeclaration) is IMethodSymbol methodSymbol) ||
+            if (semanticModel.GetDeclaredSymbol(methodDeclaration) is not IMethodSymbol methodSymbol ||
                 !IsValidGetMethod(methodSymbol))
             {
                 return;

@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConsecutiveBracePlacement
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConsecutiveBracePlacement), Shared]
     internal sealed class ConsecutiveBracePlacementCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]

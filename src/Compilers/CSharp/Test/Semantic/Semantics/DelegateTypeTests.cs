@@ -143,7 +143,7 @@ static class Utils
                 // (8,38): error CS1660: Cannot convert lambda expression to type 'MulticastDelegate' because it is not a delegate type
                 //         System.MulticastDelegate m = () => { };
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => { }").WithArguments("lambda expression", "System.MulticastDelegate").WithLocation(8, 38),
-                // (9,13): error CS8915: The delegate type could not be inferred.
+                // (9,13): error CS8917: The delegate type could not be inferred.
                 //         d = x => x;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(9, 13));
         }
@@ -183,7 +183,7 @@ static class Utils
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
                     return new[]
                         {
-                            // (6,29): error CS8915: The delegate type could not be inferred.
+                            // (6,29): error CS8917: The delegate type could not be inferred.
                             //         System.Delegate d = F;
                             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
                         };
@@ -345,7 +345,7 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,29): error CS8915: The delegate type could not be inferred.
+                    // (5,29): error CS8917: The delegate type could not be inferred.
                     //         System.Delegate d = x => x;
                     Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 29));
             }
@@ -387,7 +387,7 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,20): error CS8915: The delegate type could not be inferred.
+                    // (5,20): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Delegate)(x => x);
                     Diagnostic(ErrorCode.ERR_CannotInferDelegateType, $"(System.Delegate)({anonymousFunction})").WithLocation(5, 20));
             }
@@ -432,7 +432,7 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,48): error CS8915: The delegate type could not be inferred.
+                    // (5,48): error CS8917: The delegate type could not be inferred.
                     //         System.Linq.Expressions.Expression e = x => x;
                     Diagnostic(ErrorCode.ERR_CannotInferDelegateType, anonymousFunction).WithLocation(5, 48));
             }
@@ -472,7 +472,7 @@ $@"class Program
             if (expectedType is null)
             {
                 comp.VerifyDiagnostics(
-                    // (5,20): error CS8915: The delegate type could not be inferred.
+                    // (5,20): error CS8917: The delegate type could not be inferred.
                     //         object o = (System.Linq.Expressions.Expression)(x => x);
                     Diagnostic(ErrorCode.ERR_CannotInferDelegateType, $"(System.Linq.Expressions.Expression)({anonymousFunction})").WithLocation(5, 20));
             }
@@ -517,7 +517,7 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,23): error CS8915: The delegate type could not be inferred.
+                // (6,23): error CS8917: The delegate type could not be inferred.
                 //         Delegate d0 = x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x0 => { _ = x0.Length; object y0 = 0; _ = y0.Length; }").WithLocation(6, 23),
                 // (6,68): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -526,7 +526,7 @@ class Program
                 // (7,47): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         Delegate d1 = (object x1) => { _ = x1.Length; };
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Length").WithArguments("object", "Length").WithLocation(7, 47),
-                // (8,23): error CS8915: The delegate type could not be inferred.
+                // (8,23): error CS8917: The delegate type could not be inferred.
                 //         Delegate d2 = (ref object x2) => { _ = x2.Length; };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ref object x2) => { _ = x2.Length; }").WithLocation(8, 23),
                 // (8,51): error CS1061: 'object' does not contain a definition for 'Length' and no accessible extension method 'Length' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -623,7 +623,7 @@ internal object? F() => throw null!;
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
                     expectedDiagnostics = new[]
                     {
-                        // (5,29): error CS8915: The delegate type could not be inferred.
+                        // (5,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
                     };
@@ -711,7 +711,7 @@ partial class B : A
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
                     expectedDiagnostics = new[]
                     {
-                        // (5,29): error CS8915: The delegate type could not be inferred.
+                        // (5,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(5, 29 + offset)
                     };
@@ -795,7 +795,7 @@ static class B
                     int offset = methodGroupExpression.Length - methodGroupOnly.Length;
                     expectedDiagnostics = new[]
                     {
-                        // (6,29): error CS8915: The delegate type could not be inferred.
+                        // (6,29): error CS8917: The delegate type could not be inferred.
                         //         System.Delegate d = F;
                         Diagnostic(ErrorCode.ERR_CannotInferDelegateType, methodGroupOnly).WithLocation(6, 29 + offset)
                     };
@@ -954,7 +954,7 @@ A");
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,31): error CS8915: The delegate type could not be inferred.
+                // (7,31): error CS8917: The delegate type could not be inferred.
                 //         System.Delegate d = p.F;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 31),
                 // (8,20): error CS0030: Cannot convert type 'method' to 'Delegate'
@@ -1011,7 +1011,7 @@ class B
                 // (13,13): error CS0308: The non-generic method 'Program.F1(object)' cannot be used with type arguments
                 //         d = F1<int>;
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "F1<int>").WithArguments("Program.F1(object)", "method").WithLocation(13, 13),
-                // (14,13): error CS8915: The delegate type could not be inferred.
+                // (14,13): error CS8917: The delegate type could not be inferred.
                 //         d = F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 13));
         }
@@ -1038,7 +1038,7 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (14,15): error CS8915: The delegate type could not be inferred.
+                // (14,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(14, 15));
         }
@@ -1112,10 +1112,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (22,15): error CS8915: The delegate type could not be inferred.
+                // (22,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F1;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(22, 15),
-                // (23,15): error CS8915: The delegate type could not be inferred.
+                // (23,15): error CS8917: The delegate type could not be inferred.
                 //         d = p.F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(23, 15));
         }
@@ -1198,10 +1198,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (11,15): error CS8915: The delegate type could not be inferred.
+                // (11,15): error CS8917: The delegate type could not be inferred.
                 //         d = t.F1;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(11, 15),
-                // (12,15): error CS8915: The delegate type could not be inferred.
+                // (12,15): error CS8917: The delegate type could not be inferred.
                 //         d = t.F2;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2").WithLocation(12, 15));
         }
@@ -1253,10 +1253,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (7,13): error CS8915: The delegate type could not be inferred.
+                // (7,13): error CS8917: The delegate type could not be inferred.
                 //         d = F;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 13),
-                // (8,13): error CS8915: The delegate type could not be inferred.
+                // (8,13): error CS8917: The delegate type could not be inferred.
                 //         d = (int x, int* y) => { };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, int* y) => { }").WithLocation(8, 13));
         }
@@ -1282,7 +1282,7 @@ class Program
             // delegate type, run the program to report the actual delegate type.
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics(
-                // (11,16): error CS8915: The delegate type could not be inferred.
+                // (11,16): error CS8917: The delegate type could not be inferred.
                 //         return (T t, int* p) => { };
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(T t, int* p) => { }").WithLocation(11, 16));
         }
@@ -1473,7 +1473,7 @@ static class E2
                 // (6,13): error CS0518: Predefined type 'System.Action' is not defined or imported
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Main").WithArguments("System.Action").WithLocation(6, 13),
-                // (6,13): error CS8915: The delegate type could not be inferred.
+                // (6,13): error CS8917: The delegate type could not be inferred.
                 //         d = Main;
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "Main").WithLocation(6, 13),
                 // (7,13): error CS0518: Predefined type 'System.Func`1' is not defined or imported

@@ -1132,7 +1132,7 @@
     <value>Missing partial modifier on declaration of type '{0}'; another partial declaration of this type exists</value>
   </data>
   <data name="ERR_PartialTypeKindConflict" xml:space="preserve">
-    <value>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</value>
+    <value>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</value>
   </data>
   <data name="ERR_PartialModifierConflict" xml:space="preserve">
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
@@ -3789,7 +3789,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
-    <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
+    <value>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
     <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
@@ -6070,7 +6070,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</value>
   </data>
-  <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
+  <data name="ERR_InvalidModifierForLanguageVersion" xml:space="preserve">
     <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
   </data>
   <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
@@ -6280,8 +6280,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidWithReceiverType" xml:space="preserve">
     <value>The receiver of a `with` expression must have a non-void type.</value>
   </data>
-  <data name="ERR_NoSingleCloneMethod" xml:space="preserve">
-    <value>The receiver type '{0}' is not a valid record type.</value>
+  <data name="ERR_CannotClone" xml:space="preserve">
+    <value>The receiver type '{0}' is not a valid record type and is not a struct type.</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
@@ -6425,7 +6425,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Only records may inherit from records.</value>
   </data>
   <data name="ERR_BadRecordMemberForPositionalParameter" xml:space="preserve">
-    <value>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</value>
+    <value>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</value>
   </data>
   <data name="ERR_NoCopyConstructorInBaseType" xml:space="preserve">
     <value>No accessible copy constructor found in base type '{0}'.</value>
@@ -6569,6 +6569,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction" xml:space="preserve">
     <value>Mixed declarations and expressions in deconstruction</value>
   </data>
+  <data name="IDS_FeatureRecordStructs" xml:space="preserve">
+    <value>record structs</value>
+    <comment>'record structs' is not localizable.</comment>
+  </data>
+  <data name="IDS_FeatureWithOnStructs" xml:space="preserve">
+    <value>with on structs</value>
+  </data>
+  <data name="IDS_FeatureWithOnAnonymousTypes" xml:space="preserve">
+    <value>with on anonymous types</value>
+  </data>
+  <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
+    <value>positional fields in records</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6611,5 +6624,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
+  </data>
+  <data name="IDS_FeatureSealedToStringInRecord" xml:space="preserve">
+    <value>sealed ToString in record</value>
+  </data>
+  <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
+    <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
+  </data>
+  <data name="ERR_HiddenPositionalMember" xml:space="preserve">
+    <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
+  </data>
+  <data name="IDS_FeatureGlobalUsing" xml:space="preserve">
+    <value>global using directive</value>
+  </data>
+  <data name="ERR_GlobalUsingInNamespace" xml:space="preserve">
+    <value>A global using directive cannot be used in a namespace declaration.</value>
+  </data>
+  <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
+    <value>A global using directive must precede all non-global using directives.</value>
   </data>
 </root>

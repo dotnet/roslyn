@@ -901,12 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Is the passed in syntax tree in this compilation?
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(syntaxTree))
-            End If
-
-            Dim vbtree = syntaxTree
-            Return vbtree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(vbtree)
+            Return syntaxTree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(syntaxTree)
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
@@ -1680,8 +1675,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
-            ReportUnusedImports(filterTree, New BindingDiagnosticBag(diagnostics), cancellationToken)
+        Friend Overrides Sub ReportUnusedImports(diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+            ReportUnusedImports(filterTree:=Nothing, New BindingDiagnosticBag(diagnostics), cancellationToken)
         End Sub
 
         Private Overloads Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As BindingDiagnosticBag, cancellationToken As CancellationToken)
@@ -2378,7 +2373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cancellationToken As CancellationToken) As CommonPEModuleBuilder
 
             Debug.Assert(Not IsSubmission OrElse HasCodeToEmit() OrElse
-                         (emitOptions = emitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
+                         (emitOptions = EmitOptions.Default AndAlso debugEntryPoint Is Nothing AndAlso sourceLinkStream Is Nothing AndAlso
                           embeddedTexts Is Nothing AndAlso manifestResources Is Nothing AndAlso testData Is Nothing))
 
             ' Get the runtime metadata version from the cor library. If this fails we have no reasonable value to give.
@@ -2559,7 +2554,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
-            updatedMethods As ICollection(Of MethodDefinitionHandle),
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -2571,7 +2565,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken)
         End Function

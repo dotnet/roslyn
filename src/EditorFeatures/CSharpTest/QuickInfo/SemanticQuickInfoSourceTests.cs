@@ -1652,6 +1652,147 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_Definition()
+        {
+            await TestInClassAsync(@"enum E$$ : byte { A, B }",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_AsField()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private E$$ _E;
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_AsProperty()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private E$$ E{ get; set; };
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_AsParameter()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private void M(E$$ e) { }
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_AsReturnType()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private E$$ M() { }
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_AsLocal()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private void M()
+{
+    E$$ e = default;
+}
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private void M()
+{
+    var ea = E$$.A;
+}
+",
+                MainDescription("enum C.E : byte"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        public async Task EnumNonDefaultUnderlyingType_NotOnMemberAccessOnMember()
+        {
+            await TestInClassAsync(@"
+enum E : byte { A, B }
+
+private void M()
+{
+    var ea = E.A$$;
+}
+",
+                MainDescription("E.A = 0"));
+        }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("byte", "byte")]
+        [InlineData("byte", "System.Byte")]
+        [InlineData("sbyte", "sbyte")]
+        [InlineData("sbyte", "System.SByte")]
+        [InlineData("short", "short")]
+        [InlineData("short", "System.Int16")]
+        [InlineData("ushort", "ushort")]
+        [InlineData("ushort", "System.UInt16")]
+        // int is the default type and is not shown
+        [InlineData("uint", "uint")]
+        [InlineData("uint", "System.UInt32")]
+        [InlineData("long", "long")]
+        [InlineData("long", "System.Int64")]
+        [InlineData("ulong", "ulong")]
+        [InlineData("ulong", "System.UInt64")]
+        public async Task EnumNonDefaultUnderlyingType_ShowForNonDefaultTypes(string displayTypeName, string underlyingTypeName)
+        {
+            await TestInClassAsync(@$"
+enum E$$ : {underlyingTypeName}
+{{
+    A, B
+}}",
+                MainDescription($"enum C.E : {displayTypeName}"));
+        }
+
+        [Theory, WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")]
+        [InlineData("")]
+        [InlineData(": int")]
+        [InlineData(": System.Int32")]
+        public async Task EnumNonDefaultUnderlyingType_DontShowForDefaultType(string defaultType)
+        {
+            await TestInClassAsync(@$"
+enum E$$ {defaultType}
+{{
+    A, B
+}}",
+                MainDescription("enum C.E"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task EnumMemberNameFromMetadata()
         {
             await TestInMethodAsync(@"ConsoleColor c = ConsoleColor.Bla$$ck",
@@ -7086,6 +7227,45 @@ record Student(int Id) : $$Person(null, null);
 public class Person { public Person(int id) { } }
 public class Student : Person { public Student() : $$base(0) { } }
 ", MainDescription("Person.Person(int id)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordClass()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"record class Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("record Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("record struct Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoReadOnlyRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"readonly record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("readonly record struct Person"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

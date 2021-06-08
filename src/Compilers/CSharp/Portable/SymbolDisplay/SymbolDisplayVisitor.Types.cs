@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -527,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitFieldType(element);
-                if (!element.IsImplicitlyDeclared)
+                if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
                     builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
@@ -566,6 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case TypeKind.Class when symbol.IsRecord:
                     return SymbolDisplayPartKind.RecordClassName;
+                case TypeKind.Struct when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordStructName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
@@ -664,6 +665,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case TypeKind.Class when symbol.IsRecord:
                             AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            break;
+
+                        case TypeKind.Struct when symbol.IsRecord:
+                            // In case ref record structs are allowed in future, call AddKeyword(SyntaxKind.RefKeyword) and remove assertion.
+                            Debug.Assert(!symbol.IsRefLikeType);
+
+                            if (symbol.IsReadOnly)
+                            {
+                                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                AddSpace();
+                            }
+
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            AddKeyword(SyntaxKind.StructKeyword);
                             AddSpace();
                             break;
 

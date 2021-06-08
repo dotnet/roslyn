@@ -7815,10 +7815,10 @@ End Namespace
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function

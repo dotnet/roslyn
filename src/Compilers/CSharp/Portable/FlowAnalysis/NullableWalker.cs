@@ -2404,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
@@ -4146,7 +4146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
-            TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.Type);
+            TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
             return null;
         }
@@ -4180,8 +4180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetUnreachable();
             }
 
-            // https://github.com/dotnet/roslyn/issues/29955 For cases where the left operand determines
-            // the type, we should unwrap the right conversion and re-apply.
             rightResult = VisitRvalueWithState(rightOperand);
 
             Join(ref this.State, ref whenNotNull);
@@ -4202,47 +4200,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftResultType = leftResult.Type;
             var rightResultType = rightResult.Type;
 
-            var resultType = node.OperatorResultKind switch
+            var (resultType, leftState) = node.OperatorResultKind switch
             {
-                BoundNullCoalescingOperatorResultKind.NoCommonType => node.Type,
+                BoundNullCoalescingOperatorResultKind.NoCommonType => (node.Type, NullableFlowState.NotNull),
                 BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType!, rightResultType!),
                 BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResultType!, rightResultType!),
-                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightDynamicType => rightResultType!,
+                BoundNullCoalescingOperatorResultKind.RightType => getResultStateWithRightType(leftResultType!, rightResultType!),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getResultStateWithRightType(leftResultType!.StrippedType(), rightResultType!),
+                BoundNullCoalescingOperatorResultKind.RightDynamicType => (rightResultType!, NullableFlowState.NotNull),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
             };
 
-            SetResultType(node, GetNullCoalescingResultType(rightResult, resultType));
+            SetResultType(node, TypeWithState.Create(resultType, rightResult.State.Join(leftState)));
             return null;
 
-            TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 Debug.Assert(rightType is object);
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
                 if ((node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
-                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
+                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false) is { Exists: true } conversion)
                 {
-                    return rightType;
+                    Debug.Assert(!conversion.IsUserDefined);
+                    return (rightType, NullableFlowState.NotNull);
                 }
 
-                GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
-                return leftType;
+                conversion = GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
+                Debug.Assert(!conversion.IsUserDefined);
+                return (leftType, NullableFlowState.NotNull);
             }
 
-            TypeSymbol getRightResultType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
-                GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
-                return rightType;
-            }
-        }
+                var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
+                if (conversion.IsUserDefined)
+                {
+                    var conversionResult = VisitConversion(
+                        conversionOpt: null,
+                        node.LeftOperand,
+                        conversion,
+                        TypeWithAnnotations.Create(rightType),
+                        // When considering the conversion on the left node, it can only occur in the case where the underlying
+                        // execution returned non-null
+                        TypeWithState.Create(leftType, NullableFlowState.NotNull),
+                        checkConversion: false,
+                        fromExplicitCast: false,
+                        useLegacyWarnings: false,
+                        AssignmentKind.Assignment,
+                        reportTopLevelWarnings: false,
+                        reportRemainingWarnings: false);
+                    Debug.Assert(conversionResult.Type is not null);
+                    return (conversionResult.Type!, conversionResult.State);
+                }
 
-        private static TypeWithState GetNullCoalescingResultType(TypeWithState rightResult, TypeSymbol resultType)
-        {
-            NullableFlowState resultState = rightResult.State;
-            return TypeWithState.Create(resultType, resultState);
+                return (rightType, NullableFlowState.NotNull);
+            }
         }
 
         public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
@@ -6610,14 +6624,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Apply the conversion to the type of the operand and return the resulting type. (If the
-        /// operand does not have an explicit type, the operand expression is used for the type.)
-        /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
-        /// re-calculated, this time considering nullability. (Note that the conversion calculation considers
-        /// nested nullability only. The caller is responsible for checking the top-level nullability of
-        /// the type returned by this method.) `trackMembers` should be set if the nullability of any
-        /// members of the operand should be copied to the converted result when possible.
+        /// Apply the conversion to the type of the operand and return the resulting type.
+        /// If the operand does not have an explicit type, the operand expression is used.
         /// </summary>
+        /// <param name="checkConversion">
+        /// If <see langword="true"/>, the incoming conversion is assumed to be from binding
+        /// and will be re-calculated, this time considering nullability.
+        /// Note that the conversion calculation considers nested nullability only.
+        /// The caller is responsible for checking the top-level nullability of
+        /// the type returned by this method.
+        /// </param>
+        /// <param name="trackMembers">
+        /// If <see langword="true"/>, the nullability of any members of the operand
+        /// will be copied to the converted result when possible.
+        /// </param>
+        /// <param name="useLegacyWarnings">
+        /// If <see langword="true"/>, indicates that the "non-safety" diagnostic <see cref="ErrorCode.WRN_ConvertingNullableToNonNullable"/>
+        /// should be given for an invalid conversion.
+        /// </param>
         private TypeWithState VisitConversion(
             BoundConversion? conversionOpt,
             BoundExpression conversionOperand,
@@ -9484,6 +9508,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         {
             var result = base.VisitInterpolatedString(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return result;
+        }
+
+        public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            // This is only involved with unbound lambdas or when visiting the source of a converted tuple literal
+            var result = base.VisitUnconvertedInterpolatedString(node);
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return result;
         }

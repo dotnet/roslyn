@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return Task.FromResult(sortedItems);
         }
 
-        public Task<FilteredCompletionModel> UpdateCompletionListAsync(
+        public Task<FilteredCompletionModel?> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static readonly ObjectPool<List<MatchResult>> s_listOfMatchResultPool
                 = new(factory: () => new(), size: 1);
 
-        private FilteredCompletionModel UpdateCompletionList(
+        private FilteredCompletionModel? UpdateCompletionList(
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
@@ -132,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // 2. a non-empty set of expanders are unselected
             var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => !(f.Filter is CompletionExpander));
 
-            var selectedNonExpanderFilters = nonExpanderFilterStates.Where(f => f.IsSelected).SelectAsArray(f => f.Filter);
+            var selectedNonExpanderFilters = nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
             var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
 
-            var unselectedExpanders = data.SelectedFilters.Where(f => !f.IsSelected && f.Filter is CompletionExpander).SelectAsArray(f => f.Filter);
+            var unselectedExpanders = data.SelectedFilters.SelectAsArray(f => !f.IsSelected && f.Filter is CompletionExpander, f => f.Filter);
             var needToFilterExpanded = unselectedExpanders.Length > 0;
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var options = document?.Project.Solution.Options;
-            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? false;
+            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document?.Project.Language) ?? false;
             // Nothing to highlight if user hasn't typed anything yet.
             highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
@@ -228,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // to `MatchResult` to achieve this.
                 initialListOfItemsToBeIncluded.Sort(MatchResult.SortingComparer);
 
-                var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
+                var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document?.Project.Language) ?? true;
 
                 var updatedFilters = showCompletionItemFilters
                     ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
@@ -306,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return position > 0 && snapshot[position - 1] == '.';
         }
 
-        private FilteredCompletionModel HandleNormalFiltering(
+        private FilteredCompletionModel? HandleNormalFiltering(
             Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
@@ -325,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var chosenItems = filterMethod(matchingItems, filterText);
 
             int selectedItemIndex;
-            VSCompletionItem uniqueItem = null;
+            VSCompletionItem? uniqueItem = null;
             MatchResult bestOrFirstMatchResult;
 
             if (chosenItems.Length == 0)
@@ -396,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
-        private static FilteredCompletionModel HandleDeletionTrigger(
+        private static FilteredCompletionModel? HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
             List<MatchResult> matchResults,
             string filterText,
@@ -475,7 +473,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             => matchResults.SelectAsArray(matchResult =>
             new CompletionItemWithHighlight(matchResult.VSCompletionItem, matchResult.HighlightedSpans));
 
-        private static FilteredCompletionModel HandleAllItemsFilteredOut(
+        private static FilteredCompletionModel? HandleAllItemsFilteredOut(
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionRules completionRules)
@@ -525,9 +523,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
             ImmutableArray<RoslynCompletionItem> chosenItems, ImmutableArray<string> recentItems)
         {
-            // Try to find the chosen item has been most
-            // recently used.
-            var bestItem = chosenItems.FirstOrDefault();
+            // Try to find the chosen item has been most recently used.
+            var bestItem = chosenItems.First();
             for (int i = 0, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];

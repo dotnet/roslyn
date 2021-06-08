@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var useSiteInfo = withDependencies ? new CompoundUseSiteInfo<AssemblySymbol>(binder.Compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+            var useSiteInfo = withDependencies ? new CompoundUseSiteInfo<AssemblySymbol>(binder.Compilation.Assembly) : CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
             var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo);
             int numExpressions = types.Count;
             types.Free();

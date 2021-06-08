@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpVSResources.resx">
     <body>
@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
         <source>Allow blank line after colon in constructor initializer</source>
-        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <target state="translated">Leere Zeile nach Doppelpunkt in Konstruktorinitialisierer zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_blank_lines_between_consecutive_braces">
         <source>Allow blank lines between consecutive braces</source>
-        <target state="new">Allow blank lines between consecutive braces</target>
+        <target state="translated">Leere Zeilen zwischen aufeinanderfolgenden geschweiften Klammern zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_embedded_statements_on_same_line">
         <source>Allow embedded statements on same line</source>
-        <target state="new">Allow embedded statements on same line</target>
+        <target state="translated">Eingebettete Anweisungen in derselben Zeile zulassen</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
@@ -27,9 +27,14 @@
         <target state="translated">Alle C#-Formatierungsregeln anwenden (Einzug, Umbruch, Abstand)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">Anweisung bei Semikolon automatisch abschließen</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
-        <target state="needs-review-translation">Vervollständigungsliste in Argumentlisten automatisch anzeigen (experimentell)</target>
+        <target state="translated">Vervollständigungsliste in Argumentlisten automatisch anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -45,6 +50,11 @@
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
         <target state="translated">C#-Formatierungsregeln</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Abschluss</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -99,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
         <source>Place open brace on new line for object, collection, array, and with initializers</source>
-        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <target state="translated">Öffnende geschweifte Klammer für Objekt-, Sammlungs-, Array- und with-Initialisierer in neue Zeile einfügen</target>
         <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
@@ -580,11 +590,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">_Codeausschnitte in Vervollständigungslisten anordnen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Vervollständigungslisten</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

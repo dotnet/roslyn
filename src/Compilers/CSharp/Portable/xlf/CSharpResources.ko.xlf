@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpResources.resx">
     <body>
@@ -158,13 +158,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">위치 매개 변수 '{2}'과(와) 일치하려면 레코드 멤버 '{0}'이(가) 유형 '{1}'의 읽을 수 있는 인스턴스 속성이어야 합니다.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">위치 매개 변수 '{2}'과(와) 일치하려면 레코드 멤버 '{0}'이(가) 유형 '{1}'의 읽을 수 있는 인스턴스 속성이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -439,12 +444,22 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <target state="translated">특성의 'typeof'에 함수 포인터 형식을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">함수 포인터는 명명된 인수를 사용하여 호출할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -455,6 +470,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">goto는 using 선언 뒤 위치로 이동할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="translated">이 매개 변수에 해당 하는 위치 멤버 '{0}'이(가) 숨겨집니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -492,6 +512,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="translated">봉인된 'Object.ToString'이 있는 레코드에서 상속은 C# {0}에서 지원되지 않습니다. 언어 버전 '{1}'이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' 접근자는 'readonly'로 표시할 수 없습니다. 대신 '{0}' 읽기 전용으로 표시합니다.</target>
@@ -525,6 +550,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">잘못된 해시 알고리즘 이름: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">C# {1}의 이 항목에는 '{0}' 한정자가 유효하지 않습니다. 언어 버전 '{2}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -645,11 +675,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">출력 디렉터리를 확인할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">수신기 형식 '{0}'이(가) 유효한 레코드 형식이 아닙니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -972,6 +997,11 @@
         <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">대상으로 형식화된 개체 만들기</target>
@@ -985,6 +1015,31 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="new">record structs</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="translated">레코드의 봉인된 ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
+        <source>with on anonymous types</source>
+        <target state="new">with on anonymous types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1029,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
-        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <target state="translated">분해의 혼합 선언 및 식</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -4166,8 +4221,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">'{0}'의 partial 선언은 모든 클래스, 모든 레코드, 모든 구조체 또는 모든 인터페이스여야 합니다.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">'{0}'의 partial 선언은 모든 클래스, 모든 레코드, 모든 구조체 또는 모든 인터페이스여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -8417,8 +8472,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">'{0}' 형식의 매개 변수 또는 로컬은 비동기 메서드나 람다 식에서 선언할 수 없습니다.</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">'{0}' 형식의 매개 변수 또는 로컬은 비동기 메서드나 비동기 람다 식에서 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -10834,11 +10889,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">대상 런타임이 기본 인터페이스 구현을 지원하지 않으므로 '{0}'이(가) '{2}' 형식의 인터페이스 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">C# {1}의 이 항목에는 '{0}' 한정자가 유효하지 않습니다. 언어 버전 '{2}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

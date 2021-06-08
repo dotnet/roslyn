@@ -1840,7 +1840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.ExternKeyword), VisitToken(node.AliasKeyword), VisitToken(node.Identifier), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitUsingDirective(UsingDirectiveSyntax node)
-            => node.Update(VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax?)Visit(node.Alias), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken));
+            => node.Update(VisitToken(node.GlobalKeyword), VisitToken(node.UsingKeyword), VisitToken(node.StaticKeyword), (NameEqualsSyntax?)Visit(node.Alias), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitRecordDeclaration(RecordDeclarationSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.Keyword), VisitToken(node.ClassOrStructKeyword), VisitToken(node.Identifier), (TypeParameterListSyntax?)Visit(node.TypeParameterList), (ParameterListSyntax?)Visit(node.ParameterList), (BaseListSyntax?)Visit(node.BaseList), VisitList(node.ConstraintClauses), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
 
         public override SyntaxNode? VisitEnumDeclaration(EnumDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.EnumKeyword), VisitToken(node.Identifier), (BaseListSyntax?)Visit(node.BaseList), VisitToken(node.OpenBraceToken), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
@@ -4376,6 +4376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             return (CasePatternSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4392,6 +4393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (value == null) throw new ArgumentNullException(nameof(value));
+            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             return (CaseSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CaseSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4403,6 +4405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken keyword, SyntaxToken colonToken)
         {
             if (keyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(keyword));
+            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             return (DefaultSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4562,21 +4565,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.ExternAliasDirective(SyntaxFactory.Token(SyntaxKind.ExternKeyword), SyntaxFactory.Token(SyntaxKind.AliasKeyword), SyntaxFactory.Identifier(identifier), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
-        public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken globalKeyword, SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
         {
+            switch (globalKeyword.Kind())
+            {
+                case SyntaxKind.GlobalKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(globalKeyword));
+            }
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
-            return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
+            return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken?)globalKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name)
-            => SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.UsingKeyword), staticKeyword, alias, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), staticKeyword, alias, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameSyntax name)
-            => SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.UsingKeyword), default, default, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            => SyntaxFactory.UsingDirective(default, SyntaxFactory.Token(SyntaxKind.UsingKeyword), default, default, name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         /// <summary>Creates a new NamespaceDeclarationSyntax instance.</summary>
         public static NamespaceDeclarationSyntax NamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
@@ -4798,8 +4807,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.InterfaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.InterfaceKeyword), SyntaxFactory.Identifier(identifier), default, default, default, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
-        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken classOrStructKeyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
         {
+            switch (kind)
+            {
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration: break;
+                default: throw new ArgumentException(nameof(kind));
+            }
+            switch (classOrStructKeyword.Kind())
+            {
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.StructKeyword:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(classOrStructKeyword));
+            }
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             switch (openBraceToken.Kind())
             {
@@ -4819,20 +4841,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
-            return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
+            return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)classOrStructKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
-        public static RecordDeclarationSyntax RecordDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
-            => SyntaxFactory.RecordDeclaration(attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.RecordDeclaration(kind, attributeLists, modifiers, keyword, default, identifier, typeParameterList, parameterList, baseList, constraintClauses, default, members, default, default);
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
-        public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, SyntaxToken identifier)
-            => SyntaxFactory.RecordDeclaration(default, default(SyntaxTokenList), keyword, identifier, default, default, default, default, default, default, default, default);
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, SyntaxToken keyword, SyntaxToken identifier)
+            => SyntaxFactory.RecordDeclaration(kind, default, default(SyntaxTokenList), keyword, default, identifier, default, default, default, default, default, default, default, default);
 
         /// <summary>Creates a new RecordDeclarationSyntax instance.</summary>
-        public static RecordDeclarationSyntax RecordDeclaration(SyntaxToken keyword, string identifier)
-            => SyntaxFactory.RecordDeclaration(default, default(SyntaxTokenList), keyword, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default, default);
+        public static RecordDeclarationSyntax RecordDeclaration(SyntaxKind kind, SyntaxToken keyword, string identifier)
+            => SyntaxFactory.RecordDeclaration(kind, default, default(SyntaxTokenList), keyword, default, SyntaxFactory.Identifier(identifier), default, default, default, default, default, default, default, default);
+
+        private static SyntaxKind GetRecordDeclarationClassOrStructKeywordKind(SyntaxKind kind)
+            => kind switch
+            {
+                SyntaxKind.RecordDeclaration => SyntaxKind.ClassKeyword,
+                SyntaxKind.RecordStructDeclaration => SyntaxKind.StructKeyword,
+                _ => throw new ArgumentOutOfRangeException(),
+            };
 
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken enumKeyword, SyntaxToken identifier, BaseListSyntax? baseList, SyntaxToken openBraceToken, SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../RemoteWorkspacesResources.resx">
     <body>
@@ -38,13 +38,13 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
+        <source>Document highlights</source>
         <target state="translated">ドキュメント強調表示</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EditAndContinue">
         <source>Edit and Continue</source>
-        <target state="new">Edit and Continue</target>
+        <target state="translated">エディット コンティニュ</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -67,6 +67,11 @@
         <target state="translated">グローバル通知の配信</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">継承の余白</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">不足しているインポートの検出</target>
@@ -79,7 +84,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_NavigationBarItem">
         <source>Navigation bar</source>
-        <target state="new">Navigation bar</target>
+        <target state="translated">ナビゲーション バー</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">

@@ -32,29 +32,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
         /// </summary>
-        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds;
+        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
+        private readonly Dictionary<Guid, ProjectId> _moduleIds = new();
         private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
         /// The current baseline for given project id.
         /// The baseline is updated when changes are committed at the end of edit session.
-        /// The backing module readers of some baselines need to be kept alive -- store them in
-        /// <see cref="_lazyBaselineModuleReaders"/> and dispose them at the end of the debugging session
+        /// The backing module readers of initial baselines need to be kept alive -- store them in
+        /// <see cref="_initialBaselineModuleReaders"/> and dispose them at the end of the debugging session.
         /// </summary>
-        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
-        private List<IDisposable>? _lazyBaselineModuleReaders;
+        /// <remarks>
+        /// The baseline of each updated project is linked to its initial baseline that reads from the on-disk metadata and PDB.
+        /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
+        /// even whne it's replaced in <see cref="_projectEmitBaselines"/> by a newer baseline.
+        /// </remarks>
+        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines = new();
+        private readonly List<IDisposable> _initialBaselineModuleReaders = new();
         private readonly object _projectEmitBaselinesGuard = new();
 
-        // Maps active statement instructions to their latest spans.
-        // Consumed by the next edit session and updated when changes are committed at the end of the edit session.
+        // Maps active statement instructions reported by the debugger to their latest spans that might not yet have been applied
+        // (remapping not triggered yet). Consumed by the next edit session and updated when changes are committed at the end of the edit session.
         //
-        // Consider a function F containing a call to function G that is updated a couple of times
-        // before the thread returns from G and is remapped to the latest version of F.
-        // '>' indicates an active statement instruction.
+        // Consider a function F containing a call to function G. While G is being executed, F is updated a couple of times (in two edit sessions)
+        // before the thread returns from G and is remapped to the latest version of F. At the start of the second edit session,
+        // the active instruction reported by the debugger is still at the original location since function F has not been remapped yet (G has not returned yet).
+        //
+        // '>' indicates an active statement instruction for non-leaf frame reported by the debugger.
+        // v1 - before first edit, G executing
+        // v2 - after first edit, G still executing
+        // v3 - after second edit and G returned
         //
         // F v1:        F v2:       F v3:
         // 0: nop       0: nop      0: nop
-        // 1> G()       1: nop      1: nop
+        // 1> G()       1> nop      1: nop
         // 2: nop       2: G()      2: nop
         // 3: nop       3: nop      3> G()
         //
@@ -75,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         //
         internal ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
 
-        private readonly HashSet<Guid> _modulesPreparedForUpdate;
+        private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
         private readonly object _modulesPreparedForUpdateGuard = new();
 
         /// <summary>
@@ -85,61 +96,81 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly CommittedSolution LastCommittedSolution;
 
+        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
+
+        /// <summary>
+        /// Gets the capabilities of the runtime with respect to applying code changes.
+        /// </summary>
+        internal readonly EditAndContinueCapabilities Capabilities;
+
+        private readonly DebuggingSessionTelemetry _telemetry;
+        internal EditSession EditSession;
+
         internal DebuggingSession(
             Solution solution,
-            Func<Project, CompilationOutputs> compilationOutputsProvider)
+            IManagedEditAndContinueDebuggerService debuggerService,
+            EditAndContinueCapabilities capabilities,
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
+            DebuggingSessionTelemetry debuggingSessionTelemetry,
+            EditSessionTelemetry editSessionTelemetry)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
-            _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
-            _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
-            _modulesPreparedForUpdate = new HashSet<Guid>();
+            _telemetry = debuggingSessionTelemetry;
 
-            LastCommittedSolution = new CommittedSolution(this, solution);
+            Capabilities = capabilities;
+            DebuggerService = debuggerService;
+            LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
-        }
-
-        // test only
-        internal void Test_SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-            => NonRemappableRegions = nonRemappableRegions;
-
-        // test only
-        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
-        {
-            lock (_modulesPreparedForUpdateGuard)
-            {
-                return _modulesPreparedForUpdate.ToImmutableHashSet();
-            }
-        }
-
-        // test only
-        internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _projectEmitBaselines[id];
-            }
-        }
-
-        // internal for testing
-        internal ImmutableArray<IDisposable> GetBaselineModuleReaders()
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _lazyBaselineModuleReaders.ToImmutableArrayOrEmpty();
-            }
+            EditSession = new EditSession(this, editSessionTelemetry, inBreakState: false);
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
-        internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
         {
+            _cancellationSource.Cancel();
+
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
             }
 
             _cancellationSource.Dispose();
+        }
+
+        private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
+
+            var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
+
+            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            if (EditSession.InBreakState)
+            {
+                _telemetry.LogEditSession(editSessionTelemetryData);
+            }
+        }
+
+        public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
+        {
+            EndEditSession(out documentsToReanalyze);
+            telemetryData = _telemetry.GetDataAndClear();
+            Dispose();
+        }
+
+        internal void RestartEditSession(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            EndEditSession(out documentsToReanalyze);
+            EditSession = new EditSession(this, EditSession.Telemetry, inBreakState);
+        }
+
+        private ImmutableArray<IDisposable> GetBaselineModuleReaders()
+        {
+            lock (_projectEmitBaselinesGuard)
+            {
+                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
+            }
         }
 
         internal CompilationOutputs GetCompilationOutputs(Project project)
@@ -175,12 +206,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     _projectEmitBaselines[projectId] = baseline;
                 }
-
-                if (!update.ModuleReaders.IsEmpty)
-                {
-                    _lazyBaselineModuleReaders ??= new List<IDisposable>();
-                    _lazyBaselineModuleReaders.AddRange(update.ModuleReaders);
-                }
             }
 
             LastCommittedSolution.CommitSolution(update.Solution);
@@ -211,7 +236,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return (outputs.ReadAssemblyModuleVersionId(), Error: null);
                 }
-                catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+                catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException)
                 {
                     return (Mvid: Guid.Empty, Error: null);
                 }
@@ -231,7 +256,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return id;
                 }
 
+                _moduleIds[newId.Mvid] = project.Id;
                 return _projectModuleIds[project.Id] = newId;
+            }
+        }
+
+        public bool TryGetProjectId(Guid moduleId, [NotNullWhen(true)] out ProjectId? projectId)
+        {
+            lock (_projectModuleIdsGuard)
+            {
+                return _moduleIds.TryGetValue(moduleId, out projectId);
             }
         }
 
@@ -239,11 +273,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
         /// <returns>True unless the project outputs can't be read.</returns>
-        public bool TryGetOrCreateEmitBaseline(
-            Project project,
-            ArrayBuilder<IDisposable> readers,
-            out ImmutableArray<Diagnostic> diagnostics,
-            [NotNullWhen(true)] out EmitBaseline? baseline)
+        public bool TryGetOrCreateEmitBaseline(Project project, out ImmutableArray<Diagnostic> diagnostics, [NotNullWhen(true)] out EmitBaseline? baseline)
         {
             lock (_projectEmitBaselinesGuard)
             {
@@ -272,10 +302,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 _projectEmitBaselines[project.Id] = newBaseline;
+
+                _initialBaselineModuleReaders.Add(metadataReaderProvider);
+                _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
 
-            readers.Add(metadataReaderProvider);
-            readers.Add(debugInfoReaderProvider);
             baseline = newBaseline;
             return true;
         }
@@ -358,6 +389,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return builder.ToImmutable();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly DebuggingSession _instance;
+
+            public TestAccessor(DebuggingSession instance)
+                => _instance = instance;
+
+            public void SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
+                => _instance.NonRemappableRegions = nonRemappableRegions;
+
+            public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
+            {
+                lock (_instance._modulesPreparedForUpdateGuard)
+                {
+                    return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                }
+            }
+
+            public EmitBaseline GetProjectEmitBaseline(ProjectId id)
+            {
+                lock (_instance._projectEmitBaselinesGuard)
+                {
+                    return _instance._projectEmitBaselines[id];
+                }
+            }
+
+            public ImmutableArray<IDisposable> GetBaselineModuleReaders()
+                => _instance.GetBaselineModuleReaders();
         }
     }
 }

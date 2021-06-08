@@ -13,12 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
-    /// 
+    ///
+    /// For record class:
     /// public static bool operator==(R? left, R? right)
     ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
     /// public static bool operator !=(R? left, R? right)
     ///      => !(left == right);
-    ///        
+    ///
+    /// For record struct:
+    /// public static bool operator==(R left, R right)
+    ///      => left.Equals(right);
+    /// public static bool operator !=(R left, R right)
+    ///      => !(left == right);
+    ///
     ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
     ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
     /// </summary>
@@ -54,13 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, NullableAnnotation.Annotated),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
                                                                     ordinal: 0, RefKind.None, "left", Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, NullableAnnotation.Annotated),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
                                                                     ordinal: 1, RefKind.None, "right", Locations)));
         }
 

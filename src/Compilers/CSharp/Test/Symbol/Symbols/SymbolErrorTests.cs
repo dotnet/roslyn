@@ -1727,10 +1727,10 @@ namespace n3
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
                 // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
                 // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
                 //         static public void f();   // CS0106
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
@@ -1762,16 +1762,16 @@ class C
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
                 // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
                 // (3,28): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "8.0").WithLocation(3, 28),
                 // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("static").WithLocation(4, 30),
@@ -3196,10 +3196,10 @@ class MyClass2 : MyClass
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (3,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed void M();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("sealed", "7.0", "8.0").WithLocation(3, 17),
                 // (4,19): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     sealed object P { get; }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("sealed", "7.0", "8.0").WithLocation(4, 19),
                 // (4,23): error CS0501: 'I.P.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed object P { get; }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P.get").WithLocation(4, 23),
@@ -4087,13 +4087,13 @@ namespace N
                 .VerifyDiagnostics(
                 // (4,21): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int Q { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 21),
                 // (4,21): error CS0442: 'I.Q.get': abstract properties cannot have private accessors
                 //     int Q { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.Q.get").WithLocation(4, 21),
                 // (5,30): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object R { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 30)
                 );
         }
 
@@ -4111,13 +4111,13 @@ namespace N
                 .VerifyDiagnostics(
                 // (4,32): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     int this[char x] { private get; set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "get").WithArguments("private", "7.0", "8.0").WithLocation(4, 32),
                 // (4,32): error CS0442: 'I.this[char].get': abstract properties cannot have private accessors
                 //     int this[char x] { private get; set; } // CS0275
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I.this[char].get").WithLocation(4, 32),
                 // (5,43): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     object this[string x] { get; internal set; } // CS0275
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("internal", "7.0", "8.0").WithLocation(5, 43)
                 );
         }
 
@@ -7723,7 +7723,8 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -14521,7 +14522,7 @@ struct U<T>
                 .VerifyDiagnostics(
                     // (3,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                     //     static void M(this object o);
-                    Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M").WithArguments("static", "7.0", "8.0").WithLocation(3, 17),
                     // (1,11): error CS1106: Extension method must be defined in a non-generic static class
                     // interface I
                     Diagnostic(ErrorCode.ERR_BadExtensionAgg, "I").WithLocation(1, 11),
@@ -18406,7 +18407,8 @@ class Derived : Base<string>
 }
 ";
             // We no longer report a runtime ambiguous override (CS1957) because the compiler produces a methodimpl record to disambiguate.
-            CSharpCompilation comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
+            Assert.Equal(RuntimeUtilities.IsCoreClrRuntime, comp.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             if (comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
             {
                 comp.VerifyDiagnostics(
@@ -20828,6 +20830,19 @@ partial class C {
                 // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.M(in int)'
                 //     partial void M(in int i) {}  
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("C.M(in int)").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void MethodWithNoReturnTypeShouldNotComplainAboutStaticCtor()
+        {
+            CreateCompilation(@"
+class X
+{
+    private static Y(int i) {}
+}").VerifyDiagnostics(
+                // (4,20): error CS1520: Method must have a return type
+                //     private static Y(int i) {}
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Y").WithLocation(4, 20));
         }
     }
 }

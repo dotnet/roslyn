@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaTests : CompilingTestBase
+    public class LambdaTests : CSharpTestBase
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()
@@ -570,10 +570,10 @@ class Program
 ";
             var vbMetadata = vbProject.EmitToArray(options: new EmitOptions(metadataOnly: true));
             var csProject = CreateCompilation(Parse(csSource), new[] { MetadataReference.CreateFromImage(vbMetadata) });
-
-            var diagnostics = csProject.GetDiagnostics().Select(DumpDiagnostic);
-            Assert.Equal(1, diagnostics.Count());
-            Assert.Equal("'x' error CS0721: 'GC': static types cannot be used as parameters", diagnostics.First());
+            csProject.VerifyDiagnostics(
+                // (6,15): error CS0721: 'GC': static types cannot be used as parameters
+                //         M.F = x=>{};
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "x").WithArguments("System.GC").WithLocation(6, 15));
         }
 
         [WorkItem(540251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540251")]

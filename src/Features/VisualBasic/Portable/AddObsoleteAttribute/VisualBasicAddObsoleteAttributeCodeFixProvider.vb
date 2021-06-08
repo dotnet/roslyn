@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddObsoleteAttributeCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddObsoleteAttribute), [Shared]>
     Friend Class VisualBasicAddObsoleteAttributeCodeFixProvider
         Inherits AbstractAddObsoleteAttributeCodeFixProvider
 

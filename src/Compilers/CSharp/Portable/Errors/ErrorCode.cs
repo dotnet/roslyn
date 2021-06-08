@@ -1719,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
-        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
@@ -1858,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1930,8 +1930,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
-        ERR_CannotInferDelegateType = 8915,
+        #region diagnostics introduced for C# 10.0
+
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
+        ERR_CannotInferDelegateType = 8917,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

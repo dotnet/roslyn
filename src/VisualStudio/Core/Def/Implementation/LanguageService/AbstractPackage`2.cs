@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
             Assumes.Present(shell);
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return _languageService.ComAggregate;
             });
 
-            shell.LoadPackage(Guids.RoslynPackageId, out var setupPackage);
+            await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
             var miscellaneousFilesWorkspace = this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
             RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);

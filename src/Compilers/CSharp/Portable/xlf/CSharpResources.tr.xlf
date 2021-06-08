@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CSharpResources.resx">
     <body>
@@ -158,13 +158,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
-        <source>Record member '{0}' must be a readable instance property of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="translated">'{0}' kayıt üyesi, '{2}' konumsal parametresi ile eşleşecek şekilde '{1}' türünde okunabilir bir örnek özelliği olmalıdır.</target>
+        <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
+        <target state="needs-review-translation">'{0}' kayıt üyesi, '{2}' konumsal parametresi ile eşleşecek şekilde '{1}' türünde okunabilir bir örnek özelliği olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Komut satırı söz dizimi hatası: '{0}', '{1}' seçeneği için geçerli bir değer değil. Değer '{2}' biçiminde olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotClone">
+        <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
+        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -439,12 +444,22 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <target state="translated">Öznitelikte bir 'typeof' içinde işlev işaretçisi türü kullanılması desteklenmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">İşlev işaretçisi, adlandırılmış bağımsız değişkenler ile çağrılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -455,6 +470,11 @@
       <trans-unit id="ERR_GoToForwardJumpOverUsingVar">
         <source>A goto cannot jump to a location after a using declaration.</source>
         <target state="translated">Bir goto, using bildiriminden sonraki bir konuma atlayamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_HiddenPositionalMember">
+        <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
+        <target state="translated">Bu parametreye karşılık gelen konumsal üye '{0}' gizli.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -492,6 +512,11 @@
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
+        <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
+        <target state="translated">Mühürlü bir 'Object.ToString' içeren bir kayıttan devralma işlemi C# {0} sürümünde desteklenmiyor. Lütfen '{1}' veya üstü bir dil sürümünü kullanın.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
@@ -525,6 +550,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">Geçersiz karma algoritması adı: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="translated">'{0}' değiştiricisi bu öğe için C# {1} sürümünde geçerli değil. Lütfen '{2}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -645,11 +675,6 @@
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Çıkış dizini belirlenemedi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoSingleCloneMethod">
-        <source>The receiver type '{0}' is not a valid record type.</source>
-        <target state="translated">'{0}' alıcı türü geçerli bir kayıt türü değil.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -972,6 +997,11 @@
         <target state="translated">atılabilir değişkenler</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">hedeflenen türde nesne oluşturma</target>
@@ -985,6 +1015,31 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
+        <source>positional fields in records</source>
+        <target state="new">positional fields in records</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRecordStructs">
+        <source>record structs</source>
+        <target state="new">record structs</target>
+        <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="translated">kayıtta mühürlü ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
+        <source>with on anonymous types</source>
+        <target state="new">with on anonymous types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnStructs">
+        <source>with on structs</source>
+        <target state="new">with on structs</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1029,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
-        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <target state="translated">Ayrıştırmada karışık bildirimler ve ifadeler</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -4167,8 +4222,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt, tümü yapı ya da tümü arabirim olmalıdır</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">Kısmi '{0}' bildirimlerinin tümü sınıf, tümü kayıt, tümü yapı ya da tümü arabirim olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -8418,8 +8473,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</source>
-        <target state="translated">Zaman uyumsuz yöntemlerde veya lambda ifadelerinde '{0}' türündeki parametrelerin veya yerel öğelerin bildirimi yapılamaz</target>
+        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">Zaman uyumsuz yöntemlerde veya zaman uyumsuz lambda ifadelerinde '{0}' türündeki parametreler veya yerel öğeler bildirilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -10835,11 +10890,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemediğinden '{0}', '{1}' arabirim üyesini '{2}' türünde uygulayamaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">'{0}' değiştiricisi bu öğe için C# {1} sürümünde geçerli değil. Lütfen '{2}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

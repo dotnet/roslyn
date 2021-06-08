@@ -1831,11 +1831,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-            string name = "";
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
             var nameofBinder = new NameofBinder(argument, this);
             var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
-            if (!boundArgument.HasAnyErrors && CheckSyntaxForNameofArgument(argument, out name, diagnostics) && boundArgument.Kind == BoundKind.MethodGroup)
+
+            bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
+            if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
                 if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)

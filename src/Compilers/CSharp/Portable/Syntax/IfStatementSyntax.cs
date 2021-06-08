@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class IfStatementSyntax
     {
         public IfStatementSyntax Update(SyntaxToken ifKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement, ElseClauseSyntax @else)
-            => Update(attributeLists: default, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
+            => Update(AttributeLists, ifKeyword, openParenToken, condition, closeParenToken, statement, @else);
     }
 }
 

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 {
     using Constants = ConvertSwitchStatementToExpressionConstants;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertSwitchStatementToExpression), Shared]
     internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -44,6 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var switchLocation = context.Diagnostics.First().AdditionalLocations[0];
+            var switchStatement = (SwitchStatementSyntax)switchLocation.FindNode(getInnermostNodeForTie: true, context.CancellationToken);
+            if (switchStatement.ContainsDirectives)
+            {
+                // Avoid providing code fixes for switch statements containing directives
+                return Task.CompletedTask;
+            }
+
             context.RegisterCodeFix(
                 new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                 context.Diagnostics);

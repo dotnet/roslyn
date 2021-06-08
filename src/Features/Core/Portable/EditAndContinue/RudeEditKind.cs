@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertMethodWithExplicitInterfaceSpecifier = 81,
         InsertIntoInterface = 82,
         InsertLocalFunctionIntoInterfaceMethod = 83,
-        SwitchExpressionUpdate = 84,
+        //SwitchExpressionUpdate = 84,
         ChangingFromAsynchronousToSynchronous = 85,
         ChangingStateMachineShape = 86,
 
@@ -117,5 +117,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         SourceFileTooBig = 89,
         MemberBodyTooBig = 90,
         InsertIntoGenericType = 91,
+
+        ImplementRecordParameterAsReadOnly = 92,
+        ImplementRecordParameterWithSet = 93,
+        AddRecordPositionalParameter = 94,
+        DeleteRecordPositionalParameter = 95,
+        ExplicitRecordMethodParameterNamesMustMatch = 96,
+
+        NotSupportedByRuntime = 97,
+        MakeMethodAsync = 98,
+        MakeMethodIterator = 99,
+        InsertNotSupportedByRuntime = 100,
+        ChangingAttributesNotSupportedByRuntime = 101
     }
 }

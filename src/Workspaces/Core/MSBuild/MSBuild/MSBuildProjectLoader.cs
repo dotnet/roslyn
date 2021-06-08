@@ -1,10 +1,6 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
-#nullable disable
-
-# nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -32,8 +28,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
 
         // used to protect access to the following mutable state
-        private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
-        private ImmutableDictionary<string, string> _properties;
+        private readonly NonReentrantLock _dataGuard = new();
 
         internal MSBuildProjectLoader(
             HostWorkspaceServices workspaceServices,
@@ -46,11 +41,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             _pathResolver = new PathResolver(_diagnosticReporter);
             _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspaceServices, _diagnosticReporter);
 
-            _properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
+            Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
             if (properties != null)
             {
-                _properties = _properties.AddRange(properties);
+                Properties = Properties.AddRange(properties);
             }
         }
 
@@ -69,7 +64,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The MSBuild properties used when interpreting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties => _properties;
+        public ImmutableDictionary<string, string> Properties { get; private set; }
 
         /// <summary>
         /// Determines if metadata from existing output assemblies is loaded instead of opening referenced projects.
@@ -121,13 +116,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // $(SolutionDir) is defined to be the directory where the .sln file is located.
             // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
             // use MSBuildProjectDirectory which is always defined).
-            if (!string.IsNullOrEmpty(solutionFilePath))
+            if (!RoslynString.IsNullOrEmpty(solutionFilePath))
             {
                 var solutionDirectory = PathUtilities.GetDirectoryName(solutionFilePath) + PathUtilities.DirectorySeparatorChar;
 
                 if (Directory.Exists(solutionDirectory))
                 {
-                    _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
+                    Properties = Properties.SetItem(SolutionDirProperty, solutionDirectory);
                 }
             }
         }
@@ -196,13 +191,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // Load project if we have an empty project filter and the project path is present.
                 if (projectfilter.IsEmpty ||
-                    projectfilter.Contains(project.RelativePath))
+                    projectfilter.Contains(project.AbsolutePath))
                 {
                     projectPaths.Add(project.RelativePath);
                 }
             }
 
-            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
+            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,
@@ -213,7 +208,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectPaths.ToImmutable(),
                 // TryGetAbsoluteSolutionPath should not return an invalid path
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
-                _properties,
+                Properties,
                 projectMap: null,
                 progress,
                 requestedProjectOptions: reportingOptions,
@@ -261,7 +256,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 onPathFailure: reportingMode,
                 onLoaderFailure: reportingMode);
 
-            var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
+            var buildManager = new ProjectBuildManager(Properties, msbuildLogger);
 
             var worker = new Worker(
                 _workspaceServices,
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 buildManager,
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
-                globalProperties: _properties,
+                globalProperties: Properties,
                 projectMap,
                 progress,
                 requestedProjectOptions,

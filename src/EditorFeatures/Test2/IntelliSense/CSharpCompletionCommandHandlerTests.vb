@@ -9,7 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.CSharp
-Imports Microsoft.CodeAnalysis.Editor.CSharp.Formatting
+Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -178,6 +178,35 @@ public static class Test
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("Name", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnWithExpressionInitializer_AnonymousType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void M()
+    {
+        var a = new { Property = 1 };
+        _ = a $$
+    }
+}
+                              </Document>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                state.SendTab()
+                state.SendTypeChars(" { ")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
+                state.SendTypeChars("P")
+                Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=True)
+                state.SendTypeChars(" = 2")
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("with { Property = 2", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2079,7 +2108,7 @@ class Program
                               <Document>
                                   $$
                               </Document>,
-                              extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                              extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("using Sys")
@@ -2570,7 +2599,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/47610"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function LocalFunctionAttributeNamedPropertyCompletionCommitWithTab(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3272,7 +3301,7 @@ class C
 }
             ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.SendTypeChars("var @this = ""goo""")
+                state.SendTypeChars("var @this = ""goo"";")
                 state.SendReturn()
                 state.SendTypeChars("string str = this.ToString();")
                 state.SendReturn()
@@ -3667,7 +3696,7 @@ class C
     {
         int doodle;
 $$]]></Document>,
-                extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("doo;")
                 state.AssertMatchesTextStartingAtLine(6, "        doodle;")
@@ -3703,7 +3732,7 @@ class C
         int doodle;
         }
 }]]></Document>,
-                extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 Dim textBufferFactoryService = state.GetExportedValue(Of ITextBufferFactoryService)()
@@ -3743,7 +3772,7 @@ class C
             void goo(int x)
             {
                 string.$$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("is")
                     Await state.AssertSelectedCompletionItem("IsInterned")
@@ -3764,7 +3793,7 @@ class C
             void goo(int x)
             {
                 string.$$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("ı")
                     Await state.AssertSelectedCompletionItem()
@@ -3786,7 +3815,7 @@ class C
             void goo(int x)
             {
                 var t = new $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("tarif")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3811,7 +3840,7 @@ class C
             {
               IFADE ifade = null;
               $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("if")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3836,7 +3865,7 @@ class C
             {
               İFADE ifade = null;
                 $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("if")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3859,7 +3888,7 @@ class C
             void goo(int x)
             {
                 var obj = new $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("tarif")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3883,7 +3912,7 @@ class C
             void goo(int x)
             {
               var obj = new $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("ifad")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3907,7 +3936,7 @@ class C
             void goo(int x)
             {
               var obj = new $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("ifad")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3932,7 +3961,7 @@ class C
             {
               IFADE ifade = null;
               $$]]></Document>,
-                               extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                               extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3956,7 +3985,7 @@ class C
             void goo(int x)
             {
               İFADE ifade = null;
-                $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                $$]]></Document>, extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
@@ -3979,7 +4008,7 @@ class Program
         Cancel(x + 1, cancellationToken: $$)
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("cancellationToken", isHardSelected:=True).ConfigureAwait(True)
@@ -3999,7 +4028,7 @@ class Program
         args = $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("a")
                 Await state.AssertSelectedCompletionItem("args", isHardSelected:=True).ConfigureAwait(True)
@@ -4024,7 +4053,7 @@ class Program
         e = $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
@@ -4049,7 +4078,7 @@ class Program
         if (e == $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("E", isHardSelected:=True).ConfigureAwait(True)
@@ -4072,7 +4101,7 @@ class Program
        D cx2 = $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("c")
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
@@ -4094,7 +4123,7 @@ class Program
        A cx2 = $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("c")
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
@@ -4117,7 +4146,7 @@ class Program
         goo($$) // Not "Equals"
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("f", isHardSelected:=True).ConfigureAwait(True)
@@ -4139,7 +4168,7 @@ class Program
        C cx2 = $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("c")
                 Await state.AssertSelectedCompletionItem("cx", isHardSelected:=True).ConfigureAwait(True)
@@ -4162,7 +4191,7 @@ class Program
         int y = a$$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("aaq", isHardSelected:=True).ConfigureAwait(True)
@@ -4184,7 +4213,7 @@ class Program
         new[] { new { x = 1 } }.ToArr$$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
@@ -4209,7 +4238,7 @@ class Program
         }
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("value", isHardSelected:=True).ConfigureAwait(True)
@@ -4231,7 +4260,7 @@ class Program
         new[] { new { x = 1 } }.ToArr$$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem(description:=
@@ -4256,7 +4285,7 @@ class Program
         $$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("list")
@@ -4282,7 +4311,7 @@ class Program
         Main(args$$
     }
 }]]></Document>,
-                           extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList(),
+                           extraExportedTypes:={GetType(CSharpFormattingInteractionService)}.ToList(),
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
@@ -5277,7 +5306,7 @@ class C
             End Using
         End Function
 
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/49861")>
+        <WpfTheory>
         <InlineData("r")>
         <InlineData("load")>
         <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>

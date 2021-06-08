@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 case RecordDeclarationSyntax recordDecl:
+                    Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
                     return recordDecl;
                 default:
                     return null;

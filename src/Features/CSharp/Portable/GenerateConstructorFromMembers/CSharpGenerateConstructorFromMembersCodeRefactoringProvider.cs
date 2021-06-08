@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
+    [IntentProvider(WellKnownIntents.GenerateConstructor, LanguageNames.CSharp)]
     internal sealed class CSharpGenerateConstructorFromMembersCodeRefactoringProvider
         : AbstractGenerateConstructorFromMembersCodeRefactoringProvider
     {
