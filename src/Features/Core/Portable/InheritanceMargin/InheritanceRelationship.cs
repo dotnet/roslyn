@@ -17,51 +17,21 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         None = 0,
 
-        /// <summary>
-        /// Indicate the target is implementing the member. It would be shown as I↑.
-        /// </summary>
-        Implementing = 1,
-
-        /// <summary>
-        /// Indicate the target is implemented by the member. It would be shown as I↓.
-        /// </summary>
-        Implemented = 2,
-
-        /// <summary>
-        /// Indicate the target is overriding the member. It would be shown as O↑.
-        /// </summary>
-        Overriding = 4,
-
-        /// <summary>
-        /// Indicate the target is overridden by the member. It would be shown as O↓.
-        /// </summary>
-        Overridden = 8,
-
-        /// <summary>
-        /// A compound value for indicating there are multiple targets both implementing and overriding the member.
-        /// </summary>
-        ImplementingOverriding = InheritanceRelationship.Implementing | InheritanceRelationship.Overriding,
-
-        /// <summary>
-        /// A compound value for indicating there are multiple targets both implementing the member and overriden by the member.
-        /// </summary>
-        ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden,
-
         // class & struct
-        ImplementedInterface,
-        BaseType,
-        DerivedType,
+        ImplementedInterface = 1,
+        BaseType = 2,
+        DerivedType = 4,
 
         // interface
-        InheritedInterface,
-        ImplementingType,
+        InheritedInterface = 8,
+        ImplementingType = 16,
 
         // class & structure members
-        ImplmentedMember,
-        OverriddenMember,
-        OverridingMember,
+        ImplmentedMember = 32,
+        OverriddenMember = 64,
+        OverridingMember = 128,
 
         // member of interface
-        ImplementingMember
+        ImplementingMember = 256
     }
 }

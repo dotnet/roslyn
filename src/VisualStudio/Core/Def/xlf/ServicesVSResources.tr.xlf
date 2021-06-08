@@ -242,6 +242,11 @@
         <target state="translated">Geçerli parametre</target>
         <note />
       </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
         <target state="translated">Devre dışı</target>
@@ -377,6 +382,11 @@
         <target state="translated">Kimlik</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">Uygulanan üyeler</target>
@@ -385,6 +395,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">Üyeleri uygulama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -415,6 +430,11 @@
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
         <target state="translated">Devralma Marjı (deneysel)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
