@@ -1060,7 +1060,7 @@ class Customer
 }}
 ";
 
-        private static readonly string s_preferIsNullOverIsObject = $@"
+        private static readonly string s_preferNullcheckOverTypeCheck = $@"
 using System;
 
 class Customer
@@ -2041,7 +2041,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_is_null_check_over_is_object, s_preferIsNullOverIsObject, s_preferIsNullOverIsObject, this, optionStore, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, CSharpVSResources.Prefer_null_check_over_type_check, s_preferNullcheckOverTypeCheck, s_preferNullcheckOverTypeCheck, this, optionStore, nullCheckingGroupTitle));
 
             // Using directive preferences.
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(

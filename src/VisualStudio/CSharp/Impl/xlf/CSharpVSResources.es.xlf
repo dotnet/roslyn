@@ -117,15 +117,15 @@
         <target state="translated">Preferir la creación implícita de objetos cuando el tipo sea aparente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_check_over_is_object">
-        <source>Prefer 'is null' check over 'is object'</source>
-        <target state="new">Prefer 'is null' check over 'is object'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Preferir “is null” para comprobaciones de igualdad de referencias</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer null check over type check</source>
+        <target state="new">Prefer null check over type check</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
