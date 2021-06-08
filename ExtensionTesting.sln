@@ -45,6 +45,14 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj", "{CE32D863-E8C3-461F-80C7-32D0B0853217}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "Microsoft.VisualStudio.Extensibility.Testing.Xunit", "{9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests", "{7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.IntegrationTestService", "Microsoft.VisualStudio.IntegrationTestService", "{F8D033DE-AC32-4928-A1D9-30AD5FBD212A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.VisualStudio.VsixInstaller", "Microsoft.VisualStudio.VsixInstaller", "{37C00986-FB67-46DA-8B12-6CF99786ECC6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
@@ -120,6 +128,24 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C4C38EAE-B6B1-4EE5-9F01-03B4D9249BBD} = {9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}
+		{B3BED6CB-ABFE-4BB8-8AF7-901FF0C6F027} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{784CB5C8-6258-499D-8EFB-7A601A6F7E46} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{75EDEB61-DB9D-4F12-B922-ECEF8081CEF1} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{DA8322BC-E135-41BB-838A-D87551092E1A} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{4232A7BA-A7B7-4C65-B7A1-17FB5CDED299} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{346081A2-A088-4486-94B3-B586BD6FD888} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
+		{6A12CFF7-2499-4671-8EBE-EC3F2FF2ADF0} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{43CC037C-8EBC-424C-AB73-9DD4047924A1} = {37C00986-FB67-46DA-8B12-6CF99786ECC6}
+		{629938E1-1C2C-4F01-8038-90A34A940AC8} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
+		{5A516B07-7B9C-4CE1-9DDC-E59800919D64} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
+		{56550D99-71D3-44FE-804C-944D82D639F6} = {F8D033DE-AC32-4928-A1D9-30AD5FBD212A}
+		{D7647395-129B-4F45-8C78-10E6F92FC8AD} = {9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}
+		{8BDA92B2-E2E0-4607-94F6-444F56AD0582} = {9ED7BE6A-BDEE-44CF-B5C8-EA5F6E212CFD}
+		{9B5759AD-4EFF-4E2D-921B-D617BB8CFA22} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
+		{CE32D863-E8C3-461F-80C7-32D0B0853217} = {7A983C88-A0B8-4A6C-8837-E45ADD6C01EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BEAADCC8-C5EB-46B6-8AA8-0242304BE240}
