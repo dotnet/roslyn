@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -10,62 +10,53 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
-    internal abstract class AbstractEditorNavigationBarItemService : INavigationBarItemService
+    internal abstract class AbstractEditorNavigationBarItemService : ForegroundThreadAffinitizedObject, INavigationBarItemService
     {
-        protected abstract VirtualTreePoint? GetSymbolNavigationPoint(Document document, ISymbol symbol, CancellationToken cancellationToken);
-        protected abstract void NavigateToItem(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        protected AbstractEditorNavigationBarItemService(IThreadingContext threadingContext)
+            : base(threadingContext, assertIsForeground: false)
+        {
+        }
 
-        public async Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+            Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
+            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot));
         }
 
-        public void NavigateToItem(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToItem(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textSnapshot, cancellationToken);
 
-        protected void NavigateToSymbolItem(
-            Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        protected async Task NavigateToSymbolItemAsync(
+            Document document, NavigationBarItem item, RoslynNavigationBarItem.SymbolItem symbolItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var symbolNavigationService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
+            var workspace = document.Project.Solution.Workspace;
 
-            var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
-            var symbol = symbolInfo.GetAnySymbol();
+            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
 
-            // Do not allow third party navigation to types or constructors
-            if (symbol != null &&
-                !(symbol is ITypeSymbol) &&
-                !symbol.IsConstructor() &&
-                symbolNavigationService.TrySymbolNavigationNotify(symbol, document.Project, cancellationToken))
-            {
-                return;
-            }
-
-            var navigationPoint = this.GetSymbolItemNavigationPoint(document, item, cancellationToken);
-
-            if (navigationPoint.HasValue)
-            {
-                NavigateToVirtualTreePoint(document.Project.Solution, navigationPoint.Value, cancellationToken);
-            }
+            // Ensure we're back on the UI thread before either navigating or showing a failure message.
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
-        protected static void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
+        protected void NavigateToPosition(Workspace workspace, DocumentId? documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
-            var documentToNavigate = solution.GetRequiredDocument(navigationPoint.Tree);
-            var workspace = solution.Workspace;
+            this.AssertIsForeground();
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
+            if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
             {
-                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, options: null, cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
             }
             else
             {
@@ -74,29 +65,34 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             }
         }
 
-        public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
-            => true;
-
-        public VirtualTreePoint? GetSymbolItemNavigationPoint(Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
+        internal virtual Task<(DocumentId documentId, int position, int virtualSpace)> GetNavigationLocationAsync(
+            Document document,
+            NavigationBarItem item,
+            RoslynNavigationBarItem.SymbolItem symbolItem,
+            ITextSnapshot textSnapshot,
+            CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(item.Kind == RoslynNavigationBarItemKind.Symbol);
-            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbols = item.NavigationSymbolId.Resolve(compilation, cancellationToken: cancellationToken);
-
-            var symbol = symbols.Symbol;
-            if (symbol == null)
+            // If the item points to a location in this document, then just determine the current location
+            // of that item and go directly to it.
+            if (item.NavigationTrackingSpan != null)
             {
-                if (item.NavigationSymbolIndex < symbols.CandidateSymbols.Length)
-                {
-                    symbol = symbols.CandidateSymbols[item.NavigationSymbolIndex];
-                }
-                else
-                {
-                    return null;
-                }
+                return Task.FromResult((document.Id, item.NavigationTrackingSpan.GetSpan(textSnapshot).Start.Position, 0));
             }
+            else
+            {
+                // Otherwise, the item pointed to a location in another document.  Just return the position we
+                // computed and stored for it.
+                Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
+                var (documentId, navigationSpan) = symbolItem.Location.OtherDocumentInfo.Value;
+                return Task.FromResult((documentId, navigationSpan.Start, 0));
+            }
+        }
 
-            return GetSymbolNavigationPoint(document, symbol, cancellationToken);
+        public bool ShowItemGrayedIfNear(NavigationBarItem item)
+        {
+            // We only show items in gray when near that actually exist (i.e. are not meant for codegen).
+            // This will be all C# items, and only VB non-codegen items.
+            return ((WrappedNavigationBarItem)item).UnderlyingItem is SymbolItem;
         }
     }
 }

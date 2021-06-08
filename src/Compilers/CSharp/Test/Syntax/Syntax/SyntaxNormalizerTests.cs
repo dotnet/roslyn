@@ -16,6 +16,142 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizePatternInIf()
+        {
+            TestNormalizeStatement(
+                @"{object x = 1;
+                if (x is {})
+                {
+                }
+                if (x is {} t)
+                {
+                }
+                if (x is int {} t2)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10 } t3)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10, Item2: < 20 })
+                {
+                }
+}",
+                @"{
+  object x = 1;
+  if (x is { })
+  {
+  }
+
+  if (x is { } t)
+  {
+  }
+
+  if (x is int { } t2)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
+  {
+  }
+}".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpression()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => "">= 4"" };",
+                @"var x = (int)1 switch
+{
+  1 => ""one"",
+  2 => ""two"",
+  3 => ""three"",
+  { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchRecPattern()
+        {
+            TestNormalizeStatement(
+                @"var x = (object)1 switch {
+		int { } => ""two"",
+		{ } t when t.GetHashCode() == 42 => ""42"",
+		System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+		System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+		System.ValueType {} => ""not null value"",
+		object {} i when i is not 42 => ""not 42"",
+		{ } => ""not null"",
+		null => ""null"",
+};",
+                @"var x = (object)1 switch
+{
+  int { } => ""two"",
+  { } t when t.GetHashCode() == 42 => ""42"",
+  System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+  System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+  System.ValueType { } => ""not null value"",
+  object { } i when i is not 42 => ""not 42"",
+  { } => ""not null"",
+  null => ""null"",
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpressionComplex()
+        {
+            var a = @"var x = vehicle switch
+            {
+                Car { Passengers: 0 } => 2.00m + 0.50m,
+                Car { Passengers: 1 } => 2.0m,
+                Car { Passengers: 2 } => 2.0m - 0.50m,
+                Car c => 2.00m - 1.0m,
+
+                Taxi { Fares: 0 } => 3.50m + 1.00m,
+                Taxi { Fares: 1 } => 3.50m,
+                Taxi { Fares: 2 } => 3.50m - 0.50m,
+                Taxi t => 3.50m - 1.00m,
+
+                Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+                Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+                Bus b => 5.00m,
+
+                DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+                DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+                DeliveryTruck t => 10.00m,
+                { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+                null => 0//throw new ArgumentNullException(nameof(vehicle))
+            };";
+            var b = @"var x = vehicle switch
+{
+  Car { Passengers: 0 } => 2.00m + 0.50m,
+  Car { Passengers: 1 } => 2.0m,
+  Car { Passengers: 2 } => 2.0m - 0.50m,
+  Car c => 2.00m - 1.0m,
+  Taxi { Fares: 0 } => 3.50m + 1.00m,
+  Taxi { Fares: 1 } => 3.50m,
+  Taxi { Fares: 2 } => 3.50m - 0.50m,
+  Taxi t => 3.50m - 1.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+  Bus b => 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+  DeliveryTruck t => 10.00m,
+  { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+  null => 0 //throw new ArgumentNullException(nameof(vehicle))
+};".NormalizeLineEndings();
+            TestNormalizeStatement(a, b);
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {
@@ -258,9 +394,17 @@ breaks
             TestNormalizeDeclaration("using a.b;", "using a.b;");
             TestNormalizeDeclaration("using A; using B; class C {}", "using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
 
+            TestNormalizeDeclaration("global  using  a;", "global using a;");
+            TestNormalizeDeclaration("global  using  a=b;", "global using a = b;");
+            TestNormalizeDeclaration("global  using  a.b;", "global using a.b;");
+            TestNormalizeDeclaration("global using A; global using B; class C {}", "global using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("global using A; using B; class C {}", "global using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("using A; global using B; class C {}", "using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+
             // namespace
             TestNormalizeDeclaration("namespace a{}", "namespace a\r\n{\r\n}");
             TestNormalizeDeclaration("namespace a{using b;}", "namespace a\r\n{\r\n  using b;\r\n}");
+            TestNormalizeDeclaration("namespace a{global  using  b;}", "namespace a\r\n{\r\n  global using b;\r\n}");
             TestNormalizeDeclaration("namespace a{namespace b{}}", "namespace a\r\n{\r\n  namespace b\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("namespace a{}namespace b{}", "namespace a\r\n{\r\n}\r\n\r\nnamespace b\r\n{\r\n}");
 
@@ -368,6 +512,13 @@ breaks
         }
 
         [Fact]
+        public void TestSpacingOnRecord()
+        {
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
@@ -389,12 +540,12 @@ breaks
             // no space between this and (
             TestNormalizeDeclaration(
                 "class C { C() : this () { } }",
-                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : this()\r\n  {\r\n  }\r\n}");
 
             // no space between base and (
             TestNormalizeDeclaration(
                 "class C { C() : base () { } }",
-                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : base()\r\n  {\r\n  }\r\n}");
 
             // no space between checked and (
             TestNormalizeExpression("checked (a)", "checked(a)");
@@ -764,6 +915,35 @@ $"  ///  </summary>{Environment.NewLine}" +
 @"unsafe class C
 {
   delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
+        public void TestNormalizeColonInConstructorInitializer()
+        {
+            var content =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived():base(){}
+}";
+
+            var expected =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived() : base()
+  {
+  }
 }";
 
             TestNormalizeDeclaration(content, expected);

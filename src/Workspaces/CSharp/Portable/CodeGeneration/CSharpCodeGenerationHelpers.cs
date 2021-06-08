@@ -72,11 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TypeDeclarationSyntax AddMembersTo(
             TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members)
         {
+            var syntaxTree = destination.SyntaxTree;
             destination = ReplaceUnterminatedConstructs(destination);
 
-            return ConditionallyAddFormattingAnnotationTo(
+            var node = ConditionallyAddFormattingAnnotationTo(
                 destination.EnsureOpenAndCloseBraceTokens().WithMembers(members),
                 members);
+
+            // Make sure the generated syntax node has same parse option.
+            // e.g. If add syntax member to a C# 5 destination, we should return a C# 5 syntax node.
+            var tree = node.SyntaxTree.WithRootAndOptions(node, syntaxTree.Options);
+            return (TypeDeclarationSyntax)tree.GetRoot();
         }
 
         private static TypeDeclarationSyntax ReplaceUnterminatedConstructs(TypeDeclarationSyntax destination)

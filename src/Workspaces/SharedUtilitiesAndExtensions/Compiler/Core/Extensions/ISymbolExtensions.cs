@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (!(symbol is IMethodSymbol method))
+            if (symbol is not IMethodSymbol method)
             {
                 return false;
             }

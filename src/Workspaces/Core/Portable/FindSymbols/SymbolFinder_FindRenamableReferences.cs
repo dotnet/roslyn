@@ -26,10 +26,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     documents: null,
                     ReferenceFinders.DefaultRenameReferenceFinders,
                     streamingProgress,
-                    FindReferencesSearchOptions.Default,
-                    cancellationToken);
+                    FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
                 return streamingProgress.GetReferencedSymbols();
             }
         }

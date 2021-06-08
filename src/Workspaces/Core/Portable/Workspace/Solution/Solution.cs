@@ -204,6 +204,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets a document, additional document, analyzer config document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<TextDocument?> GetTextDocumentAsync(DocumentId? documentId, CancellationToken cancellationToken = default)
+        {
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
+            {
+                return default;
+            }
+
+            Contract.ThrowIfNull(documentId);
+            return project.GetTextDocumentAsync(documentId, cancellationToken);
+        }
+
+        /// <summary>
         /// Gets the additional document in this solution with the specified document ID.
         /// </summary>
         public TextDocument? GetAdditionalDocument(DocumentId? documentId)
@@ -1644,7 +1659,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
-            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
+            var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution));
 
             return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }
@@ -1727,6 +1742,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Returns a new Solution that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        internal Document WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText text)
+        {
+            var newState = _state.WithFrozenSourceGeneratedDocument(documentIdentity, text);
+            var newSolution = newState != _state ? new Solution(newState) : this;
+            var newDocumentState = newState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            Contract.ThrowIfNull(newDocumentState, "Because we just froze this document, it should always exist.");
+            var newProject = newSolution.GetRequiredProject(newDocumentState.Id.ProjectId);
+            return newProject.GetOrCreateSourceGeneratedDocument(newDocumentState);
         }
 
         /// <summary>

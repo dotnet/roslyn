@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -119,9 +117,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
+        {
+            SetOption(
+                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Name,
+                feature: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Feature,
+                value: value);
+        }
+
+        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

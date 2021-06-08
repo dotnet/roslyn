@@ -919,10 +919,10 @@ End Class"
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E1(sender As Object, e As EventArgs)", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E2", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E3", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F1", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F2", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F5(1, 2)", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F6?", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "WE As Object", VBFeaturesResources.WithEvents_field))
@@ -4954,7 +4954,7 @@ End Class
 Imports System
 
 Partial Class C
-    Dim <N:0.0>a = 1</N:0.0>
+    Dim a <N:0.0>= 1</N:0.0>
 
     Sub New(arg As UInteger)
         Console.WriteLine(2)
@@ -4979,7 +4979,7 @@ End Class
 Imports System
 
 Partial Class C
-    Dim <N:0.0>a = 2</N:0.0>    ' updated field initializer
+    Dim a <N:0.0>= 2</N:0.0>    ' updated field initializer
 
     Sub New(arg As UInteger)
         Console.WriteLine(2)

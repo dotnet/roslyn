@@ -7,18 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using System.IO;
-using System.IO.Compression;
+using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
@@ -108,6 +107,11 @@ namespace Roslyn.Test.Utilities
         public static Guid GetModuleVersionId(this MetadataReader reader)
         {
             return reader.GetGuid(reader.GetModuleDefinition().Mvid);
+        }
+
+        public static StringHandle[] GetUpdatedTypeDefNames(this MetadataReader reader, EmitDifferenceResult emitResult)
+        {
+            return emitResult.UpdatedTypes.Select(handle => reader.GetTypeDefinition(handle).Name).ToArray();
         }
 
         public static StringHandle[] GetAssemblyRefNames(this MetadataReader reader)

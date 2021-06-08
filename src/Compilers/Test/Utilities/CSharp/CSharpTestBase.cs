@@ -570,6 +570,18 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string UnmanagedCallersOnlyAttributeDefinition =
+@"namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    public sealed class UnmanagedCallersOnlyAttribute : Attribute
+    {
+        public UnmanagedCallersOnlyAttribute() { }
+        public Type[] CallConvs;
+        public string EntryPoint;
+    }
+}";
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -1869,6 +1881,7 @@ namespace System.Runtime.CompilerServices
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 

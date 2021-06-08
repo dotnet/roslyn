@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return ImmutableArray<DocumentHighlights>.Empty;
                 }
 
-                return result.Value.SelectAsArray(h => h.Rehydrate(solution));
+                return await result.Value.SelectAsArrayAsync(h => h.RehydrateAsync(solution)).ConfigureAwait(false);
             }
 
             return await GetDocumentHighlightsInCurrentProcessAsync(
@@ -56,23 +54,28 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var result = await TryGetEmbeddedLanguageHighlightsAsync(
                 document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefaultOrEmpty)
-            {
                 return result;
-            }
 
             var solution = document.Project.Solution;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                 semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return ImmutableArray<DocumentHighlights>.Empty;
-            }
 
             // Get unique tags for referenced symbols
-            return await GetTagsForReferencedSymbolAsync(
+            var tags = await GetTagsForReferencedSymbolAsync(
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            // Only accept these highlights if at least one of them actually intersected with the 
+            // position the caller was asking for.  For example, if the user had `$$new X();` then 
+            // SymbolFinder will consider that the symbol `X`. However, the doc highlights won't include
+            // the `new` part, so it's not appropriate for us to highlight `X` in that case.
+            if (!tags.Any(t => t.HighlightSpans.Any(hs => hs.TextSpan.IntersectsWith(position))))
+                return ImmutableArray<DocumentHighlights>.Empty;
+
+            return tags;
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                             // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                             if (document == null)
                             {
-                                Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                                Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                                 continue;
                             }
 
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 {
                     var tree = location.SourceTree;
 
-                    var document = solution.GetDocument(tree);
+                    var document = solution.GetRequiredDocument(tree);
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)

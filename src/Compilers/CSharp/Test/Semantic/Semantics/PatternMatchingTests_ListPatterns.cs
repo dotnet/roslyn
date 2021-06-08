@@ -965,9 +965,9 @@ class X
             // PROTOTYPE(list-patterns) Missing diagnostic on `.. var slice`; (this is strange as the test above works)
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (7,13): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+                // (7,15): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
                 //         _ = a[..];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "a[..]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 13));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(7, 15));
         }
 
         [Theory]
@@ -1029,20 +1029,20 @@ class X
 using System;
 class Test1
 {
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error1"", error: true)]
     public int Slice(int i, int j) => 0;
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error2"", error: true)]
     public int this[int i] => 0;
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error3"", error: true)]
     public int Count => 0;
 }
 class Test2
 {
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error4"", error: true)]
     public int this[Index i] => 0;
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error5"", error: true)]
     public int this[Range i] => 0;
-    [Obsolete(""error"", error: true)]
+    [Obsolete(""error6"", error: true)]
     public int Length => 0;
 }
 class X
@@ -1061,20 +1061,33 @@ class X
 }
 ";
             // PROTOTYPE(list-patterns): Missing errors for implicit support https://github.com/dotnet/roslyn/issues/53418
+            // PROTOTYPE: still missing errors on Count/Length. Should also test with obsolete accessors
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (29,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error'
+                // (25,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
+                //         _ = new Test1() is {0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.this[int]", "error2").WithLocation(25, 28),
+                // (27,31): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
+                //         _ = new Test1() is [1]{0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.this[int]", "error2").WithLocation(27, 31),
+                // (28,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
+                //         _ = new Test1() is {..0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test1.this[int]", "error2").WithLocation(28, 28),
+                // (28,29): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
+                //         _ = new Test1() is {..0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(28, 29),
+                // (29,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is {0};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test2.this[System.Index]", "error").WithLocation(29, 28),
-                // (31,31): error CS0619: 'Test2.this[Index]' is obsolete: 'error'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test2.this[System.Index]", "error4").WithLocation(29, 28),
+                // (31,31): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is [1]{0};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test2.this[System.Index]", "error").WithLocation(31, 31),
-                // (32,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test2.this[System.Index]", "error4").WithLocation(31, 31),
+                // (32,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is {..0};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test2.this[System.Index]", "error").WithLocation(32, 28),
-                // (32,29): error CS0619: 'Test2.this[Range]' is obsolete: 'error'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test2.this[System.Index]", "error4").WithLocation(32, 28),
+                // (32,29): error CS0619: 'Test2.this[Range]' is obsolete: 'error5'
                 //         _ = new Test2() is {..0};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error").WithLocation(32, 29));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error5").WithLocation(32, 29));
         }
 
         [Fact]
@@ -1866,6 +1879,44 @@ class X
                 Assert.Equal(type, typeInfo.Type.ToDisplayString());
                 Assert.Equal(type, typeInfo.ConvertedType.ToDisplayString());
             }
+        }
+
+        [Fact]
+        public void PatternIndexRangeReadOnly_01()
+        {
+            // Relates to https://github.com/dotnet/roslyn/pull/37194
+            var src = @"
+using System;
+struct S
+{
+    public int this[int i] => 0;
+    public int Length => 0;
+    public int Slice(int x, int y) => 0;
+
+    readonly void M(Index i, Range r)
+    {
+        _ = this[i]; // 1, 2
+        _ = this[r]; // 3, 4
+
+        _ = this is [0];
+        _ = this is { 1 };
+        _ = this is { 2, ..var rest };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1, 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(11, 13),
+                // (11,13): warning CS8656: Call to non-readonly member 'S.this[int].get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[i]; // 1, 2
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.this[int].get", "this").WithLocation(11, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Length.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 3, 4
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Length.get", "this").WithLocation(12, 13),
+                // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
+                //         _ = this[r]; // 3, 4
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
         }
     }
 }

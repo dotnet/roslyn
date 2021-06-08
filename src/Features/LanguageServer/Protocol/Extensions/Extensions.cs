@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,6 +130,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return false;
         }
 
+        public static bool HasCompletionListDataCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.Data;
+        }
+
+        public static bool HasCompletionListCommitCharactersCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.CommitCharacters;
+        }
+
         public static string GetMarkdownLanguageName(this Document document)
         {
             switch (document.Project.Language)
@@ -155,6 +176,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // belongs to them.
             var spanMapper = document.Services.GetService<ISpanMappingService>();
             return spanMapper != null;
+        }
+
+        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSCompletionListSetting? completionListSetting)
+        {
+            if (clientCapabilities is not VSClientCapabilities vsClientCapabilities)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            var textDocumentCapability = vsClientCapabilities.TextDocument;
+            if (textDocumentCapability == null)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            if (textDocumentCapability.Completion is not VSCompletionSetting vsCompletionSetting)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            completionListSetting = vsCompletionSetting.CompletionList;
+            if (completionListSetting == null)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

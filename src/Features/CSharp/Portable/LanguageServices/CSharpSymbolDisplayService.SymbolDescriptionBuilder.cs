@@ -81,6 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                     Space());
             }
 
+            protected override void AddEnumUnderlyingTypeSeparator()
+            {
+                AddToGroup(SymbolDescriptionGroups.MainDescription,
+                    Space(),
+                    Punctuation(":"),
+                    Space());
+            }
+
             protected override Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 ISymbol symbol)
             {
