@@ -6379,6 +6379,16 @@ IInvocationOperation (virtual void I1.M01()) (OperationKind.Invocation, Type: Sy
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("void I1.M01()", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Equal("void I1.M01()", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("void I1.M01()", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Equal("void I1.M01()", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("M01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -9999,6 +10009,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10075,6 +10095,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10187,6 +10217,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10863,6 +10903,16 @@ IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.Eve
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "E01").Single().ToTestDisplayString());
+            Assert.Equal("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "E01").Single().ToTestDisplayString());
+            Assert.Contains("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("event System.Action I1.E01", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "E01").Single().ToTestDisplayString());
+            Assert.Equal("event System.Action I1.E01", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "E01").Single().ToTestDisplayString());
+            Assert.Contains("event System.Action I1.E01", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("event System.Action I1.E01", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("E01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
