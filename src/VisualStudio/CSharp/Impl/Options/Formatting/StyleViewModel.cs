@@ -2033,6 +2033,14 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer, CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer, s_allow_bank_line_after_colon_in_constructor_initializer_true, s_allow_bank_line_after_colon_in_constructor_initializer_false, this, optionStore, newLinePreferencesGroupTitle));
         }
 
+        class Foo
+        {
+            public Foo() :
+                base()
+            {
+            }
+        }
+
         private void AddParenthesesOptions(OptionStore optionStore)
         {
             AddParenthesesOption(
