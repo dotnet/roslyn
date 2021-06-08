@@ -61,6 +61,10 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 dotnet_style_explicit_tuple_names = true:suggestion
 
+# Whitespace options
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning
+dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
+
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.symbols = non_private_static_fields
@@ -181,6 +185,11 @@ csharp_indent_case_contents = true
 csharp_indent_case_contents_when_block = true
 csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
+
+# Whitespace options
+csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:warning
 
 # Prefer "var" everywhere
 csharp_style_var_for_built_in_types = true:suggestion
