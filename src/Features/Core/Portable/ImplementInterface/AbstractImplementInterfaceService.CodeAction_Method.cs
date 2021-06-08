@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         private sealed class InterfaceReplacerWithContainingTypeVisistor : SymbolVisitor<ISymbol>
         {
-            private readonly INamedTypeSymbol _intrerfaceSymbol;
+            private readonly INamedTypeSymbol _interfaceSymbol;
             private readonly INamedTypeSymbol _containingTypeSymbol;
 
             public InterfaceReplacerWithContainingTypeVisistor(INamedTypeSymbol interfaceSymbol, INamedTypeSymbol containingTypeSymbol)
             {
                 Debug.Assert(interfaceSymbol.TypeKind == TypeKind.Interface);
                 Debug.Assert(containingTypeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
-                _intrerfaceSymbol = interfaceSymbol;
+                _interfaceSymbol = interfaceSymbol;
                 _containingTypeSymbol = containingTypeSymbol;
             }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             public override ISymbol VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.Equals(_intrerfaceSymbol, SymbolEqualityComparer.Default))
+                if (symbol.Equals(_interfaceSymbol, SymbolEqualityComparer.Default))
                 {
                     return _containingTypeSymbol;
                 }
