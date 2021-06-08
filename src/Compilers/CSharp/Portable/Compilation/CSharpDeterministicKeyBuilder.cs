@@ -10,47 +10,49 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
-        internal override void AppendCompilationOptions(CompilationOptions options)
+        protected override void AppendCompilationOptionsCore(CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
             {
                 throw new InvalidOperationException();
             }
 
-            base.AppendCompilationOptions(options);
+            base.AppendCompilationOptionsCore(options);
 
-            AppendBool(nameof(CSharpCompilationOptions.AllowUnsafe), csharpOptions.AllowUnsafe);
-            AppendEnum(nameof(CSharpCompilationOptions.TopLevelBinderFlags), csharpOptions.TopLevelBinderFlags);
+            WriteBool("unsafe", csharpOptions.AllowUnsafe);
+            WriteEnum("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
 
             if (csharpOptions.Usings.Length > 0)
             {
-                AppendLine("Global Usings");
+                Writer.WriteKey("globalUsings");
+                Writer.WriteArrayStart();
                 foreach (var name in csharpOptions.Usings)
                 {
-                    AppendSpaces(spaceCount: 4);
-                    AppendLine(name);
+                    Writer.Write(name);
                 }
+                Writer.WriteArrayEnd();
             }
         }
 
-        internal override void AppendParseOptions(ParseOptions parseOptions)
+        protected override void AppendParseOptionsCore(ParseOptions parseOptions)
         {
             if (parseOptions is not CSharpParseOptions csharpOptions)
             {
                 throw new InvalidOperationException();
             }
 
-            AppendEnum(nameof(CSharpParseOptions.LanguageVersion), csharpOptions.LanguageVersion);
-            AppendEnum(nameof(CSharpParseOptions.SpecifiedLanguageVersion), csharpOptions.SpecifiedLanguageVersion);
+            WriteEnum("langaugeVersion", csharpOptions.LanguageVersion);
+            WriteEnum("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
             if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)
             {
-                AppendLine("Preprocessor Symbols");
+                Writer.WriteKey("preprocessorSymbols");
+                Writer.WriteArrayStart();
                 foreach (var symbol in symbols)
                 {
-                    AppendSpaces(spaceCount: 4);
-                    AppendLine(symbol);
+                    Writer.Write(symbol);
                 }
+                Writer.WriteArrayEnd();
             }
         }
     }
