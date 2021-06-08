@@ -498,7 +498,7 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void ExtendedPropertyPattern_Before()
+        public void ExtendedPropertyPattern()
         {
             var code = @"
 class C
@@ -517,7 +517,7 @@ class C
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-        public void ExtendedPropertyPattern_After()
+        public void ExtendedPropertyPattern_WithPattern()
         {
             var code = @"
 class C
@@ -526,12 +526,17 @@ class C
     {
         _ = this is
         {
+
             A.B: 1,
 
 ";
             AssertSmartIndent(
                 code,
-                indentationLine: 8,
+                indentationLine: 7,
+                expectedIndentation: 12);
+            AssertSmartIndent(
+                code,
+                indentationLine: 9,
                 expectedIndentation: 12);
         }
 
