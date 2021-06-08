@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format = null)
         {
             Initialize(view);
 
@@ -60,11 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
             return new GraphicsResult(border,
                 () => view.ViewportWidthChanged -= viewportWidthChangedHandler);
-        }
-
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds, TextFormattingRunProperties format)
-        {
-            throw new NotImplementedException();
         }
     }
 }

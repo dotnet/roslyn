@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 Child = block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(0, top: 0, 0, bottom: 0),
+                Margin = new Thickness(3, top: 0, 0, bottom: 0),
                 Padding = new Thickness(1)
             };
 
@@ -135,11 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             border.Background = format.BackgroundBrush;
             var block = (TextBlock)border.Child;
             block.Foreground = format.ForegroundBrush;
-        }
-
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>

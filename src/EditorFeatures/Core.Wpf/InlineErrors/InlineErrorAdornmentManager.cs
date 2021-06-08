@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -151,16 +152,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             var map = GetSpansOnEachLine(changedSpanCollection);
             foreach (var (lineNum, tagMappingSpanList) in map)
             {
-                if (tagMappingSpanList.Count >= 1)
+                var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
+                if (tagMappingSpan != null)
                 {
-                    TryMapToSingleSnapshotSpan(tagMappingSpanList[0].Span, TextView.TextSnapshot, out var span);
+                    TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
                     var geometry = viewLines.GetMarkerGeometry(span);
                     if (geometry != null)
                     {
-                        var tag = tagMappingSpanList[0].Tag;
+                        var tag = tagMappingSpan.Tag;
                         var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
                         var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-                        if (!_tagSpanToPointMap.TryGetValue(tagMappingSpanList[0], out var point))
+                        if (!_tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
                         {
                             continue;
                         }
@@ -179,6 +181,24 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                     }
                 }
             }
+        }
+
+        private static IMappingTagSpan<InlineErrorTag>? GetHighestOrderTag(List<IMappingTagSpan<InlineErrorTag>> list)
+        {
+            foreach (var span in list)
+            {
+                if (span.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
+                {
+                    return span;
+                }
+            }
+
+            if (list.Count > 0)
+            {
+                return list[0];
+            }
+
+            return null;
         }
     }
 }
