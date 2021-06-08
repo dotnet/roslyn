@@ -44,7 +44,7 @@ try {
 
   # Verify no PROTOTYPE marker left in main
   if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
-    Write-Host "Checking no PROTOTYPE markers in compiler source"
+    Write-Host "Checking no PROTOTYPE markers in source"
     $prototypes = Get-ChildItem -Path src/*.cs, src/*.vb, src/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
       Write-Host "Found PROTOTYPE markers in compiler source:"
