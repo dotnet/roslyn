@@ -10,9 +10,12 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                 if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
                 {
-                    await AddInheritanceMemberItemsForTypeMembersAsync(solution, symbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
+                    await AddInheritanceMemberItemsForClassAndStructMembersAsync(solution, symbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
-                var item = await CreateInheritanceMemberItemAsync(
+                var item = await CreateInheritanceMemberItemForNamedTypeAsync(
                     solution,
                     memberSymbol,
                     lineNumber,
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async ValueTask AddInheritanceMemberItemsForTypeMembersAsync(
+        private static async ValueTask AddInheritanceMemberItemsForClassAndStructMembersAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -183,7 +186,101 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemAsync(
+        #region Interface
+        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForInterfaceAsync(
+            Solution solution,
+            INamedTypeSymbol interfaceSymbol,
+            int lineNumber,
+            ImmutableArray<ISymbol> baseSymbols,
+            ImmutableArray<ISymbol> derivedTypesSymbols,
+            CancellationToken cancellationToken)
+        {
+            var baseSymbolItems = await baseSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.InheritedInterface,
+                    cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+
+            var derivedTypeItems = await derivedTypesSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) =>
+                    CreateInheritanceItemAsync(solution,
+                    symbol,
+                    InheritanceRelationship.ImplementingType,
+                    cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+
+            return new SerializableInheritanceMarginItem(
+                lineNumber,
+                FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
+                interfaceSymbol.GetGlyph(),
+                baseSymbolItems.Concat(derivedTypeItems));
+        }
+
+        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberInfoForInterfaceMemberAsync(
+            Solution solution,
+            ISymbol memberSymbol,
+            int lineNumber,
+            ImmutableArray<ISymbol> implementingMembers,
+            ImmutableArray<ISymbol> implementedMembers,
+            ImmutableArray<ISymbol> overridenMembers,
+            ImmutableArray<ISymbol> overridingMembers,
+            CancellationToken cancellationToken)
+        {
+            var implementingMemberItems = await implementingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.ImplmentedMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var implementedMemberItems = await implementedMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.ImplementingMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var overridenMemberItems = await overridenMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverriddenMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var overridingMemberItems = await overridingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverridingMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            return new SerializableInheritanceMarginItem(
+                lineNumber,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                implementingMemberItems.Concat(implementedMemberItems)
+                    .Concat(overridenMemberItems)
+                    .Concat(overridingMemberItems));
+        }
+
+        #endregion
+
+        #region ClassAndStruct
+        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForClassAndStructureAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
@@ -194,13 +291,114 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken)
+                .SelectAsArrayAsync((symbol, _) =>
+                {
+                    if (symbol.IsInterfaceType())
+                    {
+                        return CreateInheritanceItemAsync(
+                            solution,
+                            symbol,
+                            InheritanceRelationship.InheritedInterface, cancellationToken);
+                    }
+                    else
+                    {
+                        return CreateInheritanceItemAsync(
+                            solution,
+                            symbol,
+                            InheritanceRelationship.BaseType, cancellationToken);
+                    }
+                }, cancellationToken)
                 .ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken)
+                .SelectAsArrayAsync((symbol, _) =>
+                    CreateInheritanceItemAsync(solution,
+                    symbol,
+                    InheritanceRelationship.DerivedType,
+                    cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+
+            return new SerializableInheritanceMarginItem(
+                lineNumber,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                baseSymbolItems.Concat(derivedTypeItems));
+        }
+
+        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberInfoForClassOrStructMemberAsync(
+            Solution solution,
+            ISymbol memberSymbol,
+            int lineNumber,
+            ImmutableArray<ISymbol> implementingMembers,
+            ImmutableArray<ISymbol> overridenMembers,
+            ImmutableArray<ISymbol> overridingMembers,
+            CancellationToken cancellationToken)
+        {
+            var implementingMemberItems = await implementingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.ImplmentedMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var overridenMemberItems = await overridenMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverriddenMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var overridingMemberItems = await overridingMembers
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverridingMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            return new SerializableInheritanceMarginItem(
+                lineNumber,
+                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                memberSymbol.GetGlyph(),
+                implementingMemberItems
+                    .Concat(overridenMemberItems)
+                    .Concat(overridingMemberItems));
+        }
+        #endregion
+
+        private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForNamedTypeAsync(
+            Solution solution,
+            INamedTypeSymbol memberSymbol,
+            int lineNumber,
+            ImmutableArray<ISymbol> baseSymbols,
+            ImmutableArray<ISymbol> derivedTypesSymbols,
+            CancellationToken cancellationToken)
+        {
+            var baseSymbolItems = await baseSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.Implementing,
+                    cancellationToken), cancellationToken)
+                .ConfigureAwait(false);
+
+            var derivedTypeItems = await derivedTypesSymbols
+                .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .Distinct()
+                .SelectAsArrayAsync((symbol, _) =>
+                    CreateInheritanceItemAsync(solution,
+                    symbol,
+                    InheritanceRelationship.Implemented,
+                    cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
             return new SerializableInheritanceMarginItem(
@@ -248,22 +446,38 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var implementingMemberItems = await implementingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken), cancellationToken).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.ImplmentedMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var implementedMemberItems = await implementedMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken), cancellationToken).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.Implemented,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var overridenMemberItems = await overridenMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overridden, cancellationToken), cancellationToken).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverriddenMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var overridingMemberItems = await overridingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken), cancellationToken).ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    InheritanceRelationship.OverridingMember,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
@@ -274,6 +488,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .Concat(overridingMemberItems));
         }
 
+        #region FindAllReferenceHelpers
         private static ImmutableArray<ISymbol> GetImplementingSymbolsForTypeMember(
             ISymbol memberSymbol,
             ImmutableArray<ISymbol> overridingSymbols)
@@ -402,5 +617,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
+        #endregion
     }
 }

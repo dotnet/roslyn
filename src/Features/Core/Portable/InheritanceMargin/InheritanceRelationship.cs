@@ -47,14 +47,21 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden,
 
+        // class & struct
         ImplementedInterface,
         BaseType,
         DerivedType,
+
+        // interface
         InheritedInterface,
-        ImplementedType,
+        ImplementingType,
+
+        // class & structure members
         ImplmentedMember,
         OverriddenMember,
         OverridingMember,
+
+        // member of interface
         ImplementingMember
     }
 }
