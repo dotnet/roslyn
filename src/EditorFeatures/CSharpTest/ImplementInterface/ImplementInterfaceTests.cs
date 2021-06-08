@@ -8984,5 +8984,35 @@ class Program : ITest
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
+
+        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceOperator()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract int operator -(ITest x);
+}
+
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract int operator -(ITest x);
+}
+
+class C : ITest
+{
+    public static int operator -(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
     }
 }
