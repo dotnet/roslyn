@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private RazorSpanMappingServiceWrapper? _spanMappingService;
         private RazorDocumentExcerptServiceWrapper? _excerptService;
         private RazorDocumentPropertiesServiceWrapper? _documentPropertiesService;
-        private RazorDocumentOptionSetProviderWrapper? _documentOptionSetProvider;
+        private RazorDocumentOptionsServiceWrapper? _documentOptionsService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public TService? GetService<TService>() where TService : class, IDocumentService
         {
-            if (typeof(TService) == typeof(ISpanMappingService))
+            var serviceType = typeof(TService);
+            if (serviceType == typeof(ISpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IDocumentExcerptService))
+            if (serviceType == typeof(IDocumentExcerptService))
             {
                 if (_excerptService == null)
                 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_excerptService;
             }
 
-            if (typeof(TService) == typeof(DocumentPropertiesService))
+            if (serviceType == typeof(DocumentPropertiesService))
             {
                 if (_documentPropertiesService == null)
                 {
@@ -105,18 +106,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_documentPropertiesService;
             }
 
-            if (typeof(TService) == typeof(IDocumentOptionSetProvider))
+            if (serviceType == typeof(IDocumentOptionsService))
             {
-                if (_documentOptionSetProvider == null)
+                if (_documentOptionsService == null)
                 {
                     lock (_lock)
                     {
-                        if (_documentOptionSetProvider == null)
+                        if (_documentOptionsService == null)
                         {
-                            var razorOptionSetProvider = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionSetProvider>();
-                            if (razorOptionSetProvider != null)
+                            var razorOptionsService = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionsService>();
+                            if (razorOptionsService != null)
                             {
-                                _documentOptionSetProvider = new RazorDocumentOptionSetProviderWrapper(razorOptionSetProvider);
+                                _documentOptionsService = new RazorDocumentOptionsServiceWrapper(razorOptionsService);
                             }
                             else
                             {
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     }
                 }
 
-                return (TService)(object)_documentOptionSetProvider;
+                return (TService)(object)_documentOptionsService;
             }
 
             return this as TService;

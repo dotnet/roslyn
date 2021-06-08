@@ -69,31 +69,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private class TestDocumentServiceProvider : IDocumentServiceProvider
+        private class TestSpanMapperProvider : IDocumentServiceProvider
         {
             TService IDocumentServiceProvider.GetService<TService>()
-            {
-                if (typeof(IDocumentOptionSetProvider).IsAssignableFrom(typeof(TService)))
-                {
-                    return (TService)(object)new TestDocumentOptionSetProvider();
-                }
-                else if (typeof(ISpanMappingService).IsAssignableFrom(typeof(TService)))
-                {
-                    return (TService)(object)new TestSpanMapper();
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-            }
-        }
-
-        internal class TestDocumentOptionSetProvider : IDocumentOptionSetProvider
-        {
-            public async Task<OptionSet> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-            {
-                return await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            }
+                => (TService)(object)new TestSpanMapper();
         }
 
         internal class TestSpanMapper : ISpanMappingService
@@ -375,7 +354,7 @@ namespace Roslyn.Test.Utilities
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(SourceText.From(markup), version, TestSpanMapper.GeneratedFileName));
             var generatedDocumentInfo = DocumentInfo.Create(generatedDocumentId, TestSpanMapper.GeneratedFileName, SpecializedCollections.EmptyReadOnlyList<string>(),
-                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestDocumentServiceProvider());
+                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
         }

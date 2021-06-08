@@ -12,11 +12,8 @@ namespace Microsoft.CodeAnalysis.Options
     /// Allows other languages that call into Roslyn to specify their own language's
     /// document options instead of using the C#/VB document options.
     /// </summary>
-    internal interface IDocumentOptionSetProvider : IDocumentService
+    internal interface IDocumentOptionsService : IDocumentService
     {
-        /// <summary>
-        /// Fetches the relevant <see cref="OptionSet"/> for the given document.
-        /// </summary>
-        Task<OptionSet> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
+        Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
     }
 }
