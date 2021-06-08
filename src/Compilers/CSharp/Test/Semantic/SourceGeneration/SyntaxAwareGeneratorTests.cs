@@ -853,7 +853,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -894,7 +894,7 @@ class classD
 {
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -937,7 +937,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1010,7 +1010,7 @@ class D
     string fieldE = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1078,7 +1078,7 @@ class D
     string fieldE = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1146,7 +1146,7 @@ class E
 {
     string fieldC = null; 
 }";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1210,7 +1210,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1248,7 +1248,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1287,7 +1287,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1346,7 +1346,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1395,7 +1395,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1440,7 +1440,7 @@ class C
     string fieldC = null;
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
