@@ -3645,5 +3645,19 @@ class C
             Assert.True(service.HasFlag(EditAndContinueCapabilities.Baseline));
             Assert.True(service.HasFlag(EditAndContinueCapabilities.NewTypeDefinition));
         }
+
+        [Fact]
+        public void ParseCapabilities_AllCapabilitiesParsed()
+        {
+            foreach (var name in Enum.GetNames(typeof(EditAndContinueCapabilities)))
+            {
+                var capabilities = ImmutableArray.Create(name);
+
+                var service = EditAndContinueWorkspaceService.ParseCapabilities(capabilities);
+
+                var flag = (EditAndContinueCapabilities)Enum.Parse(typeof(EditAndContinueCapabilities), name);
+                Assert.True(service.HasFlag(flag), $"Capability '{name}' was not parsed correctly, so it's impossible for a runtime to enable it!");
+            }
+        }
     }
 }

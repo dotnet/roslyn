@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
                     "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
                     "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
+                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
 
                     // To make it eaiser for  runtimes to specify more broad capabilities
                     "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
