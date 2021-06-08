@@ -26,6 +26,7 @@ Microsoft.CodeAnalysis.ITypeSymbol.IsRecord.get -> bool
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.IsExhaustive.get -> bool
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>
 Microsoft.CodeAnalysis.Operations.OperationWalker<TArgument>.OperationWalker() -> void
+Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.IgnoreImplicitOrExplicitKeyword = 512 -> Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordClassName = 31 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind
 const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CompilationEnd = "CompilationEnd" -> string!
 Microsoft.CodeAnalysis.SymbolDisplayPartKind.RecordStructName = 32 -> Microsoft.CodeAnalysis.SymbolDisplayPartKind

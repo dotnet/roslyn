@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayParameterOptions.IncludeParamsRefOut,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.IgnoreImplicitOrExplicitKeyword);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

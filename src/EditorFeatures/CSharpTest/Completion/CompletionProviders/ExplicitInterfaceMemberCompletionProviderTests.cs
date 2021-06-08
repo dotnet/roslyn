@@ -577,5 +577,36 @@ class Bar : IGoo
 
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            var markup = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.$$
+}
+";
+
+            var expected = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.operator int(Test2 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
+        }
     }
 }
