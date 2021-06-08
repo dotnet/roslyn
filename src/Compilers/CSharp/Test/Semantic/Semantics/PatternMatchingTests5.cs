@@ -1778,7 +1778,6 @@ class C
 {
     public C Instance { get; set; }
     public static C Static { get; set; }
-    public bool True { get { System.Console.Write(""True ""); return true; } }
 }
 ";
             var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
