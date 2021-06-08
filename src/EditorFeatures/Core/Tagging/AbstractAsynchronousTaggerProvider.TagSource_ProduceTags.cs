@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
                     // first tag request we make.  We don't want that to be cancellable as we want that result to be 
                     // shown as soon as possible.
-                    var cancellationToken = initialTags ? _disposalTokenSource.Token : cancellationSeries.Target.CreateNext();
+                    var cancellationToken = initialTags ? _disposalToken : cancellationSeries.Target.CreateNext();
 
                     // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
                     // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalToken));
                 }
 
                 _firstTagsRequest = false;
