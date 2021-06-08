@@ -32,25 +32,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         // Used to convert IRazorDocumentOptions -> IDocumentOptions
         private sealed class RazorDocumentOptions : IDocumentOptions
         {
-            private delegate bool TryGetDocumentOptionDelegateType(OptionKey option, out object? value);
-            private readonly TryGetDocumentOptionDelegateType _tryGetDocMethod;
+            private readonly IRazorDocumentOptions _razorOptions;
 
             public RazorDocumentOptions(IRazorDocumentOptions razorOptions)
             {
-                _tryGetDocMethod = razorOptions.TryGetDocumentOption;
+                _razorOptions = razorOptions;
             }
 
             public bool TryGetDocumentOption(OptionKey option, out object? value)
-            {
-                if (_tryGetDocMethod.Invoke(option, out var result))
-                {
-                    value = result;
-                    return true;
-                }
-
-                value = null;
-                return false;
-            }
+                => _razorOptions.TryGetDocumentOption(option, out value);
         }
     }
 }
