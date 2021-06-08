@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // We shouldn't offer a refactoring if the compilation doesn't contain this type, as we use
             // it later in our computations.
-            if (semanticModel.Compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName) is null)
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             {
                 return;
             }

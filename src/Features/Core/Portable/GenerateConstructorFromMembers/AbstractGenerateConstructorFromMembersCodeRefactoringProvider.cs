@@ -201,9 +201,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return null;
             }
 
-            // We shouldn't offer a refactoring if the compilation doesn't contain this type, as we use
-            // it later in our computations.
-            if (semanticModel.Compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName) is null)
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             {
                 return null;
             }
