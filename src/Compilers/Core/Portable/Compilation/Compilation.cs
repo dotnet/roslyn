@@ -123,6 +123,23 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
+        internal virtual void SerializeDeterminismKey(StringBuilder builder)
+        {
+            var keyBuilder = new DeterministicKeyBuilder(builder);
+
+            // CompilationOption values
+            keyBuilder.AppendEnum(nameof(Options.OutputKind), Options.OutputKind);
+            keyBuilder.AppendString(nameof(Options.ModuleName), Options.ModuleName);
+            keyBuilder.AppendString(nameof(Options.ScriptClassName), Options.ScriptClassName);
+            keyBuilder.AppendString(nameof(Options.MainTypeName), Options.MainTypeName);
+            keyBuilder.AppendByteArray(nameof(Options.CryptoPublicKey), Options.CryptoPublicKey);
+            keyBuilder.AppendString(nameof(Options.CryptoKeyFile), Options.CryptoKeyFile);
+
+            // CompilationOption skipped values
+
+            // Compilation 
+        }
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))
