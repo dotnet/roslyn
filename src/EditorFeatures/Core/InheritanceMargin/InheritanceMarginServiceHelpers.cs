@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal static class InheritanceMarginServiceHelper
     {
+        /// <summary>
+        /// Display format used to generated the target's diplay name.
+        /// </summary>
         private static readonly SymbolDisplayFormat s_displayFormat = new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
             {
                 var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
@@ -127,14 +131,28 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (baseSymbols.Any() || derivedSymbols.Any())
             {
-                var item = await CreateInheritanceMemberItemForNamedTypeAsync(
-                    solution,
-                    memberSymbol,
-                    lineNumber,
-                    baseSymbols: baseSymbols.CastArray<ISymbol>(),
-                    derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
-                    cancellationToken).ConfigureAwait(false);
-                builder.AddIfNotNull(item);
+                if (memberSymbol.TypeKind == TypeKind.Interface)
+                {
+                    var item = await CreateInheritanceMemberItemForInterfaceAsync(
+                        solution,
+                        memberSymbol,
+                        lineNumber,
+                        baseSymbols: baseSymbols.CastArray<ISymbol>(),
+                        derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
+                        cancellationToken).ConfigureAwait(false);
+                    builder.AddIfNotNull(item);
+                }
+                else
+                {
+                    var item = await CreateInheritanceMemberItemForClassAndStructureAsync(
+                        solution,
+                        memberSymbol,
+                        lineNumber,
+                        baseSymbols: baseSymbols.CastArray<ISymbol>(),
+                        derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
+                        cancellationToken).ConfigureAwait(false);
+                    builder.AddIfNotNull(item);
+                }
             }
         }
 
@@ -172,21 +190,35 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (overriddenSymbols.Any() || overridingSymbols.Any() || implementingSymbols.Any() || implementedSymbols.Any())
             {
-                var item = await CreateInheritanceMemberInfoForMemberAsync(
-                    solution,
-                    memberSymbol,
-                    lineNumber,
-                    implementingMembers: implementingSymbols,
-                    implementedMembers: implementedSymbols,
-                    overridenMembers: overriddenSymbols,
-                    overridingMembers: overridingSymbols,
-                    cancellationToken).ConfigureAwait(false);
+                if (memberSymbol.ContainingSymbol.IsInterfaceType())
+                {
+                    var item = await CreateInheritanceMemberInfoForInterfaceMemberAsync(solution,
+                        memberSymbol,
+                        lineNumber,
+                        implementedMembers: implementedSymbols,
+                        overridenMembers: overriddenSymbols,
+                        overridingMembers: overridingSymbols,
+                        cancellationToken).ConfigureAwait(false);
 
-                builder.AddIfNotNull(item);
+                    builder.AddIfNotNull(item);
+                }
+                else
+                {
+                    var item = await CreateInheritanceMemberInfoForClassOrStructMemberAsync(solution,
+                        memberSymbol,
+                        lineNumber,
+                        implementingMembers: implementingSymbols,
+                        overridenMembers: overriddenSymbols,
+                        overridingMembers: overridingSymbols,
+                        cancellationToken).ConfigureAwait(false);
+
+                    builder.AddIfNotNull(item);
+                }
             }
         }
 
         #region Interface
+
         private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForInterfaceAsync(
             Solution solution,
             INamedTypeSymbol interfaceSymbol,
@@ -226,21 +258,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
-            ImmutableArray<ISymbol> implementingMembers,
             ImmutableArray<ISymbol> implementedMembers,
             ImmutableArray<ISymbol> overridenMembers,
             ImmutableArray<ISymbol> overridingMembers,
             CancellationToken cancellationToken)
         {
-            var implementingMemberItems = await implementingMembers
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
-                    solution,
-                    symbol,
-                    InheritanceRelationship.ImplmentedMember,
-                    cancellationToken), cancellationToken).ConfigureAwait(false);
-
             var implementedMemberItems = await implementedMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
@@ -272,7 +294,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 lineNumber,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                implementingMemberItems.Concat(implementedMemberItems)
+                implementedMemberItems
                     .Concat(overridenMemberItems)
                     .Concat(overridingMemberItems));
         }
@@ -372,7 +394,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .Concat(overridingMemberItems));
         }
         #endregion
-
         private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForNamedTypeAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
@@ -532,7 +553,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
-                 && memberSymbol.ContainingSymbol.IsInterfaceType())
+                && memberSymbol.ContainingSymbol.IsInterfaceType())
             {
                 using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
                 // 1. Find all direct implementations for this member

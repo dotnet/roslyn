@@ -92,7 +92,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 return false;
             }
 
-            if (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol ||
+            if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Interface or TypeKind.Class or TypeKind.Struct }
+                or IEventSymbol
+                or IPropertySymbol ||
                 symbol.IsOrdinaryMethod())
             {
                 return true;
