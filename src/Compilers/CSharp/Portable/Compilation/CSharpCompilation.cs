@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -4076,6 +4077,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.WriteUTF8(value);
                 builder.WriteByte(0);
             }
+        }
+
+        internal override void SerializeDeterminismKey(StringBuilder builder)
+        {
+            builder.Append($"OutputKind="
         }
 
         private ImmutableArray<string> GetPreprocessorSymbols()
