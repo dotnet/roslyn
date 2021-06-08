@@ -363,10 +363,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _concurrentAnalyzers.Contains(analyzer);
         }
 
-        public GeneratedCodeAnalysisFlags GetGeneratedCodeAnalysisFlags(DiagnosticAnalyzer analyzer)
+        public void TrackGeneratedCodeAnalysisFlags(Compilation compilation, DiagnosticAnalyzer analyzer)
         {
-            GeneratedCodeAnalysisFlags mode;
-            return _generatedCodeConfigurationMap.TryGetValue(analyzer, out mode) ? mode : AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags;
+            var flags = _generatedCodeConfigurationMap.TryGetValue(analyzer, out var value) ? value : AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags;
+            analyzer.SetGeneratedCodeAnalysisFlags(compilation, flags);
         }
 
         public void RegisterCompilationStartAction(DiagnosticAnalyzer analyzer, Action<CompilationStartAnalysisContext> action)
