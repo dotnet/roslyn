@@ -146,19 +146,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryUseCachedEntries(out ImmutableArray<T> entries)
-            {
-                if (TryUseCachedEntries())
-                {
-                    entries = _states[_states.Count - 1].ToImmutableArray();
-                    return true;
-                }
-                {
-                    entries = default;
-                    return false;
-                }
-            }
-
             public bool TryUseCachedEntries()
             {
                 if (_previous._states.Length <= _states.Count)
@@ -170,6 +157,18 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(previousEntries.IsCached);
 
                 _states.Add(previousEntries);
+                return true;
+            }
+
+            public bool TryUseCachedEntries(out ImmutableArray<T> entries)
+            {
+                if (!TryUseCachedEntries())
+                {
+                    entries = default;
+                    return false;
+                }
+
+                entries = _states[_states.Count - 1].ToImmutableArray();
                 return true;
             }
 
