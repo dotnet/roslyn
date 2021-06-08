@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
-            // as we use it later in our computations.
+            // as we use it later on in our computations.
             var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
             if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             {
