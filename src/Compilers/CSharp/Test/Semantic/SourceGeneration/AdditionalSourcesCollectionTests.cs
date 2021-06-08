@@ -185,8 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
 
             var exception = Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
-            
-            // check the exception contains the excpected 
+
+            // check the exception contains the expected hintName
             Assert.Contains("file5.cs", exception.Message);
         }
     }
