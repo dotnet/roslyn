@@ -100,9 +100,28 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal virtual void AppendCompilation(Compilation compilation)
+        {
+            AppendLine("Options");
+            AppendCompilationOptions(compilation.Options);
+            AppendLine("=== Start Syntax Trees ===");
+            foreach (var syntaxTree in compilation.SyntaxTrees)
+            {
+                AppendSyntaxTree(syntaxTree);
+            }
+            AppendLine("=== End Syntax Trees ===");
+
+            foreach (var reference in compilation.References)
+            {
+                AppendMetadataReference(reference);
+            }
+            AppendLine("=== End References ===");
+        }
+
         internal void AppendSyntaxTree(SyntaxTree syntaxTree)
         {
             AppendString("File Name", Path.GetFileName(syntaxTree.FilePath));
+            AppendString("Encoding", syntaxTree.Encoding?.EncodingName);
             AppendByteArray("Checksum", syntaxTree.GetDebugSourceInfo().Checksum);
             AppendLine("Parse Options");
             AppendParseOptions(syntaxTree.Options);
@@ -121,8 +140,10 @@ namespace Microsoft.CodeAnalysis
                             {
                                 mvid = modules[0].GetModuleVersionId();
                             }
-
-                            throw new InvalidOperationException();
+                            else
+                            {
+                                throw new InvalidOperationException();
+                            }
                         }
                         break;
                     case ModuleMetadata moduleMetadata:
@@ -137,13 +158,14 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException();
                 }
 
-                AppendString("Reference Name", Path.GetFileName(peReference.FilePath));
-                AppendString("Reference MVID", mvid.ToString());
+                AppendString("Name", Path.GetFileName(peReference.FilePath));
+                AppendString("MVID", mvid.ToString());
                 AppendMetadataReferenceProperties(reference.Properties);
             }
-
-            throw new InvalidOperationException();
-
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         internal void AppendMetadataReferenceProperties(MetadataReferenceProperties properties)
@@ -186,10 +208,10 @@ namespace Microsoft.CodeAnalysis
             if (options.SpecificDiagnosticOptions.Count > 0)
             {
                 AppendLine(nameof(CompilationOptions.SpecificDiagnosticOptions));
-                foreach (var (name, diagnostic) in options.SpecificDiagnosticOptions)
+                foreach (var kvp in options.SpecificDiagnosticOptions)
                 {
                     AppendSpaces(spaceCount: 4);
-                    AppendEnum(name, diagnostic);
+                    AppendEnum(kvp.Key, kvp.Value);
                 }
             }
 
@@ -222,10 +244,10 @@ namespace Microsoft.CodeAnalysis
             if (features.Count > 0)
             {
                 AppendLine("Features");
-                foreach (var (name, value) in features)
+                foreach (var kvp in features)
                 {
                     AppendSpaces(spaceCount: 4);
-                    AppendString(name, value);
+                    AppendString(kvp.Key, kvp.Value);
                 }
             }
 
