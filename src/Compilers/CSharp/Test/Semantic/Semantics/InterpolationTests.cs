@@ -5305,7 +5305,7 @@ End Class
             var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
 
-            var sParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Single();
+            var sParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
             AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
                            sParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
             Assert.Empty(sParam.InterpolatedStringHandlerArgumentIndexes);

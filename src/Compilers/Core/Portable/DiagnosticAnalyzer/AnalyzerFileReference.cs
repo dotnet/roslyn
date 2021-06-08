@@ -300,21 +300,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Arguments are present--check prologue.
                 if (argsReader.ReadByte() == 1 && argsReader.ReadByte() == 0)
                 {
-                    string firstLanguageName;
+                    string? firstLanguageName;
                     if (!PEModule.CrackStringInAttributeValue(out firstLanguageName, ref argsReader))
                     {
                         return SpecializedCollections.EmptyEnumerable<string>();
                     }
 
-                    ImmutableArray<string> additionalLanguageNames;
+                    ImmutableArray<string?> additionalLanguageNames;
                     if (PEModule.CrackStringArrayInAttributeValue(out additionalLanguageNames, ref argsReader))
                     {
                         if (additionalLanguageNames.Length == 0)
                         {
-                            return SpecializedCollections.SingletonEnumerable(firstLanguageName);
+                            return firstLanguageName == null ? SpecializedCollections.EmptyEnumerable<string>() : SpecializedCollections.SingletonEnumerable(firstLanguageName);
                         }
 
-                        return additionalLanguageNames.Insert(0, firstLanguageName);
+                        return additionalLanguageNames.Insert(0, firstLanguageName).WhereNotNull();
                     }
                 }
             }
