@@ -8984,5 +8984,65 @@ class Program : ITest
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
+
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : ITest
+{
+    public static void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceMemberExplicitly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : ITest
+{
+    void ITest.M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1);
+        }
     }
 }
