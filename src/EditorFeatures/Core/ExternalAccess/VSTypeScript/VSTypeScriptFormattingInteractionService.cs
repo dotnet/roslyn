@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
+    [Shared]
     [ExportLanguageService(typeof(IFormattingInteractionService), InternalLanguageNames.TypeScript), Shared]
     internal sealed class VSTypeScriptFormattingInteractionService : IFormattingInteractionService
     {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        internal VSTypeScriptFormattingInteractionService(IVSTypeScriptFormattingInteractionService implementation)
+        public VSTypeScriptFormattingInteractionService(IVSTypeScriptFormattingInteractionService implementation)
             => _implementation = implementation;
 
         public bool SupportsFormatDocument => _implementation.SupportsFormatDocument;
