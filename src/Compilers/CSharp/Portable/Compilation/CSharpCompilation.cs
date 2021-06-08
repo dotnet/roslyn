@@ -4093,7 +4093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void SerializeDeterminismKey(StringBuilder builder)
         {
-            builder.Append($"OutputKind="
+
         }
 
         private ImmutableArray<string> GetPreprocessorSymbols()
