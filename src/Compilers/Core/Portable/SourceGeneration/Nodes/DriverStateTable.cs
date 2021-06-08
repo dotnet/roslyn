@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis
                 // if we don't have an entry for this node, it must have thrown an exception
                 if (!_tableBuilder.ContainsKey(syntaxInputNode))
                 {
-                    Debug.Assert(_syntaxExceptions.ContainsKey(syntaxInputNode));
                     throw _syntaxExceptions[syntaxInputNode];
                 }
 
