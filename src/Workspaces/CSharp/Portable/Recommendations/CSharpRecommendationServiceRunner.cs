@@ -455,6 +455,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     containerSymbol = (INamespaceOrTypeSymbol)symbol;
                 }
 
+                if (symbol is ITypeParameterSymbol typeParameterSymbol)
+                {
+                    excludeInstance = true;
+                    excludeStatic = false;
+                }
+
                 // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
                 // lookup symbols off of as we have a lot of special logic for determining member symbols of lambda
                 // parameters.
