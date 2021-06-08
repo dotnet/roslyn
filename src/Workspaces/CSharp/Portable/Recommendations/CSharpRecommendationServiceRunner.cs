@@ -447,18 +447,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 if (symbol is IAliasSymbol alias)
                     symbol = alias.Target;
 
-                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
                 {
-                    // For named typed and namespaces, we flip things around.  We only want statics and not instance members.
+                    // For named typed, namespaces, and type parameters (potentially constrainted to interface with statics), we flip things around.
+                    // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
                     containerSymbol = (INamespaceOrTypeSymbol)symbol;
-                }
-
-                if (symbol is ITypeParameterSymbol typeParameterSymbol)
-                {
-                    excludeInstance = true;
-                    excludeStatic = false;
                 }
 
                 // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
