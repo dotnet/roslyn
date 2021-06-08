@@ -62,6 +62,32 @@ public class C2
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionOnListPattern_FirstNested(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+public class C
+{
+}
+public class C2
+{
+    public C2 CProperty { get; set; }
+    public int IntProperty { get; set; }
+    void M(C c)
+    {
+        _ = c is { $$
+    }
+}
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
+
+                ' This is the expected behavior until we implement support for list-patterns.
+                state.SendTypeChars("CP")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionOnExtendedPropertyPattern_Hidden(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(

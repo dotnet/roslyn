@@ -1715,6 +1715,123 @@ class C2
                 );
         }
 
+        [Fact]
+        public void ExtendedPropertyPatterns_EvaluationOrder()
+        {
+            var program = @"
+if (new C() is { Prop1.True: true, Prop1.Prop2: not null })
+{
+    System.Console.WriteLine(""matched1"");
+}
+
+if (new C() is { Prop1.Prop2: not null, Prop1.True: true })
+{
+    System.Console.WriteLine(""matched2"");
+}
+
+if (new C() is { Prop1.Prop2: not null, Prop2.True: true })
+{
+    System.Console.WriteLine(""matched3"");
+}
+
+if (new C() is { Prop1.Prop2.Prop3.True: true })
+{
+    System.Console.WriteLine(""matched3"");
+}
+
+if (new C() is { Prop1: { Prop2.Prop3.True: true } })
+{
+    System.Console.WriteLine(""matched4"");
+}
+
+if (new C() is { Prop1.True: false, Prop1.Prop2: not null })
+{
+    throw null;
+}
+
+class C
+{
+    public C Prop1 { get { System.Console.Write(""Prop1 ""); return this; } }
+    public C Prop2 { get { System.Console.Write(""Prop2 ""); return this; } }
+    public C Prop3 { get { System.Console.Write(""Prop3 ""); return this; } }
+    public bool True { get { System.Console.Write(""True ""); return true; } }
+}
+";
+            CompileAndVerify(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns, expectedOutput: @"
+Prop1 True Prop2 matched1
+Prop1 Prop2 True matched2
+Prop1 Prop2 Prop2 True matched3
+Prop1 Prop2 Prop3 True matched3
+Prop1 Prop2 Prop3 True matched4
+Prop1 True");
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_StaticMembers()
+        {
+            var program = @"
+_ = new C() is { Static: null }; // 1
+_ = new C() is { Instance.Static: null }; // 2
+_ = new C() is { Static.Instance: null }; // 3
+
+class C
+{
+    public C Instance { get; set; }
+    public static C Static { get; set; }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (2,18): error CS0176: Member 'C.Static' cannot be accessed with an instance reference; qualify it with a type name instead
+                // _ = new C() is { Static: null }; // 1
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "Static").WithArguments("C.Static").WithLocation(2, 18),
+                // (3,27): error CS0176: Member 'C.Static' cannot be accessed with an instance reference; qualify it with a type name instead
+                // _ = new C() is { Instance.Static: null }; // 2
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "Static").WithArguments("C.Static").WithLocation(3, 27),
+                // (4,18): error CS0176: Member 'C.Static' cannot be accessed with an instance reference; qualify it with a type name instead
+                // _ = new C() is { Static.Instance: null }; // 3
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "Static").WithArguments("C.Static").WithLocation(4, 18)
+                );
+        }
+
+        [Fact]
+        public void ExtendedPropertyPatterns_Exhaustiveness()
+        {
+            var program = @"
+_ = new C() switch // 1
+{
+    { Prop.True: true } => 0
+};
+
+_ = new C() switch
+{
+    { Prop.True: true } => 0,
+    { Prop.True: false } => 0
+};
+
+#nullable enable
+_ = new C() switch // 2
+{
+    { Prop.Prop: null } => 0
+};
+
+class C
+{
+    public C Prop { get => throw null!; }
+    public bool True { get => throw null!; }
+}
+";
+            var comp = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { True: false } }' is not covered.
+                // _ = new C() switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { True: false } }").WithLocation(2, 13),
+                // (14,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { Prop: not null } }' is not covered.
+                // _ = new C() switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { Prop: not null } }").WithLocation(14, 13)
+                );
+        }
+
         public class FlowAnalysisTests : FlowTestBase
         {
             [Fact]
