@@ -1074,21 +1074,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
+            ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol switch
+            {
+                PropertySymbol { Parameters: var p } => p,
+                MethodSymbol { Parameters: var p } => p,
+                _ => throw ExceptionUtilities.UnexpectedValue(ContainingType)
+            };
+
             ImmutableArray<int> parameterOrdinals;
             ArrayBuilder<ParameterSymbol?> parameters;
             if (constructorArgument.Kind == TypedConstantKind.Primitive)
             {
-                if (decodeName(constructorArgument, ref arguments) is (int ordinal, var parameter))
-                {
-                    parameterOrdinals = ImmutableArray.Create(ordinal);
-                    parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
-                    parameters.Add(parameter);
-                }
-                else
+                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
                 {
                     // If an error needs to be reported, it will already have been reported by another step.
                     return;
                 }
+
+                parameterOrdinals = ImmutableArray.Create(ordinal);
+                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
+                parameters.Add(parameter);
             }
             else if (constructorArgument.Kind == TypedConstantKind.Array)
             {
@@ -1213,14 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (-1, null);
                 }
 
-                ImmutableArray<ParameterSymbol> parameters = ContainingSymbol switch
-                {
-                    PropertySymbol { Parameters: var p } => p,
-                    MethodSymbol { Parameters: var p } => p,
-                    _ => throw ExceptionUtilities.UnexpectedValue(ContainingType)
-                };
-
-                foreach (var parameter in parameters)
+                foreach (var parameter in containingSymbolParameters)
                 {
                     if (parameter.Name.Equals(name, StringComparison.Ordinal))
                     {
