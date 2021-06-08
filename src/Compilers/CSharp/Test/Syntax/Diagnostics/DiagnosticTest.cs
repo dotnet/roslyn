@@ -263,6 +263,7 @@ class X
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
                         case ErrorCode.WRN_UnreadRecordParameter:
                         case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                        case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
