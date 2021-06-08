@@ -1391,7 +1391,7 @@ class C { }
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1643,7 +1643,7 @@ class C { }
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
