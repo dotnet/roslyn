@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -202,8 +201,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 return null;
             }
 
-            // We shouldn't offer a refactoring if the compilation is invalid.
-            if (semanticModel.Compilation.GetTypeByMetadataName("System.ArgumentNullException") is null)
+            // We shouldn't offer a refactoring if the compilation doesn't contain this type, as we use
+            // it later in our computations.
+            if (semanticModel.Compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName) is null)
             {
                 return null;
             }
