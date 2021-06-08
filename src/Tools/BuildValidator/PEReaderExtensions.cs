@@ -86,6 +86,7 @@ namespace BuildValidator
                     {
                         nameBuilder.Append((char)ascii);
                     }
+
                     _namedExportRva.Add(nameBuilder.ToString(), addressTable[ordinalTable[entryIndex]]);
                 }
             }
@@ -113,6 +114,7 @@ namespace BuildValidator
             {
                 throw new BadImageFormatException("Failed to convert invalid RVA to offset: " + rva);
             }
+
             SectionHeader containingSection = reader.PEHeaders.SectionHeaders[index];
             return rva - containingSection.VirtualAddress + containingSection.PointerToRawData;
         }
