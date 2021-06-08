@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
             /// to ensure threadsafe writing of _eventWorkQueue.
             /// </summary>
-            private readonly CancellationSeries _cancellationSeries;
+            private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries;
 
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
+                _cancellationSeries = new ReferenceCountedDisposable<CancellationSeries>(new CancellationSeries(_disposalTokenSource.Token));
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
