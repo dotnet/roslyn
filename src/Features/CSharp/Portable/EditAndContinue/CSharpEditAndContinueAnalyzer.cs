@@ -2234,9 +2234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         if ((node.Parent as CompilationUnitSyntax)?.Members.Count == 1)
                         {
                             ReportError(RudeEditKind.Insert);
+                            return;
                         }
 
-                        ClassifyUpdate((GlobalStatementSyntax)node);
+                        // An insert of a global statement is actually an update to the synthesized main so we need to check some extra things
+                        ClassifyUpdate(oldNode: null, (GlobalStatementSyntax)node);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2329,7 +2331,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         if ((oldNode.Parent as CompilationUnitSyntax)?.Members.Count == 1)
                         {
                             ReportError(RudeEditKind.Delete);
+                            return;
                         }
+
+                        // A delete of a global statement is actually an update to the synthesized main so we need to check some extra things
+                        ClassifyUpdate((GlobalStatementSyntax)oldNode, newNode: null);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2432,7 +2438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        ClassifyUpdate((GlobalStatementSyntax)newNode);
+                        ClassifyUpdate((GlobalStatementSyntax)oldNode, (GlobalStatementSyntax)newNode);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2561,9 +2567,47 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private void ClassifyUpdate(GlobalStatementSyntax newNode)
+            private void ClassifyUpdate(GlobalStatementSyntax? oldNode, GlobalStatementSyntax? newNode)
             {
-                ClassifyDeclarationBodyRudeUpdates(newNode.Statement);
+                if (newNode is not null)
+                {
+                    ClassifyDeclarationBodyRudeUpdates(newNode.Statement);
+                }
+
+                var otherCompilationUnit = newNode is null ? _match?.NewRoot as CompilationUnitSyntax : _match?.OldRoot as CompilationUnitSyntax;
+                var nodeToAnalyze = newNode ?? oldNode;
+
+                Debug.Assert(otherCompilationUnit is not null);
+                Debug.Assert(nodeToAnalyze is not null);
+
+                // Any change to a global statement could mean the synthesized main method changes return type
+                // from void to int, Task or Task<int> (or vice versa), so we might need to issue a TypeUpdate rude edit.
+                foreach (var node in nodeToAnalyze.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda))
+                {
+                    switch (node.Kind())
+                    {
+                        case SyntaxKind.AwaitExpression:
+                            // If we found an await expression, there must be one in the other root
+                            // or it would mean a change of return type from non-Task to Task (or vice versa)
+                            if (!otherCompilationUnit.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).OfType<AwaitExpressionSyntax>().Any())
+                            {
+                                ReportError(RudeEditKind.TypeUpdate, newNode, newNode ?? oldNode);
+                                return;
+                            }
+                            break;
+                        case SyntaxKind.ReturnStatement:
+                            // If we found a return statement with a null expression, there must be one in the other root, or
+                            // if we found a return statement with a non-null expression, there must be one in the other root
+                            // or it would mean a change of return type from void or Task to int or Task<int> (or vice versa)
+                            var returnExpression = (ReturnStatementSyntax)node;
+                            if (!otherCompilationUnit.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).OfType<ReturnStatementSyntax>().Where(r => (r.Expression == null) == (returnExpression.Expression == null)).Any())
+                            {
+                                ReportError(RudeEditKind.TypeUpdate, newNode, newNode ?? oldNode);
+                                return;
+                            }
+                            break;
+                    }
+                }
             }
 
             private void ClassifyUpdate(NamespaceDeclarationSyntax oldNode, NamespaceDeclarationSyntax newNode)

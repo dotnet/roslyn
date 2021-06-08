@@ -13400,6 +13400,321 @@ Console.WriteLine(""Hello"");
             edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
         }
 
+        [Fact]
+        public void TopLevelStatements_StackAlloc()
+        {
+            var src1 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(1); }";
+            var src2 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(2); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt1()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt2()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt3()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+int Goo()
+{
+    return 1;
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+int Goo()
+{
+    return 1;
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToTask()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "await Task.Delay(100);", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskToTaskInt()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToTaskInt()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+return await GetInt();
+
+Task<int> GetInt()
+{
+    return Task.FromResult(1);
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return await GetInt();", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid1()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return 1;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid2()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return 1;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "return;", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid3()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+int Goo()
+{
+    return 1;
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+
+int Goo()
+{
+    return 1;
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskToVoid()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskIntToTask()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+return 1;
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskIntToVoid()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+return await GetInt();
+
+Task<int> GetInt()
+{
+    return Task.FromResult(1);
+}
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
         #endregion
     }
 }
