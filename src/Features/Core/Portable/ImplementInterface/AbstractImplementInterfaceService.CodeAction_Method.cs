@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 // Operators parameter should match containing type. For example, implementing:
                 // interface I { static abstract int operator -(I x); }
                 // in a class called C should result in:
-                // class C : I { public static int operator -(C x) {}
+                // class C : I { public static int operator -(C x) { } }
                 updatedMethod = (IMethodSymbol)updatedMethod.Accept(new InterfaceReplacerWithContainingTypeVisistor(updatedMethod.ContainingType, State.ClassOrStructType));
 
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
