@@ -640,4 +640,7 @@
   <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
     <value>Automatically complete statement on semicolon</value>
   </data>
+  <data name="Prefer_is_null_check_over_is_object" xml:space="preserve">
+    <value>Prefer 'is null' check over 'is object'</value>
+  </data>
 </root>

@@ -237,6 +237,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
+        public string Style_PreferIsNullCheckOverIsObject
+        {
+            get { return GetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverIsObject); }
+            set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverIsObject, value); }
+        }
+
         public string Style_PreferConditionalExpressionOverAssignment
         {
             get { return GetXmlOption(CodeStyleOptions2.PreferConditionalExpressionOverAssignment); }

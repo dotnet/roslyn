@@ -95,6 +95,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\Helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIndexOrRangeOperator\MemberInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\CSharpUseInferredMemberNameDiagnosticAnalyzer.cs" />
+    <Compile Include="..\..\..\Analyzers\CSharp\Analyzers\UseIsNullCheck\CSharpUseIsNullCheckOverIsObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionDiagnosticAnalyzer.cs" />

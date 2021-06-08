@@ -367,6 +367,11 @@
         <target state="new">Prefer inlined variable declaration</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_check_over_is_object">
+        <source>Prefer 'is null' check over 'is object'</source>
+        <target state="new">Prefer 'is null' check over 'is object'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
         <source>Prefer local function over anonymous function</source>
         <target state="new">Prefer local function over anonymous function</target>

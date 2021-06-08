@@ -101,6 +101,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: CSharpEditorResources.Prefer_conditional_delegate_call,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService);
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferIsNullCheckOverIsObject,
+                description: CSharpEditorResources.Prefer_is_null_check_over_is_object,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService);
         }
 
         private static IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

@@ -437,4 +437,7 @@
   <data name="Outside_namespace" xml:space="preserve">
     <value>Outside namespace</value>
   </data>
+  <data name="Prefer_is_null_check_over_is_object" xml:space="preserve">
+    <value>Prefer 'is null' check over 'is object'</value>
+  </data>
 </root>

@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string SimplifyObjectCreationDiagnosticId = "IDE0140";
 
+        public const string UseIsNullOverIsObjectDiagnosticId = "IDE0150";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
