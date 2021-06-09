@@ -10486,6 +10486,7 @@ tryAgain:
                     }
                     return this.ParseAnonymousMethodExpression();
                 case SyntaxKind.RefKeyword:
+                    // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                     if (this.IsPossibleLambdaExpression(precedence))
                     {
                         return this.ParseLambdaExpression();
@@ -10493,7 +10494,6 @@ tryAgain:
                     // ref is not expected to appear in this position.
                     return this.AddError(ParsePossibleRefExpression(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
                 default:
-                    // check for intrinsic type followed by '.'
                     if (IsPredefinedType(tk))
                     {
                         if (this.IsPossibleLambdaExpression(precedence))
@@ -10501,6 +10501,7 @@ tryAgain:
                             return this.ParseLambdaExpression();
                         }
 
+                        // check for intrinsic type followed by '.'
                         var expr = _syntaxFactory.PredefinedType(this.EatToken());
 
                         if (this.CurrentToken.Kind != SyntaxKind.DotToken || tk == SyntaxKind.VoidKeyword)
@@ -11165,13 +11166,15 @@ tryAgain:
             var resetPoint = this.GetResetPoint();
             try
             {
-                // do we have the following, possibly with attributes before the parameter:
-                //   case 1: ( T x [, ...]) =>
-                //   case 2: ( out T x [, ...]) =>
-                //   case 3: ( ref T x [, ...]) =>
-                //   case 4: ( in T x [, ...]) =>
+                // Do we have the following, where the attributes, modifier, and type are
+                // optional? If so then parse it as a lambda.
+                //   (attributes modifier T x [, ...]) =>
                 //
-                // if so then parse it as a lambda
+                // It's not sufficient to assume this is a lambda expression if we see a
+                // modifier such as `(ref x,` because the caller of this method may have
+                // scanned past a preceding identifier, and `F (ref x,` might be a call to
+                // method F rather than a lambda expression with return type F.
+                // Instead, we need to scan to `=>`.
 
                 while (true)
                 {
