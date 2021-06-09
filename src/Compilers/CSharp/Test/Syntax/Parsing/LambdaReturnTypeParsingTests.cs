@@ -222,6 +222,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void NamedLambda_01()
+        {
+            string source = "T F() => default";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'F'
+                // T F() => default
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "T").WithArguments("F").WithLocation(1, 1));
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "T");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NamedLambda_02()
+        {
+            string source = "async T F() => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token 'T'
+                // async T F() => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "async").WithArguments("T").WithLocation(1, 1));
+
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "async");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NamedLambda_03()
+        {
+            string source = "static T F(int x) => { }";
+            UsingExpression(source,
+                // (1,1): error CS1525: Invalid expression term 'static'
+                // static T F(int x) => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 1),
+                // (1,1): error CS1073: Unexpected token 'static'
+                // static T F(int x) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("static").WithLocation(1, 1));
+
+            M(SyntaxKind.IdentifierName);
+            {
+                M(SyntaxKind.IdentifierToken);
+            }
+            EOF();
+        }
+
+        [Fact]
         public void AnonymousMethod_01()
         {
             string source = "delegate T { return default; }";
@@ -605,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_01A()
+        public void NullableReturnTypeOrConditional_01()
         {
             string source = "int? () => null";
             UsingExpression(source);
@@ -635,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_01B()
+        public void NullableReturnTypeOrConditional_02()
         {
             string source = "int? () => x : y";
             UsingExpression(source,
@@ -668,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_02A()
+        public void NullableReturnTypeOrConditional_03()
         {
             string source = "int[]? () => null";
             UsingExpression(source);
@@ -710,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_02B()
+        public void NullableReturnTypeOrConditional_04()
         {
             string source = "int[]? () => x : y";
             UsingExpression(source,
@@ -755,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_03A()
+        public void NullableReturnTypeOrConditional_05()
         {
             string source = "int.MaxValue? () => null";
             UsingExpression(source,
@@ -804,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_03B()
+        public void NullableReturnTypeOrConditional_06()
         {
             string source = "int.MaxValue? () => x : y";
             UsingExpression(source);
@@ -847,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_04A()
+        public void NullableReturnTypeOrConditional_07()
         {
             string source = "T? () => x";
             UsingExpression(source);
@@ -877,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_04B()
+        public void NullableReturnTypeOrConditional_08()
         {
             string source = "T? () => x : y";
             UsingExpression(source);
@@ -912,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_05A()
+        public void NullableReturnTypeOrConditional_09()
         {
             string source = "(x, y)? () => x";
             UsingExpression(source);
@@ -958,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_05B()
+        public void NullableReturnTypeOrConditional_10()
         {
             string source = "(x, y)? () => x : z";
             UsingExpression(source);
@@ -1009,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_06A()
+        public void NullableReturnTypeOrConditional_11()
         {
             string source = "T[]? () => x";
             UsingExpression(source);
@@ -1051,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_06B()
+        public void NullableReturnTypeOrConditional_12()
         {
             string source = "T[]? () => x : y";
             UsingExpression(source,
@@ -1104,7 +1155,113 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_07A()
+        public void NullableReturnTypeOrConditional_13()
+        {
+            string source = "T[0]? () => x";
+            UsingExpression(source,
+                // (1,14): error CS1003: Syntax error, ':' expected
+                // T[0]? () => x
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 14),
+                // (1,14): error CS1733: Expected expression
+                // T[0]? () => x
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 14));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableReturnTypeOrConditional_14()
+        {
+            string source = "T[0]? () => x : y";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "y");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NullableReturnTypeOrConditional_15()
         {
             string source = "A<B>? () => x";
             UsingExpression(source);
@@ -1143,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_07B()
+        public void NullableReturnTypeOrConditional_16()
         {
             string source = "A<B>? () => x : y";
             UsingExpression(source);
@@ -1187,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_08A()
+        public void NullableReturnTypeOrConditional_17()
         {
             string source = "int*? () => x";
             UsingExpression(source,
@@ -1242,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_08B()
+        public void NullableReturnTypeOrConditional_18()
         {
             string source = "int*? () => x : y";
             UsingExpression(source,
@@ -1291,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_09A()
+        public void NullableReturnTypeOrConditional_19()
         {
             string source = "delegate*<void>? () => x";
             UsingExpression(source,
@@ -1376,7 +1533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_09B()
+        public void NullableReturnTypeOrConditional_20()
         {
             string source = "delegate*<void>? () => x : y";
             UsingExpression(source,
@@ -1455,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_10A()
+        public void NullableReturnTypeOrConditional_21()
         {
             string source = "static T? () => x";
             UsingExpression(source);
@@ -1486,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_10B()
+        public void NullableReturnTypeOrConditional_22()
         {
             string source = "static T? () => x : y";
             UsingExpression(source,
@@ -1520,7 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_11A()
+        public void NullableReturnTypeOrConditional_23()
         {
             string source = "async? () => x";
             UsingExpression(source);
@@ -1550,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_11B()
+        public void NullableReturnTypeOrConditional_24()
         {
             string source = "async? () => x : y";
             UsingExpression(source);
@@ -1585,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_12A()
+        public void NullableReturnTypeOrConditional_25()
         {
             string source = "async T? () => x";
             UsingExpression(source);
@@ -1616,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_12B()
+        public void NullableReturnTypeOrConditional_26()
         {
             string source = "async T? () => x : y";
             UsingExpression(source,
@@ -1632,7 +1789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_13A()
+        public void NullableReturnTypeOrConditional_27()
         {
             string source = "[A] T? () => x";
             UsingExpression(source);
@@ -1674,7 +1831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_13B()
+        public void NullableReturnTypeOrConditional_28()
         {
             string source = "[A] T? () => x : y";
             UsingExpression(source,
@@ -1719,7 +1876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_14A()
+        public void NullableReturnTypeOrConditional_29()
         {
             string source = "b? c? () => x : y";
             UsingExpression(source,
@@ -1773,7 +1930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_14B()
+        public void NullableReturnTypeOrConditional_30()
         {
             string source = "b? c? () => x : y : z";
             UsingExpression(source);
@@ -1821,7 +1978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void NullableReturnTypeOrConditional_14C()
+        public void NullableReturnTypeOrConditional_31()
         {
             string source = "b? (c? () => x) : y";
             UsingExpression(source);
@@ -3018,6 +3175,210 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression_01()
+        {
+            string source = "x switch { int () => 0 => 1 }";
+            UsingExpression(source,
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // x switch { int () => 0 => 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 24),
+                // (1,24): error CS8504: Pattern missing
+                // x switch { int () => 0 => 1 }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(1, 24));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "0");
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression_02()
+        {
+            string source = "x switch { T () => { } => 1 }";
+            UsingExpression(source,
+                // (1,20): error CS1525: Invalid expression term '{'
+                // x switch { T () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(1, 20),
+                // (1,20): error CS1003: Syntax error, ',' expected
+                // x switch { T () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(1, 20));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.PropertyPatternClause);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SwitchExpression_03()
+        {
+            string source = "x switch { static T? () => { } => 1 }";
+            UsingExpression(source,
+                // (1,12): error CS1525: Invalid expression term 'static'
+                // x switch { static T? () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 12),
+                // (1,12): error CS1003: Syntax error, '=>' expected
+                // x switch { static T? () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "static").WithArguments("=>", "static").WithLocation(1, 12),
+                // (1,32): error CS1003: Syntax error, ',' expected
+                // x switch { static T? () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(1, 32),
+                // (1,32): error CS8504: Pattern missing
+                // x switch { static T? () => { } => 1 }
+                Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(1, 32));
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                M(SyntaxKind.CommaToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }
