@@ -10,7 +10,7 @@ extern_alias_directive
   ;
 
 using_directive
-  : 'using' ('static' | name_equals)? name ';'
+  : 'global'? 'using' ('static' | name_equals)? name ';'
   ;
 
 name_equals
@@ -98,7 +98,6 @@ modifier
   : 'abstract'
   | 'async'
   | 'const'
-  | 'data'
   | 'extern'
   | 'fixed'
   | 'internal'
@@ -309,7 +308,7 @@ interface_declaration
   ;
 
 record_declaration
-  : attribute_list* modifier* syntax_token identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* syntax_token ('class' | 'struct')? identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 struct_declaration
@@ -602,7 +601,16 @@ positional_pattern_clause
   ;
 
 subpattern
-  : name_colon? pattern
+  : base_expression_colon? pattern
+  ;
+
+base_expression_colon
+  : expression_colon
+  | name_colon
+  ;
+
+expression_colon
+  : expression ':'
   ;
 
 property_pattern_clause
@@ -744,11 +752,11 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
-  : modifier* parameter '=>' (block | expression)
+  : attribute_list* modifier* parameter '=>' (block | expression)
   ;
 
 anonymous_object_creation_expression

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../BasicVSResources.resx">
     <body>
@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_object_creation">
         <source>Prefer simplified object creation</source>
-        <target state="new">Prefer simplified object creation</target>
+        <target state="translated">Предпочтение упрощенному созданию объектов</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_Imports">
         <source>Remove unnecessary Imports</source>
-        <target state="new">Remove unnecessary Imports</target>
+        <target state="translated">Удалить ненужные импорты (Import)</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -179,7 +179,7 @@
       </trans-unit>
       <trans-unit id="Sort_imports">
         <source>Sort imports</source>
-        <target state="new">Sort imports</target>
+        <target state="translated">Сортировать импорты</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">

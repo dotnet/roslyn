@@ -1555,9 +1555,10 @@ namespace CSharpSyntaxGenerator
 
                 if (field.Type == "SyntaxToken")
                 {
-                    if (field.Kinds != null && field.Kinds.Count > 0)
+                    var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+                    if (fieldKinds != null && fieldKinds.Count > 0)
                     {
-                        var kinds = field.Kinds.ToList();
+                        var kinds = fieldKinds.ToList();
                         if (IsOptional(field))
                         {
                             kinds.Add(new Kind { Name = "None" });

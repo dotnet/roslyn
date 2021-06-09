@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface IDocumentTrackingService : IWorkspaceService
     {
+        bool SupportsDocumentTracking { get; }
+
         /// <summary>
         /// Get the <see cref="DocumentId"/> of the active document. May be null if there is no active document
         /// or the active document is not in the workspace.

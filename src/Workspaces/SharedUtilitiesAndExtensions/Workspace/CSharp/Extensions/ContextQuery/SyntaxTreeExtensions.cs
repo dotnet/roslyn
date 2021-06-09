@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -457,7 +455,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             // a type decl can't come before usings/externs
-            if (originalToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            var nextToken = originalToken.GetNextToken(includeSkipped: true);
+            if (nextToken.IsUsingOrExternKeyword() ||
+                (nextToken.Kind() == SyntaxKind.GlobalKeyword && nextToken.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == nextToken))
             {
                 return false;
             }
@@ -607,11 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // A type can also show up after certain types of modifiers
             if (canBePartial &&
                 token.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
-            {
-                return true;
-            }
-
-            if (token.IsKindOrHasMatchingText(SyntaxKind.DataKeyword))
             {
                 return true;
             }
@@ -1397,7 +1392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is { P: $$
             // e is { ..., P: $$
-            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
+            // e is { ..., P.P2: $$
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
@@ -1423,6 +1419,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // For instance:
+            // e is { A.$$ }
+            if (leftToken.IsKind(SyntaxKind.DotToken))
+            {
+                return false;
+            }
 
             var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
             if (patternSyntax != null)

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -24,7 +22,8 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct TextDocumentStates<TState>
         where TState : TextDocumentState
     {
-        public static readonly TextDocumentStates<TState> Empty = new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary<DocumentId, TState>.Empty);
+        public static readonly TextDocumentStates<TState> Empty =
+            new(ImmutableList<DocumentId>.Empty, ImmutableSortedDictionary.Create<DocumentId, TState>(DocumentIdComparer.Instance));
 
         private readonly ImmutableList<DocumentId> _ids;
 
@@ -37,6 +36,8 @@ namespace Microsoft.CodeAnalysis
 
         private TextDocumentStates(ImmutableList<DocumentId> ids, ImmutableSortedDictionary<DocumentId, TState> map)
         {
+            Debug.Assert(map.KeyComparer == DocumentIdComparer.Instance);
+
             _ids = ids;
             _map = map;
         }
