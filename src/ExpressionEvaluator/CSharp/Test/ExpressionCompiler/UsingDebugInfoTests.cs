@@ -1122,7 +1122,6 @@ namespace N
         static void M() { }
     }
 }";
-            ResultProperties resultProperties;
             string error;
 
             // With symbols, type reference without namespace qualifier.
@@ -1142,24 +1141,24 @@ namespace N
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "A.M",
                 expr: "typeof(B)",
-                resultProperties: out resultProperties,
+                resultProperties: out _,
                 error: out error,
                 includeSymbols: false);
             Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
 
             // With symbols, type reference inside namespace.
-            var testData = Evaluate(
+            _ = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "N.B.M",
                 expr: "typeof(B)",
-                resultProperties: out resultProperties,
+                resultProperties: out _,
                 error: out error,
                 includeSymbols: true);
             Assert.Null(error);
 
             // Without symbols, type reference inside namespace.
-            testData = Evaluate(
+            _ = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "N.B.M",
