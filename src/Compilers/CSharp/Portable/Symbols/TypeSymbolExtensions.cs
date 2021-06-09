@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result is object;
         }
 
-        private static readonly Func<TypeSymbol, object, bool, bool> s_containsMethodTypeParameterPredicate =
+        private static readonly Func<TypeSymbol, object?, bool, bool> s_containsMethodTypeParameterPredicate =
             (type, _, _) => type.TypeKind == TypeKind.TypeParameter && type.ContainingSymbol is MethodSymbol;
 
         /// <summary>
