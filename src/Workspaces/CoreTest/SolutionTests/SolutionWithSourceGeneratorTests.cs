@@ -66,6 +66,35 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task IncrementalSourceGeneratorInvokedCorrectNumberOfTimes()
+        {
+            using var workspace = CreateWorkspace();
+            var generator = new GenerateFileForEachAdditionalFileWithContentsCommented();
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(analyzerReference)
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project
+                .AddAdditionalDocument("Test2.txt", "Hello, world!").Project;
+
+            var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            Assert.Equal(2, compilation.SyntaxTrees.Count());
+            Assert.Equal(2, generator.AdditionalFilesConvertedCount);
+
+            // Change one of the additional documents, and rerun; we should only reprocess that one change, since this
+            // is an incremental generator.
+            project = project.AdditionalDocuments.First().WithAdditionalDocumentText(SourceText.From("Changed text!")).Project;
+
+            compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            Assert.Equal(2, compilation.SyntaxTrees.Count());
+
+            // We should now have converted three additional files -- the two from the original run and then the one that was changed.
+            // The other one should have been kept constant because that didn't change.
+            Assert.Equal(3, generator.AdditionalFilesConvertedCount);
+        }
+
+        [Fact]
         public async Task SourceGeneratorContentStillIncludedAfterSourceFileChange()
         {
             using var workspace = CreateWorkspace();
