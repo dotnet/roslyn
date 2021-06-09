@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,8 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayParameterOptions.IncludeParamsRefOut,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                    SymbolDisplayMiscellaneousOptions.IgnoreImplicitOrExplicitKeyword);
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -99,7 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         continue;
                     }
 
-                    var memberString = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                    //var memberString = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                    var memberString = member switch
+                    {
+                        IEventSymbol eventSymbol => ToDisplayString(eventSymbol),
+                        IPropertySymbol propertySymbol => ToDisplayString(propertySymbol),
+                        IMethodSymbol methodSymbol => ToDisplayString(methodSymbol),
+                        _ => string.Empty // This should be unexpected.
+                    };
 
                     // Split the member string into two parts (generally the name, and the signature portion). We want
                     // the split so that other features (like spell-checking), only look at the name portion.
@@ -119,6 +127,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // nop
             }
         }
+
+        #region DisplayBuilder
+        private static string ToDisplayString(IEventSymbol symbol)
+            => symbol.Name;
+
+        private static string ToDisplayString(IPropertySymbol symbol)
+        {
+            var builder = new StringBuilder();
+            if (symbol.IsIndexer)
+            {
+                builder.Append("this");
+            }
+            else
+            {
+                builder.Append(symbol.Name);
+            }
+
+            if (symbol.Parameters.Length > 0)
+            {
+                builder.Append('[');
+
+                var first = true;
+                foreach (var parameter in symbol.Parameters)
+                {
+                    if (!first)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    first = false;
+                    builder.Append(ToDisplayString(parameter));
+                }
+
+                builder.Append(']');
+            }
+
+            return builder.ToString();
+        }
+
+        private static string ToDisplayString(IMethodSymbol symbol)
+        {
+            var builder = new StringBuilder();
+            switch (symbol.MethodKind)
+            {
+                case MethodKind.Ordinary:
+                    builder.Append(symbol.Name);
+                    break;
+                case MethodKind.UserDefinedOperator:
+                case MethodKind.BuiltinOperator:
+                    {
+                        builder.Append("operator ");
+                        builder.Append(SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName)));
+                    }
+                    break;
+                case MethodKind.Conversion:
+                    {
+
+                        builder.Append("operator ");
+                        AddReturnType(symbol, builder);
+                        break;
+                    }
+            }
+
+            AddTypeArguments(symbol, builder);
+            // Parameters is tricky part for operators.
+            AddParameters(symbol);
+            return builder.ToString();
+        }
+
+        private static void AddParameters(IMethodSymbol symbol)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void AddTypeArguments(IMethodSymbol symbol, StringBuilder builder)
+        {
+            if (symbol.TypeArguments.Length > 0)
+            {
+                builder.Append('<');
+
+                var first = true;
+                foreach (var typeArgument in symbol.TypeArguments)
+                {
+                    if (!first)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    first = false;
+                    // TODO: Make sure there are no edge cases:
+                    builder.Append(typeArgument.Name);
+
+                }
+
+                builder.Append('>');
+            }
+        }
+
+        private static void AddReturnType(IMethodSymbol symbol, StringBuilder builder)
+        {
+            // TODO: Should respect user settings regarding BCL types vs C# aliases (int vs Int32, etc.)
+            // I doubt this should be something to rewrite completely from scratch.
+            //builder.Append(symbol.ReturnType.??);
+        }
+
+        private static string ToDisplayString(IParameterSymbol symbol)
+            => symbol.Name;
+
+        #endregion
 
         private static (string text, string suffix) SplitMemberName(string memberString)
         {
