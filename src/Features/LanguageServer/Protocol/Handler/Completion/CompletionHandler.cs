@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     FilterText = item.FilterText,
                     Kind = GetCompletionKind(item.Tags),
                     Data = completionResolveData,
-                    Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
+                    Preselect = ShouldItemBePreselected(item),
                 };
 
                 // Complex text edits (e.g. override and partial method completions) are always populated in the
@@ -574,7 +573,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
                 .Take(MaxCompletionListSize)
-                .Concat(matchResultsBuilder.Skip(MaxCompletionListSize).Where(match => match.RoslynCompletionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection))
+                .Concat(matchResultsBuilder.Skip(MaxCompletionListSize).Where(match => ShouldItemBePreselected(match.RoslynCompletionItem)))
                 .Select(matchResult => matchResult.RoslynCompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItems(filteredList);
@@ -604,6 +603,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     _ => CompletionFilterReason.Other,
                 };
             }
+        }
+
+        private static bool ShouldItemBePreselected(CompletionItem completionItem)
+        {
+            // An item should be preselcted for LSP when the match priority is preselect and the item is hard selected.
+            // LSP does not support soft preselection, so we do not preselect in that scenario to avoid interfering with typing.
+            return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
         }
 
         internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
