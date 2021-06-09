@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
     }
 
-
     public readonly struct IncrementalGeneratorPipelineContext
     {
         private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
@@ -97,6 +96,10 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
 
         public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
 
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                                            .Select(p => p.Item1 with { Receiver = p.Item2 });
                 }
 
-                contextBuilderSource.GenerateSource((productionContext, contextBuilder) =>
+                executionContext.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
                 {
                     var generatorExecutionContext = contextBuilder.ToExecutionContext(productionContext.CancellationToken);
                     SourceGenerator.Execute(generatorExecutionContext);

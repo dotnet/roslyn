@@ -1344,7 +1344,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var e = new InvalidOperationException("abc");
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.CompilationProvider.GenerateSource((spc, c) => throw e)));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e)));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
@@ -1371,8 +1371,8 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.CompilationProvider.GenerateSource((spc, c) => spc.AddSource("test", ""));
-                ctx.CompilationProvider.GenerateSource((spc, c) => throw e);
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
@@ -1400,12 +1400,12 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.CompilationProvider.GenerateSource((spc, c) => throw e);
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
             }));
 
             var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ctx) =>
             {
-                ctx.CompilationProvider.GenerateSource((spc, c) => spc.AddSource("test", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2 }, parseOptions: parseOptions);
@@ -1513,10 +1513,7 @@ class C { }
             {
                 var filePaths = ctx.CompilationProvider.SelectMany(c => c.SyntaxTrees).Select(tree => tree.FilePath);
 
-                ctx.CompilationProvider.GenerateSource((spc, c) =>
-                {
-                    compilationsCalledFor.Add(c);
-                });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1551,15 +1548,9 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.CompilationProvider.GenerateSource((spc, c) =>
-                {
-                    compilationsCalledFor.Add(c);
-                });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
 
-                ctx.AdditionalTextsProvider.GenerateSource((spc, c) =>
-                {
-                    textsCalledFor.Add(c);
-                });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, c) => { textsCalledFor.Add(c); });
             }));
 
 
@@ -1614,7 +1605,7 @@ class C { }
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var compilationSource = ctx.CompilationProvider.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
-                compilationSource.GenerateSource((spc, c) =>
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
                 });
@@ -1654,7 +1645,7 @@ class C { }
                 var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.AsSingleValue())
                                                 // comparer that ignores the LHS (additional texts)
                                                 .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
-                compilationSource.GenerateSource((spc, c) =>
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
                     calledFor.Add(c);
                 });
@@ -1704,7 +1695,7 @@ class C { }
                 var source4 = ctx.CompilationProvider.Combine(source3);
                 var source5 = ctx.CompilationProvider.Combine(source4);
 
-                source5.GenerateSource((spc, c) =>
+                ctx.RegisterSourceOutput(source5, (spc, c) =>
                 {
                     compilationsCalledFor.Add(c.Item1);
                 });
@@ -1736,7 +1727,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.SyntaxProvider.CreateSyntaxProvider(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
+                    pc.RegisterSourceOutput(pc.SyntaxProvider.CreateSyntaxProvider(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
                 });
             }));
 

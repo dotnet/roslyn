@@ -34,10 +34,6 @@ namespace Microsoft.CodeAnalysis
         // helper for filtering
         public static IncrementalValuesProvider<TSource> Where<TSource>(this IncrementalValuesProvider<TSource> source, Func<TSource, bool> predicate) => source.SelectMany((item) => predicate(item) ? ImmutableArray.Create(item) : ImmutableArray<TSource>.Empty);
 
-        public static void GenerateSource<TSource>(this IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
-
-        public static void GenerateSource<TSource>(this IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
-
         // custom comparer for given node
         public static IncrementalValueProvider<TSource> WithComparer<TSource>(this IncrementalValueProvider<TSource> source, IEqualityComparer<TSource> comparer) => new IncrementalValueProvider<TSource>(source.Node.WithComparer(comparer));
 
