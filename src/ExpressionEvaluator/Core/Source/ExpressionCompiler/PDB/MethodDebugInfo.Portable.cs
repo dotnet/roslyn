@@ -247,8 +247,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     break;
                 }
+
                 builder.Add(b);
             }
+
             var bytes = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
@@ -426,10 +428,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         throw new BadImageFormatException();
                     }
+
                     customDebugInfo = info;
                     foundAny = true;
                 }
             }
+
             return foundAny;
         }
 
@@ -459,6 +463,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var value = ReadUtf8String(ref reader);
                 builder.Add(value.Length == 0 ? null : value);
             }
+
             return builder.ToImmutableAndFree();
         }
 

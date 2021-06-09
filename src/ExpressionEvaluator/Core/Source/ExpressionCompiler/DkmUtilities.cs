@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 Debug.Assert(block.ModuleVersionId == module.Mvid);
                 builder.Add(block);
                 index++;
@@ -109,12 +110,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 if (builder == null)
                 {
                     builder = ArrayBuilder<MetadataBlock>.GetInstance();
                 }
+
                 builder.Add(block);
             }
+
             return builder == null ? ImmutableArray<MetadataBlock>.Empty : builder.ToImmutableAndFree();
         }
 
@@ -128,6 +132,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 MetadataReader reader;
                 unsafe
                 {
@@ -144,8 +149,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         continue;
                     }
                 }
+
                 builder.Add(new AssemblyReaders(reader, symReader));
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -323,6 +330,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     0);
                 message.Post();
             }
+
             appDomain.SetDataItem(DkmDataCreationDisposition.CreateAlways, new MetadataContextItem<MetadataContext<TAssemblyContext>>(context));
         }
 

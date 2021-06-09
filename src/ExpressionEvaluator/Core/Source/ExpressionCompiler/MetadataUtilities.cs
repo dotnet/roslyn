@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             }
                         }
                     }
+
                     if (IsWindowsComponent(reader, metadata.Name))
                     {
                         runtimeWinMdBuilder.Add(metadata);
@@ -226,9 +227,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         {
                             referencedModules.Add(intrinsicsAssembly);
                         }
+
                         RemoveUnreferencedModules(referencesBuilder, identitiesBuilder, identityComparer, referencedModules);
                         referencedModules.Free();
                     }
+
                     identitiesBuilder.Free();
                 }
 
@@ -294,6 +297,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             {
                                 index = i;
                             }
+
                             break;
 
                         default:
@@ -319,6 +323,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     index++;
                 }
             }
+
             modules.Clip(index);
 
             referencedIndices.Free();
@@ -387,6 +392,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return fileName.Substring(0, lastDotIndex);
                 }
             }
+
             return fileName;
         }
 
@@ -400,6 +406,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     stream.CopyTo(memoryStream);
                 }
+
                 return bytes;
             }
         }
@@ -425,10 +432,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return false;
             }
+
             if (!IsWindowsComponentName(moduleName))
             {
                 return false;
             }
+
             int majorVersion;
             int minorVersion;
             reader.GetWinMdVersion(out majorVersion, out minorVersion);
@@ -470,6 +479,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     builder.SetItem(local.GetSlot(), local.GetName());
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -488,6 +498,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
     }

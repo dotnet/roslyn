@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 request = (referenceIdentity, 0);
             }
+
             Requests[referenceIdentity] = (result.Identity, request.Count + 1);
 #endif
             return (PortableExecutableReference?)result.Reference;
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         {
                             best = pair;
                         }
+
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(compareResult);

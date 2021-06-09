@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             {
                                 method = _instructionDecoder.ConstructMethod(method, typeParameters, typeArguments);
                             }
+
                             onSuccess(method);
                         }
                         catch (Exception e)

@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             Debug.WriteLine($"Failed to parse import string {importString}");
                         }
                     }
+
                     importRecordGroupBuilder.Add(groupBuilder.ToImmutableAndFree());
                 }
 
@@ -418,6 +419,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             continue;
                     }
                 }
+
                 localBuilder ??= ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
                 localBuilder[slot] = flags;
             }

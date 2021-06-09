@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return i;
                 }
             }
+
             return -1;
         }
     }
