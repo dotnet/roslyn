@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 sb.Append(',', rank - 1);
             }
+
             sb.Append(ArrayClosing);
         }
 
@@ -310,6 +311,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         builder.Append(", ");
                     }
+
                     builder.Append(FormatTypeName(genericArguments[genericArgIndex++], options));
                 }
 

@@ -37,10 +37,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                             {
                                 return true;
                             }
+
                             break;
                     }
                 }
             }
+
             name = null;
             version = null;
             return false;
