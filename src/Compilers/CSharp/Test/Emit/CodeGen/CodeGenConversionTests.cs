@@ -78,7 +78,7 @@ public class Program
     }
 }
 ";
-            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"");
+            _ = CompileAndVerify(source, expectedOutput: @"");
         }
 
         [Fact]
@@ -113,7 +113,7 @@ class Program
     }
 }
 ";
-            var compilationVerifier = CompileAndVerify(source, expectedOutput: @"Goo<T>(J<T> x)
+            _ = CompileAndVerify(source, expectedOutput: @"Goo<T>(J<T> x)
 ");
         }
 

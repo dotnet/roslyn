@@ -1347,7 +1347,7 @@ class NonDisposableEnumerator : AbstractEnumerator
 }";
             // Both loops generate the same disposal code, but one calls dispose and
             // the other doesn't.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
@@ -1447,7 +1447,7 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
@@ -1481,7 +1481,7 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3
@@ -1663,7 +1663,7 @@ struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1696,7 +1696,7 @@ class DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1729,7 +1729,7 @@ ref struct DisposableEnumerator
     public bool MoveNext() { return ++x < 4; }
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
+            _ = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
 1
 2
 3");
@@ -1870,7 +1870,7 @@ class C
     }
 }";
             // NOTE: this is specifically not the dev10 behavior.  In dev10, the output is 3, 3, 3.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 2
 3");
@@ -1914,7 +1914,7 @@ class B : A
         return new List<int>.Enumerator();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 a
 b
 c");
@@ -1956,7 +1956,7 @@ class E<T>
     public int Current { get; set; }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "1");
+            _ = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(540958, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540958")]
@@ -1982,7 +1982,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "1");
+            _ = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]

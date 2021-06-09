@@ -2826,7 +2826,7 @@ class Program
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"");
+            _ = CompileAndVerify(source, expectedOutput: @"");
         }
 
         // Anonymous Delegate in using block

@@ -2591,7 +2591,7 @@ class E : Exception
     public E(int value) { this.Value = value; }
 }
 ";
-            var v = CompileAndVerify(text, expectedOutput: "12345");
+            _ = CompileAndVerify(text, expectedOutput: "12345");
         }
 
         [Fact]
@@ -2710,8 +2710,7 @@ class Program
         System.Console.WriteLine(o.F());
     }
 }";
-
-            var v = CompileAndVerify(source, expectedOutput: "2");
+            _ = CompileAndVerify(source, expectedOutput: "2");
         }
 
         [Fact]
@@ -2788,8 +2787,7 @@ class Program
         System.Console.Write(o.F());
     }
 }";
-
-            var v = CompileAndVerify(source, expectedOutput: "23");
+            _ = CompileAndVerify(source, expectedOutput: "23");
         }
 
         [Fact]
@@ -3083,8 +3081,7 @@ public class C
 ";
 
             var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
-
-            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
+            _ = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }
 
         [Fact]

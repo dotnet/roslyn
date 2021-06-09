@@ -1022,7 +1022,7 @@ public class C {}
 
             Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
             Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            _ = consoleappCompilation.GetDiagnostics();
 
             var attrs = consoleappCompilation.Assembly.GetAttributes();
             Assert.Equal(4, attrs.Length);
@@ -1209,7 +1209,7 @@ public class C {}
                 ";
 
             var consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            _ = consoleappCompilation.GetDiagnostics();
 
             TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
@@ -1312,7 +1312,7 @@ public class C {}
                 ";
 
             var consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            _ = consoleappCompilation.GetDiagnostics();
 
             var attrs = consoleappCompilation.Assembly.GetAttributes();
             Assert.Equal(5, attrs.Length);

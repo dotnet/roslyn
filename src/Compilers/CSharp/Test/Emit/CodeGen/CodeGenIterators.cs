@@ -84,7 +84,7 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "123456789X");
+            _ = CompileAndVerify(source, expectedOutput: "123456789X");
         }
 
         [Fact]
@@ -121,7 +121,7 @@ class C
         foreach (var i in IE()) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0123456789");
+            _ = CompileAndVerify(source, expectedOutput: "0123456789");
         }
 
         [Fact]

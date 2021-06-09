@@ -251,7 +251,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileAndVerify(
+            _ = CompileAndVerify(
                 testSrc,
                 expectedOutput: "True");
         }
@@ -432,7 +432,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CompileAndVerify(
+            _ = CompileAndVerify(
                 testSrc,
                 expectedOutput: "True");
         }

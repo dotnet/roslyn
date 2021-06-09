@@ -3273,8 +3273,7 @@ public class AsyncBug {
     }
 }
 ";
-
-            var v = CompileAndVerify(source, "System.Int32");
+            _ = CompileAndVerify(source, "System.Int32");
         }
 
         [Fact]
@@ -3354,8 +3353,7 @@ public class C
     }
 }
 ";
-
-            var v = CompileAndVerify(source, "42");
+            _ = CompileAndVerify(source, "42");
         }
 
         [Fact]
@@ -3625,7 +3623,7 @@ public class P
                 );
             comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            v = CompileAndVerify(
+            _ = CompileAndVerify(
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.
@@ -3667,7 +3665,7 @@ public class P
                 );
             comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
-            v = CompileAndVerify(
+            _ = CompileAndVerify(
                 compilation: comp,
                 expectedOutput: expectedOutput,
                 verify: Verification.Fails // localloc is not verifiable.

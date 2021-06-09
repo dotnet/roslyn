@@ -105,7 +105,7 @@ class Test
         db.Property = 10;
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method(1, a)
 Derived.Method(2, a)
@@ -310,7 +310,7 @@ class Test
         Class5.Test();
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Class3.Member1
 Class4.Member1
@@ -383,8 +383,7 @@ class Test
         b.@virtual(i, l, i, i, l);
     }
 }";
-
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.virtual1
 Derived.virtual2
@@ -468,7 +467,7 @@ class Test
         b.Method3(new int[6]{1, 2, 3, 4, 5, 6}, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
@@ -571,8 +570,7 @@ class Test
         x = b3.Property;
     }
 }";
-
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Base4.Method(a, b)
 Base4.Method(a, b)
@@ -1023,8 +1021,7 @@ class Test
         b.Method<int, int>();
     }
 }";
-
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived.Method()
 Derived.Method<>
@@ -1110,8 +1107,7 @@ class Test
         Console.Write(b.Method<int>(new List<int>(), new List<long>()));
     }
 }";
-
-            var comp = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
+            _ = CompileAndVerify(source, expectedOutput: @"2545571191011111114151617");
         }
 
         [Fact]
@@ -1260,7 +1256,8 @@ Derived.Method(BASEREF List<int> a)";
                     }
 
                     var substitutedExpected = subst(expectedOutput);
-                    var verifier = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
+                    CompilationVerifier verifier;
+                    _ = CompileAndVerify(compilation, expectedOutput: substitutedExpected);
                 }
             }
         }
@@ -1311,8 +1308,7 @@ class Program
         bd.P++;
     }
 }";
-
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.P.Get=1
 Base.P.Set(2)
@@ -1368,8 +1364,7 @@ class Program
         bd.P++;
     }
 }";
-
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Base.P.Get=1
 Derived.P.Set(2)
@@ -1412,7 +1407,7 @@ class Test
         b.Property3 = b.Property3;
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property2
 Derived.set_Property1
@@ -1478,7 +1473,7 @@ class Test
         b2.Property2 *= 1;
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Base1.set_Property1
@@ -1558,7 +1553,7 @@ class Test
         b2.Property3--;
     }
 }";
-            var comp = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.get_Property1
 Derived.set_Property2
@@ -2076,8 +2071,7 @@ class Derived : Base2<int>
     protected sealed override List<int> Method1(){ return null; }
     protected sealed override List<int> Method2(){ return null; }
 }";
-
-            var comp = CompileAndVerify(source, expectedSignatures: new[]
+            _ = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("Base`1", "Method1", ".method family hidebysig newslot virtual instance System.Collections.Generic.List`1[T] Method1() cil managed"),
                 Signature("Base2`1", "Method2", ".method family hidebysig newslot abstract virtual instance System.Collections.Generic.List`1[T] Method2() cil managed"),
@@ -3221,8 +3215,7 @@ partial class Test
                 references: new[] { asm01, asm02 },
                 options: TestOptions.ReleaseExe,
                 assemblyName: "OHI_BridgeMethodFromBaseVB007");
-
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 comp,
                 expectedOutput: @"Derived (OVSealed) VBaseFunc (Non-Virtual)",
                 expectedSignatures: new[]
@@ -3522,7 +3515,7 @@ namespace Metadata
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 text,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 expectedOutput: @"Hello 3",
@@ -3556,7 +3549,7 @@ public class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(text,
+            _ = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "51");
         }
@@ -3595,8 +3588,7 @@ public class Test
 
             var comp = (CSharpCompilation)verifier.Compilation;
             comp.VerifyDiagnostics();
-
-            var baseType = comp.GlobalNamespace.GetMember<NamespaceSymbol>("Metadata").GetMember<NamedTypeSymbol>("LeastModoptsWin");
+            _ = comp.GlobalNamespace.GetMember<NamespaceSymbol>("Metadata").GetMember<NamedTypeSymbol>("LeastModoptsWin");
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
 
             var overridingMethod = derivedType.GetMember<MethodSymbol>("M");
@@ -3700,7 +3692,7 @@ class Test
             //Assert.Equal(1, errs.Count());
             //Assert.Equal(109, errs.First().Code);
 
-            var verifier = CompileAndVerify(text,
+            _ = CompileAndVerify(text,
                 references: new[] { TestReferences.SymbolsTests.CustomModifiers.ModoptTests },
                 expectedOutput: "1122",
                 expectedSignatures: new[]
@@ -4154,7 +4146,7 @@ public class Test
     }
 }";
             var compref = CreateCompilation(source, assemblyName: "XNoDefaultForParams_Dev10781558_Library");
-            var comp = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
+            _ = CompileAndVerify(source2, references: new[] { new CSharpCompilationReference(compref) }, expectedOutput: "M");
         }
 
         [Fact]
@@ -4322,7 +4314,7 @@ public class Test
         d.M(y: 2);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput:
+            _ = CompileAndVerify(source, expectedOutput:
 @"Base.M(x:1)
 Derived.M(y:2)");
         }
@@ -4344,8 +4336,7 @@ Derived.M(y:2)");
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { A });
             CompileAndVerify(B).VerifyDiagnostics();
-
-            var D = CreateCSharpCompilation("D", @"public class D : C, B { }",
+            _ = CreateCSharpCompilation("D", @"public class D : C, B { }",
                 compilationOptions: TestOptions.ReleaseDll,
                 referencedCompilations: new[] { B, C }).VerifyDiagnostics(
     // (1,21): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.

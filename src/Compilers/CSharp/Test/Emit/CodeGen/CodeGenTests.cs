@@ -706,7 +706,7 @@ class M
     System.Console.WriteLine(x); // 4
   }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1133
 133
 33
@@ -4689,7 +4689,7 @@ public static void Main()
 }}";
 
             // If we ever stop verifying the execution of this, we need to add IL verification for some of the method bodies.
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 aaaaSystem.ApplicationException: hellobyeSystem.ApplicationException: ccccaaaaSystem.ApplicationException: hellobyeSystem.ApplicationException: cccc
 ");
         }
@@ -9883,7 +9883,7 @@ public class MyClass
         return ret;
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0").
+            _ = CompileAndVerify(source, expectedOutput: "0").
 VerifyIL("MyClass.Main", @"
 {
   // Code size      228 (0xe4)
@@ -10713,7 +10713,8 @@ class C
 }";
             if (ExecutionConditionUtil.IsCoreClr)
             {
-                var compilation = CompileAndVerify(source, expectedOutput:
+                CompilationVerifier compilation;
+                _ = CompileAndVerify(source, expectedOutput:
     @"0.0000000000000000000000000031
 0.0000000000000000000000000031
 
@@ -10728,7 +10729,7 @@ class C
             }
             else if (ExecutionConditionUtil.IsDesktop)
             {
-                var compilation = CompileAndVerify(source, expectedOutput:
+                _ = CompileAndVerify(source, expectedOutput:
     @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -11184,7 +11185,7 @@ class Program
     public static int I { get; set; }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            _ = CompileAndVerify(source);
         }
 
         [Fact]
@@ -11207,7 +11208,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "11");
+            _ = CompileAndVerify(source, expectedOutput: "11");
         }
 
         [WorkItem(543888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543888")]
@@ -11240,7 +11241,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 One
 Three
 Five
@@ -11273,7 +11274,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 4
 6
@@ -11305,7 +11306,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1
 E2
 ");
@@ -11408,7 +11409,7 @@ class C
         M(123456789.0123456789M, 123456789.1123456789M);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1007
 993
 7000
@@ -11475,7 +11476,7 @@ class C
             M(new decimal(123.456), new decimal(123456000, 0, 0, false, 6));
         }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 True
 False
 True
@@ -11667,7 +11668,7 @@ class C
         DecIncrDecrUnary(+7.5000000000000000000000000001M);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 1.000000123
 -0.999999877
 
@@ -11995,7 +11996,7 @@ class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
+            _ = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543090")]
@@ -12027,7 +12028,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
+            _ = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543530")]
@@ -12068,7 +12069,7 @@ class C1
         B(""Main"");
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "null;null;C1;");
+            _ = CompileAndVerify(source, expectedOutput: "null;null;C1;");
         }
         [WorkItem(543091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543091")]
         [Fact()]
@@ -12099,7 +12100,7 @@ partial class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"1A");
+            _ = CompileAndVerify(source, expectedOutput: @"1A");
         }
 
         [WorkItem(543156, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543156")]
@@ -12128,7 +12129,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"00");
+            _ = CompileAndVerify(source, expectedOutput: @"00");
         }
 
         [WorkItem(543157, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543157")]
@@ -12164,7 +12165,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0");
+            _ = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543566")]
@@ -12193,7 +12194,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"0");
+            _ = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [Fact(), WorkItem(543667, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543667")]
@@ -13387,8 +13388,7 @@ public static class P
     }
 }
 ";
-
-            var compilation = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
+            _ = CompileAndVerifyWithMscorlib40(code, expectedOutput: "4");
         }
 
         [WorkItem(26113, "https://github.com/dotnet/roslyn/issues/26113")]
@@ -15720,8 +15720,7 @@ class M
     }
 }
 ";
-
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+            _ = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -17173,7 +17172,8 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+            CompilationVerifier compilation;
+            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
         }
     }
 }

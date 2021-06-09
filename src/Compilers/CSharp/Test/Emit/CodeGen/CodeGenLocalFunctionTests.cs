@@ -237,7 +237,7 @@ class C
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
-            var comp = CreateCompilation(@"
+            _ = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -1027,7 +1027,7 @@ public class Test
         [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {
-            var comp = CompileAndVerify(@"
+            _ = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1543,7 +1543,7 @@ class Test<T>
     }
 }
 ";
-            var comp = CompileAndVerify(src);
+            _ = CompileAndVerify(src);
         }
 
         [Fact]

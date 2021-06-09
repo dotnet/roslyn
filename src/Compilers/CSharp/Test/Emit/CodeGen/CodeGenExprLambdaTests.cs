@@ -387,7 +387,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         [Fact]
         public void ExprLambdaReordering()
         {
-            var verifier = CompileAndVerify(new[] { ExpressionTestLibrary, @"
+            _ = CompileAndVerify(new[] { ExpressionTestLibrary, @"
 using System;
 using System.Linq;
 
@@ -412,7 +412,7 @@ expectedOutput: @"Call(null.[System.Linq.IQueryable`1[System.Int32] Select[IGrou
         [Fact]
         public void ExprLambdaIndexerCompoundAssignment()
         {
-            var verifier = CompileAndVerify(@"
+            _ = CompileAndVerify(@"
 using System;
 using System.Linq.Expressions;
 
@@ -643,7 +643,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new string[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -665,7 +665,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -691,7 +691,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -716,7 +716,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -738,7 +738,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -784,7 +784,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
@@ -806,7 +806,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -914,7 +914,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -969,7 +969,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1021,7 +1021,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1073,7 +1073,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1125,7 +1125,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1177,7 +1177,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1229,7 +1229,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1275,7 +1275,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1324,7 +1324,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1386,7 +1386,7 @@ class Program : TestBase
         Check<T>(() => default(T), expected);
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "123k");
         }
@@ -1408,7 +1408,7 @@ class P
         Console.WriteLine(expr);
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput:
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
@@ -1510,7 +1510,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1561,7 +1561,7 @@ class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1629,7 +1629,7 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMember
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=System.String S Expression=Add(Constant(hello Type:System.String) Call(Parameter(x Type:Node).[System.String ToString()]() Type:System.String) Method:[System.String Concat(System.String, System.String)] Type:System.String))] Type:Node)";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
         }
@@ -1658,7 +1658,7 @@ partial class Program
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1683,7 +1683,7 @@ class A
         Console.WriteLine(e.ToString());
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
@@ -1721,7 +1721,7 @@ partial class Program : TestBase
         Console.Write('k');
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
@@ -1784,7 +1784,7 @@ partial class Program : TestBase
         return (s == null) ? ""null"" : ""S"";
     }
 }";
-            var compilation = CompileAndVerifyUtil(
+            _ = CompileAndVerifyUtil(
                 new[] { text, ExpressionTestLibrary },
                 expectedOutput: @"null
 S");

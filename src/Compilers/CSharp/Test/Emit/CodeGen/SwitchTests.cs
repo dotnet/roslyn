@@ -3715,7 +3715,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+            _ = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543660")]
@@ -8600,7 +8600,7 @@ class Program
     }
 }
 ";
-            var compVerifier = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "2300");
         }
@@ -8651,7 +8651,7 @@ class X : B { }
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "XXBB");
@@ -8706,7 +8706,7 @@ class X : B { }
                 //             case T t:
                 Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
                 );
-            var compVerifier = CompileAndVerify(source,
+            _ = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 parseOptions: TestOptions.Regular7_1,
                 expectedOutput: "XXBB");
@@ -8763,7 +8763,7 @@ struct B : I1
                     options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                     parseOptions: TestOptions.Regular7_1)
                 .VerifyDiagnostics();
-            var compVerifier = CompileAndVerify(compilation,
+            _ = CompileAndVerify(compilation,
                 expectedOutput: "FalseFalseTrueTrue");
         }
 

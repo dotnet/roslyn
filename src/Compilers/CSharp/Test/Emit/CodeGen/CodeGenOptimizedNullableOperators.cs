@@ -2219,9 +2219,7 @@ class Program
     }
 }
 ";
-
-
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 42
 42
 -42
@@ -2376,9 +2374,7 @@ class Program
     }
 }
 ";
-
-
-            var comp = CompileAndVerify(source, expectedOutput: @"
+            _ = CompileAndVerify(source, expectedOutput: @"
 42
 42
 -42

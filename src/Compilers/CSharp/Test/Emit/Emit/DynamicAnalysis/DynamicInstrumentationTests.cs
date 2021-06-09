@@ -1589,7 +1589,7 @@ True
 True
 True
 ";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1678,7 +1678,7 @@ True
 True
 True
 ";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
 
         [Fact]

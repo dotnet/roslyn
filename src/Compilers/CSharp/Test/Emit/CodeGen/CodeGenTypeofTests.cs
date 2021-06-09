@@ -432,8 +432,7 @@ class C
         typeof(C).GetCustomAttributes(false);
     }
 }";
-
-            var comp = CompileAndVerify(source, expectedOutput: "");
+            _ = CompileAndVerify(source, expectedOutput: "");
         }
 
         [Fact]

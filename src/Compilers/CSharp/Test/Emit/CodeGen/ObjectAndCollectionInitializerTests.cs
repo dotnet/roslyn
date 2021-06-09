@@ -1148,8 +1148,7 @@ class A
 -
 -
 5";
-
-            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1252,8 +1251,7 @@ class A
 -
 -
 3";
-
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1814,8 +1812,7 @@ class Program
 }
 ";
             string expectedOutput = @"422";
-
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1870,8 +1867,7 @@ class Program
 }
 ";
             string expectedOutput = @"422";
-
-            var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1926,8 +1922,7 @@ class Program
 }
 ";
             string expectedOutput = @"422";
-
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]

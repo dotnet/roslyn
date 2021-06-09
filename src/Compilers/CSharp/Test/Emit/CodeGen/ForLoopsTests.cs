@@ -1618,7 +1618,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            _ = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1654,7 +1654,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            _ = CompileAndVerify(text, expectedOutput: @"1
 2
 3");
         }
@@ -1702,8 +1702,7 @@ class C
     }
 }
 ";
-
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            _ = CompileAndVerify(text, expectedOutput: @"1
 4
 9
 16");
@@ -1810,7 +1809,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            _ = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1833,7 +1832,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"1
+            _ = CompileAndVerify(text, expectedOutput: @"1
 2
 3
 4");
@@ -1860,7 +1859,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(text, expectedOutput: @"-1
+            _ = CompileAndVerify(text, expectedOutput: @"-1
 -2
 -3
 -4

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [Fact]
         public void LambdaInIndexerAndBinaryOperator()
         {
-            var verifier = CompileAndVerify(@"
+            _ = CompileAndVerify(@"
 using System;
 
 class C
@@ -253,7 +253,7 @@ class Program
         Console.WriteLine(d(2));
     }
 } ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+            _ = CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -942,8 +942,7 @@ class Program
         }
     }
 }";
-
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            _ = CompileAndVerify(source, expectedOutput: "pass");
         }
 
         [Fact]
@@ -1216,7 +1215,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+            _ = CompileAndVerify(source, expectedOutput: "pass_xy");
         }
 
         [Fact]
@@ -4390,7 +4389,7 @@ class A
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 source,
                 expectedOutput: "12");
         }
@@ -4413,7 +4412,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
+            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
 False");
         }
 
@@ -4435,7 +4434,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
+            _ = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
 False");
         }
 
@@ -4462,7 +4461,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 source,
                 expectedOutput: "");
         }
@@ -4520,7 +4519,7 @@ class Program
         new Program(1);
     }
 }";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 source,
                 expectedOutput: "11102");
         }
@@ -4595,7 +4594,7 @@ class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -4622,7 +4621,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            _ = CompileAndVerify(
                 source,
                 expectedOutput: "0");
         }
@@ -4664,7 +4663,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
+            _ = CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
@@ -5048,7 +5047,7 @@ class VsCatalogProvider
         });
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "success");
+            _ = CompileAndVerify(source, expectedOutput: "success");
         }
 
         [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
@@ -5105,7 +5104,7 @@ class Program
         };
     }
 }";
-            var compilation = CompileAndVerify(source);
+            _ = CompileAndVerify(source);
         }
 
         [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
@@ -5136,7 +5135,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            _ = CompileAndVerify(source);
         }
 
         [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]

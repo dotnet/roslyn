@@ -2498,7 +2498,7 @@ public class C
             compilation.VerifyDiagnostics();
             var expectedOutput = @"eval
 1";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
@@ -2533,7 +2533,7 @@ public struct Assignment
             var expectedOutput = @"eval
 1
 2";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2552,7 +2552,7 @@ public struct Assignment
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2942,7 +2942,7 @@ class C {
             var expectedOutput = @"x = 3, y = 4
 x = 5, y = 6
 x = 7, y = 8";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2983,7 +2983,7 @@ struct S
             var expectedOutput = @"x = 3, y = 4
 x = 5, y = 6
 x = 7, y = 8";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(28632, "https://github.com/dotnet/roslyn/issues/28632")]
@@ -3122,7 +3122,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, references: new[] { CSharpRef });
             compilation.VerifyDiagnostics();
             var expectedOutput = @"222222222";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3150,7 +3150,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"99";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3180,7 +3180,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"11";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4383,7 +4383,7 @@ class C
             var expectedOutput = @"correct";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4420,7 +4420,7 @@ public static class Program
                 // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4454,7 +4454,7 @@ public static class Program
                 // (7,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task Main()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(7, 23));
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [WorkItem(48563, "https://github.com/dotnet/roslyn/issues/48563")]
@@ -4649,7 +4649,7 @@ class B
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"22";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4682,7 +4682,7 @@ class B
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"22";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4756,7 +4756,7 @@ class B : Exception
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"22";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
@@ -4792,7 +4792,7 @@ class B
             var expectedOutput =
 @"new A; A->new B; 1
 new B; 1";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4829,7 +4829,7 @@ class B
             var expectedOutput =
 @"new A; A->int; 4
 new B; B->int; 2";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -5331,7 +5331,7 @@ class C
             var expectedOutput =
 @"new A; A->new B; B->new C; .
 new B; B->new C; .";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
