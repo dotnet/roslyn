@@ -204,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                               !IsPropertyWithNonPublicImplementableAccessor(m));
+                                                               !IsPropertyWithNonPublicImplementableAccessor(m) &&
+                                                               IsImplicitlyImplementable(m, within));
                 }
 
                 return type.GetMembers();
@@ -225,6 +226,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             static bool IsNonPublicImplementableAccessor(IMethodSymbol? accessor)
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+
+            static bool IsImplicitlyImplementable(ISymbol member, ISymbol within)
+            {
+                if (member is IMethodSymbol { IsStatic: true, IsAbstract: true } method)
+                {
+                    // For example, the following is not implementable implicitly.
+                    // interface I { static abstract int operator -(I x); }
+                    // But the following is implementable:
+                    // interface I<T> where T : I<T> { static abstract int operator -(T x); }
+                    return method.Parameters.Any(p => p.Type.Equals(within, SymbolEqualityComparer.Default));
+                }
+
+                return true;
             }
         }
 
