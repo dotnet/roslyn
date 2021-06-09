@@ -137,8 +137,7 @@ public class A
         return new int[0];
     }
 }";
-
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            _ = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 6, Column = 27 });
 
             text = @"
@@ -153,7 +152,7 @@ public class A
         System.Console.WriteLine(o.GetType().GetMethods[0].Name);
     }
 }";
-            comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            _ = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadIndexLHS, Line = 10, Column = 34 });
         }
 

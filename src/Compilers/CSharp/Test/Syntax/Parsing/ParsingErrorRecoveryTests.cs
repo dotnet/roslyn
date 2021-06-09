@@ -1844,7 +1844,7 @@ class C
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
-            var agg = (DelegateDeclarationSyntax)file.Members[0];
+            _ = (DelegateDeclarationSyntax)file.Members[0];
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[0].Code);
         }

@@ -61,7 +61,7 @@ class C {
         public void TestAddBaseListTypes()
         {
             var cls = SyntaxFactory.ParseCompilationUnit("class C { }").Members[0] as ClassDeclarationSyntax;
-            var cls2 = cls.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("B")));
+            _ = cls.AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("B")));
         }
 
         [Fact]
@@ -521,7 +521,7 @@ a + b";
             var missingIdentifier = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
             var name = SyntaxFactory.IdentifierName(identifier);
             var missingName = SyntaxFactory.IdentifierName(missingIdentifier);
-            var comma = SyntaxFactory.Token(SyntaxKind.CommaToken);
+            _ = SyntaxFactory.Token(SyntaxKind.CommaToken);
             var missingComma = SyntaxFactory.MissingToken(SyntaxKind.CommaToken);
             var argument = SyntaxFactory.Argument(name);
             var missingArgument = SyntaxFactory.Argument(missingName);
@@ -2102,7 +2102,7 @@ class Test
         {
             var cu = SyntaxFactory.ParseCompilationUnit("public class C { }");
             var publicToken = ((ClassDeclarationSyntax)cu.Members[0]).Modifiers[0];
-            var partialToken = SyntaxFactory.ParseToken("partial ");
+            _ = SyntaxFactory.ParseToken("partial ");
             var staticToken = SyntaxFactory.ParseToken("static ");
 
             var cu1 = cu.InsertTokensBefore(publicToken, new[] { staticToken });
@@ -3422,7 +3422,7 @@ namespace HelloWorld
             UsingDirectiveSyntax newUsingClause = ThirdUsingClause.WithName(name);
 
             // Replace Node with a different Imports Clause
-            root = root.ReplaceNode(ThirdUsingClause, newUsingClause);
+            _ = root.ReplaceNode(ThirdUsingClause, newUsingClause);
 
             var ChangesFromTransform = ThirdUsingClause.SyntaxTree.GetChanges(newUsingClause.SyntaxTree);
             Assert.Equal(2, ChangesFromTransform.Count);
@@ -3629,7 +3629,7 @@ namespace HelloWorld
 }");
             var tree = SyntaxFactory.ParseSyntaxTree(code.ToString());
             var position = 4000;
-            var trivia = tree.GetCompilationUnitRoot().FindTrivia(position);
+            _ = tree.GetCompilationUnitRoot().FindTrivia(position);
             // no stack overflow
         }
 

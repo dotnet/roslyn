@@ -294,7 +294,7 @@ class C
         [Fact]
         public void TypeArguments2()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     new C<>();
@@ -614,7 +614,7 @@ class M<,> { }
         [Fact]
         public void TypeArguments2WithCSharp6()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     new C<>();

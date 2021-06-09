@@ -16,15 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static void CheckParents(SyntaxNodeOrToken nodeOrToken, SyntaxTree expectedSyntaxTree)
         {
             Assert.Equal(expectedSyntaxTree, nodeOrToken.SyntaxTree);
-
-            var span = nodeOrToken.Span;
+            _ = nodeOrToken.Span;
 
             if (nodeOrToken.IsToken)
             {
                 var token = nodeOrToken.AsToken();
                 foreach (var trivia in token.LeadingTrivia)
                 {
-                    var tspan = trivia.Span;
+                    _ = trivia.Span;
                     var parentToken = trivia.Token;
                     Assert.Equal(parentToken, token);
                     if (trivia.HasStructure)
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 foreach (var trivia in token.TrailingTrivia)
                 {
-                    var tspan = trivia.Span;
+                    _ = trivia.Span;
                     var parentToken = trivia.Token;
                     Assert.Equal(parentToken, token);
                     if (trivia.HasStructure)

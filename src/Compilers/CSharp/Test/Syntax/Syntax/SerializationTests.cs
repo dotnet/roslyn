@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             stream.Position = 0;
 
             var droot = CSharpSyntaxNode.DeserializeFrom(stream);
-            var dtext = droot.ToFullString();
+            _ = droot.ToFullString();
 
             Assert.True(droot.IsEquivalentTo(tree.GetCompilationUnitRoot()));
         }

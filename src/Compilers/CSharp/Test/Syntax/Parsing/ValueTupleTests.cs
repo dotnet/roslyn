@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         [Fact]
         public void SimpleTuple()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     (int, string) Goo()
@@ -109,7 +109,7 @@ class C
         [Fact]
         public void LongTuple()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     (int, int, int, string, string, string, int, int, int) Goo()
@@ -223,7 +223,7 @@ class C
         [Fact]
         public void TuplesInLambda()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     var x = ((string, string) a, (int, int) b) => { };
@@ -327,7 +327,7 @@ class C
         [Fact]
         public void TuplesWithNamesInLambda()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     var x = ((string a, string) a, (int, int b) b) => { };
@@ -433,7 +433,7 @@ class C
         [Fact]
         public void TupleInParameters()
         {
-            var tree = UsingTree(@"
+            _ = UsingTree(@"
 class C
 {
     void Goo((int, string) a)

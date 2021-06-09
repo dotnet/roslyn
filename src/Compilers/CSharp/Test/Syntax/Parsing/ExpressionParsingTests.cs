@@ -1339,7 +1339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", lambda.Parameter.Identifier.ToString());
             Assert.NotNull(lambda.Body);
             Assert.Equal(SyntaxKind.Block, lambda.Body.Kind());
-            var b = (BlockSyntax)lambda.Body;
+            _ = (BlockSyntax)lambda.Body;
             Assert.Equal("{ }", lambda.Body.ToString());
         }
 
@@ -1401,7 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, lambda.ParameterList.Parameters.Count);
             Assert.NotNull(lambda.Body);
             Assert.Equal(SyntaxKind.Block, lambda.Body.Kind());
-            var b = (BlockSyntax)lambda.Body;
+            _ = (BlockSyntax)lambda.Body;
             Assert.Equal("{ }", lambda.Body.ToString());
         }
 

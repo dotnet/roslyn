@@ -150,7 +150,7 @@ void goo()
         [Fact]
         public void TestBug530094()
         {
-            var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
+            _ = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
         }
 
         [Fact]
