@@ -176,8 +176,6 @@ namespace Microsoft.CodeAnalysis
             AssemblyIdentity assemblyIdentity = null;
 
             location = null;
-            bool isBestMatch = false;
-
             foreach (var identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
             {
                 var assemblyPath = identityAndPath.Path;
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis
 
                 var gacAssemblyName = CreateAssemblyNameFromFile(assemblyPath);
 
-                isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
+                bool isBestMatch = cultureName == null || gacAssemblyName.CultureName == cultureName;
                 bool isBetterMatch = location == null || isBestMatch;
 
                 if (isBetterMatch)
