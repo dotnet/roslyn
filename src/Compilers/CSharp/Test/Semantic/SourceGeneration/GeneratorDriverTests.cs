@@ -1344,7 +1344,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var e = new InvalidOperationException("abc");
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.Sources.Compilation.GenerateSource((spc, c) => throw e)));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.CompilationProvider.GenerateSource((spc, c) => throw e)));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
@@ -1371,8 +1371,8 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
-                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+                ctx.CompilationProvider.GenerateSource((spc, c) => spc.AddSource("test", ""));
+                ctx.CompilationProvider.GenerateSource((spc, c) => throw e);
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
@@ -1400,12 +1400,12 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+                ctx.CompilationProvider.GenerateSource((spc, c) => throw e);
             }));
 
             var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
+                ctx.CompilationProvider.GenerateSource((spc, c) => spc.AddSource("test", ""));
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2 }, parseOptions: parseOptions);
@@ -1512,10 +1512,6 @@ class C { }
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
                 var filePaths = ctx.CompilationProvider.SelectMany(c => c.SyntaxTrees).Select(tree => tree.FilePath);
-                ctx.GenerateSource(filePaths, (SourceProductionContext, c) =>
-                {
-
-                });
 
                 ctx.CompilationProvider.GenerateSource((spc, c) =>
                 {
@@ -1655,7 +1651,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.Sources.Compilation.Combine(ctx.Sources.AdditionalTexts)
+                var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.AsSingleValue())
                                                 // comparer that ignores the LHS (additional texts)
                                                 .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
                 compilationSource.GenerateSource((spc, c) =>

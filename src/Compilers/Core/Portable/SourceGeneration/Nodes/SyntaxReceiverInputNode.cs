@@ -67,10 +67,7 @@ namespace Microsoft.CodeAnalysis
 
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
-                if (_receiver is object)
-                {
-                    _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
-                }
+                _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 

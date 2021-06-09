@@ -1498,7 +1498,7 @@ class C
             var exception = new Exception("Test Exception");
             var testGenerator = new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Syntax.Transform(s => { if (s is AssignmentExpressionSyntax) throw exception; return true; }, c => c.Node).GenerateSource((spc, s) => { });
+                ctx.SyntaxProvider.CreateSyntaxProvider(s => { if (s is AssignmentExpressionSyntax) throw exception; return true; }, c => c.Node).GenerateSource((spc, s) => { });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -1541,7 +1541,7 @@ class C
             var exception = new Exception("Test Exception");
             var testGenerator = new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Syntax.Transform<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
+                ctx.SyntaxProvider.CreateSyntaxProvider<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions);
@@ -1584,12 +1584,12 @@ class C
             var exception = new Exception("Test Exception");
             var testGenerator = new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Syntax.Transform<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
+                ctx.SyntaxProvider.CreateSyntaxProvider<object>(s => s is AssignmentExpressionSyntax, c => throw exception).GenerateSource((spc, s) => { });
             });
 
             var testGenerator2 = new PipelineCallbackGenerator2(ctx =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, s) => spc.AddSource("test", ""));
+                ctx.CompilationProvider.GenerateSource((spc, s) => spc.AddSource("test", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator), new IncrementalGeneratorWrapper(testGenerator2) }, parseOptions: parseOptions);
