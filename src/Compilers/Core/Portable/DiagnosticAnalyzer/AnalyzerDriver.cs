@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSourceOrByAnalyzers(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
             diagnostics = FilterDiagnosticsSuppressedInSource(diagnostics, compilation, CurrentCompilationData.SuppressMessageAttributeState);
-            return ApplyProgrammaticSuppressions(diagnostics, compilation);
+            return ApplyProgrammaticSuppressionsAndFilterDiagnostics(diagnostics, compilation);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSource(
@@ -1092,6 +1092,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (!reportSuppressedDiagnostics && diagnostic.IsSuppressed)
                 {
                     // Diagnostic suppressed in source.
+                    continue;
+                }
+
+                builder.Add(diagnostic);
+            }
+
+            return builder.ToImmutable();
+        }
+
+        internal ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsAndFilterDiagnostics(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation)
+        {
+            if (reportedDiagnostics.IsEmpty)
+            {
+                return reportedDiagnostics;
+            }
+
+            var diagnostics = ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
+            var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
+            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+            for (var i = 0; i < diagnostics.Length; i++)
+            {
+                var diagnostic = diagnostics[i];
+                if (!reportSuppressedDiagnostics && diagnostic.IsSuppressed)
+                {
+                    // Diagnostic suppressed by analyzer.
                     continue;
                 }
 
