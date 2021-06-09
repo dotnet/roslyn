@@ -11301,7 +11301,7 @@ class C
             var source = @"
 interface I1
 {
-
+    static void M0();
     static abstract void M1();
     abstract static int P1 { get; set; }
     abstract static event System.Action E1;
@@ -11320,6 +11320,7 @@ class Test
     }
 }
 ";
+            await VerifyItemIsAbsentAsync(source, "M0");
             await VerifyItemExistsAsync(source, "M1");
             await VerifyItemExistsAsync(source, "M2");
             await VerifyItemExistsAsync(source, "P1");
