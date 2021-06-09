@@ -179,13 +179,5 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return rules.AddRange(Formatter.GetDefaultFormattingRules(document));
         }
-
-        public static bool IsRazorDocument(this Document document)
-        {
-            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
-            // belongs to them.
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
-            return spanMapper != null;
-        }
     }
 }

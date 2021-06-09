@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     [Shared]
-    [ExportMetadata("Extensions", new string[] { "cshtml", "razor", })]
     [Export(typeof(IDocumentOptionsProviderFactory))]
     internal sealed class RazorDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
