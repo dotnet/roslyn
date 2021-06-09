@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// <exception cref="UnsupportedSignatureContent"></exception>
         public override TypeSymbol GetType(EntityHandle handle)
         {
-            bool isNoPiaLocalType;
-            return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: false);
+            return _metadataDecoder.GetSymbolForTypeHandleOrThrow(handle, out _, allowTypeSpec: true, requireShortForm: false);
         }
 
         private TypeSymbol IncludeDynamicAndTupleElementNamesIfAny(

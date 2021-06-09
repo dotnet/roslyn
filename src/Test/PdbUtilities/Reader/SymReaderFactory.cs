@@ -33,9 +33,8 @@ namespace Roslyn.Test.PdbUtilities
 
         private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
-            object symReader = null;
-
             var guid = default(Guid);
+            object symReader;
             if (IntPtr.Size == 4)
             {
                 CreateSymReader32(ref guid, out symReader);

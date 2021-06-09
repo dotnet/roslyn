@@ -449,8 +449,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             Type declaredType;
             object value;
             var evalFlags = DkmEvaluationResultFlags.None;
-            var category = DkmEvaluationResultCategory.Other;
-            var access = DkmEvaluationResultAccessType.None;
 
             const BindingFlags bindingFlags =
                 BindingFlags.DeclaredOnly |
@@ -459,6 +457,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 BindingFlags.Public |
                 BindingFlags.NonPublic;
 
+            DkmEvaluationResultAccessType access;
+            DkmEvaluationResultCategory category;
             switch ((MemberTypes)MemberType)
             {
                 case MemberTypes.Field:

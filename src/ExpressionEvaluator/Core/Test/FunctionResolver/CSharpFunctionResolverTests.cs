@@ -1342,8 +1342,7 @@ namespace N
     static void F(A<object> a) { }
 }";
             ImmutableArray<byte> bytesA;
-            ImmutableArray<byte> pdbA;
-            EmitILToArray(sourceA, appendDefaultHeader: true, includePdb: false, assemblyBytes: out bytesA, pdbBytes: out pdbA);
+            EmitILToArray(sourceA, appendDefaultHeader: true, includePdb: false, assemblyBytes: out bytesA, pdbBytes: out _);
             var refA = AssemblyMetadata.CreateFromImage(bytesA).GetReference();
             var compilationB = CreateCompilation(sourceB, references: new[] { refA });
             var bytesB = compilationB.EmitToArray();
