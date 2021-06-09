@@ -3529,6 +3529,60 @@ class C
         }
 
         [Fact]
+        public async Task MultiSession()
+        {
+            var source1 = "class C { void M() { System.Console.WriteLine(); } }";
+            var source3 = "class C { void M() { WriteLine(2); } }";
+
+            var dir = Temp.CreateDirectory();
+            var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
+            var moduleId = EmitLibrary(source1, sourceFileA.Path, Encoding.UTF8, "Proj");
+
+            using var workspace = CreateWorkspace(out var solution, out var encService);
+
+            var projectP = solution.
+                AddProject("P", "P", LanguageNames.CSharp).
+                WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+            solution = projectP.Solution;
+
+            var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdA,
+                name: "A",
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                filePath: sourceFileA.Path));
+
+            var tasks = Enumerable.Range(0, 10).Select(async i =>
+            {
+                var sessionId = await encService.StartDebuggingSessionAsync(
+                    solution,
+                    _debuggerService,
+                    captureMatchingDocuments: false,
+                    reportDiagnostics: true,
+                    CancellationToken.None);
+
+                var solution1 = solution.WithDocumentText(documentIdA, SourceText.From("class C { void M() { System.Console.WriteLine(" + i + "); } }", Encoding.UTF8));
+
+                var result1 = await encService.EmitSolutionUpdateAsync(sessionId, solution1, s_noActiveSpans, CancellationToken.None);
+                Assert.Empty(result1.Diagnostics);
+                Assert.Equal(1, result1.ModuleUpdates.Updates.Length);
+
+                var solution2 = solution1.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
+
+                var result2 = await encService.EmitSolutionUpdateAsync(sessionId, solution2, s_noActiveSpans, CancellationToken.None);
+                Assert.Equal("CS0103", result2.Diagnostics.Single().Diagnostics.Single().Id);
+                Assert.Empty(result2.ModuleUpdates.Updates);
+
+                encService.EndDebuggingSession(sessionId, out var _);
+            });
+
+            await Task.WhenAll(tasks);
+
+            Assert.Empty(encService.GetTestAccessor().GetActiveDebuggingSessions());
+        }
+
+        [Fact]
         public async Task WatchHotReloadServiceTest()
         {
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";

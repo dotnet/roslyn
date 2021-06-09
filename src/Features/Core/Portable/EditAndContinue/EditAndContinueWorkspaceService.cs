@@ -307,7 +307,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => _service._compilationOutputsProvider = value;
 
             public DebuggingSession GetDebuggingSession(DebuggingSessionId id)
-                => _service._debuggingSessions.Single(s => s.Id == id);
+                => _service.TryGetDebuggingSession(id) ?? throw ExceptionUtilities.UnexpectedValue(id);
+
+            public ImmutableArray<DebuggingSession> GetActiveDebuggingSessions()
+                => _service.GetActiveDebuggingSessions();
 
         }
     }
