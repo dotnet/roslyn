@@ -123,6 +123,15 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder);
 
+        internal abstract DeterministicKeyBuilder CreateDetermisiticKeyBuilder();
+
+        internal string GetDeterministicKey()
+        {
+            var builder = CreateDetermisiticKeyBuilder();
+            builder.AppendCompilation(this);
+            return builder.GetKey();
+        }
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))

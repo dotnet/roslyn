@@ -132,11 +132,6 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyLoader = assemblyLoader;
             this.GeneratorDriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
-
-            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-            {
-                EmitDeterminismKey(Arguments, args, buildPaths.WorkingDirectory, parser);
-            }
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -1080,6 +1075,13 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
+                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                {
+                    // TODO: Need to add the following info: additional files, analyzer and generator assemblies. They are 
+                    // all input to the compilation.
+                    EmitDeterminismKey(compilation);
+                }
+
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                       additionalTextFiles, analyzerConfigProvider);
 
@@ -1649,68 +1651,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
+        private void EmitDeterminismKey(Compilation compilation)
         {
-            var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
-            var filePath = Path.Combine(args.OutputDirectory, args.OutputFileName + ".key");
+            var key = compilation.GetDeterministicKey();
+            var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using (var stream = File.Create(filePath))
             {
                 var bytes = Encoding.UTF8.GetBytes(key);
                 stream.Write(bytes, 0, bytes.Length);
             }
-        }
-
-        /// <summary>
-        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
-        /// meant to be inline with the specification here:
-        /// 
-        ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
-        /// 
-        /// Issue #8193 tracks filling this out to the full specification. 
-        /// 
-        ///     https://github.com/dotnet/roslyn/issues/8193
-        /// </summary>
-        private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
-        {
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
-            var flattenedArgs = ArrayBuilder<string>.GetInstance();
-            parser.FlattenArgs(rawArgs, diagnostics, flattenedArgs, null, baseDirectory);
-
-            var builder = new StringBuilder();
-            var name = !string.IsNullOrEmpty(args.OutputFileName)
-                ? Path.GetFileNameWithoutExtension(Path.GetFileName(args.OutputFileName))
-                : $"no-output-name-{Guid.NewGuid().ToString()}";
-
-            builder.AppendLine($"{name}");
-            builder.AppendLine($"Command Line:");
-            foreach (var current in flattenedArgs)
-            {
-                builder.AppendLine($"\t{current}");
-            }
-
-            builder.AppendLine("Source Files:");
-            var hash = MD5.Create();
-            foreach (var sourceFile in args.SourceFiles)
-            {
-                var sourceFileName = Path.GetFileName(sourceFile.Path);
-
-                string hashValue;
-                try
-                {
-                    var bytes = File.ReadAllBytes(sourceFile.Path);
-                    var hashBytes = hash.ComputeHash(bytes);
-                    var data = BitConverter.ToString(hashBytes);
-                    hashValue = data.Replace("-", "");
-                }
-                catch (Exception ex)
-                {
-                    hashValue = $"Could not compute {ex.Message}";
-                }
-                builder.AppendLine($"\t{sourceFileName} - {hashValue}");
-            }
-
-            flattenedArgs.Free();
-            return builder.ToString();
         }
     }
 }
