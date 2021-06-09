@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
-            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
+            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms, IsExhaustive: {operation.IsExhaustive})");
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Value, nameof(operation.Value));
             VisitArray(operation.Arms, nameof(operation.Arms), logElementCount: true);
