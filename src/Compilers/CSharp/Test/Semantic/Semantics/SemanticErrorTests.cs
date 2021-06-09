@@ -3256,7 +3256,7 @@ public class MyClass : Outer.base1
 ";
             var comp = CreateCompilation(text);
             var type1 = comp.SourceModule.GlobalNamespace.GetMembers("MyClass").Single() as NamedTypeSymbol;
-            var b = type1.BaseType();
+            _ = type1.BaseType();
             var errs = comp.GetDiagnostics();
             Assert.Equal(1, errs.Count());
             Assert.Equal(122, errs.First().Code);
@@ -11267,7 +11267,7 @@ class C
         [Fact()]
         public void CS0571ERR_CantCallSpecialMethod04()
         {
-            var compilation = CreateCompilation(
+            _ = CreateCompilation(
 @"public class MyClass
 {
     public static MyClass operator ++(MyClass c)

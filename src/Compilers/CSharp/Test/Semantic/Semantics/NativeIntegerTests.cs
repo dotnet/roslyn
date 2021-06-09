@@ -3495,7 +3495,7 @@ class Program
 
             void verify(CSharpCompilation comp)
             {
-                var verifier = CompileAndVerify(comp, expectedOutput:
+                _ = CompileAndVerify(comp, expectedOutput:
 @"System.Int16
 System.Object");
                 var method = comp.GetMember<MethodSymbol>("Program.F");

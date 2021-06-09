@@ -290,14 +290,13 @@ class C
         private static ImmutableArray<BoundInitializer> BindInitializersWithoutDiagnostics(SourceNamedTypeSymbol typeSymbol, ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-            ImportChain unused;
             var boundInitializers = ArrayBuilder<BoundInitializer>.GetInstance();
             Binder.BindRegularCSharpFieldInitializers(
                 typeSymbol.DeclaringCompilation,
                 initializers,
                 boundInitializers,
                 new BindingDiagnosticBag(diagnostics),
-                firstDebugImports: out unused);
+                firstDebugImports: out _);
             diagnostics.Verify();
             diagnostics.Free();
             return boundInitializers.ToImmutableAndFree();

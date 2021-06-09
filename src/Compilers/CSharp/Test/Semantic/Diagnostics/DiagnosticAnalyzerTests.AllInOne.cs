@@ -82,7 +82,7 @@ public class C
         [Fact]
         public void DiagnosticAnalyzerExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            _ = CreateCompilationWithMscorlib45(@"
 public class C
 {
     public int P => 10;

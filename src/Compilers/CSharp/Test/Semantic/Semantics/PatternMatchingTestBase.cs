@@ -372,7 +372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(model.GetDeclaredSymbol(designation));
 
             var symbol = (ISymbol)model.GetDeclaredSymbol(designation);
-
             if (designation.Parent is DeclarationPatternSyntax decl)
             {
                 Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
@@ -394,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(typeInfo, ((CSharpSemanticModel)model).GetTypeInfo(decl.Type));
                 Assert.True(model.GetConversion(decl.Type).IsIdentity);
             }
-            else if (designation.Parent is VarPatternSyntax varp)
+            else if (designation.Parent is VarPatternSyntax)
             {
                 // Do we want to add any tests for the var pattern?
             }

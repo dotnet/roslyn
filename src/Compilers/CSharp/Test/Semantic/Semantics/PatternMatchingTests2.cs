@@ -37,7 +37,7 @@ class Program
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+            _ = CompileAndVerify(compilation, expectedOutput: @"1");
         }
 
         [Fact]
@@ -79,7 +79,7 @@ public class Point
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "");
+            _ = CompileAndVerify(compilation, expectedOutput: "");
         }
 
         [Fact]
@@ -125,7 +125,7 @@ public static class PointExtensions
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "");
+            _ = CompileAndVerify(compilation, expectedOutput: "");
         }
 
         [Fact]
@@ -198,7 +198,7 @@ class Program
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "");
+            _ = CompileAndVerify(compilation, expectedOutput: "");
         }
 
         [Fact]
@@ -240,7 +240,7 @@ public class Point
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "");
+            _ = CompileAndVerify(compilation, expectedOutput: "");
         }
 
         [Fact]
@@ -331,7 +331,7 @@ public class Point
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+            _ = CompileAndVerify(compilation, expectedOutput: "True");
         }
 
         [Fact]
@@ -794,7 +794,7 @@ class Program
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"");
+            _ = CompileAndVerify(compilation, expectedOutput: @"");
         }
 
         [Fact]
@@ -895,7 +895,7 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+            _ = CompileAndVerify(compilation, expectedOutput: @"0123");
         }
 
         [Fact]
@@ -991,7 +991,7 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+            _ = CompileAndVerify(compilation, expectedOutput: @"0123");
         }
 
         [Fact]
@@ -1040,7 +1040,7 @@ public class X
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"9
+            _ = CompileAndVerify(compilation, expectedOutput: @"9
 9
 9");
         }
@@ -1103,7 +1103,7 @@ class Frog
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"12345678");
+            _ = CompileAndVerify(compilation, expectedOutput: @"12345678");
         }
 
         [Fact]
@@ -1420,7 +1420,7 @@ class Program1
             compilation.VerifyDiagnostics();
             var expectedOutput = @"True
 3";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1508,7 +1508,7 @@ class Cat {}
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
+            _ = CompileAndVerify(compilation, expectedOutput: @"Fox Cat");
         }
 
         [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
@@ -1585,7 +1585,7 @@ class Cat {}
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+            _ = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
         [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
@@ -1754,7 +1754,7 @@ class T
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+            _ = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
         [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]
@@ -1790,7 +1790,7 @@ static class Extensions
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"111");
+            _ = CompileAndVerify(compilation, expectedOutput: @"111");
         }
 
         [Fact, WorkItem(25934, "https://github.com/dotnet/roslyn/issues/25934")]

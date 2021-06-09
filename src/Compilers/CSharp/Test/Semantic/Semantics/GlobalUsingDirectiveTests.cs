@@ -406,8 +406,7 @@ class Program
             };
 
             comp2.VerifyDiagnostics(expected);
-
-            var comp3 = CreateCompilation(new[] { source3, source2 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: new[] { comp1Ref });
+            _ = CreateCompilation(new[] { source3, source2 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: new[] { comp1Ref });
 
             comp2.VerifyDiagnostics(expected);
         }

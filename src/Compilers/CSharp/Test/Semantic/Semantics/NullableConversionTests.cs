@@ -33,7 +33,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "AB");
+            _ = CompileAndVerify(source: source, expectedOutput: "AB");
         }
 
         [Fact]
@@ -82,7 +82,7 @@ class P
 ";
 
             string expectedOutput = @"tttttttfft";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ struct Conv
 ";
 
             string expectedOutput = @"tttttttttt";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]

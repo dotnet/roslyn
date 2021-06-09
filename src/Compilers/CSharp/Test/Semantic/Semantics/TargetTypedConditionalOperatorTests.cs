@@ -204,7 +204,7 @@ class C
 ";
             foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
             {
-                var comp = CreateCompilation(
+                _ = CreateCompilation(
                     source, options: TestOptions.ReleaseExe,
                     parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
                     .VerifyDiagnostics();
@@ -226,7 +226,7 @@ class C
 ";
             foreach (var langVersion in new[] { LanguageVersion.CSharp8, MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion() })
             {
-                var comp = CreateCompilation(
+                _ = CreateCompilation(
                     source, options: TestOptions.ReleaseExe,
                     parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
                     .VerifyDiagnostics(

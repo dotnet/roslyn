@@ -8453,8 +8453,7 @@ struct C
             var model = comp.GetSemanticModel(tree);
 
             var parameterSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
-
-            var info = model.GetSemanticInfoSummary(parameterSyntax.Type);
+            _ = model.GetSemanticInfoSummary(parameterSyntax.Type);
         }
 
         [Fact]
@@ -9052,7 +9051,7 @@ namespace ConsoleApplication30
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
             // this doesn't warn but causes flakiness when executed.
-            var comp3 = CompileAndVerify(s3,
+            _ = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
         }

@@ -123,7 +123,7 @@ public class X
                 //         Console.WriteLine("7. {0}", (x is bool is bool));
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "x is bool is bool").WithArguments("bool")
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -261,7 +261,7 @@ class D
 @"False
 True
 False";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3418,7 +3418,7 @@ public static class StaticType
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "whatever");
+            _ = CompileAndVerify(compilation, expectedOutput: "whatever");
         }
 
         [Fact, WorkItem(12996, "https://github.com/dotnet/roslyn/issues/12996")]
@@ -3851,7 +3851,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"0123 123
 goo throws");
         }
@@ -3884,7 +3884,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"1
 thrown");
         }
@@ -3917,7 +3917,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"1
 thrown");
         }
@@ -3966,7 +3966,7 @@ class Program
                 references: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"making exception 2
 thrown 2");
         }
@@ -3996,7 +3996,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"blue");
         }
 
@@ -4033,7 +4033,7 @@ class MyException : Exception
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"green");
         }
 
@@ -4068,7 +4068,7 @@ class B
     public static int operator +(bool left, B right) => 8;
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
+            _ = CreateCompilation(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
@@ -4089,7 +4089,7 @@ class B
 7
 True
 True";
-            compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (15,27): warning CS8417: The given expression always matches the provided constant.
                 //         Console.WriteLine(3 is One + 2); // should print True
@@ -4098,7 +4098,7 @@ True";
                 //         Console.WriteLine(One + 2 is 3); // should print True
                 Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant, "One + 2 is 3").WithLocation(16, 27)
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
@@ -4145,7 +4145,7 @@ True
 yes";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10492, "https://github.com/dotnet/roslyn/issues/10492")]
@@ -4227,7 +4227,7 @@ False
 True";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(14825, "https://github.com/dotnet/roslyn/issues/14825")]
@@ -4543,7 +4543,7 @@ class C
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: @"False
+            _ = CompileAndVerify(compilation, expectedOutput: @"False
 False
 True");
         }
@@ -4570,7 +4570,7 @@ public class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+            _ = CompileAndVerify(compilation, expectedOutput: "True");
         }
 
         [Fact]
@@ -4600,7 +4600,7 @@ public class Color
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "True");
+            _ = CompileAndVerify(compilation, expectedOutput: "True");
         }
 
         [Fact]
@@ -4851,7 +4851,7 @@ public class Program
         if (((int?)1) is {} and 1) { }
     }
 }";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+            _ = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
                 );
         }
 
@@ -4867,7 +4867,7 @@ public class Program738490379
     }
     private static object M() => null;
 }";
-            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
+            _ = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators).VerifyDiagnostics(
                     // (6,13): error CS0841: Cannot use local variable 'NotFound' before it is declared
                     //         if (NotFound is var (M, not int _ or NotFound _) {  }) {}
                     Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "NotFound").WithArguments("NotFound").WithLocation(6, 13),
@@ -5097,7 +5097,7 @@ class Derived : Base
 ";
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe).VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TBase
+            _ = CompileAndVerify(compilation, expectedOutput: @"TBase
 TDerived
 Neither
 TBase
@@ -5138,7 +5138,7 @@ class Derived : Base
 {
 }
 ";
-            var compilation = CreateCompilation(program).VerifyDiagnostics(
+            _ = CreateCompilation(program).VerifyDiagnostics(
                 // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case TDerived td:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "TDerived td").WithLocation(12, 18)
@@ -5164,7 +5164,7 @@ public class Program
     }
 }
 ";
-            var compilation = CreateCompilation(program).VerifyDiagnostics(
+            _ = CreateCompilation(program).VerifyDiagnostics(
                 // (11,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case IEnumerable<object> s:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "IEnumerable<object> s").WithLocation(11, 18)
@@ -5219,7 +5219,7 @@ public class Program
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+            _ = CompileAndVerify(compilation, expectedOutput: @"1
 2
 3
 1
@@ -5295,7 +5295,7 @@ False";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
@@ -5594,7 +5594,7 @@ M15a
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -5764,7 +5764,7 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef }, options: TestOptions.ReleaseExe);
-            var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
+            _ = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
@@ -6061,7 +6061,7 @@ public class Program
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+            _ = CompileAndVerify(compilation, expectedOutput: @"TnT");
         }
 
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
@@ -6094,7 +6094,7 @@ public class Program
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+            _ = CompileAndVerify(compilation, expectedOutput: @"TnT");
         }
 
         [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
@@ -6122,7 +6122,7 @@ public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
+            _ = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
         }
 
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
@@ -6213,7 +6213,7 @@ unsafe public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+            _ = CompileAndVerify(compilation, expectedOutput: "ok");
         }
 
         [Fact]
@@ -6466,7 +6466,7 @@ internal class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(23100, "https://github.com/dotnet/roslyn/issues/23100")]
@@ -6645,7 +6645,7 @@ public class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"True
 False
 True
@@ -6697,7 +6697,7 @@ public class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"True
 False
 True

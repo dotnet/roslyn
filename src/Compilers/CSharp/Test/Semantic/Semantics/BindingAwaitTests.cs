@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             TextChange change = new TextChange(span, "/*comment*/");
             SourceText newText = text.WithChanges(change);
             // This line caused an assertion and then crashed in the parser.
-            var newTree = tree.WithChangedText(newText);
+            _ = tree.WithChangedText(newText);
         }
 
         [Fact]

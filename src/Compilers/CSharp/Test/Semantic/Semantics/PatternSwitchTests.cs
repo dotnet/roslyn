@@ -401,7 +401,7 @@ public class X : List<string>
 @"True
 False
 null";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10601, "https://github.com/dotnet/roslyn/issues/10601")]
@@ -848,7 +848,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(17, 17)
                 );
             var expectedOutput = @"done";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -893,7 +893,7 @@ class Program
             var expectedOutput =
 @"1
 sasquatch";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -999,7 +999,7 @@ float.NaN !
 decimal {2.1m}
 1.0m !
 null";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
@@ -1190,7 +1190,7 @@ zero
 double.NaN
 double.NaN
 float.NaN";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(12573, "https://github.com/dotnet/roslyn/issues/12573")]
@@ -1248,7 +1248,7 @@ public enum EnumA
 (byte)0
 EnumA.ValueA
 Default";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(10446, "https://github.com/dotnet/roslyn/issues/10446")]
@@ -1324,7 +1324,7 @@ class Program
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(13520, "https://github.com/dotnet/roslyn/issues/13520")]
@@ -1715,7 +1715,7 @@ class Program
 False
 True
 False";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1756,7 +1756,7 @@ class Program
 4
 Correct
 4";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(14707, "https://github.com/dotnet/roslyn/issues/14707")]
@@ -1854,7 +1854,7 @@ class A{}
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput = "A";
-            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1900,7 +1900,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -1962,7 +1962,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -2018,7 +2018,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2076,7 +2076,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2125,7 +2125,7 @@ class Program
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
         }
@@ -2189,7 +2189,7 @@ class Program
             // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 case 2: 2
 case 1: 3
@@ -2254,7 +2254,7 @@ class Program
             // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2314,7 +2314,7 @@ class Program
             // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
 1
 case 2: 2
@@ -2370,7 +2370,7 @@ class Program
             // Use a compilation profile that supports Task<T>.
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
 3");
         }
@@ -2411,7 +2411,7 @@ class Test
                 //     public static async Task<string> SendMessageAsync<T>(object response)
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "SendMessageAsync").WithLocation(12, 38)
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2450,7 +2450,7 @@ class Test
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2492,7 +2492,7 @@ class Test
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"T
 default");
         }
@@ -2554,7 +2554,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            _ = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2582,7 +2582,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            _ = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2610,7 +2610,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"1");
+            _ = CompileAndVerify(compilation, expectedOutput: @"1");
         }
 
         [Fact]
@@ -2701,7 +2701,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: @"pass");
+            _ = CompileAndVerify(compilation, expectedOutput: @"pass");
         }
 
         [Fact]
@@ -2920,7 +2920,7 @@ class Program
             var compilation = CreateCompilationWithMscorlib40(
                 source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+            _ = CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
         [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
@@ -2950,7 +2950,7 @@ static class Ex
             var compilation = CreateCompilationWithMscorlib45(
                 source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
             compilation.VerifyDiagnostics();
-            var comp = CompileAndVerify(compilation);
+            _ = CompileAndVerify(compilation);
         }
 
         [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]

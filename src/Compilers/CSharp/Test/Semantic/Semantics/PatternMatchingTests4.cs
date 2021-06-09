@@ -197,7 +197,7 @@ False
 False
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -290,7 +290,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -321,7 +321,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -352,7 +352,7 @@ public struct C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -384,7 +384,7 @@ public struct C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -415,7 +415,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -447,7 +447,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -481,7 +481,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -515,7 +515,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -603,7 +603,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -637,7 +637,7 @@ public class C : ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -704,7 +704,7 @@ public class C : B, ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -742,7 +742,7 @@ public class C : B, ITuple
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -777,7 +777,7 @@ static class Extensions
 True
 False
 False";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -813,7 +813,7 @@ static class Extensions
 False
 True
 True";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -924,7 +924,7 @@ public class C : System.Runtime.CompilerServices.ITuple
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "System.Runtime.CompilerServices.ITuple").WithArguments("System.Runtime.CompilerServices.ITuple", "WarningOnly").WithLocation(11, 18)
                 );
             var expectedOutput = @"True";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1037,7 +1037,7 @@ class C
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"1 1 2; 2 3 4; ";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1072,7 +1072,7 @@ class C
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"1 1 2; 2 3 4; ";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1138,7 +1138,7 @@ namespace System
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"0 a b; 1 1 2; 2 3 4; ";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1203,7 +1203,7 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"0 a b; 1 1 2; 2 3 4; ";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1254,7 +1254,7 @@ namespace System
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1294,7 +1294,7 @@ struct C
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics();
             var expectedOutput = @"1 1 2; 2 3 4; ";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2963,7 +2963,7 @@ class Program
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput = @"12";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         // https://github.com/dotnet/roslyn/issues/35032: Handle switch expressions correctly
@@ -2990,7 +2990,7 @@ class Program
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput = @"12";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -3016,7 +3016,7 @@ class Program
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput = @"1";
-            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
+            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Skipped);
         }
 
         [Fact]

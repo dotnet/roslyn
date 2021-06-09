@@ -94,8 +94,7 @@ A21B22C23t
 A24B25C26t
 A27B28C29t
 A30B31C32t";
-
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            _ = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact]
@@ -138,8 +137,7 @@ class P
             string expected = @"123456789101112
 1234588899989101112
 888888888999999999999888999101112";
-
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            _ = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
 
@@ -159,8 +157,7 @@ public class C
     }
 }";
             string expected = @"102030405060";
-
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            _ = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [WorkItem(544081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544081")]
@@ -180,8 +177,7 @@ class Program {
     }
 }";
             string expected = @"";
-
-            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
+            _ = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [WorkItem(544364, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544364")]
@@ -1209,8 +1205,7 @@ System.Double
             Assert.Equal(1, array.Rank);
             Assert.Equal(new[] { 5 }, array.Sizes);
             Assert.Equal(new[] { 1 }, array.LowerBounds);
-
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 Test3
@@ -1537,7 +1532,7 @@ Overridden 16
 }
 ";
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput:
+            _ = CompileAndVerify(compilation, expectedOutput:
 @"Test1
 Test2
 Test3

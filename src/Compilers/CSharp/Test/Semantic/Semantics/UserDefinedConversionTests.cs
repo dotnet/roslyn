@@ -1156,7 +1156,7 @@ unsafe class P
             // lifted operators, nullable conversions and unsafe code so only generate code for
             // the straightforward intptr/number conversions:
 
-            var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
+            _ = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(543427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543427")]
@@ -1282,9 +1282,7 @@ class D<T> : C<T>
         return null;
     }
 }";
-
-
-            var verifier = CompileAndVerify(source, expectedOutput: "23");
+            _ = CompileAndVerify(source, expectedOutput: "23");
         }
 
         [Fact, WorkItem(543436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543436")]
@@ -1309,8 +1307,7 @@ class C
         Console.WriteLine(c.str);
     }
 }";
-
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            _ = CompileAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
@@ -1343,7 +1340,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "b");
+            _ = CompileAndVerify(source, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543440")]
@@ -1369,7 +1366,7 @@ class C
         return c;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            _ = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(543441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543441")]
@@ -1438,8 +1435,7 @@ class C
         Console.WriteLine(c.str);
     }
 }";
-
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            _ = CompileAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543595")]
@@ -1470,8 +1466,7 @@ class Program
 
             var comp = CreateCompilation(source1);
             comp.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(source: source1, expectedOutput: "");
+            _ = CompileAndVerify(source: source1, expectedOutput: "");
         }
 
         [Fact, WorkItem(543598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543598")]

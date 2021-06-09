@@ -8441,7 +8441,7 @@ record C(long X)
         Console.WriteLine((c with { X = (int)s }).X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"
+            _ = CompileAndVerify(src, expectedOutput: @"
 conversion
 11").VerifyDiagnostics();
         }
@@ -9613,7 +9613,7 @@ record C
         Console.WriteLine(c3.X);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"
+            _ = CompileAndVerify(src, expectedOutput: @"
 True
 False
 1
@@ -22077,7 +22077,7 @@ record C(int X) : Base(() => X)
         var c = new C(1);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"1").VerifyDiagnostics();
+            _ = CompileAndVerify(src, expectedOutput: @"1").VerifyDiagnostics();
         }
 
         [Fact]
@@ -24768,7 +24768,7 @@ record C(int X) : Base(() => 100 + X++)
         Console.WriteLine(c.Z());
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"
+            _ = CompileAndVerify(src, expectedOutput: @"
 101
 202
 303

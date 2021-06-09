@@ -17832,7 +17832,7 @@ public class Cls
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            _ = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree).Any());
         }
@@ -17893,7 +17893,7 @@ public class Cls
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            _ = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree).Any());
         }
@@ -22995,7 +22995,7 @@ public unsafe struct X
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            _ = compilation.GetSemanticModel(tree);
 
             Assert.False(GetOutVarDeclarations(tree, "x3").Any());
         }

@@ -269,7 +269,7 @@ class Program
 }";
             string expectedOutput = @"<>
 <System.String[]>";
-            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
+            _ = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]

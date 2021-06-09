@@ -1534,7 +1534,7 @@ class TestShapes
     }
 }
 enum color { blue, green }");
-            var tmp = dataFlows.VariablesDeclared; // ensure no exception thrown
+            _ = dataFlows.VariablesDeclared; // ensure no exception thrown
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
@@ -4073,8 +4073,7 @@ public class A
 
             var ctrlFlows = results.Item1;
             var dataFlows = results.Item2;
-
-            var tmp = ctrlFlows.EndPointIsReachable; // ensure no exception thrown
+            _ = ctrlFlows.EndPointIsReachable; // ensure no exception thrown
             Assert.Empty(dataFlows.VariablesDeclared);
         }
 
@@ -5998,7 +5997,7 @@ class Program
             Assert.Equal("this.EditorOperations = 1;", statement.ToString());
             var analysis = model.AnalyzeDataFlow(statement);
             Assert.True(analysis.Succeeded);
-            var v = analysis.DataFlowsOut;
+            _ = analysis.DataFlowsOut;
         }
 
         [Fact, WorkItem(547059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547059")]

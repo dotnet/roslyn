@@ -799,7 +799,7 @@ public class C {
         [Fact]
         public void IndexExpression_TypeNotFound()
         {
-            var compilation = CreateCompilation(@"
+            _ = CreateCompilation(@"
 class Test
 {
     void M(int arg)
@@ -818,7 +818,7 @@ class Test
         [Fact]
         public void IndexExpression_LiftedTypeIsNotNullable()
         {
-            var compilation = CreateCompilation(@"
+            _ = CreateCompilation(@"
 namespace System
 {
     public class Index
@@ -841,7 +841,7 @@ class Test
         [Fact]
         public void IndexExpression_NullableConstructorNotFound()
         {
-            var compilation = CreateEmptyCompilation(@"
+            _ = CreateEmptyCompilation(@"
 namespace System
 {
     public struct Int32 { }
@@ -944,7 +944,7 @@ class Test
         [Fact]
         public void IndexExpression_InvalidTypes()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            _ = CreateCompilationWithIndex(@"
 class Test
 {
     void M()
@@ -968,7 +968,7 @@ class Test
         [Fact]
         public void IndexExpression_NoOperatorOverloading()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            _ = CreateCompilationWithIndex(@"
 public class Test
 {
     public static Test operator ^(Test value) => default;  
@@ -995,14 +995,14 @@ class Test
         var x = ^1;
     }
 }";
-            var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
-            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+            _ = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            _ = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
 
         [Fact]
         public void RangeExpression_RangeNotFound()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            _ = CreateCompilationWithIndex(@"
 class Test
 {
     void M(int arg)
@@ -1030,7 +1030,7 @@ class Test
         [Fact]
         public void RangeExpression_LiftedRangeNotNullable()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            _ = CreateCompilationWithIndex(@"
 namespace System
 {
     public class Range
@@ -1053,7 +1053,7 @@ class Test
         [Fact]
         public void RangeExpression_LiftedIndexNotNullable()
         {
-            var compilation = CreateCompilation(@"
+            _ = CreateCompilation(@"
 namespace System
 {
     public class Index
@@ -1145,7 +1145,7 @@ class Test
         [Fact]
         public void RangeExpression_NullableConstructorNotFound()
         {
-            var compilation = CreateEmptyCompilation(@"
+            _ = CreateEmptyCompilation(@"
 namespace System
 {
     public struct Int32 { }
@@ -1187,7 +1187,7 @@ class Test
         [Fact]
         public void RangeExpression_BooleanNotFound()
         {
-            var compilation = CreateEmptyCompilation(@"
+            _ = CreateEmptyCompilation(@"
 namespace System
 {
     public struct Int32 { }
@@ -1407,7 +1407,7 @@ class Test
         [Fact]
         public void RangeExpression_InvalidTypes()
         {
-            var compilation = CreateCompilationWithIndexAndRange(@"
+            _ = CreateCompilationWithIndexAndRange(@"
 class Test
 {
     void M()
@@ -1435,7 +1435,7 @@ class Test
         [Fact]
         public void RangeExpression_NoOperatorOverloading()
         {
-            var compilation = CreateCompilationWithIndexAndRange(@"
+            _ = CreateCompilationWithIndexAndRange(@"
 public class Test
 {
     public static Test operator ..(Test value) => default;

@@ -5935,7 +5935,7 @@ class H
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                _ = compilation.GetSemanticModel(tree);
 
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
@@ -6107,7 +6107,7 @@ class H
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                _ = compilation.GetSemanticModel(tree);
 
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
@@ -6193,7 +6193,7 @@ class H
                     );
 
                 var tree = compilation.SyntaxTrees.Single();
-                var model = compilation.GetSemanticModel(tree);
+                _ = compilation.GetSemanticModel(tree);
 
                 var x1Decl = GetPatternDeclarations(tree, "x1").Single();
                 var x1Ref = GetReferences(tree, "x1").ToArray();
@@ -6318,7 +6318,7 @@ class H
 
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            _ = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             Assert.True(x1Decl.Parent is VarPatternSyntax);
@@ -6347,7 +6347,7 @@ class H
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            _ = compilation.GetSemanticModel(tree);
 
             var x1Decl = GetPatternDeclarations(tree, "x1").Single();
             Assert.True(x1Decl.Parent is VarPatternSyntax);
