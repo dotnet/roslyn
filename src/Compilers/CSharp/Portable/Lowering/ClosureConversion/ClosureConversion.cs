@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // different from the local variable `type`, which has the node's type substituted for the current container.
                         var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
-                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsTypeParameterFromSymbol(containingSymbol => containingSymbol is MethodSymbol);
+                        var hasTypeParametersFromAnyMethod = cacheVariableType.ContainsMethodTypeParameter();
 
                         // If we want to cache a variable by moving its value into a field,
                         // the variable cannot use any type parameter from the method it is currently declared within.
