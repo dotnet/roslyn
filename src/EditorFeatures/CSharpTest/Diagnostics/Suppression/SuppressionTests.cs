@@ -927,7 +927,6 @@ class Class
                                 {
                                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
                                 }
-
                                 break;
                         }
                     }

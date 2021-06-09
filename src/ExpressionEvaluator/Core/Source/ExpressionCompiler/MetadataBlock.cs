@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return false;
             }
-
             return Equals((MetadataBlock)obj);
         }
 

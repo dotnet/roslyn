@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly CSharpCompilation _compilation;
 
-        internal EETypeNameDecoder(CSharpCompilation compilation, PEModuleSymbol moduleSymbol)
-            : base(SymbolFactory.Instance, moduleSymbol)
+        internal EETypeNameDecoder(CSharpCompilation compilation, PEModuleSymbol moduleSymbol) :
+            base(SymbolFactory.Instance, moduleSymbol)
         {
             _compilation = compilation;
         }
@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return index;
             }
-
             if (identity.IsWindowsComponent())
             {
                 // Find placeholder Windows.winmd assembly (created
@@ -46,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
             }
-
             return -1;
         }
 

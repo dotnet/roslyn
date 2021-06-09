@@ -2522,7 +2522,6 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(2, actions.Length);
             }
-
             var expect_0 =
 @"
 class Program
@@ -2672,7 +2671,6 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(2, actions.Length);
             }
-
             var expect_0 =
 @"
 class Program
@@ -2748,7 +2746,6 @@ class Program
                 var (actions, actionToInvoke) = await GetCodeActionsAsync(workspace, new TestParameters());
                 Assert.Equal(3, actions.Length);
             }
-
             var expect_0 =
 @"
 class Program

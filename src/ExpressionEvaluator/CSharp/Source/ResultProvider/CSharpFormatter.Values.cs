@@ -73,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     builder.Append(", ");
                 }
-
                 var lowerBound = lowerBounds[i];
                 var size = sizes[i];
                 if (lowerBound == 0)
@@ -87,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     builder.Append(FormatLiteral(size + lowerBound - 1, options));
                 }
             }
-
             builder.Append(']');
 
             lmrType = originalLmrType.GetElementType(); // Strip off one layer (already handled).
@@ -121,12 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 builder.Append('(');
             }
-
             if ((options & DkmClrCastExpressionOptions.ParenthesizeArgument) != 0)
             {
                 argument = $"({argument})";
             }
-
             if ((options & DkmClrCastExpressionOptions.ConditionalCast) != 0)
             {
                 builder.Append(argument);
@@ -140,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.Append(')');
                 builder.Append(argument);
             }
-
             if ((options & DkmClrCastExpressionOptions.ParenthesizeEntireExpression) != 0)
             {
                 builder.Append(')');

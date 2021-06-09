@@ -344,7 +344,6 @@ namespace BuildValidator
                     logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
                 }
             }
-
             return sourceLinks;
 
             static SourceLinkEntry makeSourceLink(KeyValuePair<string, string> entry)

@@ -37,10 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     {
                         result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
                     }
-
                     Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
-
                 return _lazyTypeParameterMap;
             }
         }

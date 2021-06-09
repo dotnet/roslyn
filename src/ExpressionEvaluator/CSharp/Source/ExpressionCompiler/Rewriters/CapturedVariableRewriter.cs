@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return result;
                 }
             }
-
             return node;
         }
 
@@ -76,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return node;
             }
-
             return variable.ToBoundExpression(node.Syntax);
         }
 
@@ -130,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return rewrittenThis;
             }
-
             var boundKind = node.Kind;
             Debug.Assert(boundKind == BoundKind.ThisReference || boundKind == BoundKind.BaseReference);
             var errorCode = boundKind == BoundKind.BaseReference

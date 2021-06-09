@@ -60,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If isLValue Then
                 Return variable
             End If
-
             Return variable.MakeRValue()
         End Function
 

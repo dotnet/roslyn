@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     _typeParameterChecker.Visit(expression.ExpressionSymbol.GetPublicSymbol());
                 }
-
                 return base.Visit(node);
             }
         }

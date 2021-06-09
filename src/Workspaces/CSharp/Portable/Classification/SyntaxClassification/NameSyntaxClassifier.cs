@@ -212,7 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         classifiedSpan = new ClassifiedSpan(token.Span, classification);
                         return true;
                     }
-
                     break;
 
                 case IFieldSymbol fieldSymbol:

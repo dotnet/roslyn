@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return null;
             }
-
             return GetCastExpression(argument, name, castExpressionOptions);
         }
 
@@ -104,7 +103,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return null;
             }
-
             return GetObjectCreationExpression(name, arguments);
         }
 
@@ -156,14 +154,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return null; // FullName wouldn't be parseable.
                 }
-
                 qualifier = GetCastExpression(parentFullName, typeName, DkmClrCastExpressionOptions.ParenthesizeEntireExpression);
             }
             else
             {
                 qualifier = parentFullName;
             }
-
             return $"{qualifier}.{memberName}";
         }
 
@@ -207,7 +203,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         {
                             return true;
                         }
-
                         parens++;
                         break;
                     case '[':
@@ -235,11 +230,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 return true;
                             }
                         }
-
                         break;
                 }
             }
-
             return false;
         }
 
@@ -258,7 +251,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return formatSpecifiers;
             }
-
             var builder = ArrayBuilder<string>.GetInstance();
             builder.AddRange(formatSpecifiers);
             builder.Add(formatSpecifier);
@@ -271,16 +263,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             for (; start < oldLength && leading(expression[start]); start++)
             {
             }
-
             for (; length > start && trailing(expression[length - 1]); length--)
             {
             }
-
             if ((start > 0) || (length < oldLength))
             {
                 return expression.Substring(start, length - start);
             }
-
             return expression;
         }
 
@@ -318,7 +307,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 Array.Reverse(specifiers);
                 formatSpecifiers = new ReadOnlyCollection<string>(specifiers);
             }
-
             builder.Free();
 
             Debug.Assert((formatSpecifiers.Count == 0) == (newLength == oldLength));
@@ -326,7 +314,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return expression.Substring(0, newLength);
             }
-
             return expression;
         }
 

@@ -216,7 +216,6 @@ namespace AnalyzerRunner
                              "Unrecognized option " + arg :
                              "Unrecognized parameter " + arg));
                         }
-
                         break;
                 }
             }

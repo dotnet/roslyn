@@ -23,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 For Each local In locals
                     builder.Add(GenerateCreateVariableStatement(compilation, container, syntax, local))
                 Next
-
                 builder.AddRange(block.Statements)
                 block = New BoundBlock(syntax, block.StatementListSyntax, block.Locals, builder.ToImmutableAndFree())
             End If
@@ -47,7 +46,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If local.DeclarationKind = LocalDeclarationKind.ImplicitVariable Then
                     _locals.Add(local)
                 End If
-
                 Return node
             End Function
 

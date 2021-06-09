@@ -1623,7 +1623,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     node = node.Parent;
                     continue;
                 }
-
                 if (node.Parent.IsKind(SyntaxKind.Argument) && node.Parent.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     node = node.Parent.Parent;
@@ -1646,7 +1645,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
             }
-
             return false;
         }
 

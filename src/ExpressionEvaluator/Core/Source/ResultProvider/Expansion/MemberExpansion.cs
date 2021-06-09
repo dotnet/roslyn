@@ -167,12 +167,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     staticExpansions.Add(publicStaticExpansion);
                 }
-
                 if (nonPublicStaticExpansion != null)
                 {
                     staticExpansions.Add(nonPublicStaticExpansion);
                 }
-
                 Debug.Assert(staticExpansions.Count > 0);
                 var staticMembersExpansion = new StaticMembersExpansion(
                     type,
@@ -237,7 +235,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 publicExpansions.Add(new MemberExpansion(publicMembers.ToArray(), customTypeInfoMap));
                                 publicMembers.Clear();
                             }
-
                             publicExpansions.Add(new RootHiddenExpansion(member, customTypeInfoMap));
                             continue;
                         case DkmClrDebuggerBrowsableAttributeState.Never:
@@ -261,7 +258,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 publicExpansions.Add(new MemberExpansion(publicMembers.ToArray(), customTypeInfoMap));
             }
-
             publicMembers.Free();
 
             publicExpansion = AggregateExpansion.CreateExpansion(publicExpansions);
@@ -503,7 +499,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                        member.IsStatic,
                        parent);
             }
-
             return resultProvider.CreateDataItem(
                 inspectionContext,
                 memberName,

@@ -678,7 +678,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             result[returnTypeParameter] = inferredType;
                         }
-
                         return;
                     }
                 }
@@ -706,7 +705,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 DetermineTypeParameterMapping(inferredNamedType.TypeArguments[i], returnNamedType.TypeArguments[i], result);
                             }
                         }
-
                         return;
                 }
             }
@@ -833,7 +831,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentTypes = currentTypes.Select(t => t.InferredType).OfType<IArrayTypeSymbol>()
                                                .SelectAsArray(a => new TypeInferenceInfo(a.ElementType));
                 }
-
                 return currentTypes;
             }
 

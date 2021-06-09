@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             {
                 throw new ArgumentNullException();
             }
-
             this.InitialChildren = InitialChildren;
             this.EnumContext = EnumContext;
         }

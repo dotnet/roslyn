@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly string _getExceptionMethodName;
 
-        internal ExceptionLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, string getExceptionMethodName)
-            : base(method, name, displayName, type)
+        internal ExceptionLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, string getExceptionMethodName) :
+            base(method, name, displayName, type)
         {
             _getExceptionMethodName = getExceptionMethodName;
         }

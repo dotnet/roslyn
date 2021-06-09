@@ -33,10 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                     containingSymbol = containingSymbol.ContainingSymbol
                 End While
-
                 Return True
             End If
-
             Return False
         End Function
 

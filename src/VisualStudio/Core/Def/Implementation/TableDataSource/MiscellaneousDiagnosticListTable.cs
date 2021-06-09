@@ -34,8 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             private readonly LiveTableDataSource _source;
 
-            public MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
-                : base(workspace, provider)
+            public MiscellaneousDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+                base(workspace, provider)
             {
                 _source = new LiveTableDataSource(workspace, diagnosticService, IdentifierString);
 

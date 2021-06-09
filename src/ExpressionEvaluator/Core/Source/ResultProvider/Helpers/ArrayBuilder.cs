@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis
             {
                 builder._items.Capacity = size;
             }
-
             return builder;
         }
 

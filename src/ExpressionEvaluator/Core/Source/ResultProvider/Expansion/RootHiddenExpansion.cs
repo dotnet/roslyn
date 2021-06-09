@@ -49,11 +49,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var emptyMember = memberValue.Type.GetMemberByName("Empty");
                         memberValue = memberValue.GetMemberValue(emptyMember, inspectionContext);
                     }
-
                     var row = new EvalResult(Resources.ErrorName, (string)memberValue.HostObjectValue, inspectionContext);
                     rows.Add(row);
                 }
-
                 index++;
             }
             else

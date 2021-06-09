@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return $"{valueStr} {{{alias}}}";
                 }
             }
-
             return valueStr;
         }
 
@@ -74,7 +73,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     builder.Append(", ");
                 }
-
                 builder.Append(value);
                 any = true;
             }

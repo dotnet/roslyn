@@ -9576,7 +9576,6 @@ class C
             {
                 await VerifyItemExistsAsync(markup, "Item" + i);
             }
-
             await VerifyItemExistsAsync(markup, "ToString");
 
             await VerifyItemIsAbsentAsync(markup, "Item1");

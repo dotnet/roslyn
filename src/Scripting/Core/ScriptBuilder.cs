@@ -109,13 +109,11 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 return;
             }
-
             var filtered = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error).AsImmutable();
             if (filtered.IsEmpty)
             {
                 return;
             }
-
             throw new CompilationErrorException(
                 formatter.Format(filtered[0], CultureInfo.CurrentCulture),
                 filtered);

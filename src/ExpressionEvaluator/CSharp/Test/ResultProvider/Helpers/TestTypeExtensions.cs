@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var inspectionSession = new DkmInspectionSession(ImmutableArray.Create<IDkmClrFormatter>(formatter), ImmutableArray.Create<IDkmClrResultProvider>(new CSharpResultProvider()));
                 inspectionContext = new DkmInspectionContext(inspectionSession, DkmEvaluationFlags.None, radix: 10, runtimeInstance: null);
             }
-
             return escapeKeywordIdentifiers ?
                 ((IDkmClrFullNameProvider)formatter).GetClrTypeName(inspectionContext, clrType, typeInfo) :
                 inspectionContext.GetTypeName(clrType, typeInfo, Formatter.NoFormatSpecifiers);

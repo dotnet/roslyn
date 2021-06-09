@@ -208,7 +208,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return;
             }
-
             var genericParameterPosition = type.GenericParameterPosition;
             AppendRange(
                 collection,

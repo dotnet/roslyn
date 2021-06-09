@@ -880,7 +880,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         {
                             name = "~" + name;
                         }
-
                         if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
                         {
                             var pooled = PooledStringBuilder.GetInstance();
@@ -908,7 +907,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
             }
-
             Debug.Assert(name != null, "Unexpected node type " + node.Kind());
             return name;
         }
@@ -924,7 +922,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     builder.Append(", ");
                     builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
                 }
-
                 builder.Append('>');
             }
         }
@@ -2045,7 +2042,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                                 return DeclarationKind.Variable;
                             }
                         }
-
                         break;
                     }
 
@@ -2055,7 +2051,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     {
                         return DeclarationKind.Attribute;
                     }
-
                     break;
 
                 case SyntaxKind.Attribute:
@@ -2063,7 +2058,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     {
                         return DeclarationKind.Attribute;
                     }
-
                     break;
 
                 case SyntaxKind.GetAccessorDeclaration:

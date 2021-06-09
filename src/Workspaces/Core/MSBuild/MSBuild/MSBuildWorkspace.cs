@@ -327,7 +327,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                                                projectChanges.ProjectId));
                         return;
                     }
-
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
                     {
                         try
@@ -376,7 +375,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                     return;
                 }
-
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
@@ -394,7 +392,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                     return;
                 }
-
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnAdditionalDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
@@ -438,7 +435,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return;
             }
-
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(filePath, out _))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
@@ -534,7 +530,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
-
             _applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceAdded(projectId, metadataReference);
         }
@@ -549,7 +544,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
-
             _applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceRemoved(projectId, metadataReference);
         }
@@ -561,7 +555,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return null;
             }
-
             if (!project.MetadataReferences.Contains(metadataReference))
             {
                 project = project.AddMetadataReference(metadataReference);
@@ -572,7 +565,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return null;
             }
-
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
             return symbol?.Identity;
         }

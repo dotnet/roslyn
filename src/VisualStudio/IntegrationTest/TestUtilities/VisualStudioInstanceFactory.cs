@@ -276,7 +276,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                         isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
                     }
                 }
-
                 return isMatch;
             });
 

@@ -851,7 +851,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                                     _memberDisplayFormat = oldMemberDisplayFormat;
                                 }
                             }
-
                             i = expressionEnd + 1;
                         }
                     }

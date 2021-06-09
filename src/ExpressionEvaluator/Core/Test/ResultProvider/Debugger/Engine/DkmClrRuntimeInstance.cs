@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             {
                 getModule = (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
             }
-
             this.Assemblies = assemblies;
             this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
             _defaultModule = getModule(this, null);
@@ -99,11 +98,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     {
                         result = result.MakeGenericType(typeArguments.Select(this.GetType).ToArray());
                     }
-
                     return result;
                 }
             }
-
             return null;
         }
 
@@ -122,7 +119,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     yield return module;
                 }
             }
-
             if (mscorlib != null)
             {
                 yield return mscorlib;

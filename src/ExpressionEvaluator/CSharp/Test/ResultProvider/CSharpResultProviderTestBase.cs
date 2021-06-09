@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
         }
 
-        private CSharpResultProviderTestBase(CSharpFormatter formatter)
-            : this(CreateDkmInspectionSession(formatter))
+        private CSharpResultProviderTestBase(CSharpFormatter formatter) :
+            this(CreateDkmInspectionSession(formatter))
         {
         }
 
-        internal CSharpResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext = null)
-            : base(inspectionSession, defaultInspectionContext ?? CreateDkmInspectionContext(inspectionSession, DkmEvaluationFlags.None, radix: 10))
+        internal CSharpResultProviderTestBase(DkmInspectionSession inspectionSession, DkmInspectionContext defaultInspectionContext = null) :
+            base(inspectionSession, defaultInspectionContext ?? CreateDkmInspectionContext(inspectionSession, DkmEvaluationFlags.None, radix: 10))
         {
         }
 

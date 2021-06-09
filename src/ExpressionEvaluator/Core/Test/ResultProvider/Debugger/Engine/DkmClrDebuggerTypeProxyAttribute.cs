@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 {
     public class DkmClrDebuggerTypeProxyAttribute : DkmClrEvalAttribute
     {
-        internal DkmClrDebuggerTypeProxyAttribute(DkmClrType proxyType)
-            : base(null)
+        internal DkmClrDebuggerTypeProxyAttribute(DkmClrType proxyType) :
+            base(null)
         {
             this.ProxyType = proxyType;
         }

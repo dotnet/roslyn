@@ -106,7 +106,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
                 }
-
                 builder.Append(')');
             }
 
@@ -143,7 +142,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var typeNameDecoder = GetTypeNameDecoder(compilation, method);
                 builder.Add(typeNameDecoder.GetTypeSymbolForSerializedType(name));
             }
-
             return builder.ToImmutableAndFree();
         }
     }

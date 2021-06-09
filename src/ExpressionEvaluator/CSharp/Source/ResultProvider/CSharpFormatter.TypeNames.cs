@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 builder.Append('@');
             }
-
             builder.Append(identifier);
         }
 
@@ -64,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     out sawSingleInvalidIdentifier);
                 sawInvalidIdentifier |= sawSingleInvalidIdentifier;
             }
-
             builder.Append('>');
         }
 

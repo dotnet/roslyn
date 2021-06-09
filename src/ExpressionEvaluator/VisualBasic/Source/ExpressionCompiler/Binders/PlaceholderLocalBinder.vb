@@ -83,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If name.StartsWith("$", StringComparison.Ordinal) Then
                 diagnostics.Add(ERRID.ERR_IllegalChar, identifier.GetLocation())
             End If
-
             Return local
         End Function
 

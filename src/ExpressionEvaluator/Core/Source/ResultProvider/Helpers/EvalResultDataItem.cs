@@ -120,7 +120,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         name += ", " + formatSpecifier;
                     }
                 }
-
                 return name;
             }
         }

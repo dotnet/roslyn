@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 return false;
             }
-
             return documentationComment.ToFullString().StartsWith("/**", StringComparison.Ordinal);
         }
     }

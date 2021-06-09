@@ -51,13 +51,13 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             _favorites = favorites;
         }
 
-        internal DkmClrType(Type lmrType)
-            : this(DkmClrRuntimeInstance.DefaultRuntime, lmrType)
+        internal DkmClrType(Type lmrType) :
+            this(DkmClrRuntimeInstance.DefaultRuntime, lmrType)
         {
         }
 
-        internal DkmClrType(DkmClrRuntimeInstance runtime, Type lmrType)
-            : this(runtime.DefaultModule, runtime.DefaultAppDomain, lmrType)
+        internal DkmClrType(DkmClrRuntimeInstance runtime, Type lmrType) :
+            this(runtime.DefaultModule, runtime.DefaultAppDomain, lmrType)
         {
         }
 
@@ -134,7 +134,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                         new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
-
                 return _lazyGenericArguments;
             }
         }

@@ -308,7 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             // No duplicate names allowed
                             return false;
                         }
-
                         found = true;
                     }
                 }
@@ -503,7 +502,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                                 }
-
                                 break;
 
                             case SyntaxKind.QualifiedName:

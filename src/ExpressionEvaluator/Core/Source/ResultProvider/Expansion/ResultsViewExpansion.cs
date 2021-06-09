@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return null;
             }
-
             return CreateExpansion(inspectionContext, value, enumerableType, resultProvider);
         }
 
@@ -66,7 +65,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             includeResultsFormatSpecifier: true,
                             fullNameProvider: resultProvider.FullNameProvider);
                     }
-
                     errorMessage = Resources.ResultsViewNoSystemCore;
                 }
                 else
@@ -157,7 +155,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return null;
                 }
-
                 enumerableType = type;
             }
             else
@@ -272,7 +269,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
-
             var childFullNamePrefix = fullNameProvider.GetClrObjectCreationExpression(
                 inspectionContext,
                 _proxyValue.Type,

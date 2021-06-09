@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 formatSpecifiers = Formatter.NoFormatSpecifiers;
             }
-
             if (resultFullName != null)
             {
                 ReadOnlyCollection<string> otherSpecifiers;
@@ -69,7 +68,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, formatSpecifier);
                 }
             }
-
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
             wl.ContinueWith(
                 () => GetRootResultAndContinue(
@@ -313,10 +311,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                 TargetRuntime: process.GetNativeRuntimeInstance(),
                                 DataItem: result.ToDataItem());
                         }
-
                         completionRoutine(evalResult);
                     }
-
                     break;
                 case ExpansionKind.NonPublicMembers:
                     completionRoutine(DkmSuccessEvaluationResult.Create(
@@ -524,7 +520,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName);
                 }
             }
-
             return declaredTypeName;
         }
 
@@ -834,7 +829,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     onException(e);
                 }
             }
-
             if (displayInfo == null)
             {
                 completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
@@ -917,7 +911,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     onException(e);
                 }
             }
-
             if (index < numRows)
             {
                 GetChild(
@@ -958,7 +951,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // Null array. No expansion.
                     return null;
                 }
-
                 var lowerBounds = value.ArrayLowerBounds;
 
                 Type elementType;
@@ -1094,7 +1086,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         _onException(e);
                     }
                 }
-
                 _state = State.Executed;
             }
         }

@@ -248,7 +248,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 If local.GetUseSiteInfo().DiagnosticInfo?.Severity = DiagnosticSeverity.Error Then
                                     Continue For
                                 End If
-
                                 Dim aliasMethod = Me.CreateMethod(
                                     container,
                                     methodName,
@@ -534,7 +533,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Debug.Assert(isError = diagnostics.HasAnyErrors())
                 result = Not isError
             End If
-
             diagnostics.Free()
             Return result
         End Function
@@ -598,7 +596,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Else
                     Debug.Assert([namespace] Is compilation.GlobalNamespace)
                 End If
-
                 binder = New NamespaceBinder(binder, [namespace])
             End While
 
@@ -715,7 +712,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 importsBuilder.AddRange(projectLevelImportsBuilder)
                 projectLevelImportsBuilder.Free()
             End If
-
             If importsBuilder IsNot Nothing Then
                 Dim [imports] As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition) = importsBuilder.ToImmutableAndFree()
                 binder = New TypesOfImportedNamespacesMembersBinder(binder, [imports])
@@ -1113,7 +1109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
                 End If
             Next
-
             GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex)
 
             displayClassTypes.Free()
@@ -1226,7 +1221,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If member.Kind <> SymbolKind.Field Then
                     Continue For
                 End If
-
                 Dim field = DirectCast(member, FieldSymbol)
                 Dim fieldType = field.Type
                 Dim fieldName As String = field.Name
@@ -1419,7 +1413,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             While type.IsClosureOrStateMachineType()
                 type = type.ContainingType
             End While
-
             Debug.Assert(type IsNot Nothing)
 
             Return type

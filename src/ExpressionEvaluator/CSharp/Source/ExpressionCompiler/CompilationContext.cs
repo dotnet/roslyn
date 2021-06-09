@@ -776,7 +776,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 updatedReferences.Add(reference);
                 assembliesAndModulesBuilder.Add(compilation.GetAssemblyOrModuleSymbol(reference)!);
             }
-
             Debug.Assert(assembliesAndModulesBuilder.Count == updatedReferences.Count);
 
             var assembliesAndModules = assembliesAndModulesBuilder.ToImmutableAndFree();
@@ -1307,7 +1306,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
             }
-
             GetAdditionalDisplayClassInstances(displayClassTypes, displayClassInstances, startIndex);
 
             displayClassTypes.Free();
@@ -1388,7 +1386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         {
                             continue;
                         }
-
                         break;
                     case GeneratedNameKind.ThisProxyField:
                         if (GeneratedNames.GetKind(fieldType.Name) != GeneratedNameKind.LambdaDisplayClass)

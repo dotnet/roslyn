@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
-
             if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");

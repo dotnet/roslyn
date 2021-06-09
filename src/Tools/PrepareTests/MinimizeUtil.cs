@@ -83,7 +83,6 @@ internal static class MinimizeUtil
                     Directory.CreateDirectory(currentOutputDirectory);
                     lastOutputDirectory = currentOutputDirectory;
                 }
-
                 var fileName = Path.GetFileName(sourceFilePath);
 
                 if (fileName.EndsWith(".dll", StringComparison.Ordinal) && TryGetMvid(sourceFilePath, out var mvid))
@@ -181,7 +180,6 @@ internal static class MinimizeUtil
                     {
                         builder.AppendLine($@"mkdir %~dp0\{directory} 2> nul");
                     }
-
                     builder.AppendLine($@"
 mklink /h %~dp0\{destFileName} %HELIX_CORRELATION_PAYLOAD%\{source} > nul
 if %errorlevel% neq 0 (
@@ -194,7 +192,6 @@ if %errorlevel% neq 0 (
                         builder.AppendLine($"echo {count:n0} hydrated");
                     }
                 }
-
                 builder.AppendLine("@echo on"); // so the rest of the commands show up in helix logs
             }
 
@@ -229,7 +226,6 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                     {
                         builder.AppendLine($@"mkdir -p ""$scriptroot/{directory}""");
                     }
-
                     builder.AppendLine($@"ln ""$HELIX_CORRELATION_PAYLOAD/{source}"" ""$scriptroot/{destFilePath}"" || exit $?");
 
                     count++;
@@ -307,7 +303,6 @@ scriptroot=""$( cd -P ""$( dirname ""$source"" )"" && pwd )""
                 mvid = default;
                 return false;
             }
-
             var metadataReader = reader.GetMetadataReader();
             var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
             mvid = metadataReader.GetGuid(mvidHandle);

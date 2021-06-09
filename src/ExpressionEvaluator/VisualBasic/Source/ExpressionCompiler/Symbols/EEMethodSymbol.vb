@@ -97,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If _typeParameters.Any() Then
                 Me.SubstitutedSourceMethod = Me.SubstitutedSourceMethod.Construct(_typeParameters.As(Of TypeSymbol)())
             End If
-
             TypeParameterChecker.Check(Me.SubstitutedSourceMethod, _allTypeParameters)
 
             ' Create a map from original parameter to target parameter.
@@ -128,7 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 localsMap.Add(sourceLocal, local)
                 localsBuilder.Add(local)
             Next
-
             Me.Locals = localsBuilder.ToImmutableAndFree()
             localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
             For Each sourceLocal In sourceLocalsForBinding
@@ -137,10 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     local = sourceLocal.ToOtherMethod(Me, Me.TypeMap)
                     localsMap.Add(sourceLocal, local)
                 End If
-
                 localsBuilder.Add(local)
             Next
-
             Me.LocalsForBinding = localsBuilder.ToImmutableAndFree()
 
             ' Create a map from variable name to display class field.
@@ -279,7 +275,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If _lazyReturnType Is Nothing Then
                     Throw New InvalidOperationException()
                 End If
-
                 Return _lazyReturnType
             End Get
         End Property
@@ -337,11 +332,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If Me.IsVararg Then
                     cc = cc Or Cci.CallingConvention.ExtraArguments
                 End If
-
                 If Me.IsGenericMethod Then
                     cc = cc Or Cci.CallingConvention.Generic
                 End If
-
                 Return cc
             End Get
         End Property
@@ -488,13 +481,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 originalLocalsBuilder.Add(local)
                 originalLocalsSet.Add(local)
             Next
-
             For Each local In Me.Locals
                 If originalLocalsSet.Add(local) Then
                     originalLocalsBuilder.Add(local)
                 End If
             Next
-
             originalLocalsSet.Free()
             Dim originalLocals = originalLocalsBuilder.ToImmutableAndFree()
             Dim newBody = New BoundBlock(syntax, Nothing, originalLocals, statementsBuilder.ToImmutableAndFree())

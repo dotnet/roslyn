@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     dkmAlias.CustomTypeInfoPayloadTypeId,
                     dkmAlias.CustomTypeInfoPayload));
             }
-
             return builder.ToImmutableAndFree();
         }
 
@@ -227,7 +226,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return MakeAssemblyReferencesKind.DirectReferencesOnly;
             }
-
             return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
         }
 
@@ -339,7 +337,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // No local signature. May occur when debugging heapless dumps.
                 localSignatureToken = 0;
             }
-
             return CreateMethodContext(
                 moduleInstance.AppDomain,
                 metadataBlocks,
@@ -421,7 +418,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             errorMessage = null;
                             compileResult = otherResult;
                         }
-
                         otherDiagnostics.Free();
                     }
                     else
@@ -440,7 +436,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         }
                     }
                 }
-
                 diagnostics.Free();
             } while (tryAgain);
             assembliesLoadedInRetryLoop?.Free();

@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     parentFullName = parentFullName.Parenthesize();
                 }
-
                 var parentRuntimeType = parent.Value.Type;
                 if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))
                 {
@@ -199,7 +198,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     parentFullName,
                     out parentFullName);
             }
-
             var fieldName = field.FieldInfo.Name;
             fullName = (parentFullName == null) ?
                 null :
@@ -266,7 +264,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 _lazyFields = GetFields(_typeAndInfo, _cardinality, _useRawView);
             }
-
             return _lazyFields;
         }
 

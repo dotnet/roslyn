@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DkmClrCustomVisualizerAssemblyLocation uiSideVisualizerAssemblyLocation,
             string debuggeeSideVisualizerTypeName,
             string debuggeeSideVisualizerAssemblyName,
-            string visualizerDescription)
-            : base(null)
+            string visualizerDescription) :
+            base(null)
         {
             UISideVisualizerTypeName = uiSideVisualizerTypeName;
             UISideVisualizerAssemblyName = uiSideVisualizerAssemblyName;

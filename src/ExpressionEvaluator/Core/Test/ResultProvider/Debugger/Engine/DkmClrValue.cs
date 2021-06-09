@@ -87,7 +87,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             {
                 throw new InvalidOperationException("Cannot dereference invalid value");
             }
-
             var elementType = this.Type.GetLmrType().GetElementType();
             var evalFlags = DkmEvaluationResultFlags.None;
             var valueFlags = DkmClrValueFlags.None;
@@ -102,7 +101,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 value = e;
                 evalFlags |= DkmEvaluationResultFlags.ExceptionThrown;
             }
-
             var valueType = new DkmClrType(this.Type.RuntimeInstance, (value == null || elementType.IsPointer) ? elementType : (TypeImpl)value.GetType());
             return new DkmClrValue(
                 value,
@@ -125,7 +123,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     // assert since the property may be called during debugging.)
                     throw new InvalidOperationException();
                 }
-
                 var lmrType = Type.GetLmrType();
                 return ((RawValue == null) && !lmrType.IsValueType) || (lmrType.IsPointer && (Convert.ToInt64(RawValue) == 0));
             }
@@ -261,7 +258,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         throw new ArgumentException(string.Format("Nested braces in '{0}'", formatString));
                     }
-
                     openPos = i;
                 }
                 else if (ch == '}')
@@ -474,7 +470,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
                     }
-
                     try
                     {
                         value = field.GetValue(RawValue);
@@ -492,7 +487,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             category: category,
                             access: access);
                     }
-
                     break;
                 case MemberTypes.Property:
                     var property = declaringType.GetProperty(MemberName, bindingFlags);
@@ -503,7 +497,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         evalFlags |= DkmEvaluationResultFlags.ReadOnly;
                     }
-
                     try
                     {
                         value = property.GetValue(RawValue, bindingFlags, null, null, null);
@@ -521,7 +514,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                             category: category,
                             access: access);
                     }
-
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue((MemberTypes)MemberType);
@@ -603,7 +595,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 {
                     builder.Add(array.GetUpperBound(i) - array.GetLowerBound(i) + 1);
                 }
-
                 return builder.ToImmutableAndFree();
             }
         }
@@ -624,7 +615,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                 {
                     builder.Add(array.GetLowerBound(i));
                 }
-
                 return builder.ToImmutableAndFree();
             }
         }
@@ -720,7 +710,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     return module;
                 }
             }
-
             return null;
         }
 
@@ -745,7 +734,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             {
                 return GetAncestorType(baseType, ancestorTypeName);
             }
-
             return null;
         }
 
@@ -777,7 +765,6 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
                     {
                         throw new InvalidOperationException("Dereferencing null");
                     }
-
                     var destinationType = elementType.IsPointer
                         ? (Environment.Is64BitProcess ? typeof(long) : typeof(int))
                         : ((TypeImpl)elementType).Type;

@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     {
                         return "object";
                     }
-
                     return null;
                 case TypeCode.Boolean:
                     return "bool";

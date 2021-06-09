@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             {
                 edit.Replace(change.Span.ToSpan(), change.NewText);
             }
-
             edit.Apply();
 
             Assert.Equal(expectedText, textBuffer.CurrentSnapshot.GetText());

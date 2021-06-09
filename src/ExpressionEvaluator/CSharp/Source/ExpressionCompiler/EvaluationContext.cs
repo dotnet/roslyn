@@ -257,7 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(methodTokens.Length == expressions.Length);
                 errorMessages = ImmutableArray<string>.Empty;
             }
-
             diagnostics.Free();
             return assembly;
         }
@@ -488,7 +487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             return ImmutableArray.Create(identity);
                         }
                     }
-
                     break;
 
                 case ErrorCode.ERR_DottedTypeNameNotFoundInNS:
@@ -502,7 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         var identity = new AssemblyIdentity($"{containingNamespace.ToDisplayString()}.{namespaceName}", contentType: System.Reflection.AssemblyContentType.WindowsRuntime);
                         return ImmutableArray.Create(identity);
                     }
-
                     break;
 
                 case ErrorCode.ERR_NoSuchMemberOrExtension: // Commonly, but not always, caused by absence of System.Core.

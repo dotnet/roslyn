@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return null;
             }
-
             return base.Visit(node);
         }
 
@@ -76,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     initializer;
                 this.Visit(expr);
             }
-
             return null;
         }
 

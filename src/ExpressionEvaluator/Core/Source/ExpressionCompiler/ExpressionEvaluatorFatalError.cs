@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 Debug.Assert(false, "Failure checking registry key: " + ex.ToString());
             }
-
             return null;
         }
 

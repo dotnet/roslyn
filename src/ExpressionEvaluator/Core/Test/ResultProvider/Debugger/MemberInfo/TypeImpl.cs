@@ -355,22 +355,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 result |= System.Reflection.TypeAttributes.Class;
             }
-
             if (this.Type.IsInterface)
             {
                 result |= System.Reflection.TypeAttributes.Interface;
             }
-
             if (this.Type.IsAbstract)
             {
                 result |= System.Reflection.TypeAttributes.Abstract;
             }
-
             if (this.Type.IsSealed)
             {
                 result |= System.Reflection.TypeAttributes.Sealed;
             }
-
             return result;
         }
 
@@ -460,7 +456,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     builder.Add((TypeImpl)@interface);
                 }
             }
-
             return builder.ToArrayAndFree();
         }
     }

@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 throw new BadImageFormatException();
             }
-
             return assembly;
         }
 
@@ -117,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 type = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(type, _sourceAssembly, refKind, dynamicFlagsOpt, checkLength: false);
             }
-
             return TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, tupleElementNamesOpt);
         }
     }

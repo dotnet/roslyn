@@ -48,7 +48,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
                 Next
             End If
-
             Return method
         End Function
 
@@ -98,7 +97,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName)
                 options = options.WithMetadataReferenceResolver(resolver)
             End If
-
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=references,
