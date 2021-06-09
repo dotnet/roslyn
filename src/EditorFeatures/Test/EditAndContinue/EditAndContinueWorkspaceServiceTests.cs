@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -3554,6 +3555,62 @@ class C
                 filePath: sourceFileA.Path));
 
             var hotReload = new WatchHotReloadService(workspace.Services);
+
+            await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+            var sessionId = hotReload.GetTestAccessor().SessionId;
+            var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
+            var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
+            AssertEx.Equal(new[]
+            {
+                "(A, MatchesBuildOutput)"
+            }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
+
+            var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            Assert.Empty(result.diagnostics);
+            Assert.Equal(1, result.updates.Length);
+
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
+
+            result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            AssertEx.Equal(
+                new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_will_prevent_the_debug_session_from_continuing, FeaturesResources.method) },
+                result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+
+            Assert.Empty(result.updates);
+
+            hotReload.EndSession();
+        }
+
+        [Fact]
+        public async Task UnitTestingHotReloadServiceTest()
+        {
+            var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
+            var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
+            var source3 = "class C { void X() { System.Console.WriteLine(2); } }";
+
+            var dir = Temp.CreateDirectory();
+            var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
+            var moduleId = EmitLibrary(source1, sourceFileA.Path, Encoding.UTF8, "Proj");
+
+            using var workspace = CreateWorkspace(out var solution, out var encService);
+
+            var projectP = solution.
+                AddProject("P", "P", LanguageNames.CSharp).
+                WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+            solution = projectP.Solution;
+
+            var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdA,
+                name: "A",
+                loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
+                filePath: sourceFileA.Path));
+
+            var hotReload = new UnitTestingHotReloadService(workspace.Services);
 
             await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
