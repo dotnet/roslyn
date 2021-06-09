@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         expected = FormatStringChar(ch);
                         break;
                 }
+
                 Assert.Equal(string.Format(format, (int)ch, expected), FormatValue(ch));
                 Assert.Equal(string.Format(formatUsingHex, (int)ch, expected), FormatValue(ch, useHexadecimal: true));
             }
@@ -199,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                         expected = FormatStringChar(ch);
                         break;
                 }
+
                 Assert.Equal(string.Format(format, expected), FormatValue(ch.ToString()));
                 Assert.Equal(string.Format(format, expected), FormatValue(ch.ToString(), useHexadecimal: true));
             }

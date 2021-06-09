@@ -88,13 +88,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             break;
                         }
                     }
+
                     builder.Append(ch);
                 }
             }
+
             if (builder.Length < length)
             {
                 expression = builder.ToString();
             }
+
             pooledBuilder.Free();
             return expression;
         }
