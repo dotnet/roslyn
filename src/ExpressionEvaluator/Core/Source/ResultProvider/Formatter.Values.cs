@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return _nullString;
                     }
+
                     return IncludeObjectId(
                         value,
                         FormatString(stringValue, options),
@@ -161,6 +162,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             GetTupleExpression(values.ToArrayAndFree()),
                             flags);
                     }
+
                     values.Free();
                 }
             }
@@ -290,6 +292,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 displayString = GetNameForEnumValue(fields, underlyingValue, valueForComparison, options, typeToDisplayOpt);
             }
+
             fields.Free();
 
             return displayString ?? FormatPrimitive(value, options, inspectionContext);

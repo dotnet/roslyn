@@ -85,10 +85,12 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
                 {
                     index++;
                 }
+
                 if (index == _implementations.Length)
                 {
                     throw new InvalidOperationException();
                 }
+
                 var item = _implementations[index];
                 _calls.Push(instanceAndMethod);
                 try

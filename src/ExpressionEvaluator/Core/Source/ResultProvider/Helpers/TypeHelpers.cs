@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return DeclarationInfo.RequiresExplicitCast;
                     }
+
                     return DeclarationInfo.None;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.MemberType);
@@ -220,6 +221,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case MemberTypes.Property:
                     return GetNonIndexerGetMethod((PropertyInfo)member) != null;
             }
+
             return false;
         }
 
@@ -248,6 +250,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         {
                             return false;
                         }
+
                         var attributes = getMethod.Attributes;
                         return ((attributes & System.Reflection.MethodAttributes.Public) == System.Reflection.MethodAttributes.Public) ||
                             ((attributes & System.Reflection.MethodAttributes.Family) == System.Reflection.MethodAttributes.Family);
@@ -351,6 +354,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -368,6 +372,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return typeArgs[0];
                 }
             }
+
             return null;
         }
 
@@ -393,6 +398,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 return value;
             }
+
             return value.GetNullableValue(inspectionContext);
         }
 
@@ -484,20 +490,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         return false;
                     }
+
                     var value = tuple.GetFieldValue(fieldName, inspectionContext);
                     var str = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
                     values.Add(str);
                 }
+
                 cardinality -= n;
                 if (cardinality == 0)
                 {
                     return true;
                 }
+
                 var restInfo = type.GetTupleField(TypeHelpers.TupleFieldRestName);
                 if (restInfo == null)
                 {
                     return false;
                 }
+
                 tuple = tuple.GetFieldValue(TupleFieldRestName, inspectionContext);
             }
         }
@@ -557,6 +567,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 if (result == null)
                 {
                     result = new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
@@ -570,6 +581,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     result.Add(browsableAttribute.TargetMember, browsableAttribute.State);
                 }
             }
+
             return result;
         }
 
@@ -695,6 +707,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     builder.Add(t.Substitute(typeDef, typeArgs));
                 }
+
                 var typeDefinition = type.GetGenericTypeDefinition();
                 return typeDefinition.MakeGenericType(builder.ToArrayAndFree());
             }
@@ -742,6 +755,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         return @interface;
                     }
                 }
+
                 t = t.BaseType;
             } while (t != null);
 
@@ -778,6 +792,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return true;
                 }
+
                 type = type.BaseType;
             }
             while (type != null);
@@ -806,6 +821,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     return true;
                 }
+
                 type = type.BaseType;
             }
             while (type != null);
@@ -855,6 +871,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         {
                             return candidate;
                         }
+
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(memberType);

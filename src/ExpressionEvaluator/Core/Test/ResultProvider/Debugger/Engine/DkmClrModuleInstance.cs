@@ -53,12 +53,14 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 Interlocked.Increment(ref _resolveTypeNameFailures);
                 throw new ArgumentException();
             }
+
             Debug.Assert(typeArguments.Count == type.GetGenericArguments().Length);
             if (typeArguments.Count > 0)
             {
                 var typeArgs = typeArguments.Select(t => ((TypeImpl)t.GetLmrType()).Type).ToArray();
                 type = type.MakeGenericType(typeArgs);
             }
+
             return _runtimeInstance.GetType((TypeImpl)type);
         }
 

@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         proxyTypeAndInfo.Info,
                         new[] { childFullNamePrefix });
                 }
+
                 _proxyItem = new EvalResult(
                     ExpansionKind.Default,
                     name: string.Empty,

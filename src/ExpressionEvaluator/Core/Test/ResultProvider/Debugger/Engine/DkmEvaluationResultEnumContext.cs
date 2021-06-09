@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             {
                 enumContext.SetDataItem(DkmDataCreationDisposition.CreateNew, DataItem);
             }
+
             return enumContext;
         }
 

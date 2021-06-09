@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 type = value.GetType();
             }
+
             return new DkmClrValue(
                 value,
                 DkmClrValue.GetHostObjectValue((TypeImpl)type, value),
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
             }
+
             return asyncResult.Result;
         }
 
@@ -259,6 +261,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
             }
+
             enumContext = getChildrenResult.EnumContext;
             return getChildrenResult.InitialChildren;
         }
@@ -274,6 +277,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
             }
+
             return getItemsResult.Items;
         }
 
@@ -363,6 +367,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     Console.WriteLine("{0}, ", ToString(result));
                 }
+
                 throw;
             }
         }
@@ -395,21 +400,25 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Flags));
             }
+
             if (result.Category != DkmEvaluationResultCategory.Other)
             {
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Category));
             }
+
             if (result.Access != DkmEvaluationResultAccessType.None)
             {
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Access));
             }
+
             if (result.EditableValue != null)
             {
                 builder.Append(", ");
                 builder.Append(Quote(result.EditableValue));
             }
+
             builder.Append(")");
             return pooledBuilder.ToStringAndFree();
         }
@@ -427,16 +436,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(Quote(result.Type));
             }
+
             if (result.FullName != null)
             {
                 builder.Append(", ");
                 builder.Append(Quote(Escape(result.FullName)));
             }
+
             if (result.Flags != DkmEvaluationResultFlags.None)
             {
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Flags));
             }
+
             builder.Append(")");
             return pooledBuilder.ToStringAndFree();
         }
@@ -454,16 +466,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 builder.Append(", ");
                 builder.Append(Quote(result.Type));
             }
+
             if (result.FullName != null)
             {
                 builder.Append(", ");
                 builder.Append(Quote(Escape(result.FullName)));
             }
+
             if (result.Flags != DkmEvaluationResultFlags.None)
             {
                 builder.Append(", ");
                 builder.Append(FormatEnumValue(result.Flags));
             }
+
             builder.Append(")");
             return pooledBuilder.ToStringAndFree();
         }
@@ -507,6 +522,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     Assert.Equal(expectedSuccess.Category, actualSuccess.Category);
                 }
+
                 if (expectedSuccess.Access != UnspecifiedAccessType)
                 {
                     Assert.Equal(expectedSuccess.Access, actualSuccess.Access);

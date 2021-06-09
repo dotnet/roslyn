@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     // Null for function pointers.
                     break;
                 }
+
                 dynamicFlagIndex++;
                 pointerCount++;
                 type = elementType;
@@ -102,6 +103,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 nullableCount++;
                 type = typeArg;
             }
+
             Debug.Assert(nullableCount < 2, "Benign: someone is nesting nullables.");
 
             Debug.Assert(pointerCount == 0 || nullableCount == 0, "Benign: pointer to nullable?");
@@ -298,6 +300,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                             identifierBuilder.Append(ch);
                         }
                     }
+
                     AppendIdentifier(builder, escapeKeywordIdentifiers, identifierBuilder.ToString(), out sawSingleInvalidIdentifier);
                     sawInvalidIdentifier |= sawSingleInvalidIdentifier;
                     pooled.Free();
@@ -306,6 +309,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     AppendIdentifier(builder, escapeKeywordIdentifiers, @namespace, out sawInvalidIdentifier);
                 }
+
                 builder.Append('.');
             }
         }
@@ -408,6 +412,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         builder.Append(", ");
                     }
+
                     bool sawSingleInvalidIdentifier;
                     var name = CustomTypeInfo.GetTupleElementNameIfAny(tupleElementNames, nameIndex);
                     nameIndex++;
@@ -424,10 +429,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     sawInvalidIdentifier |= sawSingleInvalidIdentifier;
                     any = true;
                 }
+
                 if (nTypeArgs < TypeHelpers.TupleFieldRestPosition)
                 {
                     break;
                 }
+
                 Debug.Assert(!DynamicFlagsCustomTypeInfo.GetFlag(dynamicFlags, dynamicFlagIndex));
                 dynamicFlagIndex++;
                 type = typeArguments[nTypeArgs - 1];

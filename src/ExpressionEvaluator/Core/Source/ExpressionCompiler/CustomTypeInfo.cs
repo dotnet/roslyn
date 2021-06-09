@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     builder.Free();
                     return null;
                 }
+
                 builder.Add((byte)length);
                 builder.AddRange(dynamicFlags);
             }
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     builder.Append(name);
                 }
             }
+
             return pooledBuilder.ToStringAndFree();
         }
 
@@ -203,6 +205,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 array[i] = bytes[start + i];
             }
+
             return array;
         }
     }

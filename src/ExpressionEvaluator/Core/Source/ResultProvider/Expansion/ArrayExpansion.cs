@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 count *= size;
             }
+
             return (count > 0) ? new ArrayExpansion(elementTypeAndInfo, sizes, lowerBounds, count) : null;
         }
 
@@ -116,6 +117,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 indices[i] = _lowerBounds[i] + index / divisor;
                 index = index % divisor;
             }
+
             return indices;
         }
 
@@ -127,6 +129,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 strings[i] = indices[i].ToString();
             }
+
             return strings;
         }
 
@@ -144,6 +147,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 divisors[i - 1] = divisors[i] * sizes[i];
             }
+
             return new ReadOnlyCollection<int>(divisors);
         }
 
@@ -159,6 +163,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 parentFullName = parentFullName.Parenthesize();
             }
+
             var parentRuntimeType = parent.Value.Type;
             if (!parent.DeclaredTypeAndInfo.Type.Equals(parentRuntimeType.GetLmrType()))
             {
@@ -173,6 +178,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     return null; // Contains invalid identifier.
                 }
             }
+
             return parentFullName + name;
         }
     }

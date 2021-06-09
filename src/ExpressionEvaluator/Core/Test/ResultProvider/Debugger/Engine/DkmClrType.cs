@@ -134,6 +134,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                         new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
+
                 return _lazyGenericArguments;
             }
         }

@@ -56,6 +56,7 @@ ALL_FLAGS_READ:
             {
                 return false;
             }
+
             var b = index / 8;
             return b < bytes.Count &&
                 (bytes[b] & (1 << (index % 8))) != 0;

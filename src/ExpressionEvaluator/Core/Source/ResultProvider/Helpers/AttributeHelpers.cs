@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     tupleElementNames = GetTupleElementNames(attribute);
                 }
             }
+
             return CustomTypeInfo.Create(dynamicFlags, tupleElementNames);
         }
 
@@ -61,11 +62,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         builder.Add((bool)typedArg.Value);
                     }
+
                     var result = DynamicFlagsCustomTypeInfo.ToBytes(builder);
                     builder.Free();
                     return result;
                 }
             }
+
             return null;
         }
 
@@ -85,9 +88,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     {
                         builder.Add((string)typedArg.Value);
                     }
+
                     return builder.ToImmutableAndFree();
                 }
             }
+
             return null;
         }
     }

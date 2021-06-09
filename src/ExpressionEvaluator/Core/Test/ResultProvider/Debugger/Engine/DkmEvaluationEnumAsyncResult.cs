@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             {
                 throw new ArgumentNullException();
             }
+
             this.Items = Items;
         }
 
