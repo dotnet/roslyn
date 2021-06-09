@@ -9,13 +9,13 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class AssociateNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, TInput2)>
+    internal sealed class CombineNode<TInput1, TInput2> : IIncrementalGeneratorNode<(TInput1, TInput2)>
     {
         private readonly IIncrementalGeneratorNode<TInput1> _input1;
         private readonly IIncrementalGeneratorNode<TInput2> _input2;
         private readonly IEqualityComparer<(TInput1, TInput2)>? _comparer;
 
-        public AssociateNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2, IEqualityComparer<(TInput1, TInput2)>? comparer = null)
+        public CombineNode(IIncrementalGeneratorNode<TInput1> input1, IIncrementalGeneratorNode<TInput2> input2, IEqualityComparer<(TInput1, TInput2)>? comparer = null)
         {
             _input1 = input1;
             _input2 = input2;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
-        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer) => new AssociateNode<TInput1, TInput2>(_input1, _input2, comparer);
+        public IIncrementalGeneratorNode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer) => new CombineNode<TInput1, TInput2>(_input1, _input2, comparer);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output)
         {
