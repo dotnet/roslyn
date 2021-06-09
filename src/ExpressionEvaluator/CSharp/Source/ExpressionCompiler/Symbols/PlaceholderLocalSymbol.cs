@@ -208,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return null;
             }
+
             var members = type.GetMembers(methodName);
             Debug.Assert(members.Length == 1);
             return (MethodSymbol)members[0];

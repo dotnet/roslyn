@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return index;
             }
+
             if (identity.IsWindowsComponent())
             {
                 // Find placeholder Windows.winmd assembly (created
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
                 }
             }
+
             return -1;
         }
 

@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return new Microsoft.CodeAnalysis.ExpressionEvaluator.AssemblyReference(identity);
                 }
             }
+
             return base.TranslateModule(symbol, diagnostics);
         }
 
@@ -85,10 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     continue;
                 }
+
                 var def = ToLocalDefinition(local, builder.Count, diagnostics);
                 Debug.Assert(((EELocalSymbol)local).Ordinal == def.SlotIndex);
                 builder.Add(def);
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -108,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     ((local.RefKind == RefKind.None) ? LocalSlotConstraints.None : LocalSlotConstraints.ByRef);
             }
+
             return new LocalDefinition(
                 local,
                 local.Name,

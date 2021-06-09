@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     lowercaseBuilder.Add(local.Name.ToLower(), local);
                 }
             }
+
             _lowercaseReturnValueAliases = lowercaseBuilder.ToImmutableDictionary();
             _aliases = aliasesBuilder.ToImmutableAndFree();
         }
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // Invalid value should have been caught by Lexer.
                     throw ExceptionUtilities.UnexpectedValue(valueText);
                 }
+
                 var local = new ObjectAddressLocalSymbol(_containingMethod, name, this.Compilation.GetSpecialType(SpecialType.System_Object), address);
                 result.MergeEqual(this.CheckViability(local, arity, options, null, diagnose, ref useSiteInfo, basesBeingResolved));
             }

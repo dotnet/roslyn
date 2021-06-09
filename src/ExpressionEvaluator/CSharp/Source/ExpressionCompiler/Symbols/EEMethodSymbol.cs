@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 this.SubstitutedSourceMethod = this.SubstitutedSourceMethod.Construct(_typeParameters.As<TypeSymbol>());
             }
+
             TypeParameterChecker.Check(this.SubstitutedSourceMethod, _allTypeParameters);
 
             // Create a map from original parameter to target parameter.
@@ -142,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localsMap.Add(sourceLocal, local);
                 localsBuilder.Add(local);
             }
+
             this.Locals = localsBuilder.ToImmutableAndFree();
             localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var sourceLocal in sourceLocalsForBinding)
@@ -152,8 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     local = sourceLocal.ToOtherMethod(this, this.TypeMap);
                     localsMap.Add(sourceLocal, local);
                 }
+
                 localsBuilder.Add(local);
             }
+
             this.LocalsForBinding = localsBuilder.ToImmutableAndFree();
 
             // Create a map from variable name to display class field.
@@ -300,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     throw new InvalidOperationException();
                 }
+
                 return _lazyReturnType;
             }
         }
@@ -355,10 +360,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     cc |= Cci.CallingConvention.ExtraArguments;
                 }
+
                 if (this.IsGenericMethod)
                 {
                     cc |= Cci.CallingConvention.Generic;
                 }
+
                 return cc;
             }
         }
@@ -523,6 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         localsBuilder.Add(local);
                         localsSet.Add(local);
                     }
+
                     foreach (var local in this.Locals)
                     {
                         if (localsSet.Add(local))
@@ -648,6 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert(!(local is EELocalSymbol) || (((EELocalSymbol)local).Ordinal == localBuilder.Count));
                     localBuilder.Add(local);
                 }
+
                 foreach (var local in block.Locals)
                 {
                     if (local is EELocalSymbol oldLocal)
@@ -655,6 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         Debug.Assert(localBuilder[oldLocal.Ordinal] == oldLocal);
                         continue;
                     }
+
                     localBuilder.Add(local);
                 }
 
@@ -675,6 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return thisProxy.ToBoundExpression(syntax);
             }
+
             if ((object)_thisParameter != null)
             {
                 var typeNameKind = GeneratedNames.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
@@ -685,8 +696,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         $"Unexpected typeNameKind '{typeNameKind}'");
                     return null;
                 }
+
                 return new BoundParameter(syntax, _thisParameter);
             }
+
             return null;
         }
 

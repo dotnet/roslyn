@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     Interlocked.CompareExchange(ref _lazyTypeMap, _getTypeMap(), null);
                 }
+
                 return _lazyTypeMap;
             }
         }

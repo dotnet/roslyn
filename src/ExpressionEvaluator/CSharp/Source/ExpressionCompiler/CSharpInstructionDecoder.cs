@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             while (i < numParts && parts[i].Kind != SymbolDisplayPartKind.MethodName);
                             i--;
                         }
+
                         break;
 
                     case SymbolDisplayPartKind.MethodName:
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         {
                             builder.Append(displayString);
                         }
+
                         break;
 
                     default:
@@ -127,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 method = method.Construct(ImmutableArray.Create(typeArguments, methodArgumentStartIndex, methodArity));
             }
+
             return method;
         }
 

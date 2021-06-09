@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 builder.Free();
             }
+
             return diagnostics.HasAnyErrors() ? null : syntax;
         }
 
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             ReportInvalidFormatSpecifier(token, diagnostics);
                             return false;
                         }
+
                         builder.Add(token);
                         start = -1;
                         expectingComma = (c != ',');
@@ -133,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                             ReportInvalidFormatSpecifier(",", diagnostics);
                             return false;
                         }
+
                         expectingComma = false;
                     }
                 }
@@ -150,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     ReportInvalidFormatSpecifier(token, diagnostics);
                     return false;
                 }
+
                 builder.Add(token);
             }
             else if (!expectingComma)
@@ -186,11 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     str = str.Substring(0, i);
                     return true;
                 }
+
                 if (!SyntaxFacts.IsWhitespace(c))
                 {
                     break;
                 }
             }
+
             return false;
         }
 
