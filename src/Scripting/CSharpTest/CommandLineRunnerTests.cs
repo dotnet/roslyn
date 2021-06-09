@@ -450,7 +450,7 @@ $@"""@arg1""
         public void Args_Script5()
         {
             var dir = Temp.CreateDirectory();
-            var script = dir.CreateFile("--").WriteAllText("foreach (var arg in Args) Print(arg);");
+            _ = dir.CreateFile("--").WriteAllText("foreach (var arg in Args) Print(arg);");
 
             var runner = CreateRunner(
                 args: new[] { "--", "--", "-", "--", "-" },
@@ -665,7 +665,7 @@ C4 { }
         public void SourceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
-            var main = dir.CreateFile("a.csx").WriteAllText("int X = 1;");
+            _ = dir.CreateFile("a.csx").WriteAllText("int X = 1;");
 
             var runner = CreateRunner(input:
 $@"SourcePaths
@@ -701,7 +701,7 @@ SearchPaths {{ }}
         public void ReferenceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
-            var main = dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
+            _ = dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
 
             var runner = CreateRunner(input:
 $@"ReferencePaths
