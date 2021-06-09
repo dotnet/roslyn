@@ -1,15 +1,16 @@
-## Temporarily disabling integration tests in CI in dev17 until we have a public preview to run them on
 
-# # Branches that trigger a build on commit
-# trigger:
+# Branches that trigger a build on commit
+
+# Temporarily disabling integration tests in CI in dev17 until we have a public preview to run them on
+trigger: none
 # - main
 # - main-vs-deps
 # - release/*
 # - features/*
 # - demos/*
 
-# # Branches that trigger builds on PR
-# pr:
+# Branches that trigger builds on PR
+pr: none
 # - main
 # - main-vs-deps
 # - release/*
