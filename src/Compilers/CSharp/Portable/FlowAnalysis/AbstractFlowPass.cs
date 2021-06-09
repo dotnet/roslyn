@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);
-                SetConditionalState(PatternMatchesNull(pattern)
+                SetConditionalState(patternMatchesNull(pattern)
                     ? (State, stateWhenNotNull)
                     : (stateWhenNotNull, State));
             }
@@ -1012,6 +1012,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return node;
 
+            static bool patternMatchesNull(BoundPattern pattern)
+            {
+                switch (pattern)
+                {
+                    case BoundTypePattern:
+                    case BoundRecursivePattern:
+                    case BoundITuplePattern:
+                    case BoundRelationalPattern:
+                    case BoundDeclarationPattern { IsVar: false }:
+                    case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                        return false;
+                    case BoundConstantPattern { ConstantValue: { IsNull: true } }:
+                        return true;
+                    case BoundNegatedPattern negated:
+                        return !patternMatchesNull(negated.Negated);
+                    case BoundBinaryPattern binary:
+                        if (binary.Disjunction)
+                        {
+                            // `a?.b(out x) is null or C`
+                            // pattern matches null if either subpattern matches null
+                            var leftNullTest = patternMatchesNull(binary.Left);
+                            return patternMatchesNull(binary.Left) || patternMatchesNull(binary.Right);
+                        }
+
+                        // `a?.b out x is not null and var c`
+                        // pattern matches null only if both subpatterns match null
+                        return patternMatchesNull(binary.Left) && patternMatchesNull(binary.Right);
+                    case BoundDeclarationPattern { IsVar: true }:
+                    case BoundDiscardPattern:
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                }
+            }
+
             // Returns `true` if the pattern only matches a `true` input.
             // Returns `false` if the pattern only matches a `false` input.
             // Otherwise, returns `null`.
@@ -1050,41 +1085,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
                 }
-            }
-        }
-
-        private static bool PatternMatchesNull(BoundPattern pattern)
-        {
-            switch (pattern)
-            {
-                case BoundTypePattern:
-                case BoundRecursivePattern:
-                case BoundITuplePattern:
-                case BoundRelationalPattern:
-                case BoundDeclarationPattern { IsVar: false }:
-                case BoundConstantPattern { ConstantValue: { IsNull: false } }:
-                    return false;
-                case BoundConstantPattern { ConstantValue: { IsNull: true } }:
-                    return true;
-                case BoundNegatedPattern negated:
-                    return !PatternMatchesNull(negated.Negated);
-                case BoundBinaryPattern binary:
-                    if (binary.Disjunction)
-                    {
-                        // `a?.b(out x) is null or C`
-                        // pattern matches null if either subpattern matches null
-                        var leftNullTest = PatternMatchesNull(binary.Left);
-                        return PatternMatchesNull(binary.Left) || PatternMatchesNull(binary.Right);
-                    }
-
-                    // `a?.b out x is not null and var c`
-                    // pattern matches null only if both subpatterns match null
-                    return PatternMatchesNull(binary.Left) && PatternMatchesNull(binary.Right);
-                case BoundDeclarationPattern { IsVar: true }:
-                case BoundDiscardPattern:
-                    return true;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
             }
         }
 
