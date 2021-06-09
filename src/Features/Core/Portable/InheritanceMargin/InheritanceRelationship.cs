@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Implemented member for member in class or structure. Shown as I↑
         /// </summary>
-        ImplmentedMember = 32,
+        ImplementedMember = 32,
 
         /// <summary>
         /// Overriden member for member in class or structure. Shown as O↑

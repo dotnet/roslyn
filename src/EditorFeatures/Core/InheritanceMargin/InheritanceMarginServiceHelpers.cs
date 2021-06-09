@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         ? CreateInheritanceItemAsync(
                             solution,
                             symbol,
-                            InheritanceRelationship.InheritedInterface, cancellationToken)
+                            InheritanceRelationship.ImplementedInterface, cancellationToken)
                         : CreateInheritanceItemAsync(
                             solution,
                             symbol,
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
                     symbol,
-                    InheritanceRelationship.ImplmentedMember,
+                    InheritanceRelationship.ImplementedMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var overridenMemberItems = await overriddenMembers

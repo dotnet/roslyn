@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             = ImmutableHashSet<InheritanceRelationship>.Empty
             .Add(InheritanceRelationship.ImplementedInterface)
             .Add(InheritanceRelationship.InheritedInterface)
-            .Add(InheritanceRelationship.ImplmentedMember);
+            .Add(InheritanceRelationship.ImplementedMember);
 
         private static readonly ImmutableHashSet<InheritanceRelationship> s_relationshipsShownAs_I_DownArrow
             = ImmutableHashSet<InheritanceRelationship>.Empty
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 InheritanceRelationship.DerivedType => ServicesVSResources.Derived_types,
                 InheritanceRelationship.InheritedInterface => ServicesVSResources.Inherited_interfaces,
                 InheritanceRelationship.ImplementingType => ServicesVSResources.Implementing_types,
-                InheritanceRelationship.ImplmentedMember => ServicesVSResources.Implemented_members,
+                InheritanceRelationship.ImplementedMember => ServicesVSResources.Implemented_members,
                 InheritanceRelationship.OverriddenMember => ServicesVSResources.Overridden_members,
                 InheritanceRelationship.OverridingMember => ServicesVSResources.Overriding_members,
                 InheritanceRelationship.ImplementingMember => ServicesVSResources.Implementing_members,
