@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new InvalidOperationException();
             }
 
-            WriteEnum("langaugeVersion", csharpOptions.LanguageVersion);
+            WriteEnum("languageVersion", csharpOptions.LanguageVersion);
             WriteEnum("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
             if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)

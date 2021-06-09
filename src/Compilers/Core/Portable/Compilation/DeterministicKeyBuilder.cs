@@ -12,6 +12,15 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
+    /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
+    /// meant to be inline with the specification here:
+    /// 
+    ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
+    /// 
+    /// Issue #8193 tracks filling this out to the full specification. 
+    /// 
+    ///     https://github.com/dotnet/roslyn/issues/8193
+    /// </summary>
     /// 
     /// <remarks>
     /// Options which can cause compilation failure, but doesn't impact the result of a successful
@@ -22,7 +31,6 @@ namespace Microsoft.CodeAnalysis
     /// - Path dependent
     /// - throw when using a non-deterministic compilation
     /// </remarks>
-    /// </summary>
     internal abstract class DeterministicKeyBuilder
     {
         internal StringBuilder Builder { get; } = new StringBuilder();
