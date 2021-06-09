@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Return New Microsoft.CodeAnalysis.ExpressionEvaluator.AssemblyReference(identity)
                 End If
             End If
+
             Return MyBase.TranslateModule(symbol, diagnostics)
         End Function
 
@@ -82,6 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim defs = GetLocalDefinitions(method.Locals, diagnostics)
                 Return New SlotAllocator(defs)
             End If
+
             Return Nothing
         End Function
 
@@ -97,6 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         builder.Add(def)
                 End Select
             Next
+
             Return builder.ToImmutableAndFree()
         End Function
 
@@ -150,6 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If local Is Nothing Then
                     Return Nothing
                 End If
+
                 Return _locals(local.Ordinal)
             End Function
 

@@ -36,10 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If local.DeclarationKind = LocalDeclarationKind.ImplicitVariable Then
                 Return ObjectIdLocalSymbol.RewriteLocal(_compilation, _container, node.Syntax, local, node.IsLValue)
             End If
+
             Dim placeholder = TryCast(local, PlaceholderLocalSymbol)
             If placeholder IsNot Nothing Then
                 Return placeholder.RewriteLocal(_compilation, _container, node.Syntax, node.IsLValue, diagnostics)
             End If
+
             Return node
         End Function
 

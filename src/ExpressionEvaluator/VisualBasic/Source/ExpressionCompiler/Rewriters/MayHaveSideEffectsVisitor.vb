@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     initializer)
                 Visit(expr)
             Next
+
             Return Nothing
         End Function
 

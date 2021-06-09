@@ -44,6 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             Do
                                 i += 1
                             Loop While ((i < numParts) AndAlso parts(i).Kind <> SymbolDisplayPartKind.MethodName)
+
                             i -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName
@@ -77,6 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If methodArity > 0 Then
                 method = method.Construct(ImmutableArray.Create(typeArguments, methodArgumentStartIndex, methodArity))
             End If
+
             Return method
         End Function
 

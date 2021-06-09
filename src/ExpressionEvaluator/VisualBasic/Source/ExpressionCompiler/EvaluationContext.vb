@@ -517,6 +517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If member.Kind <> SymbolKind.Field Then
                     Continue For
                 End If
+
                 Dim methodName As String = Nothing
                 Dim methodSignature As String = Nothing
                 Dim localName As String = Nothing
@@ -600,12 +601,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                 pos = 1
                                 Debug.Assert(pos < numParts)
                             End If
+
                             Dim currNamespace = globalNamespace
                             While pos < numParts
                                 Dim nextNamespace = currNamespace.GetMembers(nameParts(pos)).OfType(Of NamespaceSymbol).SingleOrDefault()
                                 If nextNamespace Is Nothing Then
                                     Exit While
                                 End If
+
                                 pos += 1
                                 currNamespace = nextNamespace
                             End While

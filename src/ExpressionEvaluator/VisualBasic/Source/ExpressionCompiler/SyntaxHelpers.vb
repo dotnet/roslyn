@@ -27,8 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If ParseFormatSpecifiers(builder, expr, syntax.Expression.FullWidth, diagnostics) AndAlso builder.Count > 0 Then
                     formatSpecifiers = New ReadOnlyCollection(Of String)(builder.ToArray())
                 End If
+
                 builder.Free()
             End If
+
             Return If(diagnostics.HasAnyErrors(), Nothing, syntax)
         End Function
 
@@ -96,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ReportInvalidFormatSpecifier(token, diagnostics)
                             Return False
                         End If
+
                         builder.Add(token)
                         start = -1
                         expectingComma = c <> ","c
@@ -104,11 +107,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ReportInvalidFormatSpecifier(",", diagnostics)
                             Return False
                         End If
+
                         expectingComma = False
                     End If
                 ElseIf start < 0 Then
                     start = offset
                 End If
+
                 offset = offset + 1
             End While
 
@@ -118,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     ReportInvalidFormatSpecifier(token, diagnostics)
                     Return False
                 End If
+
                 builder.Add(token)
             ElseIf Not expectingComma Then
                 ReportInvalidFormatSpecifier(",", diagnostics)

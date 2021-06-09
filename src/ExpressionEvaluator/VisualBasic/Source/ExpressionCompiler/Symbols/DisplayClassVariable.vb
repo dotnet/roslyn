@@ -68,6 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             For Each field In fields
                 expr = New BoundFieldAccess(syntax, expr, field, isLValue, suppressVirtualCalls, constantsInProgressOpt:=Nothing, type:=field.Type).MakeCompilerGenerated()
             Next
+
             fields.Free()
             Return expr
         End Function
@@ -85,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If Not fields.Any() Then
                 Return ConsList(Of FieldSymbol).Empty
             End If
+
             Dim head = SubstituteField(fields.Head, typeMap)
             Dim tail = SubstituteFields(fields.Tail, typeMap)
             Return tail.Prepend(head)

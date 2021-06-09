@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If index >= 0 Then
                 Return index
             End If
+
             If identity.IsWindowsComponent() Then
                 ' Find placeholder Windows.winmd assembly (created
                 ' in MetadataUtilities.MakeAssemblyReferences).
@@ -40,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     End If
                 End If
             End If
+
             Return -1
         End Function
 

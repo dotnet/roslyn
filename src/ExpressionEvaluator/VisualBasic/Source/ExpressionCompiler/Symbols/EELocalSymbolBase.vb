@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If l IsNot Nothing Then
                 Return l.ToOtherMethod(method, typeMap)
             End If
+
             Dim type = typeMap.SubstituteType(local.Type)
             Return New EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type, local.IsByRef, local.IsPinned, local.CanScheduleToStack)
         End Function

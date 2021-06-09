@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(TypeSymbol.Equals(node.Type, result.Type, TypeCompareKind.ConsiderEverything))
                     Return result
                 End If
+
                 Dim variable = GetVariable(local.Name)
                 If variable IsNot Nothing Then
                     Dim result = variable.ToBoundExpression(syntax, node.IsLValue, node.SuppressVirtualCalls)
@@ -73,6 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Return result
                 End If
             End If
+
             Return node
         End Function
 
