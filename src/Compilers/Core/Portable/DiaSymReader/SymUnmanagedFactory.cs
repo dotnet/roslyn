@@ -156,12 +156,12 @@ namespace Microsoft.DiaSymReader
 
         internal static object CreateObject(bool createReader, bool useAlternativeLoadPath, bool useComRegistry, out string moduleName, out Exception loadException)
         {
-            object instance = null;
             loadException = null;
             moduleName = null;
 
             var clsid = new Guid(createReader ? SymReaderClsid : SymWriterClsid);
 
+            object instance;
             try
             {
                 try
