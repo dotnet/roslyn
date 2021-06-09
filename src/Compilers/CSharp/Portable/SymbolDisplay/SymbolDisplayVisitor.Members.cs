@@ -528,8 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
-                                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(symbol.MetadataName))));
+                                throw ExceptionUtilities.Unreachable;
                             }
 
                             AddSpace();
