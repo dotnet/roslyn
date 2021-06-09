@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     {
 
                         builder.Append("operator ");
-                        AddReturnType(symbol, builder);
+                        AddType(symbol.ReturnType, builder);
                         break;
                     }
             }
@@ -199,7 +199,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 first = false;
-                builder.Append(ToDisplayString(parameter));
+                AddType(parameter.Type, builder);
+                builder.Append($" {parameter.Name}");
             }
         }
 
@@ -227,16 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static void AddReturnType(IMethodSymbol symbol, StringBuilder builder)
-        {
-            // TODO: Should respect user settings regarding BCL types vs C# aliases (int vs Int32, etc.)
-            // I doubt this should be something to rewrite completely from scratch.
-            //builder.Append(symbol.ReturnType.??);
-        }
-
-        // TODO: Fix this.
-        private static string ToDisplayString(IParameterSymbol symbol)
-            => symbol.Name;
+        private static void AddType(ITypeSymbol symbol, StringBuilder builder)
+            => builder.Append(symbol.ToNameDisplayString());
 
         #endregion
 
