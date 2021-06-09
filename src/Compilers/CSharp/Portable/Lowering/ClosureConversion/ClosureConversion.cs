@@ -1653,11 +1653,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (referencesMethodTypeParameter(type))
-                        {
-                            return result;
-                        }
-
                         // the lambda captures at most the "this" of the enclosing method.  We cache its delegate in a local variable.
                         var cacheLocal = F.SynthesizedLocal(type, kind: SynthesizedLocalKind.CachedAnonymousMethodDelegate);
                         if (_addedLocals == null) _addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -1666,8 +1661,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         cache = F.Local(cacheLocal);
                         _addedStatements.Add(F.Assignment(cache, F.Null(type)));
                     }
-
-                    Debug.Assert(!referencesMethodTypeParameter(cache.Type));
 
                     result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
