@@ -4,40 +4,39 @@
 
 using System.IO;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal sealed class GenerateFileForEachAdditionalFileWithContentsCommented : ISourceGenerator
+    internal sealed class GenerateFileForEachAdditionalFileWithContentsCommented : IIncrementalGenerator
     {
-        public void Execute(GeneratorExecutionContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            foreach (var file in context.AdditionalFiles)
+            context.RegisterExecutionPipeline(pipelineContext =>
             {
-                AddSourceForAdditionalFile(context, file);
-            }
+                pipelineContext.Sources.AdditionalTexts.GenerateSource((generatorContext, additionalText) =>
+                    generatorContext.AddSource(
+                        GetGeneratedFileName(additionalText.Path),
+                        GenerateSourceForAdditionalFile(additionalText, CancellationToken.None)));
+            });
         }
 
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            // TODO: context.RegisterForAdditionalFileChanges(UpdateContext);
-        }
-
-        private static void AddSourceForAdditionalFile(GeneratorExecutionContext context, AdditionalText file)
+        private static SourceText GenerateSourceForAdditionalFile(AdditionalText file, CancellationToken cancellationToken)
         {
             // We're going to "comment" out the contents of the file when generating this
-            var sourceText = file.GetText(context.CancellationToken);
+            var sourceText = file.GetText(cancellationToken);
             Contract.ThrowIfNull(sourceText, "Failed to fetch the text of an additional file.");
 
             var changes = sourceText.Lines.SelectAsArray(l => new TextChange(new TextSpan(l.Start, length: 0), "// "));
             var generatedText = sourceText.WithChanges(changes);
 
-            // TODO: remove the generatedText.ToString() when I don't have to specify the encoding
-            context.AddSource(GetGeneratedFileName(file.Path), SourceText.From(generatedText.ToString(), encoding: Encoding.UTF8));
+            return SourceText.From(generatedText.ToString(), encoding: Encoding.UTF8);
         }
 
         private static string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path)}.generated";
+
     }
 }
