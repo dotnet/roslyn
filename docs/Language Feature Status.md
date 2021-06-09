@@ -30,6 +30,7 @@ efforts behind them.
 | [Extended property patterns](https://github.com/dotnet/csharplang/issues/4394) | [extended-property-patterns](https://github.com/dotnet/roslyn/tree/features/extended-property-patterns) | [Merged into 17.0](https://github.com/dotnet/roslyn/issues/52468) | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [333fred](https://github.com/333fred) |
 | [Sealed record ToString](https://github.com/dotnet/csharplang/issues/4174) | main | [Merged](https://github.com/dotnet/roslyn/issues/52031) | [thomaslevesque](https://github.com/thomaslevesque/) | [jcouv](https://github.com/jcouv) | [333fred](https://github.com/333fred) |
 | [Source Generator V2 APIs](https://github.com/dotnet/roslyn/issues/51257) | [features/source-generators](https://github.com/dotnet/roslyn/tree/features/source-generators) | [In Progress](https://github.com/dotnet/roslyn/issues/51257) | [chsienki](https://github.com/chsienki/) | [rikkigibson](https://github.com/rikkigibson), [jaredpar](https://github.com/jaredpar), [cston](https://github.com/cston) | N/A |
+| [Async method builder override](https://github.com/dotnet/csharplang/issues/1407) | main | [In Progress](https://github.com/dotnet/roslyn/issues/51999) | [jcouv](https://github.com/jcouv) | TBD | [stephentoub](https://github.com/stephentoub) |
 
 # VB 16.9
 
