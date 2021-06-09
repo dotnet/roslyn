@@ -38,21 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             public DocumentOptionsProvider(IIndentationManagerService indentationManagerService)
                 => _indentationManagerService = indentationManagerService;
 
-            public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-            {
-                // Languages such as Razor can specify their own formatting options.
-                var optionsService = document.Services.GetService<IDocumentOptionsService>();
-                if (optionsService is not null)
-                {
-                    var documentOptions = await optionsService.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (documentOptions is not null)
-                    {
-                        return documentOptions;
-                    }
-                }
-
-                return new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService);
-            }
+            public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+                => Task.FromResult<IDocumentOptions?>(new DocumentOptions(document.Project.Solution.Workspace, document.Id, _indentationManagerService));
 
             private sealed class DocumentOptions : IDocumentOptions
             {

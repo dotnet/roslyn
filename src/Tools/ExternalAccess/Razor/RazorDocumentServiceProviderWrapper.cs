@@ -5,7 +5,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -17,7 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         private RazorSpanMappingServiceWrapper? _spanMappingService;
         private RazorDocumentExcerptServiceWrapper? _excerptService;
         private RazorDocumentPropertiesServiceWrapper? _documentPropertiesService;
-        private RazorDocumentOptionsServiceWrapper? _documentOptionsService;
 
         public RazorDocumentServiceProviderWrapper(IRazorDocumentServiceProvider innerDocumentServiceProvider)
         {
@@ -104,30 +102,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 }
 
                 return (TService)(object)_documentPropertiesService;
-            }
-
-            if (serviceType == typeof(IDocumentOptionsService))
-            {
-                if (_documentOptionsService == null)
-                {
-                    lock (_lock)
-                    {
-                        if (_documentOptionsService == null)
-                        {
-                            var razorOptionsService = _innerDocumentServiceProvider.GetService<IRazorDocumentOptionsService>();
-                            if (razorOptionsService != null)
-                            {
-                                _documentOptionsService = new RazorDocumentOptionsServiceWrapper(razorOptionsService);
-                            }
-                            else
-                            {
-                                return this as TService;
-                            }
-                        }
-                    }
-                }
-
-                return (TService)(object)_documentOptionsService;
             }
 
             return this as TService;

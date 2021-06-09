@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -69,40 +68,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private class TestDocumentServiceProvider : IDocumentServiceProvider
+        private class TestSpanMapperProvider : IDocumentServiceProvider
         {
             TService IDocumentServiceProvider.GetService<TService>()
-            {
-                if (typeof(IDocumentOptionsService).IsAssignableFrom(typeof(TService)))
-                {
-                    return (TService)(object)new TestDocumentOptionsService();
-                }
-                else if (typeof(ISpanMappingService).IsAssignableFrom(typeof(TService)))
-                {
-                    return (TService)(object)new TestSpanMapper();
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-            }
-        }
-
-        internal class TestDocumentOptionsService : IDocumentOptionsService
-        {
-            public Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-            {
-                return Task.FromResult<IDocumentOptions?>(new TestDocumentOptions());
-            }
-
-            private class TestDocumentOptions : IDocumentOptions
-            {
-                public bool TryGetDocumentOption(OptionKey option, out object? value)
-                {
-                    value = null;
-                    return false;
-                }
-            }
+                => (TService)(object)new TestSpanMapper();
         }
 
         internal class TestSpanMapper : ISpanMappingService
@@ -384,7 +353,7 @@ namespace Roslyn.Test.Utilities
             var version = VersionStamp.Create();
             var loader = TextLoader.From(TextAndVersion.Create(SourceText.From(markup), version, TestSpanMapper.GeneratedFileName));
             var generatedDocumentInfo = DocumentInfo.Create(generatedDocumentId, TestSpanMapper.GeneratedFileName, SpecializedCollections.EmptyReadOnlyList<string>(),
-                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestDocumentServiceProvider());
+                SourceCodeKind.Regular, loader, $"C:\\{TestSpanMapper.GeneratedFileName}", isGenerated: true, designTimeOnly: false, new TestSpanMapperProvider());
             var newSolution = workspace.CurrentSolution.AddDocument(generatedDocumentInfo);
             workspace.TryApplyChanges(newSolution);
         }
