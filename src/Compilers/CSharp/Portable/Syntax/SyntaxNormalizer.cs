@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 accessorList.Accessors.All(a => a.Body == null);
 
         private static bool IsAccessorListFollowedByInitializer([NotNullWhen(true)] SyntaxNode? node)
-            => node is AccessorListSyntax accessorList &&
+            => node is AccessorListSyntax &&
                 node.Parent is PropertyDeclarationSyntax property &&
                 property.Initializer != null;
 

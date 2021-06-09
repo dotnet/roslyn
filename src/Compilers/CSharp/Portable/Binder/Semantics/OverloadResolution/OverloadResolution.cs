@@ -2319,7 +2319,7 @@ outerDefault:
                 t2,
                 Conversions.ClassifyImplicitConversionFromExpression(node, t2, ref useSiteInfo),
                 ref useSiteInfo,
-                out ignore);
+                out _);
         }
 
         // Determine whether t1 or t2 is a better conversion target from node, possibly considering parameter ref kinds.
@@ -2624,8 +2624,7 @@ outerDefault:
             TypeSymbol type2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out _, BetterConversionTargetRecursionLimit);
         }
 
         private BetterResult BetterConversionTargetCore(
@@ -2639,8 +2638,7 @@ outerDefault:
                 return BetterResult.Neither;
             }
 
-            bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, betterConversionTargetRecursionLimit - 1);
+            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out _, betterConversionTargetRecursionLimit - 1);
         }
 
         private BetterResult BetterConversionTarget(
@@ -3002,10 +3000,9 @@ outerDefault:
             out ImmutableArray<TypeWithAnnotations> parameterTypes,
             out ImmutableArray<RefKind> parameterRefKinds)
         {
-            bool hasAnyRefOmittedArgument;
             EffectiveParameters effectiveParameters = expanded ?
-                GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument) :
-                GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out hasAnyRefOmittedArgument);
+                GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out _) :
+                GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, binder, out _);
             parameterTypes = effectiveParameters.ParameterTypes;
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }
@@ -3031,8 +3028,7 @@ outerDefault:
             bool allowRefOmittedArguments)
             where TMember : Symbol
         {
-            bool discarded;
-            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out _);
         }
 
         private static EffectiveParameters GetEffectiveParametersInNormalForm<TMember>(
@@ -3135,8 +3131,7 @@ outerDefault:
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments) where TMember : Symbol
         {
-            bool discarded;
-            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out discarded);
+            return GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, isMethodGroupConversion, allowRefOmittedArguments, _binder, hasAnyRefOmittedArgument: out _);
         }
 
         private static EffectiveParameters GetEffectiveParametersInExpandedForm<TMember>(

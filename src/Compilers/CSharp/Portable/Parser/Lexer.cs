@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case '&':
                     TextWindow.AdvanceChar();
-                    if ((character = TextWindow.PeekChar()) == '=')
+                    if ((_ = TextWindow.PeekChar()) == '=')
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.AmpersandEqualsToken;
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '\\':
                     {
                         // Could be unicode escape. Try that.
-                        character = TextWindow.PeekCharOrUnicodeEscape(out surrogateCharacter);
+                        character = TextWindow.PeekCharOrUnicodeEscape(out _);
 
                         isEscaped = true;
                         if (SyntaxFacts.IsIdentifierStartCharacter(character))
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (isEscaped)
                     {
                         SyntaxDiagnosticInfo error;
-                        TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
+                        TextWindow.NextCharOrUnicodeEscape(out _, out error);
                         AddError(error);
                     }
                     else
@@ -2796,7 +2796,6 @@ top:
         private bool ScanDirectiveToken(ref TokenInfo info)
         {
             char character;
-            char surrogateCharacter;
             bool isEscaped = false;
 
             switch (character = TextWindow.PeekChar())
@@ -2908,7 +2907,7 @@ top:
                 case '\\':
                     {
                         // Could be unicode escape. Try that.
-                        character = TextWindow.PeekCharOrUnicodeEscape(out surrogateCharacter);
+                        character = TextWindow.PeekCharOrUnicodeEscape(out _);
                         isEscaped = true;
                         if (SyntaxFacts.IsIdentifierStartCharacter(character))
                         {
@@ -2935,7 +2934,7 @@ top:
                         if (isEscaped)
                         {
                             SyntaxDiagnosticInfo error;
-                            TextWindow.NextCharOrUnicodeEscape(out surrogateCharacter, out error);
+                            TextWindow.NextCharOrUnicodeEscape(out _, out error);
                             AddError(error);
                         }
                         else
@@ -3907,7 +3906,7 @@ top:
 
                 case '&':
                     TextWindow.Reset(beforeConsumed);
-                    if (!TextWindow.TryScanXmlEntity(out consumedChar, out consumedSurrogate))
+                    if (!TextWindow.TryScanXmlEntity(out consumedChar, out _))
                     {
                         TextWindow.Reset(beforeConsumed);
                         this.ScanXmlEntity(ref info);

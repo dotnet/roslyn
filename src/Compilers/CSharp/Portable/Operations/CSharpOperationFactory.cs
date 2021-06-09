@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 SyntaxNode syntax = boundConversion.Syntax;
                 ITypeSymbol? type = boundConversion.GetPublicTypeSymbol();
-                ConstantValue? constantValue = boundConversion.ConstantValue;
+                _ = boundConversion.ConstantValue;
 
                 if (boundConversion.Type is FunctionPointerTypeSymbol)
                 {
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation? instance = CreateReceiverOperation(boundMethodGroup.ReceiverOpt, methodSymbol);
             SyntaxNode bindingSyntax = boundMethodGroup.Syntax;
             ITypeSymbol? bindingType = null;
-            bool isImplicit = boundMethodGroup.WasCompilerGenerated;
+            _ = boundMethodGroup.WasCompilerGenerated;
             return new MethodReferenceOperation(methodSymbol.GetPublicSymbol(), isVirtual, instance, _semanticModel, bindingSyntax, bindingType, boundMethodGroup.WasCompilerGenerated);
         }
 

@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             bool isConst = false;
             AliasSymbol alias;
-            var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type, ref isConst, out isVar, out alias);
+            var declType = BindVariableTypeWithAnnotations(node.Designation, diagnostics, node.Type, ref isConst, out _, out _);
             Error(diagnostics, ErrorCode.ERR_DeclarationExpressionNotPermitted, node);
             return BindDeclarationVariablesForErrorRecovery(declType, node.Designation, node, diagnostics);
         }
@@ -2552,8 +2552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static NameSyntax GetNameSyntax(SyntaxNode syntax)
         {
-            string nameString;
-            return GetNameSyntax(syntax, out nameString);
+            return GetNameSyntax(syntax, out _);
         }
 
         /// <summary>
@@ -2753,8 +2752,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         bool isVar;
                         bool isConst = false;
-                        AliasSymbol alias;
-                        var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                        var declType = BindVariableTypeWithAnnotations(designation, diagnostics, typeSyntax, ref isConst, out isVar, out _);
                         Debug.Assert(isVar != declType.HasType);
 
                         return new BoundDiscardExpression(declarationExpression, declType.Type);
@@ -2786,8 +2784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 bool isConst = false;
-                AliasSymbol alias;
-                var declType = BindVariableTypeWithAnnotations(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+                var declType = BindVariableTypeWithAnnotations(declarationExpression, diagnostics, typeSyntax, ref isConst, out isVar, out _);
 
                 localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
@@ -3013,7 +3010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.NeedsToBeConverted())
                 {
                     Debug.Assert(kind.IsIdentity);
-                    if (argument is BoundTupleLiteral sourceTuple)
+                    if (argument is BoundTupleLiteral)
                     {
                         TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
@@ -5693,8 +5690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<MethodSymbol> GetAccessibleConstructorsForOverloadResolution(NamedTypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            ImmutableArray<MethodSymbol> allInstanceConstructors;
-            return GetAccessibleConstructorsForOverloadResolution(type, false, out allInstanceConstructors, ref useSiteInfo);
+            return GetAccessibleConstructorsForOverloadResolution(type, false, out _, ref useSiteInfo);
         }
 
         private ImmutableArray<MethodSymbol> GetAccessibleConstructorsForOverloadResolution(NamedTypeSymbol type, bool allowProtectedConstructorsOfBaseType, out ImmutableArray<MethodSymbol> allInstanceConstructors, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -6792,8 +6788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(lookupResult.Symbols.Any());
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                bool wasError;
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError, qualifierOpt: null);
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out _, qualifierOpt: null);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
                 methodGroup.PopulateWithExtensionMethods(left, members, typeArgumentsWithAnnotations, lookupResult.Kind);
@@ -6847,8 +6842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
-
-                    if (IsMoveableVariable(receiver, out Symbol accessedLocalOrParameterOpt) != isFixedStatementExpression)
+                    if (IsMoveableVariable(receiver, out _) != isFixedStatementExpression)
                     {
                         if (indexed)
                         {
@@ -7683,8 +7677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Unfortunately, the runtime binder doesn't have APIs that would allow us to pass both "type or value".
                 // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                 // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
-                bool inStaticContext;
-                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out _);
 
                 receiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
             }

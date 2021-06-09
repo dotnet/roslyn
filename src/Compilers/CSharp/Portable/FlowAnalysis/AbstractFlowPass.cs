@@ -2974,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // whose condition is not true, then the call has no effect and it is ignored for the purposes of
                 // flow analysis.
 
-                TLocalState savedState = savedState = this.State.Clone();
+                TLocalState savedState = _ = this.State.Clone();
                 SetUnreachable();
 
                 VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), node.AddMethod);

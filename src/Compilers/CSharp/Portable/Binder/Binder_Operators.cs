@@ -2283,7 +2283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                 {
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsMoveableVariable(operand, out accessedLocalOrParameterOpt) != isFixedStatementAddressOfExpression)
+                    if (IsMoveableVariable(operand, out _) != isFixedStatementAddressOfExpression)
                     {
                         Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
                         hasErrors = true;
@@ -2535,7 +2535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingType :
                 GetSpecialType(upconvertSpecialType, diagnostics, syntax);
 
-            newOperand = CreateConversion(newOperand, upconvertType, diagnostics);
+            _ = CreateConversion(newOperand, upconvertType, diagnostics);
 
             UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
@@ -3472,14 +3472,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // if operand has a dynamic type, we do the same thing as though it were an object
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
-                operandTypeKind = operandType.TypeKind;
+                _ = operandType.TypeKind;
             }
 
             if (targetTypeKind == TypeKind.Dynamic)
             {
                 // for "as dynamic", we do the same thing as though it were an "as object"
                 targetType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
-                targetTypeKind = targetType.TypeKind;
+                _ = targetType.TypeKind;
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);

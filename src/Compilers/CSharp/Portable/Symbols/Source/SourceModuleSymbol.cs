@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (attrData.IsTargetAttribute(a, AttributeDescription.GuidAttribute))
                         {
                             string guidString;
-                            if (attrData.TryGetGuidAttributeValue(out guidString))
+                            if (attrData.TryGetGuidAttributeValue(out _))
                             {
                                 hasGuidAttribute = true;
                             }

@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ImmutableArray<Symbol> BindCref(CrefSyntax crefSyntax, Binder binder)
         {
             Symbol unusedAmbiguityWinner;
-            var symbols = binder.BindCref(crefSyntax, out unusedAmbiguityWinner, BindingDiagnosticBag.Discarded);
+            var symbols = binder.BindCref(crefSyntax, out _, BindingDiagnosticBag.Discarded);
             return symbols;
         }
 
@@ -1251,8 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected int CheckAndAdjustPosition(int position)
         {
-            SyntaxToken unused;
-            return CheckAndAdjustPosition(position, out unused);
+            return CheckAndAdjustPosition(position, out _);
         }
 
         protected int CheckAndAdjustPosition(int position, out SyntaxToken token)
@@ -1907,15 +1906,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Get symbols and result kind from the lowest and highest nodes associated with the
             // syntax node.
             ImmutableArray<Symbol> symbols = GetSemanticSymbols(
-                boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
+                boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out _);
 
             if (highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
-                ImmutableArray<Symbol> unusedHighestMemberGroup;
                 ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(
-                    highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+                    highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out _);
 
                 if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
                 {
@@ -2223,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                     }
                 }
-                else if (boundExpr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Conversion: var exprConversion, Type: { TypeKind: TypeKind.FunctionPointer }, SymbolOpt: var symbol })
+                else if (boundExpr is BoundConversion { ConversionKind: ConversionKind.MethodGroup, Conversion: var exprConversion, Type: { TypeKind: TypeKind.FunctionPointer }, SymbolOpt: _ })
                 {
                     // Because the method group is a separate syntax node from the &, the lowest bound node here is the BoundConversion. However,
                     // the conversion represents an implicit method group conversion from a typeless method group to a function pointer type, so
@@ -2261,10 +2259,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lowestBoundNode is BoundExpression boundExpr)
             {
-                LookupResultKind resultKind;
                 ImmutableArray<Symbol> memberGroup;
-                bool isDynamic;
-                GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out memberGroup);
+                GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out _, out _, out memberGroup);
 
                 return memberGroup;
             }

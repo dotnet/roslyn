@@ -1234,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode lowestBoundNode;
             BoundNode highestBoundNode;
             BoundNode boundParent;
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            GetBoundNodes(node, out _, out lowestBoundNode, out highestBoundNode, out boundParent);
 
             Debug.Assert(IsInTree(node), "Since the node is in the tree, we can always recompute the binder later");
             return base.GetSymbolInfoForNode(options, lowestBoundNode, highestBoundNode, boundParent, binderOpt: null);
@@ -1242,22 +1242,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            CSharpSyntaxNode bindableNode;
             BoundNode lowestBoundNode;
             BoundNode highestBoundNode;
             BoundNode boundParent;
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            GetBoundNodes(node, out _, out lowestBoundNode, out highestBoundNode, out boundParent);
 
             return GetTypeInfoForNode(lowestBoundNode, highestBoundNode, boundParent);
         }
 
         internal override ImmutableArray<Symbol> GetMemberGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
-            CSharpSyntaxNode bindableNode;
             BoundNode lowestBoundNode;
-            BoundNode highestBoundNode;
             BoundNode boundParent;
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            GetBoundNodes(node, out _, out lowestBoundNode, out _, out boundParent);
 
             Debug.Assert(IsInTree(node), "Since the node is in the tree, we can always recompute the binder later");
             return base.GetMemberGroupForNode(options, lowestBoundNode, boundParent, binderOpt: null);
@@ -1265,11 +1262,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<IPropertySymbol> GetIndexerGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
-            CSharpSyntaxNode bindableNode;
             BoundNode lowestBoundNode;
-            BoundNode highestBoundNode;
-            BoundNode boundParent;
-            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+            GetBoundNodes(node, out _, out lowestBoundNode, out _, out _);
 
             Debug.Assert(IsInTree(node), "Since the node is in the tree, we can always recompute the binder later");
             return base.GetIndexerGroupForNode(lowestBoundNode, binderOpt: null);

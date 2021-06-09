@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                        loweredSymbol.ClosureKind,
                                        ref method,
                                        out receiver,
-                                       out constructedFrame);
+                                       out _);
         }
 
         /// <summary>
@@ -1372,20 +1372,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            ClosureKind closureKind;
-            NamedTypeSymbol translatedLambdaContainer;
-            SynthesizedClosureEnvironment containerAsFrame;
-            BoundNode lambdaScope;
-            DebugId topLevelMethodId;
-            DebugId lambdaId;
             RewriteLambdaOrLocalFunction(
                 node,
-                out closureKind,
-                out translatedLambdaContainer,
-                out containerAsFrame,
-                out lambdaScope,
-                out topLevelMethodId,
-                out lambdaId);
+                out _,
+                out _,
+                out _,
+                out _,
+                out _,
+                out _);
 
             return new BoundNoOpStatement(node.Syntax, NoOpStatementFlavor.Default);
         }

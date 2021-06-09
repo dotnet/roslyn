@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsExplicitOverrideIsPopulated)
                 {
-                    var unused = this.ExplicitInterfaceImplementations;
+                    _ = this.ExplicitInterfaceImplementations;
                     Debug.Assert(_packedFlags.IsExplicitOverrideIsPopulated);
                 }
                 return _packedFlags.IsExplicitFinalizerOverride;
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (!_packedFlags.IsExplicitOverrideIsPopulated)
                 {
-                    var unused = this.ExplicitInterfaceImplementations;
+                    _ = this.ExplicitInterfaceImplementations;
                     Debug.Assert(_packedFlags.IsExplicitOverrideIsPopulated);
                 }
                 return _packedFlags.IsExplicitClassOverride;

@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
                         Debug.Assert(caseLabel.Value != null);
                         var boundLabelExpression = sectionBinder.BindTypeOrRValue(caseLabel.Value, tempDiagnosticBag);
-                        if (boundLabelExpression is BoundTypeExpression type)
+                        if (boundLabelExpression is BoundTypeExpression)
                         {
                             // Nothing to do at this point.  The label will be bound later.
                         }

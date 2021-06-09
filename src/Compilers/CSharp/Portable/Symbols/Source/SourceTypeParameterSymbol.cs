@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.TypeParameterConstraints:
-                        var constraintTypes = this.ConstraintTypesNoUseSiteDiagnostics;
+                        _ = this.ConstraintTypesNoUseSiteDiagnostics;
 
                         // Nested type parameter references might not be valid in error scenarios.
                         //Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.ConstraintTypes));

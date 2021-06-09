@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
-            bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
+            bool hasAwait;
+            _ = _syntax.AwaitKeyword.Kind() != default;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 

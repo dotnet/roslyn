@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var awaitContainingCatches = _awaitContainingCatches;
                     if (awaitContainingCatches == null)
                     {
-                        _awaitContainingCatches = awaitContainingCatches = new HashSet<BoundCatchBlock>();
+                        _awaitContainingCatches = _ = new HashSet<BoundCatchBlock>();
                     }
 
                     _awaitContainingCatches.Add(node);

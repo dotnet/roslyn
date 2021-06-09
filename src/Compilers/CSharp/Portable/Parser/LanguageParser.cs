@@ -1982,7 +1982,7 @@ tryAgain:
         private TypeParameterConstraintSyntax ParseTypeParameterConstraint()
         {
             SyntaxToken questionToken = null;
-            var syntaxKind = this.CurrentToken.Kind;
+            _ = this.CurrentToken.Kind;
 
             switch (this.CurrentToken.Kind)
             {
@@ -5667,7 +5667,7 @@ tryAgain:
 
                 do
                 {
-                    lastTokenOfList = this.EatToken();
+                    _ = this.EatToken();
 
                     // Type arguments cannot contain attributes, so if this is an open square, we early out and assume it is not a type argument
                     if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
@@ -5682,7 +5682,7 @@ tryAgain:
                         return result;
                     }
 
-                    switch (this.ScanType(out lastTokenOfList))
+                    switch (this.ScanType(out _))
                     {
                         case ScanTypeFlags.NotType:
                             lastTokenOfList = null;
@@ -6290,8 +6290,7 @@ tryAgain:
 
         private void ScanNamedTypePart()
         {
-            SyntaxToken lastTokenOfType;
-            ScanNamedTypePart(out lastTokenOfType);
+            ScanNamedTypePart(out _);
         }
 
         private ScanTypeFlags ScanNamedTypePart(out SyntaxToken lastTokenOfType)
@@ -6395,7 +6394,7 @@ tryAgain:
             }
             else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                lastTokenOfType = this.EatToken();
+                _ = this.EatToken();
 
                 result = this.ScanTupleType(out lastTokenOfType);
                 if (result == ScanTypeFlags.NotType || mode == ParseTypeMode.DefinitePattern && this.CurrentToken.Kind != SyntaxKind.OpenBracketToken)
@@ -6490,20 +6489,20 @@ done:
         /// </summary>
         private ScanTypeFlags ScanTupleType(out SyntaxToken lastTokenOfType)
         {
-            var tupleElementType = ScanType(out lastTokenOfType);
+            var tupleElementType = ScanType(out _);
             if (tupleElementType != ScanTypeFlags.NotType)
             {
                 if (IsTrueIdentifier())
                 {
-                    lastTokenOfType = this.EatToken();
+                    _ = this.EatToken();
                 }
 
                 if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     do
                     {
-                        lastTokenOfType = this.EatToken();
-                        tupleElementType = ScanType(out lastTokenOfType);
+                        _ = this.EatToken();
+                        tupleElementType = ScanType(out _);
 
                         if (tupleElementType == ScanTypeFlags.NotType)
                         {
@@ -6513,7 +6512,7 @@ done:
 
                         if (IsTrueIdentifier())
                         {
-                            lastTokenOfType = this.EatToken();
+                            _ = this.EatToken();
                         }
                     }
                     while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
@@ -10260,8 +10259,8 @@ tryAgain:
                 else if (isAssignmentOperator)
                 {
                     ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
-                        ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
-                        : rhs = this.ParseSubExpression(newPrecedence);
+                        ? _ = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
+                        : _ = this.ParseSubExpression(newPrecedence);
 
                     if (opKind == SyntaxKind.CoalesceAssignmentExpression)
                     {

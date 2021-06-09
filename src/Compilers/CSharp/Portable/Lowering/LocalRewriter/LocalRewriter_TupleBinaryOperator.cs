@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the benefit of the semantic model only.
                     Debug.Assert(expr.Type == (object?)o.Type || expr.Type is { } && expr.Type.Equals(o.Type, TypeCompareKind.AllIgnoreOptions));
                     return IsLikeTupleExpression(o, out tuple);
-                case BoundConversion { Conversion: { Kind: var kind } c, Operand: var o } conversion when
+                case BoundConversion { Conversion: { Kind: _ } c, Operand: var o } conversion when
                         c.IsTupleConversion || c.IsTupleLiteralConversion:
                     {
                         // Push tuple conversions down to the elements.

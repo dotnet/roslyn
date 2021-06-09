@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
             SignatureHeader callingConvention;
             BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
+            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out _, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
             var returnInfo = propertyParams[0];

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_syntax.Declaration != null)
             {
                 ImmutableArray<BoundLocalDeclaration> unused;
-                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out unused);
+                initializer = originalBinder.BindForOrUsingOrFixedDeclarations(node.Declaration, LocalDeclarationKind.RegularVariable, diagnostics, out _);
             }
             else
             {
