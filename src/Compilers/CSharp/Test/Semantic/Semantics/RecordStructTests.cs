@@ -101,7 +101,7 @@ record struct S(int X, int Y)
         Console.WriteLine(s1.Equals(new S(1, 0)));
     }
 }";
-            _ = CompileAndVerify(src, expectedOutput: @"0
+            var verifier = CompileAndVerify(src, expectedOutput: @"0
 1
 True
 False").VerifyDiagnostics();

@@ -4378,7 +4378,7 @@ class C
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            _ = CompileAndVerify(comp, expectedOutput: "True");
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
         }
 
         [Fact]

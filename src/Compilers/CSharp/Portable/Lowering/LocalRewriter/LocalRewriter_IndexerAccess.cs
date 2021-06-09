@@ -358,7 +358,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int rangeSize = end.GetOffset(length) - start
 
                 bool usedLength = false;
-                if (rangeExpr.LeftOperandOpt is BoundExpression)
+
+                if (rangeExpr.LeftOperandOpt is BoundExpression left)
                 {
                     var startLocal = F.StoreToTemp(
                         MakePatternIndexOffsetExpression(rangeExpr.LeftOperandOpt, lengthLocal, out usedLength),

@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     bool invalidFormat = false;
-                    _ = 0;
+                    System.Numerics.BigInteger number = 0;
 
                     //There could be an invalid character in the input so check for the presence of one and
                     //parse up to that point. examples of invalid characters are alphas and punctuation

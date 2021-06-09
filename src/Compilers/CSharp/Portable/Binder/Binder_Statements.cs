@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindUnsafeStatement(UnsafeStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            _ = this.GetBinder(node);
+            var unsafeBinder = this.GetBinder(node);
 
             if (!this.Compilation.Options.AllowUnsafe)
             {
@@ -1316,7 +1316,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             const string methodName = "GetPinnableReference";
-            _ = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
+
+            var result = PerformPatternMethodLookup(initializer, methodName, initializer.Syntax, additionalDiagnostics, out var patternMethodSymbol);
 
             if (patternMethodSymbol is null)
             {
@@ -2285,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> tupleArguments,
             ImmutableArray<TypeWithAnnotations> targetElementTypes)
         {
-            _ = tupleArguments.Length;
+            var argLength = tupleArguments.Length;
 
             // report all leaf elements of the tuple literal that failed to convert
             // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
@@ -2874,7 +2875,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!badAsyncReturnAlreadyReported)
                     {
-                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out _), TypeCompareKind.ConsiderEverything2))
+                        RefKind unusedRefKind;
+                        if (IsGenericTaskReturningAsyncMethod() && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
                             Error(diagnostics, ErrorCode.ERR_BadAsyncReturnExpression, argument.Syntax, returnType);

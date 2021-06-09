@@ -83,7 +83,8 @@ public class C {
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
         {
-            return GetAwaitExpressionInfo(text, out _, diagnostics);
+            CSharpCompilation temp;
+            return GetAwaitExpressionInfo(text, out temp, diagnostics);
         }
 
         [Fact]

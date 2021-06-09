@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ParenExpression()
         {
             // `(id) .` starts with a parenthesized expression
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -112,7 +112,7 @@ class C
         {
             // `(T id, ...) id` starts with a tuple type
 
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -190,7 +190,7 @@ class C
         {
             // `(T, ...) id` starts with a type
 
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -266,7 +266,7 @@ class C
         {
             // (T, ...) [] is a type
 
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -354,7 +354,7 @@ class C
         {
             // (E, ...) followed by ., +, -, etc. starts with a tuple literal/expression
 
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -438,7 +438,7 @@ class C
         public void DeconstructionAssignment()
         {
             // (E, ...) = is a deconstruction-assignment
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -513,7 +513,7 @@ class C
         [Fact]
         public void SimpleDeclaration()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -589,7 +589,7 @@ class C
         public void NestedDeconstructionAssignment()
         {
             // (E, ...) = is a deconstruction-assignment
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -681,7 +681,7 @@ class C
         public void DeconstructionDeclaration()
         {
             // `(T id, ...) = ...` is a deconstruction-declaration
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -771,7 +771,7 @@ class C
         public void NestedDeconstructionDeclaration()
         {
             // `(T id, (...)) = ...` is a deconstruction-declaration
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -884,7 +884,7 @@ class C
         public void VarDeconstructionDeclaration()
         {
             // `var (id, ...) = ...` is a deconstruction-declaration
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -961,7 +961,7 @@ class C
         public void VarNestedDeconstructionDeclaration()
         {
             // `var ((id, ...), ...) = ...` is a deconstruction-declaration
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1048,7 +1048,7 @@ class C
         public void VarMethodCall()
         {
             // `var(...);` is a method call
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -1122,7 +1122,7 @@ class C
         [Fact]
         public void MixedDeconstructionVariables()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -1221,7 +1221,7 @@ class C
         [Fact]
         public void DeconstructionFor()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1319,7 +1319,7 @@ class C
         [Fact]
         public void VarDeconstructionFor()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1404,7 +1404,7 @@ class C
         [Fact]
         public void DeconstructionForeach()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1497,7 +1497,7 @@ class C
         [Fact]
         public void VarDeconstructionForeach()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1577,7 +1577,7 @@ class C
         [Fact]
         public void DeconstructionInScript()
         {
-            _ = UsingTree(@" (int x, int y) = (1, 2); ", options: TestOptions.Script);
+            var tree = UsingTree(@" (int x, int y) = (1, 2); ", options: TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -1653,7 +1653,7 @@ class C
         [Fact]
         public void DeconstructionForEachInScript()
         {
-            _ = UsingTree(@" foreach ((int x, int y) in new[] { (1, 2) }) { }; ", options: TestOptions.Script);
+            var tree = UsingTree(@" foreach ((int x, int y) in new[] { (1, 2) }) { }; ", options: TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1752,7 +1752,7 @@ class C
         [Fact]
         public void DeconstructionDeclarationWithDiscard()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -2404,7 +2404,7 @@ class C
         [Fact]
         public void DiscardsInDeconstruction_01()
         {
-            _ = UsingTree(@"void M() { var (x, _) = e; }");
+            var tree = UsingTree(@"void M() { var (x, _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2469,7 +2469,7 @@ class C
         [Fact]
         public void DiscardsInDeconstruction_02()
         {
-            _ = UsingTree(@"void M() { (var x, var _) = e; }");
+            var tree = UsingTree(@"void M() { (var x, var _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2547,7 +2547,7 @@ class C
         [Fact]
         public void DiscardsInOut_01()
         {
-            _ = UsingTree(@"void M() { M(out var _); }");
+            var tree = UsingTree(@"void M() { M(out var _); }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2610,7 +2610,7 @@ class C
         [Fact]
         public void DiscardsInOut_02()
         {
-            _ = UsingTree(@"void M() { M(out int _); }");
+            var tree = UsingTree(@"void M() { M(out int _); }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2673,7 +2673,7 @@ class C
         [Fact]
         public void DiscardsInPattern_01()
         {
-            _ = UsingTree(@"void M() { if (e is int _) {} }");
+            var tree = UsingTree(@"void M() { if (e is int _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2735,7 +2735,7 @@ class C
         [Fact]
         public void DiscardsInPattern_02()
         {
-            _ = UsingTree(@"void M() { if (e is var _) {} }");
+            var tree = UsingTree(@"void M() { if (e is var _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2794,7 +2794,7 @@ class C
         [Fact]
         public void DiscardsInPattern_03()
         {
-            _ = UsingTree(@"void M() { switch (e) { case int _: break; } }");
+            var tree = UsingTree(@"void M() { switch (e) { case int _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -2862,7 +2862,7 @@ class C
         [Fact]
         public void DiscardsInPattern_04()
         {
-            _ = UsingTree(@"void M() { switch (e) { case var _: break; } }");
+            var tree = UsingTree(@"void M() { switch (e) { case var _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);

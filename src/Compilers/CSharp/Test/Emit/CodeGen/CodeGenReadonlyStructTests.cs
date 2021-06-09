@@ -1004,7 +1004,7 @@ class Program
             Assert.Equal(RefKind.In, namedType.GetMethod("ToString").ThisParameter.RefKind);
 
             // T
-            _ = namedType.TypeParameters[0];
+            TypeSymbol type = namedType.TypeParameters[0];
             Assert.True(namedType.IsReadOnly);
             Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
             Assert.Equal(RefKind.In, namedType.GetMethod("M1").ThisParameter.RefKind);
@@ -1038,7 +1038,7 @@ class Program
             Assert.Equal(RefKind.None, namedType.GetMethod("Invoke").ThisParameter.RefKind);
 
             // object[]
-            TypeSymbol type = comp.CreateArrayTypeSymbol(comp.ObjectType);
+            type = comp.CreateArrayTypeSymbol(comp.ObjectType);
             Assert.False(type.IsReadOnly);
 
             // dynamic

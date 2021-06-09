@@ -1590,7 +1590,7 @@ symIsHidden:;
         internal bool IsAccessible(Symbol symbol, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, TypeSymbol accessThroughType = null, ConsList<TypeSymbol> basesBeingResolved = null)
         {
             bool failedThroughTypeCheck;
-            return IsAccessible(symbol, accessThroughType, out _, ref useSiteInfo, basesBeingResolved);
+            return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
         }
 
         /// <summary>

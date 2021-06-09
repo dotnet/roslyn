@@ -5105,7 +5105,7 @@ System.Console.Write($""{x} {y} {z}"");
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
-            _ = CompileAndVerify(comp, expectedOutput: "hello 42 43");
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
         }
 
         [Fact]
@@ -5119,7 +5119,7 @@ System.Console.Write($""{x} {y}"");
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
-            _ = CompileAndVerify(comp, expectedOutput: "hello 42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
         }
 
         [Fact]
@@ -6147,7 +6147,7 @@ class C
                 );
 
             var tree = comp.SyntaxTrees.First();
-            _ = comp.GetSemanticModel(tree);
+            var model = comp.GetSemanticModel(tree);
 
             Assert.Empty(GetDiscardIdentifiers(tree));
         }
@@ -6177,7 +6177,7 @@ class C
                 );
 
             var tree = comp.SyntaxTrees.First();
-            _ = comp.GetSemanticModel(tree);
+            var model = comp.GetSemanticModel(tree);
 
             Assert.Empty(GetDiscardIdentifiers(tree));
         }
@@ -8137,7 +8137,7 @@ class C
 
             var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            _ = CompileAndVerify(comp, expectedOutput: "3");
+            var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
 
         [Fact]

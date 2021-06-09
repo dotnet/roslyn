@@ -1138,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Location ignoredLocation;
-            bool? declaredCompliance = GetDeclaredCompliance(symbol, out _);
+            bool? declaredCompliance = GetDeclaredCompliance(symbol, out ignoredLocation);
             if (declaredCompliance.HasValue)
             {
                 compliance = declaredCompliance.GetValueOrDefault() ? Compliance.DeclaredTrue : Compliance.DeclaredFalse;

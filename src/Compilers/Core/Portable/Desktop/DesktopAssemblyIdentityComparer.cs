@@ -179,8 +179,8 @@ namespace Microsoft.CodeAnalysis
 
         private static bool IsRetargetableAssembly(AssemblyIdentity identity)
         {
-            bool retargetable;
-            IsRetargetableAssembly(identity, out retargetable, out _);
+            bool retargetable, portable;
+            IsRetargetableAssembly(identity, out retargetable, out portable);
             return retargetable;
         }
 

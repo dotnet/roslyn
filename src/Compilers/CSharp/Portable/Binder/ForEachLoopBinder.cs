@@ -177,8 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = new ForEachEnumeratorInfo.Builder();
             TypeWithAnnotations inferredType;
-            bool hasErrors;
-            _ = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
+            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(ref builder, ref collectionExpr, diagnostics, out inferredType);
 
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 

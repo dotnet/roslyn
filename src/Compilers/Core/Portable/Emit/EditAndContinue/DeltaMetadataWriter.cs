@@ -482,7 +482,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var eventDef in typeDef.GetEvents(this.Context))
             {
-                if (!_eventMap.TryGetValue(typeIndex, out _))
+                int eventMapIndex;
+                if (!_eventMap.TryGetValue(typeIndex, out eventMapIndex))
                 {
                     _eventMap.Add(typeIndex);
                 }
@@ -517,7 +518,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
             {
-                if (!_propertyMap.TryGetValue(typeIndex, out _))
+                int propertyMapIndex;
+                if (!_propertyMap.TryGetValue(typeIndex, out propertyMapIndex))
                 {
                     _propertyMap.Add(typeIndex);
                 }
@@ -554,8 +556,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 int index = 1;
                 while (true)
                 {
+                    int methodImplIndex;
                     var key = new MethodImplKey(methodDefIndex, index);
-                    if (!_methodImpls.TryGetValue(key, out _))
+                    if (!_methodImpls.TryGetValue(key, out methodImplIndex))
                     {
                         _methodImpls.Add(key);
                         break;

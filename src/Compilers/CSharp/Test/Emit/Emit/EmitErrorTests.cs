@@ -110,7 +110,7 @@ public class B
     }
 }
 ";
-            _ = CompileAndVerify(
+            var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
                 verify: Verification.Fails);
@@ -142,7 +142,7 @@ public class B
     }
 }
 ";
-            _ = CompileAndVerify(
+            var compilation2 = CompileAndVerify(
                 source2,
                 new[] { new CSharpCompilationReference(compilation1) },
                 verify: Verification.Fails);

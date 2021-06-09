@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentFunction = moveNextMethod;
             int initialState;
             GeneratedLabelSymbol initialLabel;
-            AddState(out _, out initialLabel);
+            AddState(out initialState, out initialLabel);
             var newBody = (BoundStatement)Visit(body);
 
             // switch(cachedState) {

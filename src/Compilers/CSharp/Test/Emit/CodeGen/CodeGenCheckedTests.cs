@@ -1334,7 +1334,7 @@ class C
         [Fact]
         public void Lambda_Statement()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1363,7 +1363,7 @@ class C
         [Fact]
         public void Lambda_QueryStmt()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System.Linq;
 
 class C
@@ -1391,7 +1391,7 @@ class C
         [Fact]
         public void Lambda_QueryExpr()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System.Linq;
 
 class C
@@ -1416,7 +1416,7 @@ class C
         [Fact]
         public void Lambda_AddOvfAssignment()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1443,7 +1443,7 @@ class C
         [Fact]
         public void Lambda_Add()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1469,7 +1469,7 @@ class C
         [Fact]
         public void Lambda_Cast()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {    
     static void F()
@@ -1495,7 +1495,7 @@ class C
         [Fact]
         public void Lambda_AddOvfCompoundAssignment()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1522,7 +1522,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1550,8 +1550,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument2()
         {
-            CompilationVerifier verifier;
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1579,7 +1578,7 @@ class C
         [Fact]
         public void Lambda_AddArgument3()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1607,7 +1606,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument4()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1636,7 +1635,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument5()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1664,7 +1663,7 @@ class C
         [Fact]
         public void Lambda_AddArgument6()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1692,7 +1691,7 @@ class C
         [Fact]
         public void Lambda_AddArgument7()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1720,7 +1719,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument8()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {    
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1748,7 +1747,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate1()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {    
     static void F()
@@ -1772,7 +1771,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate2()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1795,7 +1794,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate3()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1818,7 +1817,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate1()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1843,7 +1842,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate2()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }

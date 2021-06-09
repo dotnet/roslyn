@@ -1597,7 +1597,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2(default(Struct1)));
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(Struct1)").WithArguments("Struct1").WithLocation(8, 40));
@@ -1623,7 +1623,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2(default));
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 40));
@@ -1649,7 +1649,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,50): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2((Struct1) default));
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("Struct1").WithLocation(8, 50));
@@ -1675,7 +1675,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,40): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Class1 c) => c.Method2(new Struct1()));
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "new Struct1()").WithArguments("Struct1").WithLocation(8, 40));
@@ -1702,7 +1702,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,25): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Struct1'.
                 //         Method((Struct1 s) => Method2());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "s").WithArguments("Struct1").WithLocation(9, 25));
@@ -1727,7 +1727,7 @@ public class Class1
 
 public ref struct Struct1 { }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(30776, "https://github.com/dotnet/roslyn/issues/30776")]
@@ -1748,7 +1748,7 @@ public class Class1
     public static void Method(Expression<Action> expression) { }
 }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (8,30): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
                 //         Method(() => Method2(default));
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments("TypedReference").WithLocation(8, 30));
@@ -1773,7 +1773,7 @@ public class Class1
     public static void Method(Expression<Delegate1> expression) { }
 }
 ";
-            _ = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
                 // (9,32): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
                 //         Method((TypedReference tr) => Method2());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "tr").WithArguments("TypedReference").WithLocation(9, 32));

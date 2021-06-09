@@ -1280,7 +1280,7 @@ class C
         _ = c[0..];
     }
 }";
-            _ = CompileAndVerifyWithIndexAndRange(src, expectedOutput: @"
+            var verifier = CompileAndVerifyWithIndexAndRange(src, expectedOutput: @"
 int
 Index
 Range");

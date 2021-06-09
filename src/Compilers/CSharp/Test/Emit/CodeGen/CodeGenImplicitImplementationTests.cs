@@ -955,7 +955,8 @@ class Test
         i2.Method<string>(out i, ref s1, l1);
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Base.Method(1, 2, b)
 Class.Method(2, 3, c)
@@ -1211,7 +1212,7 @@ class Test
         i.Property = x;
     }
 }";
-            _ = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Base2.Method()
 Derived2.Method(1)
 Derived4.Method<U>(1, 0)
@@ -1355,7 +1356,7 @@ class Test
         i.Property = x;
     }
 }";
-            _ = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 Derived2.Method()
 Derived2.Method(1)
 Base2.Method<U>(1, 0)
@@ -1855,7 +1856,7 @@ class Test
 }
 ";
             // TODO: Will need to update once CompilerGeneratedAttribute is emitted on synthesized accessor
-            _ = CompileAndVerify(text,
+            var comp = CompileAndVerify(text,
                 expectedOutput: "23123",
                 expectedSignatures: new[]
                 {

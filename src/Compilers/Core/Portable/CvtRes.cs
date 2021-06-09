@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis
 
                 ushort cbBlock = SizeofVerString(keyValuePair.Key, keyValuePair.Value);
                 int cbKey = (keyValuePair.Key.Length + 1) * 2;     // includes terminating NUL
-                _ = (keyValuePair.Value.Length + 1) * 2;     // includes terminating NUL
+                int cbVal = (keyValuePair.Value.Length + 1) * 2;     // includes terminating NUL
 
                 var startPos = writer.BaseStream.Position;
                 Debug.Assert((startPos & 3) == 0);

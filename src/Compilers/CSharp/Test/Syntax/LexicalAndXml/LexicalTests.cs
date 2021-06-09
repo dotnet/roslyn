@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.ToFullString());
-            _ = token.GetTrailingTrivia().ToList();
+            var trivia = token.GetTrailingTrivia().ToList();
         }
 
         [Fact]
@@ -1399,7 +1399,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
-            if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out _))
+            decimal d;
+            if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
             {
                 Assert.Equal(0, errors.Length);
             }

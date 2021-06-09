@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method;
             if (operatorKind == BinaryOperatorKind.DelegateEqual || operatorKind == BinaryOperatorKind.DelegateNotEqual)
             {
-                _ = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
+                method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
                 if (loweredRight.IsLiteralNull() ||
                     loweredLeft.IsLiteralNull() ||
                     (object)(method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member)) == null)

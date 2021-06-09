@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var incrementalTree = originalTree.WithReplace(start, length, replacement);
 
             dynamic r = incrementalTree.GetCompilationUnitRoot();
-            _ = r.Members[0].Members[0].Body.Statements[0].Expression.ArgumentList.Arguments;
+            var args = r.Members[0].Members[0].Body.Statements[0].Expression.ArgumentList.Arguments;
 
             VerifyIdenticalStructure(incrementalTree);
         }

@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis
 
             public TokenKind Lex()
             {
-                _ = Position;
+                int lexemeStart = Position;
                 switch (_sectionName[Position])
                 {
                     case '*':

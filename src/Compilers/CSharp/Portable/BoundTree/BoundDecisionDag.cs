@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableArray.Create(p.Next);
                 case BoundTestDecisionDagNode p:
                     return ImmutableArray.Create(p.WhenFalse, p.WhenTrue);
-                case BoundLeafDecisionDagNode:
+                case BoundLeafDecisionDagNode d:
                     return ImmutableArray<BoundDecisionDagNode>.Empty;
                 case BoundWhenDecisionDagNode w:
                     return (w.WhenFalse != null) ? ImmutableArray.Create(w.WhenTrue, w.WhenFalse) : ImmutableArray.Create(w.WhenTrue);

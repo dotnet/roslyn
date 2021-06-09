@@ -508,12 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.EnumUnderlyingType:
-                        _ = this.EnumUnderlyingType;
+                        var discarded = this.EnumUnderlyingType;
                         break;
 
                     case CompletionPart.TypeArguments:
                         {
-                            _ = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics; // force type arguments
+                            var tmp = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics; // force type arguments
                         }
                         break;
 

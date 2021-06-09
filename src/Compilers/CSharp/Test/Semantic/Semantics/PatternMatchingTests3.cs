@@ -420,7 +420,7 @@ public class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
@@ -470,7 +470,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]
@@ -592,7 +592,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -635,7 +635,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -678,7 +678,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -721,7 +721,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -745,7 +745,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -768,7 +768,7 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -811,7 +811,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -853,7 +853,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1035,7 +1035,7 @@ TargetSubtype";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1088,7 +1088,7 @@ Ultimate";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1141,7 +1141,7 @@ Ultimate";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1194,7 +1194,7 @@ Target->Ultimate
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithNullableContextOptions(NullableContextOptions.Disable));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1695,7 +1695,7 @@ class Source2
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [WorkItem(40295, "https://github.com/dotnet/roslyn/issues/40295")]
@@ -2092,7 +2092,7 @@ N.G<B>[]
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
@@ -2164,7 +2164,7 @@ N.G<B>[]";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
@@ -2236,7 +2236,7 @@ N.G<B>[]";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
@@ -2285,7 +2285,7 @@ System.Int32";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(40149, "https://github.com/dotnet/roslyn/issues/40149")]
@@ -2334,7 +2334,7 @@ System.Int32";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2540,7 +2540,7 @@ positive";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -2578,7 +2578,7 @@ more";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -2649,7 +2649,7 @@ incomparable";
                 var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9), options: TestOptions.DebugExe);
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -2813,7 +2813,7 @@ class C
                 var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -2872,7 +2872,7 @@ class C
                 var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
         }
 
@@ -3277,7 +3277,7 @@ System.Int64
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(43377, "https://github.com/dotnet/roslyn/issues/43377")]
@@ -3365,7 +3365,7 @@ Base
             var compilation = CreateCompilation(source + _iTupleSource, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -4968,7 +4968,7 @@ CASES
                 var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
                 compilation.VerifyDiagnostics(
                     );
-                _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             }
 
             void shuffle(ArrayBuilder<string> cases)
@@ -5252,7 +5252,7 @@ static class Assert
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: "Done");
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "Done");
         }
 
         [InlineData("nint", "int")]
@@ -5541,7 +5541,7 @@ class C
                     //         str = x switch // does not handle zero
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(15, 17)
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -6013,7 +6013,7 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -6034,7 +6034,7 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularWithPatternCombinators);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
         [Fact]

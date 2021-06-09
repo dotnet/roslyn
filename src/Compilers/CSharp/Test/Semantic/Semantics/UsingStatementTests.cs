@@ -842,7 +842,7 @@ class C2
        }
     }
 }";
-            _ = CreateCompilation(source).VerifyDiagnostics(
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
@@ -871,7 +871,8 @@ class C2
        }
     }
 }";
-            _ = CreateCompilation(source).VerifyDiagnostics(
+
+            var compilation = CreateCompilation(source).VerifyDiagnostics(
                 // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
@@ -1128,7 +1129,7 @@ class C2
         }
     }
 }";
-            _ = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
+            var compilation = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }).VerifyDiagnostics(
                 // (16,22): error CS4012: Parameters or locals of type 'S1' cannot be declared in async methods or async lambda expressions.
                 //         await using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "S1").WithArguments("S1").WithLocation(16, 22)

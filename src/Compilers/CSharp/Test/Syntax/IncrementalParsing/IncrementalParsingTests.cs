@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeFromClassToInterface()
         {
-            _ = SyntaxFactory.ParseToken("interface"); // prime the memoizer
+            var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
             var text = "class goo { public void m() { } }";
             var oldTree = this.Parse(text);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeFromClassToStruct()
         {
-            _ = SyntaxFactory.ParseToken("struct"); // prime the memoizer
+            var interfaceKeyword = SyntaxFactory.ParseToken("struct"); // prime the memoizer
 
             var text = "class goo { public void m() { } }";
             var oldTree = this.Parse(text);
@@ -547,7 +547,7 @@ class C { void c() { } }
         {
             var text = SourceText.From(@"partial class C{}");
             var startTree = SyntaxFactory.ParseSyntaxTree(text);
-            _ = startTree.GetCompilationUnitRoot().ToFullString();
+            var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
             var newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
             var newTree = startTree.WithChangedText(newText);
@@ -561,7 +561,7 @@ class C { void c() { } }
         {
             var text = SourceText.From(@"partial class C{}");
             var startTree = SyntaxFactory.ParseSyntaxTree(text);
-            _ = startTree.GetCompilationUnitRoot().ToFullString();
+            var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
             var newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
             var newTree = startTree.WithChangedText(newText);
@@ -1016,7 +1016,7 @@ class A
             SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // The bug was that this would simply assert
-            _ = oldTree.WithInsertAt(locationOfInsert, ";");
+            SyntaxTree newTree = oldTree.WithInsertAt(locationOfInsert, ";");
         }
 
         [WorkItem(536635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536635")]
@@ -1029,7 +1029,7 @@ string s = @
 }
 ";
             var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
-            _ = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
+            var newTree = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
         }
 
         [WorkItem(536717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536717")]
@@ -1159,7 +1159,8 @@ string s = @
             int locationOfChange = oldText.ToString().IndexOf("class", StringComparison.Ordinal), widthOfChange = 5;
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
-            _ = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // This function will update "class" to "/*class*/" in oldText
             CommentOutText(oldText, locationOfChange, widthOfChange, out incrementalTree, out parsedTree);
@@ -1564,7 +1565,8 @@ namespace N");
 
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
-            _ = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // This function will add the '/' character to the end of oldText
             CharByCharIncrementalParse(oldText, '/', out incrementalTree, out parsedTree);
@@ -2701,7 +2703,7 @@ class D { }
         [Fact]
         public void TestRescanInterpolatedString()
         {
-            _ = SyntaxFactory.ParseToken("interface"); // prime the memoizer
+            var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
             var text = @"class goo { public void m() { string s = $""{1} world"" ; } }";
             var oldTree = this.Parse6(text);

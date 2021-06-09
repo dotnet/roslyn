@@ -4989,7 +4989,7 @@ static unsafe class C
         [Fact]
         public void RecursivelyUsedTypeInFunctionPointer()
         {
-            _ = CompileAndVerifyFunctionPointers(@"
+            var verifier = CompileAndVerifyFunctionPointers(@"
 namespace Interop
 {
     public unsafe struct PROPVARIANT

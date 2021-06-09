@@ -3161,7 +3161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (IsVarianceCast(expr.Type, mergeTypeOfAlternative))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
-                    _ = expr.Type;
+                    mergeTypeOfAlternative = expr.Type;
                 }
                 else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfAlternative, TypeCompareKind.ConsiderEverything2))
                 {
@@ -3185,7 +3185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (IsVarianceCast(expr.Type, mergeTypeOfConsequence))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
-                    _ = expr.Type;
+                    mergeTypeOfConsequence = expr.Type;
                 }
                 else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfConsequence, TypeCompareKind.ConsiderEverything2))
                 {
@@ -3222,7 +3222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (IsVarianceCast(expr.Type, mergeTypeOfLeftValue))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
-                    _ = expr.Type;
+                    mergeTypeOfLeftValue = expr.Type;
                 }
                 else if (expr.Type.IsInterfaceType() && !TypeSymbol.Equals(expr.Type, mergeTypeOfLeftValue, TypeCompareKind.ConsiderEverything2))
                 {
@@ -3252,7 +3252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (IsVarianceCast(expr.Type, mergeTypeOfRightValue))
                 {
                     EmitStaticCast(expr.Type, expr.Syntax);
-                    _ = expr.Type;
+                    mergeTypeOfRightValue = expr.Type;
                 }
             }
 

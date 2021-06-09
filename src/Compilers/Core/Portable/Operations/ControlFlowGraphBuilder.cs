@@ -3363,7 +3363,7 @@ oneMoreTime:
         private IOperation VisitConditionalAccessTestExpression(IOperation testExpression)
         {
             Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
-            _ = testExpression.Syntax;
+            SyntaxNode testExpressionSyntax = testExpression.Syntax;
             ITypeSymbol? testExpressionType = testExpression.Type;
 
             var frame = PushStackFrame();
@@ -4119,13 +4119,15 @@ oneMoreTime:
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
+
+            IOperation? lockTaken = null;
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
                 Debug.Assert(lockStatement.LockTakenSymbol is not null);
                 Debug.Assert(enterMethod is not null);
-                IOperation? lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
-                                             lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
+                                                         lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
                 AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(ArgumentKind.Explicit,

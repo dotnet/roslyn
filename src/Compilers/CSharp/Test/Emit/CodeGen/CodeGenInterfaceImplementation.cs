@@ -137,7 +137,7 @@ class Test
         i3.Property = x;
     }
 }";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method<U>(1, a)
 Base.Method(2)
@@ -249,7 +249,8 @@ class Test
         b.Method3(new int[6]{1, 2, 3, 4, 5, 6}, a, 8, 9, 10, 11, 12, 13, 14);
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 Derived.Method( , 1, [1])
 Derived.Method( , 2, [2])
@@ -2556,7 +2557,8 @@ U.set_Property").VerifyDiagnostics(); // No errors
     void Method();
     int Prop { get; set; }
 }";
-            _ = CompileAndVerify(source, expectedSignatures: new[]
+
+            var comp = CompileAndVerify(source, expectedSignatures: new[]
             {
                 Signature("IFace", "Method", ".method public hidebysig newslot abstract virtual instance System.Void Method() cil managed"),
                 Signature("IFace", "get_Prop", ".method public hidebysig newslot specialname abstract virtual instance System.Int32 get_Prop() cil managed"),

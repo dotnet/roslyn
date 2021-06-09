@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return x.Type.Equals(y.Type, TypeCompareKind.AllIgnoreOptions);
                 case (BoundDagNonNullTest x, BoundDagNonNullTest y):
                     return x.IsExplicitTest == y.IsExplicitTest;
-                case (BoundDagExplicitNullTest, BoundDagExplicitNullTest):
+                case (BoundDagExplicitNullTest x, BoundDagExplicitNullTest y):
                     return true;
                 case (BoundDagValueTest x, BoundDagValueTest y):
                     return x.Value.Equals(y.Value);

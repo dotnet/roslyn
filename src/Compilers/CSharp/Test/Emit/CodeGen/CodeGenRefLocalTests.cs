@@ -126,7 +126,7 @@ expectedOutput: @"11
         [Fact]
         public void ReassignmentInOut()
         {
-            _ = CompileAndVerify(@"
+            var verifier = CompileAndVerify(@"
 using System;
 class C
 {
@@ -535,7 +535,7 @@ class C
         [Fact]
         public void RefReassignRefExpressions()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -568,7 +568,7 @@ class C
         [Fact]
         public void RefReassignParamByVal()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -921,7 +921,7 @@ class C
         [Fact]
         public void RefReadonlyStackSchedule()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 struct S
 {
@@ -1028,7 +1028,7 @@ class C
         [Fact]
         public void RefReassignTernary()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1109,7 +1109,7 @@ class C
         [Fact]
         public void RefReassignFor()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1137,7 +1137,7 @@ class C
         [Fact]
         public void AssignInMethodCall()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 class C
 {
@@ -1319,7 +1319,7 @@ class C
         [Fact]
         public void RefReassignIn()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1364,7 +1364,7 @@ class C
         [Fact]
         public void RefReassignOut()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1417,7 +1417,7 @@ class C
         [Fact]
         public void RefReassignRefParam()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1466,7 +1466,7 @@ class C
         [Fact]
         public void RefReassignRefReadonlyLocal()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 class C
@@ -1602,7 +1602,7 @@ class C
         [Fact]
         public void RefReadonlyReassign()
         {
-            _ = CompileAndVerify(@"
+            var comp = CompileAndVerify(@"
 using System;
 
 class C

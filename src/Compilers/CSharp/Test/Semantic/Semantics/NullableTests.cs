@@ -210,7 +210,7 @@ class C
 }";
 
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
-            _ = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
         [Fact, WorkItem(543954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543954")]
@@ -326,7 +326,7 @@ class C
             foreach (string type in new[] { "uint", "short", "sbyte", "ulong", "double", "decimal" })
             {
                 string expected = "0";
-                _ = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
+                var verifier = CompileAndVerify(source: source.Replace("TYPE", type), expectedOutput: expected);
             }
         }
 
@@ -386,7 +386,7 @@ class C
 
 }
 ";
-            _ = CompileAndVerify(source: source, expectedOutput: "1");
+            var verifier = CompileAndVerify(source: source, expectedOutput: "1");
         }
 
         [Fact]
@@ -539,7 +539,8 @@ class C
 -TTFF1TTFF2TTFF3TTFF4TTFF
 +TFTF1TTF2TFTF3TTF4TFTF5TFTF6TFTF
 ~TTF1TTF2TTF3TTF4TTF";
-            _ = CompileAndVerify(source: source, expectedOutput: expected);
+
+            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact]
@@ -604,7 +605,8 @@ class C
 TF!x
 TF+x
 TF-x";
-            _ = CompileAndVerify(source: source, expectedOutput: expected);
+
+            var verifier = CompileAndVerify(source: source, expectedOutput: expected);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7803")]
@@ -751,7 +753,7 @@ class C
             foreach (string t in types)
             {
                 string s = source.Replace("TYPE", t).Replace("OP", oper).Replace("ZERO", zeros[t]).Replace("ONE", ones[t]);
-                _ = CompileAndVerify(source: s, expectedOutput: expected);
+                var verifier = CompileAndVerify(source: s, expectedOutput: expected);
             }
         }
 
@@ -1313,7 +1315,8 @@ class C
 
             source.Append(main);
             source.Append("} }");
-            _ = CompileAndVerify(source: source.ToString(), expectedOutput: "");
+
+            var verifier = CompileAndVerify(source: source.ToString(), expectedOutput: "");
         }
 
         [Fact]
@@ -1407,7 +1410,9 @@ class C
                 F((sxnn << null).HasValue);";
 
             source += "}}";
-            _ = CompileAndVerify(source: source, expectedOutput: "");
+
+
+            var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1605,7 +1610,8 @@ class C
 
     }
 }";
-            _ = CompileAndVerify(source: source, expectedOutput: "");
+
+            var verifier = CompileAndVerify(source: source, expectedOutput: "");
         }
 
         [Fact]
@@ -1649,7 +1655,8 @@ class C
     static void T(int x, bool b) { if (!b) throw new Exception(x.ToString()); }
     static void F(int x, bool b) { if (b) throw new Exception(x.ToString()); }
 }";
-            _ = CompileAndVerify(source: source, expectedOutput: "123");
+
+            var verifier = CompileAndVerify(source: source, expectedOutput: "123");
         }
 
         #region "Regression"
@@ -1667,7 +1674,7 @@ class Program
         Console.WriteLine(0);
     }
 }";
-            _ = CompileAndVerify(source: source2, expectedOutput: "0");
+            var verifier = CompileAndVerify(source: source2, expectedOutput: "0");
         }
 
         [Fact, WorkItem(544001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544001")]
@@ -1764,7 +1771,8 @@ class Test
 }
 ";
             string expected = @"0: 1:1.11 2:2 3: 4:4 5:0 6:6 7: 8:";
-            _ = CompileAndVerify(source, expectedOutput: expected);
+
+            var verifier = CompileAndVerify(source, expectedOutput: expected);
         }
 
         [Fact, WorkItem(544006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544006")]

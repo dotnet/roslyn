@@ -424,7 +424,7 @@ False
 123456
 123456123
 ";
-            _ = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -490,7 +490,7 @@ class C
 789789987
 GetC100
 11";
-            _ = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -545,7 +545,7 @@ namespace TestIsOperator
     }
 }
 ";
-            _ = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -579,7 +579,7 @@ namespace TestIsOperatorGeneric
     }
 }
 ";
-            _ = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
         }
 
         [Fact]
@@ -903,7 +903,7 @@ namespace TestAsOperator
     }
 }
 ";
-            _ = CompileAndVerify(source);
+            var compilation = CompileAndVerify(source);
         }
 
         [Fact]
@@ -2764,7 +2764,7 @@ class TestFunction
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"0");
+            var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543569")]
@@ -2791,7 +2791,7 @@ public class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"PASS");
+            var verifier = CompileAndVerify(source, expectedOutput: @"PASS");
         }
 
         [WorkItem(543577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543577")]
@@ -2816,7 +2816,7 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"0");
+            var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446"), WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
@@ -2854,7 +2854,7 @@ namespace Test
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"01");
+            var verifier = CompileAndVerify(source, expectedOutput: @"01");
         }
 
         [WorkItem(543586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543586")]
@@ -2889,7 +2889,7 @@ struct Str
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"10");
+            var verifier = CompileAndVerify(source, expectedOutput: @"10");
         }
 
         [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
@@ -2925,7 +2925,7 @@ public class Test
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"0");
+            var verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543498")]
@@ -3044,7 +3044,7 @@ True
 False
 True
 ";
-            _ = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3094,7 +3094,7 @@ class Program
 @"3
 5
 6";
-            _ = CompileAndVerify(source, expectedOutput: expectedOutput);
+            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3859,7 +3859,7 @@ class C
 }";
 
             //NOTE: all xors optimized away
-            _ = CompileAndVerify(text).VerifyIL("C.M", @"
+            var comp = CompileAndVerify(text).VerifyIL("C.M", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3898,7 +3898,8 @@ class C
         Console.WriteLine(y[0] ^ true);
     }
 }";
-            _ = CompileAndVerify(text, expectedOutput: @"True
+
+            var comp = CompileAndVerify(text, expectedOutput: @"True
 False");
         }
 
@@ -3925,7 +3926,8 @@ class C
         Console.WriteLine(1f / (-1f * -0f));
     }
 }";
-            _ = CompileAndVerify(text, expectedOutput: @"
+
+            var comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -3960,7 +3962,8 @@ class C
         Console.WriteLine(1d / (-1d * -0d));
     }
 }";
-            _ = CompileAndVerify(text, expectedOutput: @"
+
+            var comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -3996,7 +3999,8 @@ class C
         Console.WriteLine(1d / (double)(-1m * -0m));
     }
 }";
-            _ = CompileAndVerify(text, expectedOutput: @"
+
+            var comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -5186,7 +5190,8 @@ class Test
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
         }
 
         private static string BuildSequenceOfBinaryExpressions_01(int count = 4096)
@@ -5232,7 +5237,8 @@ class Test
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
@@ -5378,7 +5384,8 @@ class Test
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
 5180801");
         }
 
@@ -5460,7 +5467,7 @@ class Test
 @"4242691
 4242691
 4242691";
-            _ = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]

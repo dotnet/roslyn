@@ -746,7 +746,8 @@ namespace DerivedAssembly {
     }
 }
 ", assemblyName: "DerivedAssembly1", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
-            _ = CreateCompilation(
+
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -784,7 +785,8 @@ namespace DerivedAssembly {
     }
 }
 ", assemblyName: "DerivedAssembly2", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
-            _ = CreateCompilation(
+
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -822,7 +824,8 @@ namespace DerivedAssembly {
     }
 }
 ", assemblyName: "DerivedAssembly3", references: new List<MetadataReference>() { baseAssembly.EmitToImageReference() }).VerifyDiagnostics();
-            _ = CreateCompilation(
+
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = DerivedAssembly.DerivedClass; 
 public class Test
@@ -1419,7 +1422,7 @@ public interface IBase3
         [Fact]
         public void UseSiteErrorViaAliasTest04()
         {
-            _ = CreateCompilation(
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1451,7 +1454,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest05()
         {
-            _ = CreateCompilation(
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1477,7 +1480,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest06()
         {
-            _ = CreateCompilation(
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test
@@ -1510,7 +1513,7 @@ public class Test
         [Fact]
         public void UseSiteErrorViaAliasTest07()
         {
-            _ = CreateCompilation(
+            var testAssembly = CreateCompilation(
 @"
 using ClassAlias = Class1;
 public class Test

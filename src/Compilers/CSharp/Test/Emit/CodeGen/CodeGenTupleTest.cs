@@ -1515,7 +1515,8 @@ class C
 }
 
 " + trivial3uple;
-            _ = CompileAndVerify(source, expectedOutput: @"{1, hello, 2}");
+
+            var comp = CompileAndVerify(source, expectedOutput: @"{1, hello, 2}");
         }
 
         [Fact]
@@ -1635,7 +1636,7 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"1
+            var comp = CompileAndVerify(source, expectedOutput: @"1
 hello");
         }
 
@@ -1652,7 +1653,8 @@ class C
     }
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello hello 3");
         }
 
         [Fact]
@@ -1711,7 +1713,8 @@ class C
     }
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"1 hello 3");
+
+            var comp = CompileAndVerify(source, expectedOutput: @"1 hello 3");
         }
 
         [Fact]
@@ -2165,7 +2168,8 @@ namespace System
     }
 }
 " + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput:
+
+            var comp = CompileAndVerify(source, expectedOutput:
 @"System.Action`1[System.Int32]
 1
 True
@@ -2874,7 +2878,8 @@ namespace System
     }
 }
 " + tupleattributes_cs;
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput:
 @"System.Action`1[System.Int32]
 1
@@ -3072,7 +3077,8 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"0
+
+            var comp = CompileAndVerify(source, expectedOutput: @"0
 null");
         }
 
@@ -3426,7 +3432,7 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"0 False");
         }
 
@@ -3477,7 +3483,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3495,7 +3502,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3514,7 +3522,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3594,7 +3603,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"42 Alice");
         }
 
@@ -4164,7 +4174,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"(1, hello)");
         }
 
@@ -4211,7 +4222,7 @@ class C3
             comp1.VerifyDiagnostics();
             var comp2 = CreateCompilation(source2);
             comp2.VerifyDiagnostics();
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"1 1 2 2 3 3 4 4",
                 references: new[] {
                     new CSharpCompilationReference(comp1),
@@ -4408,7 +4419,7 @@ class C3
             comp1.VerifyDiagnostics();
             var comp2 = CreateCompilationWithMscorlib40(source2);
             comp2.VerifyDiagnostics();
-            _ = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: @"1 1 2 2 3 3 4 4 5 5 6 6 True", references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
         }
 
         [Fact]
@@ -5487,7 +5498,7 @@ namespace TuplesCrash2
             var comp = CreateCompilation(new[] { tree });
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            _ = tree.GetCompilationUnitRoot().DescendantNodes();
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             model.LookupStaticMembers(201); // This position is inside Main method
 
             for (int pos = 0; pos < source.Length; pos++)
@@ -5795,7 +5806,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
+
+            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345");
         }
 
         [Fact]
@@ -7700,7 +7712,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 byte
 byte
@@ -7778,7 +7791,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
 first
@@ -7816,7 +7830,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
 7
@@ -7848,7 +7863,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.Double]]
 (1, 2)
@@ -7886,7 +7902,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 second
 first
 third
@@ -7919,7 +7936,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
 (1, )
@@ -7951,7 +7969,7 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput:
+            var comp = CompileAndVerify(source, expectedOutput:
 @"1
 8
 (1, , 1, 2, 3, 4, 5, 6, 7, 8)
@@ -7992,7 +8010,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 first
 first
 fourth
@@ -9193,7 +9212,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
 first
@@ -9231,7 +9251,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
 7
@@ -9267,7 +9288,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 third
 7
@@ -9303,7 +9325,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"
 third
 5
@@ -9336,7 +9359,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
 3
@@ -9373,7 +9397,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
 2
@@ -9408,7 +9433,8 @@ class Program
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 2
 ");
         }
@@ -9442,7 +9468,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 1
 1
@@ -9485,7 +9512,8 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -9535,7 +9563,8 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 test1
 {1, 2}
 test2_1
@@ -9567,7 +9596,8 @@ class C
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 System.ValueType
 ");
         }
@@ -9948,7 +9978,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Object
 System.ValueTuple`2[System.Int32,System.Int32]
@@ -9984,7 +10015,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Object
 System.Object
@@ -10082,7 +10114,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.String
 w
@@ -10114,7 +10147,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 System.Int32
 System.Int64
@@ -10573,7 +10607,8 @@ class C : I
     public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
 ");
         }
@@ -10605,7 +10640,8 @@ class C : I
     public (int Alice, string Bob) P1 => (r: 1, s: ""hello"");
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, hello)
 1");
         }
@@ -10634,7 +10670,8 @@ class C : I<(int, string), (int Alice, string Bob)>
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"((1, Australia), (2, Brazil))");
         }
 
@@ -10663,7 +10700,8 @@ class C : I<(int, string, int, string, int, string, int, string), (int A, string
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                                         expectedOutput: @"((1, Australia, 2, Brazil, 3, Columbia, 4, Ecuador), (5, France, 6, Germany, 7, Honduras, 8, India))");
         }
 
@@ -14632,7 +14670,8 @@ namespace System
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.ReleaseExe,
                 expectedOutput:
@@ -14695,7 +14734,8 @@ namespace System
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular,
                 options: TestOptions.ReleaseExe,
                 expectedOutput:
@@ -15248,7 +15288,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                                         options: TestOptions.ReleaseExe,
                                         expectedOutput:
 @"(1, 2)
@@ -17061,7 +17102,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
 (2, 2)
@@ -17109,7 +17151,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
 (2, 2)
@@ -17326,7 +17369,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
 (2, 2)
@@ -17365,7 +17409,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (2, 2)
 (2, 2)
@@ -17424,7 +17469,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, 2)
 (3, (4, 5))
@@ -17551,7 +17597,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, (2, (3, (4, (5, 6)))))
 ");
@@ -17608,7 +17655,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, (2, (3, (4, (5, 6)))))
 ");
@@ -17816,7 +17864,8 @@ using System;
     }
 
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
 ");
         }
@@ -17847,7 +17896,8 @@ using System;
     }
 
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 {Program+C2, Program+C2}
 ");
         }
@@ -18125,7 +18175,8 @@ class D<T> : C<T>
     }
 }
 " + trivial2uple + tupleattributes_cs;
-            _ = CompileAndVerify(source, expectedOutput: @"
+
+            var comp = CompileAndVerify(source, expectedOutput: @"
 explicit
 original
 
@@ -18232,7 +18283,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
 first
@@ -18264,7 +18316,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 second
 second
@@ -18301,7 +18354,8 @@ class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 first
 second
@@ -20923,7 +20977,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, w)
 ");
@@ -20949,7 +21004,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(w, w)");
         }
 
@@ -20972,7 +21028,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, (w, e))
 ");
@@ -21013,7 +21070,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
 ");
@@ -21054,7 +21112,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
 ");
@@ -21095,7 +21154,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, q, q, q)
 ");
@@ -21136,7 +21196,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q)
 ");
@@ -21170,7 +21231,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q)
 ");
@@ -21214,7 +21276,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (q, q, q, q, q, q, q, , , )
 ");
@@ -21251,7 +21314,8 @@ class C
         }
     }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"w");
         }
 
@@ -22108,7 +22172,7 @@ class Program
 
             var text = SourceText.From(source1);
             var startTree = SyntaxFactory.ParseSyntaxTree(text);
-            _ = startTree.GetCompilationUnitRoot().ToFullString();
+            var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
             var pos = source1.IndexOf("var(a,  )") + 8;
             var newText = text.WithChanges(new TextChange(new TextSpan(pos, 0), " ")); // add space before closing-paren
@@ -23038,7 +23102,8 @@ class AA
         return new AA();
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)
 (3, 4)
@@ -23077,7 +23142,8 @@ struct AA
         return new AA();
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)
 (3, 4)
@@ -23120,7 +23186,8 @@ struct AA
         return new AA();
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(3, 4)
 (7, 8)
@@ -23154,7 +23221,8 @@ class AA
         return (1, 2);
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
         }
 
@@ -23184,7 +23252,8 @@ class AA
         return (1, 2);
     }
 }";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"(1, 2)");
         }
@@ -23229,7 +23298,8 @@ struct BB<T>
 {
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput:
 @"implicit operator AA
 implicit operator AA
@@ -23451,7 +23521,8 @@ public class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"(1, 2)");
         }
 
@@ -24617,7 +24688,8 @@ static class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (1, 3)
 (2, 4)
@@ -24650,7 +24722,8 @@ static class C
     }
 }
 ";
-            _ = CompileAndVerify(source,
+
+            var comp = CompileAndVerify(source,
                 parseOptions: TestOptions.Regular, expectedOutput: @"
 (qq, (1, (2, 3)))
 (123, )
@@ -25432,7 +25505,7 @@ public class C
 }
 
 public class A<T> {}";
-            _ = CompileAndVerify(source, expectedOutput: "24");
+            var comp = CompileAndVerify(source, expectedOutput: "24");
         }
 
         [Fact]
@@ -25451,7 +25524,7 @@ public class C
     public static void M2<T>((T, int) a) { Console.Write(3); }
     public static void M2<T>(((T, int), int) a) { Console.Write(4); }
 }";
-            _ = CompileAndVerify(source, expectedOutput: "4");
+            var comp = CompileAndVerify(source, expectedOutput: "4");
         }
 
         [Fact]
@@ -25475,7 +25548,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25500,7 +25573,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ref ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25526,7 +25599,7 @@ public class C
 
 public interface I<in T>{}
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25552,7 +25625,7 @@ public class C
 
 public interface I<out T>{}
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25575,7 +25648,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25596,7 +25669,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<Func<T1>, Func<T2>, Func<T3>, Func<T4>, Func<T5>, Func<T6>, Func<T7>, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"2");
         }
 
@@ -25643,7 +25716,7 @@ public class C
     public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
 }
 ";
-            _ = CompileAndVerify(source,
+            var comp = CompileAndVerify(source,
                 expectedOutput: @"12");
         }
 
@@ -25665,7 +25738,7 @@ public class C
     public static void M1<T, U, V>((T, int, int, int, int, int, int, int, int, U, (V, int)) a)
         { Console.Write(4); }
 }";
-            _ = CompileAndVerify(source, expectedOutput: "3");
+            var comp = CompileAndVerify(source, expectedOutput: "3");
         }
 
         [Fact]

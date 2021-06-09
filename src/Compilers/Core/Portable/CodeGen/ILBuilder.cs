@@ -1003,7 +1003,7 @@ tryAgain:
         /// </summary>
         internal void DefineSequencePoint(SyntaxTree syntaxTree, TextSpan span)
         {
-            _ = GetCurrentBlock();
+            var curBlock = GetCurrentBlock();
             _lastSeqPointTree = syntaxTree;
 
             if (this.SeqPointsOpt == null)
@@ -1106,7 +1106,7 @@ tryAgain:
             }
 
             EndBlock();  //blocks should not cross scope boundaries.
-            _ = _scopeManager.OpenScope(scopeType, exceptionType);
+            var scope = _scopeManager.OpenScope(scopeType, exceptionType);
 
             // Exception handler scopes must have a leader block, even
             // if the exception handler is empty, and created before any

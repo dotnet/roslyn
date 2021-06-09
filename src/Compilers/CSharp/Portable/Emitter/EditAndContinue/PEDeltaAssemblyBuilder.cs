@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 var metadataName = reader.GetString(def.Name);
                 short arity;
-                var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out _);
+                var name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(metadataName, out arity);
                 int index;
                 if (GeneratedNames.TryParseAnonymousTypeTemplateName(name, out index))
                 {

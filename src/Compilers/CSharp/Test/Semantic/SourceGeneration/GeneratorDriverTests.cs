@@ -222,7 +222,7 @@ class GeneratedClass { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out _);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out _);
-            _ = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation3, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation3, out _);
 
             Assert.Equal(2, outputCompilation1.SyntaxTrees.Count());
             Assert.Equal(2, outputCompilation2.SyntaxTrees.Count());
@@ -279,7 +279,7 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
 
             // try apply edits should fail if we've not run a full compilation yet
-            _ = driver.TryApplyEdits(compilation, out var outputCompilation, out var succeeded);
+            driver = driver.TryApplyEdits(compilation, out var outputCompilation, out var succeeded);
             Assert.False(succeeded);
             Assert.Equal(compilation, outputCompilation);
         }
@@ -305,7 +305,7 @@ class C { }
             Assert.Single(outputCompilation.SyntaxTrees);
 
             // now try apply edits (which should succeed, but do nothing)
-            _ = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
+            driver = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
             Assert.True(succeeded);
             Assert.Equal(outputCompilation, editedCompilation);
         }
@@ -334,7 +334,7 @@ class C { }
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits (which will fail)
-            _ = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
+            driver = driver.TryApplyEdits(compilation, out var editedCompilation, out var succeeded);
             Assert.False(succeeded);
             Assert.Single(editedCompilation.SyntaxTrees);
             Assert.Equal(compilation, editedCompilation);
@@ -365,7 +365,7 @@ class C { }
             driver = driver.WithPendingEdits(ImmutableArray.Create<PendingEdit>(edit));
 
             // now try apply edits
-            _ = driver.TryApplyEdits(compilation, out outputCompilation, out var succeeded);
+            driver = driver.TryApplyEdits(compilation, out outputCompilation, out var succeeded);
             Assert.True(succeeded);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
         }
@@ -411,7 +411,7 @@ class C { }
                                                                                 new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file4.cs", "")),
                                                                                 new AdditionalFileAddedEdit(new InMemoryAdditionalText("a\\file5.cs", ""))));
             // now try apply edits
-            _ = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
+            driver = driver.TryApplyEdits(compilation, out editedCompilation, out succeeded);
             Assert.True(succeeded);
             Assert.Equal(6, editedCompilation.SyntaxTrees.Count());
         }
@@ -429,7 +429,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            _ = new InMemoryAdditionalText("a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
                                                                   generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),
@@ -459,7 +459,7 @@ class C { }
             Assert.Equal(3, editedCompilation.SyntaxTrees.Count());
 
             // if we run a full compilation again, we should still get 3 syntax trees
-            _ = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
         }
 
@@ -476,7 +476,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             AdditionalFileAddedGenerator testGenerator = new AdditionalFileAddedGenerator();
-            _ = new InMemoryAdditionalText("a\\file1.cs", "");
+            var text = new InMemoryAdditionalText("a\\file1.cs", "");
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(parseOptions: parseOptions,
                                                                   generators: ImmutableArray.Create<ISourceGenerator>(testGenerator),

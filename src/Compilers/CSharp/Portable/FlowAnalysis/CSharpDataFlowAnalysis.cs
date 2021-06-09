@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                _ = DataFlowsIn; // force DataFlowsIn to be computed
+                var discarded = DataFlowsIn; // force DataFlowsIn to be computed
                 if (_dataFlowsOut.IsDefault)
                 {
                     var result = Succeeded
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_succeeded == null)
                 {
-                    _ = DataFlowsIn;
+                    var discarded = DataFlowsIn;
                 }
 
                 return _succeeded.Value;

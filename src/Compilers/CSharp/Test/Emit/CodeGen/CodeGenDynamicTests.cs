@@ -3375,7 +3375,7 @@ class C
         }
     }
 }";
-            _ = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
+            var verifier = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
 {
   // Code size      169 (0xa9)
   .maxstack  10
@@ -15488,7 +15488,7 @@ class C
         public int Length = 123;
     }
 ";
-            _ = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
         }
 
         [Fact]

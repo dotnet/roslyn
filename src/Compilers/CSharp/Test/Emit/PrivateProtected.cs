@@ -74,7 +74,7 @@ public class Derived : Base
     }
 }
 ";
-            _ = CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -594,7 +594,7 @@ class Program
     private protected int F;
 }
 ";
-            _ = CompileAndVerify(
+            var verifier = CompileAndVerify(
                 text,
                 parseOptions: TestOptions.Regular7_2,
                 expectedSignatures: new[]

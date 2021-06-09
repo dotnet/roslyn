@@ -2292,7 +2292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Clone the state for members that have been set on the value.
             var members = ArrayBuilder<(VariableIdentifier, int)>.GetInstance();
             _variables.GetMembers(members, valueSlot);
-            foreach (var (variable, _) in members)
+            foreach (var (variable, slot) in members)
             {
                 var member = variable.Symbol;
                 Debug.Assert(member.Kind == SymbolKind.Field || member.Kind == SymbolKind.Property || member.Kind == SymbolKind.Event);
@@ -2710,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitAlways(lambdaOrFunction.Body);
                 RestorePending(oldPending2); // process any forward branches within the lambda body
-                _ = RemoveReturns();
+                ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
                 RestorePending(oldPending);
             }
             finally

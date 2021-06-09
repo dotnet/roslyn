@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ReturnInferenceCacheKey(ImmutableArray<TypeWithAnnotations> parameterTypes, ImmutableArray<RefKind> parameterRefKinds, NamedTypeSymbol? taskLikeReturnTypeOpt)
             {
                 Debug.Assert(parameterTypes.Length == parameterRefKinds.Length);
-                Debug.Assert(taskLikeReturnTypeOpt is null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out _)));
+                Debug.Assert(taskLikeReturnTypeOpt is null || ((object)taskLikeReturnTypeOpt == taskLikeReturnTypeOpt.ConstructedFrom && taskLikeReturnTypeOpt.IsCustomTaskType(out var builderArgument)));
                 this.ParameterTypes = parameterTypes;
                 this.ParameterRefKinds = parameterRefKinds;
                 this.TaskLikeReturnTypeOpt = taskLikeReturnTypeOpt;
@@ -930,7 +930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateReturnType = invoke.ReturnType as NamedTypeSymbol;
                         if (delegateReturnType?.IsVoidType() == false)
                         {
-                            if (delegateReturnType.IsCustomTaskType(out _))
+                            if (delegateReturnType.IsCustomTaskType(out var builderType))
                             {
                                 taskLikeReturnTypeOpt = delegateReturnType.ConstructedFrom;
                             }
@@ -1031,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            (_, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind);
+            (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind);
             return new BoundLambda(
                 _unboundLambda.Syntax,
                 _unboundLambda,

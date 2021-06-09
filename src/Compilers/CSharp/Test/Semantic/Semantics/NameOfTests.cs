@@ -146,7 +146,7 @@ interface I3 : I1, I2
     int Test(string arg = nameof(M), string arg2 = ""N"" /* nameof(N) */);
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"
+            var comp = CompileAndVerify(source, expectedOutput: @"
 var2
 nameof
 var1
@@ -656,7 +656,7 @@ class Program
         nameof(N);
     }
 }";
-            _ = CreateCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
@@ -678,7 +678,7 @@ class Program
         nameof(N);
     }
 }";
-            _ = CreateCompilation(
+            var compilation = CreateCompilation(
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
@@ -1156,7 +1156,7 @@ public class Program
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
-            _ = CompileAndVerify(compilation, expectedOutput: @"N1N2");
+            var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
         [Fact, WorkItem(42, "github.com/dotnet/roslyn")]
@@ -1169,7 +1169,7 @@ public class Program
     string s = nameof(T) // ok
   ) { }
 }";
-            _ = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
@@ -1249,7 +1249,7 @@ unsafe struct Struct1
     }
   }
 }";
-            _ = CreateCompilationWithMscorlib45(source, null,
+            var compilation = CreateCompilationWithMscorlib45(source, null,
                 TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
@@ -1409,7 +1409,7 @@ public static class Extensions
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 );
-            _ = CompileAndVerify(compilation, expectedOutput: @"passed");
+            var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
         }
 
         [Fact]

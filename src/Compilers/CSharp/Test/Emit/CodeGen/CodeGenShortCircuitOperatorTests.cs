@@ -1199,7 +1199,8 @@ public static class C
         System.Console.Write(x?.ToString()?[1].ToString() ?? ""NULL"");
     }
 }";
-            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
+
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1221,7 +1222,8 @@ public static class C
         System.Console.Write(s?.CompareTo(ds) ?? ""NULL"");
     }
 }";
-            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#-1");
+
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1244,7 +1246,8 @@ public static class C
         System.Console.Write(x?.ToString()?[i].ToString() ?? ""NULL"");
     }
 }";
-            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
+
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1267,7 +1270,8 @@ public static class C
         System.Console.Write(x?.Length.ToString() ?? ""NULL"");
     }
 }";
-            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
+
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1290,7 +1294,8 @@ public static class C
         System.Console.Write(x?.Length?.ToString() ?? ""NULL"");
     }
 }";
-            _ = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
+
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -2008,7 +2013,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2065,7 +2070,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2617,7 +2622,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2676,7 +2681,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2742,7 +2747,7 @@ class Program
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 True");
@@ -2811,7 +2816,7 @@ class Program
 }
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 False");
@@ -2892,7 +2897,7 @@ public class Program
 }
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 False");
@@ -2962,7 +2967,7 @@ class Program
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 True
@@ -3045,7 +3050,7 @@ class Program
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 True
@@ -3128,7 +3133,7 @@ class Program
     }
 }";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True
 False
 True
@@ -4391,7 +4396,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"Success");
+            var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
         [Fact(), WorkItem(836, "GitHub")]
@@ -4464,7 +4469,7 @@ class Program
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: @"Success");
+            var comp = CompileAndVerify(source, expectedOutput: @"Success");
         }
 
 
@@ -5665,7 +5670,7 @@ class C<T>
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @" ---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @" ---
 Loop
 ---
 Loop
@@ -5714,7 +5719,7 @@ class C<T>
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"---
 ---
 M
 ---");
@@ -5803,7 +5808,7 @@ class C<T>
     }
 }
 ";
-            _ = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"---
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"---
 M1(Action<C<T>> x)
 ---
 M1(Action<C<T>> x)
@@ -6188,7 +6193,7 @@ class C
 
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
         }
 
         [Fact]
@@ -6225,7 +6230,7 @@ class C
 
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
         }
 
         [Fact]
@@ -6268,7 +6273,7 @@ class C
 
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
+            var comp = CompileAndVerify(c, expectedOutput: @"FalseTrueTrue");
         }
 
 
@@ -6305,7 +6310,7 @@ class C
     }
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"#
+            var comp = CompileAndVerify(c, expectedOutput: @"#
 False#
 FalseqBarBar#
 True");
@@ -6348,7 +6353,7 @@ True");
     }
 ";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True");
         }
 
@@ -6383,7 +6388,7 @@ True");
         }
     }";
             var c = CreateCompilationWithMscorlib45(source, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, TestOptions.ReleaseExe);
-            _ = CompileAndVerify(c, expectedOutput: @"False
+            var comp = CompileAndVerify(c, expectedOutput: @"False
 True");
         }
 

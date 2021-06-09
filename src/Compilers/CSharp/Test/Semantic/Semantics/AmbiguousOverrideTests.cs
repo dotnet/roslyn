@@ -1380,7 +1380,8 @@ abstract class TestClass
     public void Method(ref int x) { }
     public void Method(in int x) { }
 }";
-            _ = CreateCompilation(text).VerifyDiagnostics(
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
                 //     public void Method(in int x) { }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "ref").WithLocation(5, 17));
@@ -1396,7 +1397,8 @@ abstract class TestClass
     public void Method(out int x) { x = 0; }
     public void Method(in int x) { }
 }";
-            _ = CreateCompilation(text).VerifyDiagnostics(
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'out'
                 //     public void Method(in int x) { }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "out").WithLocation(5, 17));

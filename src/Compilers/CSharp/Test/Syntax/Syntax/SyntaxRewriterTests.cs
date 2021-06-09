@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree("public class C { }", options: TestOptions.Script);
             var root = tree.GetRoot();
             var publicToken = root.DescendantTokens().First();
-            _ = SyntaxFactory.ParseToken("partial ");
+            var partialToken = SyntaxFactory.ParseToken("partial ");
             var staticToken = SyntaxFactory.ParseToken("static ");
 
             var newRoot = root.InsertTokensBefore(publicToken, new[] { staticToken });

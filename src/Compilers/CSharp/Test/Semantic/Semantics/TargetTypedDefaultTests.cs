@@ -2425,7 +2425,7 @@ class C
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
-            _ = tree.GetCompilationUnitRoot().DescendantNodes();
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
             var digit = tree.GetCompilationUnitRoot().FindToken(source.IndexOf('2'));
             var expressionSyntax = SyntaxFactory.ParseExpression("default");

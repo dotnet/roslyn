@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out _);
+                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolution.MethodGroup != null)
                     {
                         // we want to force any unbound lambda arguments to cache an appropriate conversion if possible; see 9448.
-                        _ = BindInvocationExpressionContinued(
+                        result = BindInvocationExpressionContinued(
                             syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
                             resolution.MethodGroup, delegateTypeOpt: null, diagnostics: BindingDiagnosticBag.Discarded, queryClause: queryClause);
                     }
@@ -1901,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SyntaxKind.ThisExpression:
                                 break;
                             default:
-                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out _, diagnostics, false);
+                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out name, diagnostics, false);
                                 break;
                         }
                         name = syntax.Name.Identifier.ValueText;

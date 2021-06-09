@@ -1121,7 +1121,7 @@ next:;
 
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {
-                _ = list.Node.SyntaxTree;
+                var syntaxTree = list.Node.SyntaxTree;
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
 
                 foreach (AttributeListSyntax attrList in list)

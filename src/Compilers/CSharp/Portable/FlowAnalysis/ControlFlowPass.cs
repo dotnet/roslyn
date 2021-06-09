@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         protected bool Analyze(ref bool badRegion, DiagnosticBag diagnostics)
         {
-            _ = Analyze(ref badRegion);
+            ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
 
             if (diagnostics != null)
             {

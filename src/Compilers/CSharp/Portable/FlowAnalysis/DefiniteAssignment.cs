@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected void Analyze(ref bool badRegion, DiagnosticBag diagnostics)
         {
-            _ = Analyze(ref badRegion);
+            ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
             if (diagnostics != null)
             {
                 foreach (Symbol captured in _capturedVariables)
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
         {
             if (!this.State.Reachable) return;
-            _ = MakeSlot(expr);
+            int slot = MakeSlot(expr);
             switch (expr.Kind)
             {
                 case BoundKind.Local:

@@ -311,7 +311,7 @@ namespace N1
             var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
-            _ = compilation.GetDiagnostics();
+            var unused = compilation.GetDiagnostics();
 
             Assert.True(compilation.EventQueue.IsCompleted);
         }

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Insert(0, prologue);
             }
-            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol)
+            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
             {
                 builder.Insert(0, _factory.HiddenSequencePoint());
             }

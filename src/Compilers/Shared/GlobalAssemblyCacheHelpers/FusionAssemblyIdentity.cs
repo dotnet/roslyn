@@ -412,9 +412,10 @@ namespace Microsoft.CodeAnalysis
             byte[] publicKey = GetPublicKey(nameObject);
             bool hasPublicKey = publicKey != null && publicKey.Length != 0;
 
+            AssemblyIdentityParts versionParts;
             return new AssemblyIdentity(
                 GetName(nameObject),
-                GetVersion(nameObject, out _),
+                GetVersion(nameObject, out versionParts),
                 GetCulture(nameObject) ?? "",
                 (hasPublicKey ? publicKey : GetPublicKeyToken(nameObject)).AsImmutableOrNull(),
                 hasPublicKey: hasPublicKey,

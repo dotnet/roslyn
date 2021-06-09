@@ -963,7 +963,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsNoPiaLocalType(TypeDefinitionHandle typeDef)
         {
-            return IsNoPiaLocalType(typeDef, out _);
+            AttributeInfo attributeInfo;
+            return IsNoPiaLocalType(typeDef, out attributeInfo);
         }
 
         internal bool HasParamsAttribute(EntityHandle token)

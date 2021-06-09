@@ -249,10 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // generate GetEnumerator()
             var getEnumeratorGeneric = GenerateIteratorGetEnumerator(IEnumerableOfElementType_GetEnumerator, ref managedThreadId, StateMachineStates.FirstUnusedState);
-            SynthesizedImplementationMethod getEnumerator;
 
             // Generate IEnumerable.GetEnumerator
-            _ = OpenMethodImplementation(IEnumerable_GetEnumerator);
+            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
             F.CloseMethod(F.Return(F.Call(F.This(), getEnumeratorGeneric)));
         }
 

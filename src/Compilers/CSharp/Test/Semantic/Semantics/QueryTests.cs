@@ -3162,7 +3162,7 @@ class Test
             var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
             var model = compilation.GetSemanticModel(tree);
-            _ = model.GetQueryClauseInfo(joinNode);
+            var queryInfo = model.GetQueryClauseInfo(joinNode);
 
             // https://github.com/dotnet/roslyn/issues/38509
             // Assert.NotEqual(default, queryInfo);

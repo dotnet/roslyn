@@ -5861,7 +5861,7 @@ namespace AttributeTest
     }
 }
 ";
-            _ = CompileAndVerify(source, expectedOutput: "");
+            var compilation = CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541858")]

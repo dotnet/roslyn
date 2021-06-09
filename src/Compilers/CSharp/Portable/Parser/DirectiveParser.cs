@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (isActive && !guid.IsMissing)
                 {
                     Guid tmp;
-                    if (!Guid.TryParse(guid.ValueText, out _))
+                    if (!Guid.TryParse(guid.ValueText, out tmp))
                     {
                         guid = this.AddError(guid, ErrorCode.WRN_IllegalPPChecksum);
                     }

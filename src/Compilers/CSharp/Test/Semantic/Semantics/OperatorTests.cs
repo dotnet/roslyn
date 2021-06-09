@@ -4808,7 +4808,7 @@ public class C
     }
 }
 ";
-            _ = CreateCompilation(source).VerifyDiagnostics();
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -11019,7 +11019,7 @@ public enum FlagsEnum
     }
 }
 ";
-            _ = CreateCompilation(source)
+            var compilation = CreateCompilation(source)
                 .VerifyDiagnostics(
                 // (6,17): warning CS0183: The given expression is always of the provided ('string') type
                 //         var x = d is string;
@@ -11042,7 +11042,7 @@ class Program
         if (t is ValueTuple<int, int>) { }    // goldilocks
     }
 }";
-            _ = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
                 .VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
                 //         if (t is ValueTuple<long, int>) { }   // too big

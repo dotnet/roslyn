@@ -272,7 +272,7 @@ class MyEnumerator
                 //         foreach (var q in c) { }
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "c").WithArguments("MyEnumerator", "MyCollection.GetEnumerator()").WithLocation(6, 27)
                 );
-            _ = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (26,24): error CS0111: Type 'MyEnumerator' already defines a member called 'MoveNext' with the same parameter types
                 //     public static bool MoveNext() => throw null;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "MoveNext").WithArguments("MoveNext", "MyEnumerator").WithLocation(26, 24)
@@ -359,7 +359,7 @@ public class MyTaskAwaiter<TResult> : System.Runtime.CompilerServices.INotifyCom
                 //         var z = await x;
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await x").WithArguments("MyTask<int>").WithLocation(9, 17)
                 );
-            _ = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (9,17): error CS1986: 'await' requires that the type MyTask<int> have a suitable GetAwaiter method
                 //         var z = await x;
                 Diagnostic(ErrorCode.ERR_BadAwaitArg, "await x").WithArguments("MyTask<int>").WithLocation(9, 17)
@@ -410,7 +410,7 @@ public struct MyTaskAwaiter<TResult> : System.Runtime.CompilerServices.INotifyCo
                 //         var z = await x;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "await x").WithArguments("MyTaskAwaiter<int>.GetResult()").WithLocation(9, 17)
                 );
-            _ = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (9,17): error CS0176: Member 'MyTaskAwaiter<int>.GetResult()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         var z = await x;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "await x").WithArguments("MyTaskAwaiter<int>.GetResult()").WithLocation(9, 17)

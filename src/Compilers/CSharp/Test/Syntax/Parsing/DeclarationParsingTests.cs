@@ -6499,7 +6499,7 @@ class C
         [Fact]
         public void ParseOutVar()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -6573,7 +6573,7 @@ class C
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList1()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C<T> : where
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6613,7 +6613,7 @@ class C<T> : where
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList2()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C<T> : where T
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6661,7 +6661,7 @@ class C<T> : where T
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList3()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C<T> : where T :
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6717,7 +6717,7 @@ class C<T> : where T :
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList4()
         {
-            _ = UsingTree(@"
+            var tree = UsingTree(@"
 class C<T> : where T : X
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6901,7 +6901,7 @@ public class Program
         [Fact]
         public void NullableClassConstraint_01()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : class {}
 ");
 
@@ -6944,7 +6944,7 @@ class C<T> where T : class {}
         [Fact]
         public void NullableClassConstraint_02()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : struct {}
 ");
 
@@ -6987,7 +6987,7 @@ class C<T> where T : struct {}
         [Fact]
         public void NullableClassConstraint_03()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : class? {}
 ");
 
@@ -7031,7 +7031,7 @@ class C<T> where T : class? {}
         [Fact]
         public void NullableClassConstraint_04()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : struct? {}
 ", TestOptions.Regular,
                 // (2,28): error CS1073: Unexpected token '?'
@@ -7079,7 +7079,7 @@ class C<T> where T : struct? {}
         [Fact]
         public void NullableClassConstraint_05()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : class? {}
 ", TestOptions.Regular7_3);
 
@@ -7123,7 +7123,7 @@ class C<T> where T : class? {}
         [Fact]
         public void NullableClassConstraint_06()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class C<T> where T : struct? {}
 ", TestOptions.Regular7_3,
                 // (2,28): error CS1073: Unexpected token '?'
@@ -7171,7 +7171,7 @@ class C<T> where T : struct? {}
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList1()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class B : A<int
 {
 }
@@ -7263,7 +7263,7 @@ class B : A<int
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void IncompleteGenericInBaseList2()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class B<X, Y> : A<int
     where X : Y
 {
@@ -7340,7 +7340,7 @@ class B<X, Y> : A<int
         [Fact, WorkItem(30102, "https://github.com/dotnet/roslyn/issues/30102")]
         public void TestExtraneousColonInBaseList()
         {
-            _ = UsingNode(@"
+            var tree = UsingNode(@"
 class A : B : C
 {
 }

@@ -899,7 +899,8 @@ class C {
     }
 }
 ";
-            _ = CreateCompilation(source).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,15): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(object, C)' and 'C.C(C, object)'
                 //         C c = new(new(), new());
                 Diagnostic(ErrorCode.ERR_AmbigCall, "new(new(), new())").WithArguments("C.C(object, C)", "C.C(C, object)").WithLocation(9, 15)
@@ -1307,7 +1308,8 @@ class C
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         new() ??= new C();
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new()").WithLocation(6, 9),
@@ -1335,7 +1337,8 @@ class C
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (12,9): error CS0411: The type arguments for method 'C.M<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M(b => { if (b) return new(); else return new(); });
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<T>(System.Func<bool, T>)").WithLocation(12, 9)
@@ -1358,7 +1361,8 @@ class C
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (8,16): error CS0417: 'A': cannot provide arguments when creating an instance of a variable type
                 //         A v1 = new(1);
                 Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "new(1)").WithArguments("A").WithLocation(8, 16),
@@ -1410,7 +1414,8 @@ class C
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (8,28): error CS0200: Property or indexer 'string.Length' cannot be assigned to -- it is read only
                 //         string x = new() { Length = 5 };
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Length").WithArguments("string.Length").WithLocation(6, 28),
@@ -1508,7 +1513,8 @@ class Program
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (18,11): error CS1729: 'D' does not contain a constructor that takes 1 arguments
                 //         M(new(1), 1);
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new(1)").WithArguments("D", "1").WithLocation(18, 11)
@@ -1570,7 +1576,8 @@ class Program
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (18,15): error CS0103: The name 'Missing' does not exist in the current context
                 //         M(new(Missing()));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(18, 15)
@@ -1598,7 +1605,8 @@ class Program
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (15,9): error CS0103: The name 'Missing' does not exist in the current context
                 //         Missing(new(1));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(15, 9)
@@ -1629,7 +1637,8 @@ class Program
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (18,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(A, int)' and 'Program.M(B, object)'
                 //         M(new(), 1);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A, int)", "Program.M(B, object)").WithLocation(18, 9)
@@ -1651,7 +1660,8 @@ class C
     }
 }
 ";
-            _ = CreateCompilation(source).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,19): error CS1729: 'C' does not contain a constructor that takes 0 arguments
                 //         C c = new(new(), new());
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("C", "0").WithLocation(9, 19)
@@ -1716,7 +1726,8 @@ class Program
     }
 }
 ";
-            _ = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
                 // (6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         new() = 5;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new()").WithLocation(6, 9)
@@ -3673,7 +3684,8 @@ class Program
         Func<object> f = () => new() ?? ""hello"";
     }
 }";
-            _ = CreateCompilation(text).VerifyDiagnostics(
+
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (7,32): error CS8754: There is no target type for 'new()'
                 //         Func<object> f = () => new() ?? "hello";
                 Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(7, 32)

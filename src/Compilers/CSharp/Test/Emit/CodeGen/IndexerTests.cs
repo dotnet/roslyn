@@ -671,7 +671,7 @@ class Test
     }
 }
 ";
-            _ = CompileAndVerify(text, expectedOutput: @"
+            var compVerifier = CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
