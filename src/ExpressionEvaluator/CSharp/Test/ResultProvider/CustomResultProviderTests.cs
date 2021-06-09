@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   }
 }";
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(type.Instantiate()).GetMemberValue("P", (int)MemberTypes.Property, "C", DefaultInspectionContext);
@@ -83,8 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   }
 }";
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CommonTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var type = assembly.GetType("C");
             var value = CreateDkmClrValue(type.Instantiate(), type);

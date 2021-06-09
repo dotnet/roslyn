@@ -84,7 +84,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public static void UploadBenchviewReport(string filepath, string submissionName)
         {
-            var consumptionXml = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
+            _ = Path.Combine(GetCPCDirectoryPath(), "consumptionTempResults.xml");
             var result = ConvertConsumptionToMeasurementJson(filepath);
 
             if (result)

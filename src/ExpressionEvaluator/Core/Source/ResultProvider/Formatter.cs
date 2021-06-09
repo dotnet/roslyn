@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo typeInfo, ReadOnlyCollection<string> formatSpecifiers)
         {
-            bool unused;
-            return GetTypeName(new TypeAndCustomInfo(type, typeInfo), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused);
+            return GetTypeName(new TypeAndCustomInfo(type, typeInfo), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out _);
         }
 
         bool IDkmClrFormatter.HasUnderlyingString(DkmClrValue value, DkmInspectionContext inspectionContext)

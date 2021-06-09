@@ -431,8 +431,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
@@ -473,8 +472,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled").Instantiate());
@@ -547,8 +545,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("C").Instantiate());
@@ -594,8 +591,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate());
@@ -626,8 +622,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var baseValue = CreateDkmClrValue(assembly.GetType("<>Mangled.C").Instantiate());
@@ -663,8 +658,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             unsafe
@@ -731,8 +725,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("Type").Instantiate());
@@ -766,8 +759,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("C").MakeGenericType(typeof(int)).Instantiate());
@@ -798,8 +790,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("C`1").Instantiate());
@@ -830,8 +821,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("C`1").MakeGenericType(typeof(int)).Instantiate());
@@ -864,8 +854,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("C").Instantiate());
@@ -896,8 +885,7 @@ namespace @namespace
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var value = CreateDkmClrValue(assembly.GetType("`1").MakeGenericType(typeof(int)).Instantiate());

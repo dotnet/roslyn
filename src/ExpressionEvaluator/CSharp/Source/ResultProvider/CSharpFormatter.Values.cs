@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (typeToDisplayOpt != null)
             {
                 // We're showing the type of a value, so "dynamic" does not apply.
-                bool unused;
                 int index1 = 0;
                 int index2 = 0;
                 AppendQualifiedTypeName(
@@ -34,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     null,
                     ref index2,
                     escapeKeywordIdentifiers: true,
-                    sawInvalidIdentifier: out unused);
+                    sawInvalidIdentifier: out _);
                 builder.Append('.');
-                AppendIdentifierEscapingPotentialKeywords(builder, name, sawInvalidIdentifier: out unused);
+                AppendIdentifierEscapingPotentialKeywords(builder, name, sawInvalidIdentifier: out _);
             }
             else
             {
@@ -61,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builder.Append('{');
 
             // We're showing the type of a value, so "dynamic" does not apply.
-            bool unused;
-            builder.Append(GetTypeName(new TypeAndCustomInfo(DkmClrType.Create(appDomain, lmrType)), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused)); // NOTE: call our impl directly, since we're coupled anyway.
+            builder.Append(GetTypeName(new TypeAndCustomInfo(DkmClrType.Create(appDomain, lmrType)), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out _)); // NOTE: call our impl directly, since we're coupled anyway.
 
             var numSizes = sizes.Count;
 

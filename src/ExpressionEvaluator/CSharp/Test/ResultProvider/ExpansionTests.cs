@@ -353,9 +353,7 @@ class C : I<I<string>>
             var evalResult = (DkmSuccessEvaluationResult)FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
-
-            DkmEvaluationResultEnumContext enumContext;
-            var children = GetChildren(evalResult, 2, null, out enumContext);
+            var children = GetChildren(evalResult, 2, null, out _);
             Verify(children,
                 EvalResult("I<I<string>>.P2", "2", "int", "((I<I<string>>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("P1", "1", "int", "(new C()).P1", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
@@ -384,9 +382,7 @@ class C : I<bool>, I<char>
             var evalResult = (DkmSuccessEvaluationResult)FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
-
-            DkmEvaluationResultEnumContext enumContext;
-            var children = GetChildren(evalResult, 3, null, out enumContext);
+            var children = GetChildren(evalResult, 3, null, out _);
             Verify(children,
                 EvalResult("I<bool>.P2", "2", "int", "((I<bool>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("I<char>.P2", "3", "int", "((I<char>)(new C())).P2", DkmEvaluationResultFlags.ReadOnly),
@@ -437,8 +433,7 @@ class C : I<bool>, I<char>
 } // end of class C
 ";
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var type = assembly.GetType("C");
             var rootExpr = "new C()";
@@ -446,9 +441,7 @@ class C : I<bool>, I<char>
             var evalResult = (DkmSuccessEvaluationResult)FormatResult(rootExpr, value);
             Verify(evalResult,
                 EvalResult(rootExpr, "{C}", "C", rootExpr, DkmEvaluationResultFlags.Expandable));
-
-            DkmEvaluationResultEnumContext enumContext;
-            var children = GetChildren(evalResult, 3, null, out enumContext);
+            var children = GetChildren(evalResult, 3, null, out _);
             Verify(children,
                 EvalResult("Q", "1", "int", "(new C()).Q", DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.CanFavorite));
         }
@@ -1323,8 +1316,7 @@ class C
   .property object 'CS$<M>7'() { .get object B::'<M>7__get'() }
 }";
             ImmutableArray<byte> assemblyBytes;
-            ImmutableArray<byte> pdbBytes;
-            CSharpTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
+            CSharpTestBase.EmitILToArray(source, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
 
             var type = assembly.GetType("A");

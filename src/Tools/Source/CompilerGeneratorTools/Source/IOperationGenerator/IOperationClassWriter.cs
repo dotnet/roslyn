@@ -898,7 +898,7 @@ namespace IOperationGenerator
 
                 WriteObsoleteIfNecessary(type.Obsolete);
                 var accessibility = type.IsInternal ? "internal" : "public";
-                var baseName = GetSubName(type.Name);
+                _ = GetSubName(type.Name);
                 WriteLine($"{accessibility} virtual void {GetVisitorName(type)}({type.Name} operation) => DefaultVisit(operation);");
             }
 
