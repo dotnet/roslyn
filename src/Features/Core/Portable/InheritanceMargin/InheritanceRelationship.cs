@@ -17,21 +17,47 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         None = 0,
 
-        // class & struct
+        /// <summary>
+        /// Implented interfaces for class or struct. Shown as I↑
+        /// </summary>
         ImplementedInterface = 1,
+
+        /// <summary>
+        /// Base type for class or struct. Shown as O↑
+        /// </summary>
         BaseType = 2,
+
+        /// <summary>
+        /// Derived type for class or struct. Shown as O↓
+        /// </summary>
         DerivedType = 4,
 
-        // interface
+        /// <summary>
+        /// Inherited interface for interface. Shown as I↑
+        /// </summary>
         InheritedInterface = 8,
+
+        /// <summary>
+        /// Implementing class, struct and interface for interface. Shown as I↓
+        /// </summary>
         ImplementingType = 16,
 
-        // class & structure members
+        /// <summary>
+        /// Implemented member for member in class or structure. Shown as I↑
+        /// </summary>
         ImplmentedMember = 32,
+
+        /// <summary>
+        /// Overriden member for member in class or structure. Shown as O↑
+        /// </summary>
         OverriddenMember = 64,
+
+        /// <summary>
+        /// Overrrding member for member in class or structure. Shown as O↓
+        /// </summary>
         OverridingMember = 128,
 
-        // member of interface
+        // Implmenting member for member in interface. Shown as I↓
         ImplementingMember = 256
     }
 }
