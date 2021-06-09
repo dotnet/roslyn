@@ -260,16 +260,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // The method will return true if all methods in the type have IL, otherwise will return false.
         private static bool TypeHasIL(NamespaceOrTypeSymbol typeSymbol, EmitContext context, HashSet<Cci.DebugSourceDocument> docList)
         {
+            if ((typeSymbol == null) || context.Equals(null))
+            {
+                return false;
+            }
             var typeDef = (Cci.ITypeDefinition)typeSymbol.GetCciAdapter();
             var typeMethods = typeDef.GetMethods(context);
-            var methodDoesHaveIL = false;
-            var aMethodDoesHaveIL = true;
+            var atLeastOneMethodDoesNotHaveIL = false;
+            var atLeastOneMethodhasIL = false;
             foreach (var method in typeMethods)
             {
-                if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
+                //if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
+                if (Cci.Extensions.HasBody(method) && (method.GetBody(context) != null) && !method.GetBody(context).SequencePoints.IsEmpty)
                 {
-                    methodDoesHaveIL = true;
-
+                    atLeastOneMethodhasIL = true;
                     foreach (var point in method.GetBody(context).SequencePoints)
                     {
                         if (!docList.Contains(point.Document))
@@ -280,10 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
                 else
                 {
-                    aMethodDoesHaveIL = false;
+                    atLeastOneMethodDoesNotHaveIL = true;
                 }
             }
-            return methodDoesHaveIL && aMethodDoesHaveIL;
+            return atLeastOneMethodhasIL && !atLeastOneMethodDoesNotHaveIL;
         }
 
 

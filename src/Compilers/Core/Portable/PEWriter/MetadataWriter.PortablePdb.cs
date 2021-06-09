@@ -997,22 +997,26 @@ namespace Microsoft.Cci
             DocumentHandle rowid;
             var builder = new BlobBuilder();
             var document = module.GetTypeDocument(Context);
-
-            foreach (var pair in document)
+            if (!(document == null))
             {
-                var def = (ITypeDefinition)pair.definition;
-                foreach (var val in pair.document)
+                foreach (var pair in document)
                 {
-                    rowid = GetOrAddDocument(val, _documentIndex);
-                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
+                    var def = (ITypeDefinition)pair.definition;
+                    foreach (var val in pair.document)
+                    {
+                        if (!(val == null))
+                        {
+                            rowid = GetOrAddDocument(val, _documentIndex);
+                            builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
+                        }
+                    }
+                    _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: GetTypeDefinitionHandle(def),
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocuments),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
+                    builder.Clear();
                 }
-                _debugMetadataOpt.AddCustomDebugInformation(
-                parent: GetTypeDefinitionHandle(def),
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocuments),
-                value: _debugMetadataOpt.GetOrAddBlob(builder));
-                builder.Clear();
             }
         }
-
     }
 }
