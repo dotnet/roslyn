@@ -9,7 +9,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- Vsix -->
     <CreateVsixContainer>false</CreateVsixContainer>

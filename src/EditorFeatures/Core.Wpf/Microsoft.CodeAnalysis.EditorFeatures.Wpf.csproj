@@ -7,7 +7,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
