@@ -1531,8 +1531,8 @@ namespace System
             private readonly CommonPEModuleBuilder _builder;
             private readonly NamespaceTypeDefinitionNoBase _objectType;
 
-            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, EmitOptions emitOptions, INamespaceTypeDefinition objectType) :
-                base((SourceModuleSymbol)builder.CommonSourceModule, emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
+            internal PEAssemblyBuilderWithAdditionalReferences(CommonPEModuleBuilder builder, EmitOptions emitOptions, INamespaceTypeDefinition objectType)
+                : base((SourceModuleSymbol)builder.CommonSourceModule, emitOptions, builder.OutputKind, builder.SerializationProperties, builder.ManifestResources)
             {
                 _builder = builder;
                 _objectType = new NamespaceTypeDefinitionNoBase(objectType);

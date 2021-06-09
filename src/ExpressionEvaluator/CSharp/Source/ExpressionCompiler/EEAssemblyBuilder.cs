@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Cci.ModulePropertiesForSerialization serializationProperties,
             ImmutableArray<NamedTypeSymbol> additionalTypes,
             Func<NamedTypeSymbol, NamedTypeSymbol> getDynamicOperationContextType,
-            CompilationTestData? testData) :
-            base(
+            CompilationTestData? testData)
+            : base(
                   sourceAssembly,
                   emitOptions,
                   outputKind: OutputKind.DynamicallyLinkedLibrary,

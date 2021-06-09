@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// </summary>
     public class CustomResultProviderTests : CSharpResultProviderTestBase
     {
-        public CustomResultProviderTests() :
-            base(
+        public CustomResultProviderTests()
+            : base(
                 new DkmInspectionSession(
                     ImmutableArray.Create<IDkmClrFormatter>(new CustomFormatter(new CSharpFormatter()), new CSharpFormatter()),
                     ImmutableArray.Create<IDkmClrResultProvider>(new CustomResultProvider(), new CSharpResultProvider())))

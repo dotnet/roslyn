@@ -51,13 +51,13 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             _favorites = favorites;
         }
 
-        internal DkmClrType(Type lmrType) :
-            this(DkmClrRuntimeInstance.DefaultRuntime, lmrType)
+        internal DkmClrType(Type lmrType)
+            : this(DkmClrRuntimeInstance.DefaultRuntime, lmrType)
         {
         }
 
-        internal DkmClrType(DkmClrRuntimeInstance runtime, Type lmrType) :
-            this(runtime.DefaultModule, runtime.DefaultAppDomain, lmrType)
+        internal DkmClrType(DkmClrRuntimeInstance runtime, Type lmrType)
+            : this(runtime.DefaultModule, runtime.DefaultAppDomain, lmrType)
         {
         }
 

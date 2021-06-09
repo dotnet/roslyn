@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly int _index;
 
-        internal ReturnValueLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, int index) :
-            base(method, name, displayName, type)
+        internal ReturnValueLocalSymbol(MethodSymbol method, string name, string displayName, TypeSymbol type, int index)
+            : base(method, name, displayName, type)
         {
             _index = index;
         }
