@@ -606,5 +606,100 @@ class Test2 : I2<Test2>
 
             await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_TrueOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.operator true(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+        }
     }
 }
