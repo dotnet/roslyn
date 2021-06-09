@@ -904,14 +904,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // been deleted
                     if (encLogRows.Count <= encLogRowId)
                     {
-                        // First expand our log rows table
-                        encLogRows.AddRange(Enumerable.Repeat(0, encLogRowId - encLogRows.Count + 1));
-                        // now emit out "delete" row
-                        if (!MetadataTokens.TryGetTableIndex(parent.Kind, out var tableIndex))
-                        {
-                            throw new InvalidOperationException("Have an attribute for a parent kind that doesn't have a matching table index.");
-                        }
-                        metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), metadataReader.GetCustomAttribute(customAttributeHandle).Constructor, metadataReader.GetCustomAttribute(customAttributeHandle).Value);
+                        DeleteCustomAttribute(encLogRows, encLogRowId, metadataReader.GetCustomAttribute(customAttributeHandle));
                     }
                     encLogRows[encLogRowId] = rowId;
 
@@ -949,6 +942,41 @@ namespace Microsoft.CodeAnalysis.Emit
             return skippedParents;
         }
 
+        private void DeleteCustomAttribute(List<int> encLogRows, int encLogRowId, CustomAttribute? customAttribute, HandleKind kind = default)
+        {
+            // First expand our log rows table if necessary
+            if (encLogRows.Count <= encLogRowId)
+            {
+                if (encLogRowId - encLogRows.Count + 1 != 1)
+                {
+                }
+                encLogRows.AddRange(Enumerable.Repeat(0, encLogRowId - encLogRows.Count + 1));
+            }
+
+            EntityHandle constructor;
+            BlobHandle value;
+
+            if (customAttribute == null)
+            {
+                constructor = MetadataTokens.EntityHandle(TableIndex.MemberRef, 1);
+                value = default;
+            }
+            else
+            {
+                kind = customAttribute.Value.Parent.Kind;
+                constructor = customAttribute.Value.Constructor;
+                value = customAttribute.Value.Value;
+            }
+
+            // now emit a "delete" row with a parent that is for the 0 row of the same table as the existing one
+            if (!MetadataTokens.TryGetTableIndex(kind, out var tableIndex))
+            {
+                throw new InvalidOperationException("Have an attribute for a parent kind that doesn't have a matching table index.");
+            }
+
+            metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), constructor, value);
+        }
+
         private void PopulateEncLogTableCustomAttributesFromDeltas(List<EntityHandle> remainingEmittedAttributeParents, List<int> encLogRows)
         {
             if (remainingEmittedAttributeParents.Count == 0)
@@ -972,13 +1000,6 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var customAttributeTarget = remainingEmittedAttributeParents[index];
 
-                // If there are no more attributes for this parent to emit, then move on to the next
-                if (_customAttributeParentCounts[customAttributeTarget] == 0)
-                {
-                    index++;
-                    continue;
-                }
-
                 if (attributeMap.TryGetValue(customAttributeTarget, out var queue) &&
                     queue.Count > 0)
                 {
@@ -988,12 +1009,34 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
                 else
                 {
+                    // If the target wasn't in the map, and has no more attributes to emit, then thats fine
+                    if (_customAttributeParentCounts[customAttributeTarget] == 0)
+                    {
+                        index++;
+                        continue;
+                    }
+
                     // Otherwise, either this is a new parent that hasn't had an attribute before, or we've run
                     // out of existing rows to update. Either way, we want to add to the end of the table.
                     rowId = nextRowId++;
 
                     // Keep track of the addition for passing to the next generation
                     _customAttributesAdded[rowId] = customAttributeTarget;
+                }
+
+                // If there are no more attributes for this parent to emit, then move on to the next
+                if (_customAttributeParentCounts[customAttributeTarget] == 0)
+                {
+                    DeleteCustomAttribute(encLogRows, encLogRows.Count, null, customAttributeTarget.Kind);
+                }
+                else
+                {
+                    _customAttributeParentCounts[customAttributeTarget]--;
+                }
+
+                if (_customAttributeParentCounts[customAttributeTarget] == 0)
+                {
+                    index++;
                 }
 
                 // remainingEmittedAttributeParents only contains records that haven't been logged, but since we know it is in the
@@ -1006,8 +1049,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 encLogRows[logIndex] = rowId;
-
-                _customAttributeParentCounts[customAttributeTarget]--;
             }
         }
 

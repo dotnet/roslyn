@@ -913,29 +913,21 @@ class D
             CheckNames(readers, reader2.GetMemberRefNames());
 
             CheckAttributes(reader2,
-                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(5, TableIndex.MemberRef)));
+                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(1, TableIndex.MemberRef)));  // 0, delete
 
             CheckEncLog(reader2,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, so updating existing CustomAttribute
 
             CheckEncMap(reader2,
-                Handle(7, TableIndex.TypeRef),
-                Handle(8, TableIndex.TypeRef),
                 Handle(9, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
-                Handle(6, TableIndex.MemberRef),
-                Handle(7, TableIndex.MemberRef),
                 Handle(4, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(3, TableIndex.StandAloneSig),
+                Handle(3, TableIndex.AssemblyRef));
 
             var method3 = compilation3.GetMember<MethodSymbol>("C.F");
             var diff3 = compilation3.EmitDifference(
@@ -950,32 +942,32 @@ class D
 
             CheckNames(readers, reader3.GetTypeDefNames());
             CheckNames(readers, reader3.GetMethodDefNames(), "F");
-            CheckNames(readers, reader3.GetMemberRefNames(), /*String.*/"Empty");
+            CheckNames(readers, reader3.GetMemberRefNames(), /*DescriptionAttribute*/".ctor", /*String.*/"Empty");
 
             CheckAttributes(reader3,
-                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(5, TableIndex.MemberRef)));
+                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(7, TableIndex.MemberRef)));
 
             CheckEncLog(reader3,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
-                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 5, because we don't re-use a row from a delta
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Row 4, update the previously deleted row
 
             CheckEncMap(reader3,
-                Handle(7, TableIndex.TypeRef),
-                Handle(8, TableIndex.TypeRef),
-                Handle(9, TableIndex.TypeRef),
+                Handle(10, TableIndex.TypeRef),
+                Handle(11, TableIndex.TypeRef),
+                Handle(12, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
-                Handle(6, TableIndex.MemberRef),
                 Handle(7, TableIndex.MemberRef),
+                Handle(8, TableIndex.MemberRef),
                 Handle(4, TableIndex.CustomAttribute),
-                Handle(2, TableIndex.StandAloneSig),
-                Handle(2, TableIndex.AssemblyRef));
+                Handle(4, TableIndex.StandAloneSig),
+                Handle(4, TableIndex.AssemblyRef));
         }
 
         [Fact]
