@@ -1120,8 +1120,7 @@ namespace Microsoft.Cci
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
-            ImmutableArray<byte> signatureBlob;
-            return GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
+            return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
         internal byte[] GetMethodSignature(IMethodReference methodReference)

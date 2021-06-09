@@ -485,8 +485,7 @@ ExitDecodeTypeName:
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
-            int suffixStartsAt;
-            return InferTypeArityFromMetadataName(emittedTypeName, out suffixStartsAt);
+            return InferTypeArityFromMetadataName(emittedTypeName, out _);
         }
 
         private static short InferTypeArityFromMetadataName(string emittedTypeName, out int suffixStartsAt)

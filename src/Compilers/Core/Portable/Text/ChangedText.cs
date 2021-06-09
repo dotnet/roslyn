@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.Text
                 ChangeInfo? lastInfo = this;
                 for (ChangeInfo? info = this; info != null; info = info.Previous)
                 {
-                    SourceText? tmp;
-                    if (info.WeakOldText.TryGetTarget(out tmp))
+                    if (info.WeakOldText.TryGetTarget(out _))
                     {
                         lastInfo = info;
                     }

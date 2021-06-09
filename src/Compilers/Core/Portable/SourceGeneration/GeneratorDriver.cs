@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis
             var initialState = state;
 
             // see if any generators accept this particular edit
-            var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
+            _ = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
             for (int i = 0; i < initialState.Generators.Length; i++)
             {
                 var generator = initialState.Generators[i];
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-            var type = generator.GetType();
+            _ = generator.GetType();
             var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {

@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Contains(AssemblyIdentity identity, bool allowHigherVersion = true)
         {
-            TValue value;
-            return TryGetValue(identity, out value, allowHigherVersion);
+            return TryGetValue(identity, out _, allowHigherVersion);
         }
 
         public bool TryGetValue(AssemblyIdentity identity, out TValue value, bool allowHigherVersion = true)

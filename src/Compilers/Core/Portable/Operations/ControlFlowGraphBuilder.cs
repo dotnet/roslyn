@@ -3363,7 +3363,7 @@ oneMoreTime:
         private IOperation VisitConditionalAccessTestExpression(IOperation testExpression)
         {
             Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
-            SyntaxNode testExpressionSyntax = testExpression.Syntax;
+            _ = testExpression.Syntax;
             ITypeSymbol? testExpressionType = testExpression.Type;
 
             var frame = PushStackFrame();

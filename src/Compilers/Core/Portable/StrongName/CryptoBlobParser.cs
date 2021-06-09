@@ -257,14 +257,12 @@ namespace Microsoft.CodeAnalysis
         internal static RSAParameters ToRSAParameters(this ReadOnlySpan<byte> cspBlob, bool includePrivateParameters)
         {
             var br = new LittleEndianReader(cspBlob);
-
-            byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
-            byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
-            br.ReadUInt16();               // BLOBHEADER.wReserved
-            int algId = br.ReadInt32();    // BLOBHEADER.aiKeyAlg
-
-            int magic = br.ReadInt32();    // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
-            int bitLen = br.ReadInt32();   // RSAPubKey.bitLen
+            _ = br.ReadByte();              // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+            _ = br.ReadByte();              // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+            br.ReadUInt16();                // BLOBHEADER.wReserved
+            _ = br.ReadInt32();             // BLOBHEADER.aiKeyAlg
+            _ = br.ReadInt32();             // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+            int bitLen = br.ReadInt32();    // RSAPubKey.bitLen
 
             int modulusLength = bitLen / 8;
             int halfModulusLength = (modulusLength + 1) / 2;
