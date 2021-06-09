@@ -35,6 +35,17 @@ namespace Microsoft.CodeAnalysis
                 // Replacing a single tree doesn't impact the generated trees in a compilation, so we can use this against
                 // compilations that have generated trees.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                {
+                    if (priorAction is TouchDocumentAction priorTouchAction &&
+                        priorTouchAction._newState == this._oldState)
+                    {
+                        return new TouchDocumentAction(priorTouchAction._oldState, this._newState);
+                    }
+
+                    return null;
+                }
             }
 
             internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
@@ -55,6 +66,17 @@ namespace Microsoft.CodeAnalysis
                 // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
                 // the compilation with stale trees around, answering true is still important.
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+                public override CompilationAndGeneratorDriverTranslationAction? TryMergeWithPrior(CompilationAndGeneratorDriverTranslationAction priorAction)
+                {
+                    if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
+                        priorTouchAction._newState == this._oldState)
+                    {
+                        return new TouchAdditionalDocumentAction(priorTouchAction._oldState, this._newState);
+                    }
+
+                    return null;
+                }
             }
 
             internal sealed class RemoveDocumentsAction : CompilationAndGeneratorDriverTranslationAction

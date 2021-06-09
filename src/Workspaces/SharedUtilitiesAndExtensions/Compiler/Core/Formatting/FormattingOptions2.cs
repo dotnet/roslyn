@@ -104,6 +104,18 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static readonly PerLanguageOption2<bool> AutoFormattingOnReturn = CreatePerLanguageOption(OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Return"));
 
+        public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = CreatePerLanguageOption(
+            OptionGroup.Default, nameof(AutoFormattingOnTyping), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
+
+        public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = CreatePerLanguageOption(
+            OptionGroup.Default, nameof(AutoFormattingOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
+
+        public static readonly PerLanguageOption2<bool> FormatOnPaste = CreatePerLanguageOption(
+            OptionGroup.Default, nameof(FormatOnPaste), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
+
         static FormattingOptions2()
         {
             // Note that the static constructor executes after all the static field initializers for the options have executed,

@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var node = _context.TargetToken.GetRequiredParent();
             return node switch
             {
-                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } memberAccess
+                MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfExpression(memberAccess.Expression),
-                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.PointerMemberAccessExpression } memberAccess
+                MemberAccessExpressionSyntax(SyntaxKind.PointerMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
                 // This code should be executing only if the cursor is between two dots in a dotdot token.

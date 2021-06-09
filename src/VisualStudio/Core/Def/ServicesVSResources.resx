@@ -1744,4 +1744,7 @@ I agree to all of the foregoing:</value>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
   </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
 </root>

@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
-    internal sealed class ClassificationTypeFormatDefinitions
+    internal sealed class BraceMatchingTypeFormatDefinitions
     {
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeDefinitions.BraceMatchingName)]
