@@ -2090,10 +2090,7 @@ namespace Microsoft.Cci
         private void AddModuleAttributesToTable(CommonPEModuleBuilder module)
         {
             Debug.Assert(this.IsFullMetadata);
-            foreach (ICustomAttribute customAttribute in module.GetSourceModuleAttributes())
-            {
-                AddCustomAttributeToTable(EntityHandle.ModuleDefinition, customAttribute);
-            }
+            AddCustomAttributesToTable(EntityHandle.ModuleDefinition, module.GetSourceModuleAttributes());
         }
 
         private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, TableIndex tableIndex)
@@ -2103,10 +2100,7 @@ namespace Microsoft.Cci
             foreach (var parent in parentList)
             {
                 var parentHandle = MetadataTokens.Handle(tableIndex, parentRowId++);
-                foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
-                {
-                    AddCustomAttributeToTable(parentHandle, customAttribute);
-                }
+                AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
@@ -2116,33 +2110,19 @@ namespace Microsoft.Cci
             foreach (var parent in parentList)
             {
                 EntityHandle parentHandle = getDefinitionHandle(parent);
-                foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
-                {
-                    AddCustomAttributeToTable(parentHandle, customAttribute);
-                }
+                AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
         }
 
-        private void AddCustomAttributesToTable(
-            EntityHandle handle,
-            ImmutableArray<ICustomAttribute> attributes)
+        protected virtual int AddCustomAttributesToTable(EntityHandle parentHandle, IEnumerable<ICustomAttribute> attributes)
         {
+            int count = 0;
             foreach (var attr in attributes)
             {
-                AddCustomAttributeToTable(handle, attr);
+                count++;
+                AddCustomAttributeToTable(parentHandle, attr);
             }
-        }
-
-        private void AddCustomAttributesToTable(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
-        {
-            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
-            {
-                var ifaceHandle = GetTypeHandle(typeRefWithAttributes.TypeRef);
-                foreach (var customAttribute in typeRefWithAttributes.Attributes)
-                {
-                    AddCustomAttributeToTable(ifaceHandle, customAttribute);
-                }
-            }
+            return count;
         }
 
         private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
@@ -2151,16 +2131,11 @@ namespace Microsoft.Cci
 
             if (constructor != null)
             {
-                AddCustomAttributeToTable(parentHandle, customAttribute, constructor);
-            }
-        }
-
-        protected virtual void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute, IMethodReference constructor)
-        {
-            metadata.AddCustomAttribute(
+                metadata.AddCustomAttribute(
                                 parent: parentHandle,
                                 constructor: GetCustomAttributeTypeCodedIndex(constructor),
                                 value: GetCustomAttributeSignatureIndex(customAttribute));
+            }
         }
 
         private void PopulateDeclSecurityTableRows()
