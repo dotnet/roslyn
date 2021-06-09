@@ -1,4 +1,3 @@
-
 # Branches that trigger a build on commit
 
 # Temporarily disabling integration tests in CI in dev17 until we have a public preview to run them on
