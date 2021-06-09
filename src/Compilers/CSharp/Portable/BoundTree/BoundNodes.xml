@@ -2067,8 +2067,8 @@
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
-    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
+    <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
@@ -2086,14 +2086,24 @@
   <Node Name="BoundITuplePattern" Base="BoundPattern">
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="disallow"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
   </Node>
 
-  <!-- A subpattern, either in a positional or property part of a recursive pattern. -->
-  <Node Name="BoundSubpattern" Base="BoundNode">
-    <!-- The tuple element or parameter in a positional pattern, or the property or field in a property pattern. -->
+  <AbstractNode Name="BoundSubpattern" Base="BoundNode">
+    <Field Name="Pattern" Type="BoundPattern"/>
+  </AbstractNode>
+  <Node Name="BoundPositionalSubpattern" Base="BoundSubpattern">
+    <!-- The tuple element or parameter in a positional pattern. -->
     <Field Name="Symbol" Type="Symbol?"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+  <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
+    <!-- The property or field access in a property pattern. -->
+    <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
+  </Node>
+  <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
+    <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="Symbol" Type="Symbol?"/>
+    <Field Name="Type" Type="TypeSymbol"/>
   </Node>
 
   <Node Name="BoundTypePattern" Base="BoundPattern">

@@ -557,6 +557,11 @@
         <target state="translated">'{0}' değiştiricisi bu öğe için C# {1} sürümünde geçerli değil. Lütfen '{2}' veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">Geçersiz nesne oluşturma</target>
@@ -995,6 +1000,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">atılabilir değişkenler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
+        <source>extended property patterns</source>
+        <target state="new">extended property patterns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
