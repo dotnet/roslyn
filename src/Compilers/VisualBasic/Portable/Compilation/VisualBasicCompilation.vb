@@ -748,8 +748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function CreateDetermisiticKeyBuilder() As DeterministicKeyBuilder
-            ' TODO need to implement this
-            Throw New NotImplementedException()
+            Return New VisualBasicDeterministicKeyBuilder()
         End Function
 
         Friend Overrides Sub SerializePdbEmbeddedCompilationOptions(builder As BlobBuilder)

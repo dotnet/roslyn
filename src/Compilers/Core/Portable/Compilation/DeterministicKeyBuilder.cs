@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal virtual void AppendCompilation(Compilation compilation)
+        internal void AppendCompilation(Compilation compilation)
         {
             Writer.WriteObjectStart();
             Writer.WriteKey("options");
