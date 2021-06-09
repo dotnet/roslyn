@@ -68,7 +68,6 @@ dotnet_diagnostic.IDE2000.severity = warning
 dotnet_style_allow_statement_immediately_after_block_experimental = true:none
 dotnet_diagnostic.IDE2003.severity = none
 
-
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.symbols = non_private_static_fields
