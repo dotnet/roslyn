@@ -200,11 +200,6 @@ dotnet_diagnostic.IDE2002.severity = warning
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:warning
 dotnet_diagnostic.IDE2004.severity = warning
 
-
-# IDE0059: MultipleBlankLinesDiagnosticId
-dotnet_diagnostic.IDE0059.severity = warning
-
-
 # Prefer "var" everywhere
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
