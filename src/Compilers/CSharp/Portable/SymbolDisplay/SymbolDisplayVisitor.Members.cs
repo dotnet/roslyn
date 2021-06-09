@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (sourceUserDefinedOperatorSymbolBase is SourceUserDefinedConversionSymbol)
                             {
-                                addUserDefinedConversionName(symbol, operatorName, format);
+                                addUserDefinedConversionName(symbol, operatorName);
                             }
                             else
                             {
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            addUserDefinedConversionName(symbol, symbol.MetadataName, format);
+                            addUserDefinedConversionName(symbol, symbol.MetadataName);
                         }
                         break;
                     }
@@ -649,33 +649,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void addUserDefinedConversionName(IMethodSymbol symbol, string operatorName, SymbolDisplayFormat format)
+            void addUserDefinedConversionName(IMethodSymbol symbol, string operatorName)
             {
                 // "System.IntPtr.explicit operator System.IntPtr(int)"
-                var ignoreImplicitOrExplicit = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IgnoreImplicitOrExplicitKeyword);
+
                 if (operatorName == WellKnownMemberNames.ExplicitConversionName)
                 {
-                    if (!ignoreImplicitOrExplicit)
-                    {
-                        AddKeyword(SyntaxKind.ExplicitKeyword);
-                        AddSpace();
-                    }
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
                 }
                 else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
                 {
-                    if (!ignoreImplicitOrExplicit)
-                    {
-                        AddKeyword(SyntaxKind.ImplicitKeyword);
-                        AddSpace();
-                    }
+                    AddKeyword(SyntaxKind.ImplicitKeyword);
                 }
                 else
                 {
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                         SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
-                    AddSpace();
                 }
 
+                AddSpace();
                 AddKeyword(SyntaxKind.OperatorKeyword);
                 AddSpace();
                 AddReturnType(symbol);

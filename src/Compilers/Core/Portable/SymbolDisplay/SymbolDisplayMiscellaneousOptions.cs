@@ -72,20 +72,5 @@ namespace Microsoft.CodeAnalysis
         /// Append '!' to non-nullable reference types.
         /// </summary>
         IncludeNotNullableReferenceTypeModifier = 1 << 8,
-
-        /// <summary>
-        /// Includes <c>implicit</c> or <c>explicit</c> keywords for user-defined operators.
-        /// </summary>
-        /// <remarks>
-        /// This is useful for explicit interface members completion where we expect something like:
-        /// <code><![CDATA[
-        /// static implicit I2<Test2>.operator int(Test2 x)
-        /// ]]></code>
-        /// instead of:
-        /// <code><![CDATA[
-        /// static implicit I2<Test2>.implicit operator int(Test2 x)
-        /// ]]></code>
-        /// </remarks>
-        IgnoreImplicitOrExplicitKeyword = 1 << 9,
     }
 }
