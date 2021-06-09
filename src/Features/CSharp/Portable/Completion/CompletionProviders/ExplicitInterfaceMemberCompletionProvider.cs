@@ -148,17 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 builder.Append('[');
 
-                var first = true;
-                foreach (var parameter in symbol.Parameters)
-                {
-                    if (!first)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    first = false;
-                    builder.Append(ToDisplayString(parameter));
-                }
+                AddParameters(symbol.Parameters, builder);
 
                 builder.Append(']');
             }
@@ -192,13 +182,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             AddTypeArguments(symbol, builder);
             // Parameters is tricky part for operators.
-            AddParameters(symbol);
+            builder.Append('(');
+            AddParameters(symbol.Parameters, builder);
+            builder.Append(')');
             return builder.ToString();
         }
 
-        private static void AddParameters(IMethodSymbol symbol)
+        private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
         {
-            throw new NotImplementedException();
+            var first = true;
+            foreach (var parameter in parameters)
+            {
+                if (!first)
+                {
+                    builder.Append(", ");
+                }
+
+                first = false;
+                builder.Append(ToDisplayString(parameter));
+            }
         }
 
         private static void AddTypeArguments(IMethodSymbol symbol, StringBuilder builder)
@@ -232,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //builder.Append(symbol.ReturnType.??);
         }
 
+        // TODO: Fix this.
         private static string ToDisplayString(IParameterSymbol symbol)
             => symbol.Name;
 
