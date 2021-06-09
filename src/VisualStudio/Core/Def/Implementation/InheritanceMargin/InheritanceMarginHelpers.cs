@@ -94,16 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         /// <summary>
         /// Create the view models for the inheritance targets of multiple members
-        /// There are two cases:
-        /// 1. If all the targets have the same inheritance relationship. It would have this structure:
-        /// e.g.
-        /// MemberViewModel1 -> Target1ViewModel
-        ///                     Target2ViewModel
-        /// MemberViewModel2 -> Target4ViewModel
-        ///                     Target5ViewModel
-        ///
-        /// 2. If targets belongs to different inheritance group. It would be grouped.
-        /// e.g.
         /// MemberViewModel1 -> HeaderViewModel
         ///                     Target1ViewModel
         ///                     HeaderViewModel
@@ -145,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             builder.Add(headerViewModel);
             foreach (var targetItem in targets)
             {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem, indent: true));
+                builder.Add(TargetMenuItemViewModel.Create(targetItem));
             }
 
             return builder.ToImmutable();
