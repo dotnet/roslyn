@@ -690,7 +690,7 @@ class C : I<C>
             var expected = @"
 interface I<T> where T : I<T>
 {
-    abstract static T operator +(T x);
+    abstract static T operator +(T x, T y);
 }
 
 class C : I<C>
@@ -699,7 +699,7 @@ class C : I<C>
 }
 ";
 
-            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+            await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
         }
     }
 }
