@@ -989,6 +989,65 @@ public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar
                 itemForFooInBar2);
         }
 
+        [Fact]
+        public Task TestCSharpExplicitInterfaceImplementation()
+        {
+            var lessThanToken = SecurityElement.Escape("<");
+            var greaterThanToken = SecurityElement.Escape(">");
+            var markup = $@"
+interface {{|target2:IBar|}}{lessThanToken}T{greaterThanToken}
+{{
+    void {{|target3:Foo|}}(T t);
+}}
+
+abstract class {{|target1:AbsBar|}} : IBar{lessThanToken}int{greaterThanToken}
+{{
+    void IBar{lessThanToken}int{greaterThanToken}.{{|target4:Foo|}}(int t)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}";
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface IBar<T>",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class AbsBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void IBar<T>.Foo(T)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void AbsBar.IBar<int>.Foo(int)",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForAbsBar = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "class AbsBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar<T>",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInAbsBar = new TestInheritanceMemberItem(
+                lineNumber: 9,
+                memberName: "void AbsBar.IBar<int>.Foo(int)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar<T>.Foo(T)",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForAbsBar,
+                itemForFooInAbsBar);
+        }
+
         #endregion
 
         #region TestsForVisualBasic
