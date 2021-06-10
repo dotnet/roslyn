@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
-    internal sealed class WatchHotReloadService
+    internal sealed class UnitTestingHotReloadService
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
-            // TODO: get capabilities from the runtime: https://github.com/dotnet/aspnetcore/issues/33402
+            // TODO: get capabilities from the runtime
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
 
-        public WatchHotReloadService(HostWorkspaceServices services)
+        public UnitTestingHotReloadService(HostWorkspaceServices services)
             => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
         /// <summary>
@@ -112,9 +112,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
         internal readonly struct TestAccessor
         {
-            private readonly WatchHotReloadService _instance;
+            private readonly UnitTestingHotReloadService _instance;
 
-            internal TestAccessor(WatchHotReloadService instance)
+            internal TestAccessor(UnitTestingHotReloadService instance)
                 => _instance = instance;
 
             public DebuggingSessionId SessionId
