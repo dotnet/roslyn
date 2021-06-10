@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 FontStyle = FontStyles.Normal,
                 Foreground = format.ForegroundBrush,
                 Padding = new Thickness(left: 2, top: 0, right: 2, bottom: 0),
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                TextAlignment = TextAlignment.Center
             };
 
             var id = new Run(_diagnostic.Id);
@@ -56,15 +53,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 NavigateUri = new Uri(_diagnostic.HelpLink)
             };
 
-            var image = new CrispImage
+            var moniker = GetMoniker();
+            if (moniker is not null)
             {
-                Moniker = GetMoniker(),
-                RenderSize = new Size(16, 16)
-            };
+                var image = new CrispImage
+                {
+                    Moniker = (ImageMoniker)moniker,
+                    RenderSize = new Size(16, 16),
+                    Margin = new Thickness(1, 0, 5, 0)
+                };
 
-            var statusImage = new InlineUIContainer(image);
+                var statusImage = new InlineUIContainer(image);
+                block.Inlines.Add(statusImage);
+            }
+
             link.RequestNavigate += HandleRequestNavigate;
-            block.Inlines.Add(statusImage);
             block.Inlines.Add(link);
             block.Inlines.Add(": " + _diagnostic.Message);
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
@@ -91,12 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
 
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
-            Canvas.SetTop(border, bounds.Bounds.Bottom - border.DesiredSize.Height);
-
-            if (Location is InlineErrorsLocations.HookedToWindow)
-            {
-                Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
-            }
 
             return new GraphicsResult(border,
                     () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
-        private ImageMoniker GetMoniker()
+        private ImageMoniker? GetMoniker()
         {
             switch (_diagnostic.Severity)
             {
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 case DiagnosticSeverity.Error:
                     return KnownMonikers.StatusError;
                 default:
-                    throw new NotSupportedException();
+                    return null;
             }
         }
 

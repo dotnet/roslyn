@@ -203,6 +203,22 @@
                 </StackPanel>
             </GroupBox>
 
+            <GroupBox x:Uid="InlineDiagnosticsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Diagnostics_experimental}">
+                <StackPanel>
+                    <CheckBox x:Name="DisplayInlineDiagnostics"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_diagnostics}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="hook_to_end_of_text"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Hook_to_end_of_text}"/>
+                        <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="hook_to_end_of_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Hook_to_end_of_window}"/>
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            
             <GroupBox x:Uid="InlineHintsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
                 <StackPanel>

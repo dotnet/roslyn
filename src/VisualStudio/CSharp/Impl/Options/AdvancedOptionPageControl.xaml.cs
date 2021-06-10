@@ -95,7 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If so, default to that. Otherwise default to disabled
                 return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
             });
-            //BindToOption(DisplayInlineErrors, FeatureOnOffOptions.InlineErrors, LanguageNames.CSharp);
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 
@@ -179,16 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Push);
             UpdatePullDiagnosticsOptions();
-        }
-
-        private void DisplayInlineDiagnostics_Checked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InlineErrorsOptions.EnableInlineDiagnostics, LanguageNames.CSharp, true);
-        }
-
-        private void DisplayInlineDiagnostics_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InlineErrorsOptions.EnableInlineDiagnostics, LanguageNames.CSharp, false);
         }
 
         private void UpdateInlineHintsOptions()

@@ -169,18 +169,25 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
                         var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
 
+                        var visualElement = graphicsResult.VisualElement;
                         if (tag.Location is InlineErrorsLocations.HookedToCode)
                         {
-                            Canvas.SetLeft(graphicsResult.VisualElement, lineView.Right);
+                            Canvas.SetLeft(visualElement, lineView.Right);
+                        }
+                        else if (tag.Location is InlineErrorsLocations.HookedToWindow)
+                        {
+                            Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
                         }
 
-                        if (lineView.Right < TextView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
+                        Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
+
+                        if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
                         {
                             AdornmentLayer.AddAdornment(
                                 behavior: AdornmentPositioningBehavior.TextRelative,
                                 visualSpan: span,
                                 tag: tag,
-                                adornment: graphicsResult.VisualElement,
+                                adornment: visualElement,
                                 removedCallback: delegate { graphicsResult.Dispose(); });
                         }
                     }

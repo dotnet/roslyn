@@ -213,9 +213,7 @@
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Diagnostics_experimental}">
                 <StackPanel>
                     <CheckBox x:Name="DisplayInlineDiagnostics"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_diagnostics}"
-                              Checked="DisplayInlineDiagnostics_Checked"
-                              Unchecked="DisplayInlineDiagnostics_Unchecked"/>
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_diagnostics}"/>
                     <StackPanel Margin="15, 0, 0, 0">
                         <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="hook_to_end_of_text"
