@@ -44,7 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
             return new VirtualTreePoint(tree, tree.GetText(cancellationToken), location.SourceSpan.Start);
         }
 
-        protected override Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToSymbolItemAsync(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken);
+        protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+        {
+            await NavigateToSymbolItemAsync(document, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken).ConfigureAwait(false);
+            return true;
+        }
     }
 }

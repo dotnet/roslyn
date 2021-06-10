@@ -40,16 +40,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return items.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
-        public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
-            if (item.Spans.Length <= 0)
-                return;
+            if (item.Spans.Length > 0)
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var workspace = document.Project.Solution.Workspace;
+                var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
+                navigationService.TryNavigateToPosition(workspace, document.Id, item.Spans[0].Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+            }
 
-            var workspace = document.Project.Solution.Workspace;
-            var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-            navigationService.TryNavigateToPosition(workspace, document.Id, item.Spans[0].Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+            return true;
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)
