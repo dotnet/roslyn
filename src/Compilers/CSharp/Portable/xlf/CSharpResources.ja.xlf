@@ -1082,6 +1082,16 @@
         <target state="new">Mixed declarations and expressions in deconstruction</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">型およびエイリアスに 'record' という名前を指定することはできません。</target>
