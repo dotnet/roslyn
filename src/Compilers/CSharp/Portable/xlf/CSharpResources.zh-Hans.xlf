@@ -202,6 +202,11 @@
         <target state="translated">不可将具有接收器的扩展方法用作 "&amp;" 运算符的目标。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
+        <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
+        <target state="new">InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</target>
+        <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="translated">“{0}”必须与重写成员“{1}”的“仅 init”匹配</target>
@@ -537,6 +542,11 @@
         <target state="translated">C# 编译器中出现内部错误。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments">
+        <source>'{0}' does not have a constructor that takes {1} arguments.</source>
+        <target state="new">'{0}' does not have a constructor that takes {1} arguments.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerInvalidCreateMethod">
         <source>Interpolated string handler type '{0}' does not have a valid 'Create' method.</source>
         <target state="new">Interpolated string handler type '{0}' does not have a valid 'Create' method.</target>
@@ -565,6 +575,11 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">无效的哈希算法名称:“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
+        <source>'{0}' is not a valid parameter name from '{1}'.</source>
+        <target state="new">'{0}' is not a valid parameter name from '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
@@ -707,9 +722,19 @@
         <target state="translated">记录成员“{0}”必须是公共的。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
+        <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
+        <target state="new">'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
+        <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
+        <target state="new">null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -987,6 +1012,11 @@
         <target state="translated">"class"、"struct"、"unmanaged"、"notnull" 和 "default" 约束不能组合或重复，并且必须先在约束列表中进行指定。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeIsNotAnInterpolatedStringHandlerType">
+        <source>'{0}' is not an interpolated string handler type.</source>
+        <target state="new">'{0}' is not an interpolated string handler type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeMustBePublic">
         <source>Type '{0}' must be public to be used as a calling convention.</source>
         <target state="translated">类型“{0}”必须是公共的，才能用作调用约定。</target>
@@ -1090,6 +1120,16 @@
       <trans-unit id="WRN_ParameterNotNullIfNotNull_Title">
         <source>Parameter must have a non-null value when exiting because parameter referenced by NotNullIfNotNull is non-null.</source>
         <target state="translated">退出时参数必须具有非 null 值，因为由 NotNullIfNotNull 引用的参数是非 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
+        <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
+        <target state="new">Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
+        <source>Parameter to interpolated string handler conversion occurs after handler parameter</source>
+        <target state="new">Parameter to interpolated string handler conversion occurs after handler parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">

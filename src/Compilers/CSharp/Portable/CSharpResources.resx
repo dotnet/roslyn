@@ -6656,4 +6656,29 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
     <value>A global using directive must precede all non-global using directives.</value>
   </data>
+  <data name="ERR_NullInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</value>
+  </data>
+  <data name="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</value>
+  </data>
+  <data name="ERR_InvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not a valid parameter name from '{1}'.</value>
+  </data>
+  <data name="ERR_TypeIsNotAnInterpolatedStringHandlerType" xml:space="preserve">
+    <value>'{0}' is not an interpolated string handler type.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments" xml:space="preserve">
+    <value>'{0}' does not have a constructor that takes {1} arguments.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter" xml:space="preserve">
+    <value>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title" xml:space="preserve">
+    <value>Parameter to interpolated string handler conversion occurs after handler parameter</value>
+  </data>
+  <data name="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument" xml:space="preserve">
+    <value>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
 </root>

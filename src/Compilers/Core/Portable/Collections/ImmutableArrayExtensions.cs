@@ -454,6 +454,19 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
@@ -517,6 +530,16 @@ namespace Microsoft.CodeAnalysis
         {
             return array.IsDefault ? ImmutableArray<T>.Empty : array;
         }
+
+        /// <summary>
+        /// Returns an empty array if the input nullable value type is null or the underlying array is null (default)
+        /// </summary>
+        public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
+            => array switch
+            {
+                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                { } underlying => underlying
+            };
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)));
+                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)), $"Message for error {code} is null or empty.");
             }
         }
 
@@ -263,6 +263,7 @@ class X
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
                         case ErrorCode.WRN_UnreadRecordParameter:
                         case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                        case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

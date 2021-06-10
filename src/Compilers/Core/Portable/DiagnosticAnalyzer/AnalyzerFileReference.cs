@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/53994 tracks re-enabling nullable and fixing this method
+#nullable disable
         private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
         {
             if (argsReader.Length > 4)
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             return SpecializedCollections.EmptyEnumerable<string>();
         }
-
+#nullable enable
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {

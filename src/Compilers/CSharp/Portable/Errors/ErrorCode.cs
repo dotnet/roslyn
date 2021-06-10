@@ -1942,6 +1942,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterpolatedStringHandlerMethodReturnMalformed = 9001,
         ERR_InterpolatedStringHandlerMethodReturnInconsistent = 9002,
         ERR_InterpolatedStringHandlerInvalidCreateMethod = 9003,
+        ERR_NullInvalidInterpolatedStringHandlerArgumentName = 9004,
+        ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName = 9005,
+        ERR_InvalidInterpolatedStringHandlerArgumentName = 9006,
+        ERR_TypeIsNotAnInterpolatedStringHandlerType = 9007,
+        ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments = 9008,
+        WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 9009,
+        ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 9010,
 
         #endregion diagnostics introduced for C# 10.0
 
