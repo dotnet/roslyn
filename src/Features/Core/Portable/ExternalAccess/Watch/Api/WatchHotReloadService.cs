@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
 
-            // TODO: get capabilities from the runtime: https://github.com/dotnet/aspnetcore/issues/33402
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
+            // TODO: get capabilities from the runtime: https://github.com/dotnet/aspnetcore/issues/33402
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 

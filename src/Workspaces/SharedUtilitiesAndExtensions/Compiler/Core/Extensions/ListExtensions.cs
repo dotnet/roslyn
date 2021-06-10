@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// Attempts to remove the first item selected by <paramref name="selector"/>.
         /// </summary>
         /// <returns>
-        /// Index of the removed item, or -1 if item was not found in the list.
+        /// True if any item has been removed.
         /// </returns>
         public static bool TryRemoveFirst<T, TArg>(this IList<T> list, Func<T, TArg, bool> selector, TArg arg, [NotNullWhen(true)] out T? removedItem)
             where T : notnull

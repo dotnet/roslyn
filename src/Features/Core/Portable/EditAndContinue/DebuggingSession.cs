@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
 
             // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            // https://github.com/dotnet/roslyn/issues/52128
             if (EditSession.InBreakState)
             {
                 _telemetry.LogEditSession(editSessionTelemetryData);
