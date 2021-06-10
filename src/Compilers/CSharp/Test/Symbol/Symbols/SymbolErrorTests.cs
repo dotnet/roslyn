@@ -3672,11 +3672,7 @@ class BAttribute : System.Attribute { }
             var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
             Assert.Equal(0, type1.TypeParameters.Length);
             var f = type1.GetMembers("F").Single() as MethodSymbol;
-            Assert.Equal(2, f.TypeParameters.Length);
-            var param1 = f.TypeParameters[0];
-            var param2 = f.TypeParameters[1];
-            Assert.Equal("T", param1.Name);
-            Assert.Equal("U", param2.Name);
+            Assert.Equal("T t", f.Parameters[0].ToTestDisplayString());
         }
 
         [Fact]
