@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return _lazyTopLevelTypes;
             }
 
-            private static T VisitTypeMembers<T>(
+            private static T? VisitTypeMembers<T>(
                 Cci.ITypeDefinition otherContainer,
                 T member,
                 Func<Cci.ITypeDefinition, IEnumerable<T>> getMembers,
@@ -406,9 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return assembly;
                 }
 
-                // When we map synthesized symbols from previous generations to the latest compilation 
-                // we might encounter a symbol that is defined in arbitrary preceding generation, 
-                // not just the immediately preceding generation. If the source assembly uses time-based 
+                // When we map synthesized symbols from previous generations to the latest compilation
+                // we might encounter a symbol that is defined in arbitrary preceding generation,
+                // not just the immediately preceding generation. If the source assembly uses time-based
                 // versioning assemblies of preceding generations might differ in their version number.
                 if (IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly))
                 {

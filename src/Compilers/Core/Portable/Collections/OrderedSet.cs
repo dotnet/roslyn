@@ -82,6 +82,19 @@ namespace Microsoft.CodeAnalysis.Collections
             return ((IEnumerable)_list).GetEnumerator();
         }
 
+        public bool IsProperSubsetOf(IEnumerable<T> other) => _set?.IsProperSubsetOf(other) ?? !other.IsEmpty();
+
+        public bool IsProperSupersetOf(IEnumerable<T> other) => _set?.IsProperSupersetOf(other) ?? false;
+
+        public bool IsSubsetOf(IEnumerable<T> other) => _set?.IsProperSubsetOf(other) ?? other.IsEmpty();
+
+        public bool IsSupersetOf(IEnumerable<T> other) => _set?.IsSupersetOf(other) ?? other.IsEmpty();
+
+        public bool Overlaps(IEnumerable<T> other) => _set?.Overlaps(other) ?? other.IsEmpty();
+
+        public bool SetEquals(IEnumerable<T> other) => _set?.SetEquals(other) ?? other.IsEmpty();
+
+
         public void Clear()
         {
             _set.Clear();

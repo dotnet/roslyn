@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public sealed override int GetHashCode()
         {
-            return ReferenceEqualityComparer.GetHashCode(this);
+            return ReferenceEqualityComparer.Instance.GetHashCode(this);
         }
 
         public sealed override string ToString()

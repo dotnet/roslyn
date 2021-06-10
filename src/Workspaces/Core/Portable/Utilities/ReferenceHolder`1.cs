@@ -38,7 +38,7 @@ namespace Roslyn.Utilities
                 return Strong(value);
             }
 
-            return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.GetHashCode(value));
+            return new ReferenceHolder<T>(new WeakReference<T>(value), ReferenceEqualityComparer.Instance.GetHashCode(value));
         }
 
         public T? TryGetTarget()
@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
             if (_weakReference is object)
                 return _hashCode;
 
-            return ReferenceEqualityComparer.GetHashCode(_strongReference);
+            return ReferenceEqualityComparer.Instance.GetHashCode(_strongReference);
         }
 
         internal static class TestAccessor

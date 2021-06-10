@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         internal string WorkingDirectory { get; }
 
         /// <summary>
-        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
+        /// The path which contains mscorlib.  This can be null when specified by the user or running in a
         /// CoreClr environment.
         /// </summary>
         internal string? SdkDirectory { get; }
@@ -833,9 +833,9 @@ namespace Microsoft.CodeAnalysis
                 out bool reportAnalyzer,
                 out var analyzerDriver);
 
-            // At this point analyzers are already complete in which case this is a no-op.  Or they are 
-            // still running because the compilation failed before all of the compilation events were 
-            // raised.  In the latter case the driver, and all its associated state, will be waiting around 
+            // At this point analyzers are already complete in which case this is a no-op.  Or they are
+            // still running because the compilation failed before all of the compilation events were
+            // raised.  In the latter case the driver, and all its associated state, will be waiting around
             // for events that are never coming.  Cancel now and let the clean up process begin.
             if (analyzerCts != null)
             {
@@ -967,8 +967,8 @@ namespace Microsoft.CodeAnalysis
 
                 if (!generators.IsEmpty)
                 {
-                    // At this point we have a compilation with nothing yet computed. 
-                    // We pass it to the generators, which will realize any symbols they require. 
+                    // At this point we have a compilation with nothing yet computed.
+                    // We pass it to the generators, which will realize any symbols they require.
                     compilation = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
@@ -1089,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
                     WithPdbFilePath(PathUtilities.NormalizePathPrefix(finalPdbFilePath, Arguments.PathMap));
 
                 // TODO(https://github.com/dotnet/roslyn/issues/19592):
-                // This feature flag is being maintained until our next major release to avoid unnecessary 
+                // This feature flag is being maintained until our next major release to avoid unnecessary
                 // compat breaks with customers.
                 if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                 {
@@ -1115,9 +1115,9 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // Need to ensure the PDB file path validation is done on the original path as that is the 
-                // file we will write out to disk, there is no guarantee that the file paths emitted into 
-                // the PE / PDB are valid file paths because pathmap can be used to create deliberately 
+                // Need to ensure the PDB file path validation is done on the original path as that is the
+                // file we will write out to disk, there is no guarantee that the file paths emitted into
+                // the PE / PDB are valid file paths because pathmap can be used to create deliberately
                 // illegal names
                 if (!PathUtilities.IsValidFilePath(finalPdbFilePath))
                 {
@@ -1614,13 +1614,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
+        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is
         /// meant to be inline with the specification here:
-        /// 
+        ///
         ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
-        /// 
-        /// Issue #8193 tracks filling this out to the full specification. 
-        /// 
+        ///
+        /// Issue #8193 tracks filling this out to the full specification.
+        ///
         ///     https://github.com/dotnet/roslyn/issues/8193
         /// </summary>
         private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)

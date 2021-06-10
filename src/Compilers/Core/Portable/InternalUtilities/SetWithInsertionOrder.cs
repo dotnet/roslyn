@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -91,6 +92,18 @@ namespace Roslyn.Utilities
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public ImmutableArray<T> AsImmutable() => _elements.ToImmutableArrayOrEmpty();
+
+        public bool IsProperSubsetOf(IEnumerable<T> other) => _set?.IsProperSubsetOf(other) ?? !other.IsEmpty();
+
+        public bool IsProperSupersetOf(IEnumerable<T> other) => _set?.IsProperSupersetOf(other) ?? false;
+
+        public bool IsSubsetOf(IEnumerable<T> other) => _set?.IsProperSubsetOf(other) ?? other.IsEmpty();
+
+        public bool IsSupersetOf(IEnumerable<T> other) => _set?.IsSupersetOf(other) ?? other.IsEmpty();
+
+        public bool Overlaps(IEnumerable<T> other) => _set?.Overlaps(other) ?? other.IsEmpty();
+
+        public bool SetEquals(IEnumerable<T> other) => _set?.SetEquals(other) ?? other.IsEmpty();
 
         public T this[int i] => _elements![i];
     }

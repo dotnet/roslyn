@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                 var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
 
                 // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-                // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
+                // assembly).  So we have to keep track of it so we can get back from it to a project in case the
                 // underlying compilation is GC'ed.
                 var primaryDynamic = new WeakReference<ITypeSymbol?>(
                     compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol == null)
                         continue;
 
-                    secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
+                    secondarySymbols.Add((ReferenceEqualityComparer.Instance.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
                 }
 
                 // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var secondarySymbols = this.SecondaryReferencedSymbols;
 
-                    var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
+                    var symbolHash = ReferenceEqualityComparer.Instance.GetHashCode(symbol);
 
                     // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
                     // the location we should start looking at.
