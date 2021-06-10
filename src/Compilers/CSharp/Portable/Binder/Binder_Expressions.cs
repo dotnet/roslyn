@@ -7892,6 +7892,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindToNaturalType(argument, diagnostics),
                 patternSymbol.GetTypeOrReturnType().Type);
 
+            ReportDiagnosticsIfObsolete(diagnostics, patternSymbol, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
+
             if (!argIsIndex)
             {
                 checkWellKnown(WellKnownMember.System_Range__get_Start);
@@ -7944,9 +7947,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
             {
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
-                // PROTOTYPE we should check whether lengthOrCountProperty.GetMethod might be obsolete
-                ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
-
                 lookupResult.Free();
                 return true;
             }
@@ -7990,7 +7990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
-                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
                             return true;

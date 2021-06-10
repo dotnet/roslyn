@@ -1044,22 +1044,33 @@ class X
     } 
 }
 ";
-            // PROTOTYPE(list-patterns): Missing errors for implicit support https://github.com/dotnet/roslyn/issues/53418
-            // PROTOTYPE: still missing errors on Count/Length. Should also test with obsolete accessors
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
+            // PROTOTYPE(list-patterns) Missing diagnostics for Length (should revisit after LDM)
             compilation.VerifyEmitDiagnostics(
                 // (25,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
                 //         _ = new Test1() is {0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.this[int]", "error2").WithLocation(25, 28),
+                // (25,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
+                //         _ = new Test1() is {0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.Count", "error3").WithLocation(25, 28),
                 // (27,31): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
                 //         _ = new Test1() is [1]{0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.this[int]", "error2").WithLocation(27, 31),
+                // (27,31): error CS0619: 'Test1.Count' is obsolete: 'error3'
+                //         _ = new Test1() is [1]{0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test1.Count", "error3").WithLocation(27, 31),
                 // (28,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
                 //         _ = new Test1() is {..0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test1.this[int]", "error2").WithLocation(28, 28),
+                // (28,28): error CS0619: 'Test1.Count' is obsolete: 'error3'
+                //         _ = new Test1() is {..0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test1.Count", "error3").WithLocation(28, 28),
                 // (28,29): error CS0619: 'Test1.Slice(int, int)' is obsolete: 'error1'
                 //         _ = new Test1() is {..0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Slice(int, int)", "error1").WithLocation(28, 29),
+                // (28,29): error CS0619: 'Test1.Count' is obsolete: 'error3'
+                //         _ = new Test1() is {..0};
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Count", "error3").WithLocation(28, 29),
                 // (29,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is {0};
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{0}").WithArguments("Test2.this[System.Index]", "error4").WithLocation(29, 28),
@@ -1071,7 +1082,8 @@ class X
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "{..0}").WithArguments("Test2.this[System.Index]", "error4").WithLocation(32, 28),
                 // (32,29): error CS0619: 'Test2.this[Range]' is obsolete: 'error5'
                 //         _ = new Test2() is {..0};
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error5").WithLocation(32, 29));
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error5").WithLocation(32, 29)
+                );
         }
 
         [Fact]

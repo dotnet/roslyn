@@ -286,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause) || node.IsKind(SyntaxKind.LengthPatternClause));
             var lookupResult = LookupResult.GetInstance();
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            // PROTOTYPE(list-patterns) Report if obsolete
             bool found = TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo);
             lookupResult.Free();
             return found;
