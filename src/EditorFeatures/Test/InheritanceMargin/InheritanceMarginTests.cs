@@ -1048,6 +1048,75 @@ abstract class {|target1:AbsBar|} : IBar<int>
                 itemForFooInAbsBar);
         }
 
+        [Fact]
+        public Task TestStaticAbstractMemberInterface()
+        {
+            var markup = @"
+interface {|target:I1|}<T> where T : I1<T>
+{
+    static abstract void M1();
+    static abstract int P1 { get; set; }
+    static abstract event EventHandler e1;
+    static abstract int operator +(T i1);
+}
+
+public class {|target1:Class1|} : I1<Class1>
+{
+    public static int {|target3:P1|} { get => 1; set { } }
+    public static event EventHandler {|target4:e1|};
+    public static void {|target2:M1|}() {}
+    public static int operator +(C1 i) => 1;
+}";
+            var itemForI1 = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface I1<T>",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class Class1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForM1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void I1<T>.M1()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void Class1.M1()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForP1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "int I1<T>.P1 { get; set; }",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void I1<T>.P1 { get; set; }",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForE1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "event EventHandler I1<T>.e1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "event EventHandler Class1.e1",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForAbsClass1 = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "class Class1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface I1<T>",
+                        locationTag: "target",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForI1,
+                itemForAbsClass1,
+                itemForM1InI1,
+                itemForP1InI1,
+                itemForE1InI1);
+        }
+
         #endregion
 
         #region TestsForVisualBasic
