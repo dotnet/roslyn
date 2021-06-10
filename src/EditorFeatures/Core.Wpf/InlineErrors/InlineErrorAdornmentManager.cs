@@ -168,7 +168,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                         }
 
                         var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
-                        Canvas.SetLeft(graphicsResult.VisualElement, lineView.Right);
+
+                        if (tag.Location is InlineErrorsLocations.HookedToCode)
+                        {
+                            Canvas.SetLeft(graphicsResult.VisualElement, lineView.Right);
+                        }
+
                         if (lineView.Right < TextView.ViewportWidth - graphicsResult.VisualElement.DesiredSize.Width)
                         {
                             AdornmentLayer.AddAdornment(

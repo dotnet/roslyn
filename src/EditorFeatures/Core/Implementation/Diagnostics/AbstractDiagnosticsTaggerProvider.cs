@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : AsynchronousTaggerProvider<TTag>
         where TTag : ITag
     {
-        private readonly IDiagnosticService _diagnosticService;
+        protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
         /// Keep track of the ITextSnapshot for the open Document that was used when diagnostics were
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IAsynchronousOperationListener listener)
             : base(threadingContext, listener)
         {
-            _diagnosticService = diagnosticService;
-            _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+            DiagnosticService = diagnosticService;
+            DiagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
         }
 
         private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService));
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService));
         }
 
         protected internal abstract bool IsEnabled { get; }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
-            var buckets = _diagnosticService.GetPushDiagnosticBuckets(
+            var buckets = DiagnosticService.GetPushDiagnosticBuckets(
                 workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, context.CancellationToken);
 
             foreach (var bucket in buckets)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var id = bucket.Id;
-                var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
+                var diagnostics = await DiagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
                     diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,

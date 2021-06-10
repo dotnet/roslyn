@@ -10,13 +10,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -30,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
     internal class InlineErrorTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineErrorTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(FeatureOnOffOptions.InlineErrors);
+        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineErrorsOptions.EnableInlineDiagnostics);
 
         protected internal override bool IsEnabled => true;
 
@@ -44,6 +48,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             : base(threadingContext, diagnosticService, listenerProvider)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+        }
+
+        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+        {
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineErrorsOptions.EnableInlineDiagnostics),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineErrorsOptions.LocationOption));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -65,7 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 return null;
             }
 
-            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap);
+            RoslynDebug.AssertNotNull(diagnostic.DocumentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(diagnostic.DocumentId);
+            var locationOption = workspace.Options.GetOption(InlineErrorsOptions.LocationOption, document.Project.Language);
+            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap, locationOption);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

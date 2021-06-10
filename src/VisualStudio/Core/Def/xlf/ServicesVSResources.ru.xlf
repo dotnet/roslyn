@@ -252,9 +252,9 @@
         <target state="translated">Отображать все подсказки при нажатии клавиш ALT+F1</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_errors_experimental">
-        <source>Display inline errors (experimental)</source>
-        <target state="new">Display inline errors (experimental)</target>
+      <trans-unit id="Display_inline_diagnostics">
+        <source>Display inline diagnostics</source>
+        <target state="new">Display inline diagnostics</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -377,6 +377,16 @@
         <target state="translated">Выделить связанные компоненты под курсором</target>
         <note />
       </trans-unit>
+      <trans-unit id="Hook_to_end_of_text">
+        <source>Hook to end of text</source>
+        <target state="new">Hook to end of text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Hook_to_end_of_window">
+        <source>Hook to end of window</source>
+        <target state="new">Hook to end of window</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Id">
         <source>Id</source>
         <target state="new">Id</target>
@@ -405,6 +415,11 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Индексированный в репозитории</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">

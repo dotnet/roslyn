@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         public const string TagID = "inline error - ";
         public readonly string ErrorType;
         private readonly DiagnosticData _diagnostic;
+        public readonly InlineErrorsLocations Location;
 
-        public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap)
+        public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineErrorsLocations location)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
             _diagnostic = diagnostic;
+            Location = location;
         }
 
         /// <summary>
@@ -56,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             var image = new CrispImage
             {
-                Moniker = GetMoniker()
+                Moniker = GetMoniker(),
+                RenderSize = new Size(16, 16)
             };
 
             var statusImage = new InlineUIContainer(image);
@@ -80,8 +83,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             };
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-
-            view.ViewportWidthChanged += ViewportWidthChangedHandler;
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout.
             // TODO: Not sure if these are needed anymore since the errors are not intratextadornment tags
@@ -89,15 +90,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
             TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
 
+            view.ViewportWidthChanged += ViewportWidthChangedHandler;
             Canvas.SetTop(border, bounds.Bounds.Bottom - border.DesiredSize.Height);
-            //Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+
+            if (Location is InlineErrorsLocations.HookedToWindow)
+            {
+                Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+            }
 
             return new GraphicsResult(border,
-                () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
+                    () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {
-                //Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+                if (Location is InlineErrorsLocations.HookedToWindow)
+                {
+                    Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
+                }
             }
         }
 

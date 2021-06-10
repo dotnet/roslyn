@@ -1713,7 +1713,16 @@ I agree to all of the foregoing:</value>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
   </data>
-  <data name="Display_inline_errors_experimental" xml:space="preserve">
-    <value>Display inline errors (experimental)</value>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_inline_diagnostics" xml:space="preserve">
+    <value>Display inline diagnostics</value>
+  </data>
+  <data name="Hook_to_end_of_text" xml:space="preserve">
+    <value>Hook to end of text</value>
+  </data>
+  <data name="Hook_to_end_of_window" xml:space="preserve">
+    <value>Hook to end of window</value>
   </data>
 </root>

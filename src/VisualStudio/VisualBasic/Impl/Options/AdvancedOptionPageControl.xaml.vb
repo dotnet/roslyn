@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' If so, default to that. Otherwise default to disabled
                              Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace), False)
                          End Function)
-            BindToOption(DisplayInlineErrors, FeatureOnOffOptions.InlineErrors, LanguageNames.VisualBasic)
+            'BindToOption(DisplayInlineErrors, FeatureOnOffOptions.InlineErrors, LanguageNames.VisualBasic)
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
 

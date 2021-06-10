@@ -60,8 +60,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Suppress_hints_when_parameter_names_differ_only_by_suffix As String =
             ServicesVSResources.Suppress_hints_when_parameter_names_differ_only_by_suffix
 
-        Public ReadOnly Property Option_Display_inline_errors_experimental As String =
-            ServicesVSResources.Display_inline_errors_experimental
+        Public ReadOnly Property Option_Inline_Diagnostics_experimental As String =
+            ServicesVSResources.Inline_Diagnostics_experimental
+
+        Public ReadOnly Property Option_Display_inline_diagnostics As String =
+            ServicesVSResources.Display_inline_diagnostics
+
+        Public ReadOnly Property Option_Hook_to_end_of_text As String =
+            ServicesVSResources.Hook_to_end_of_text
+
+        Public ReadOnly Property Option_Hook_to_end_of_window As String =
+            ServicesVSResources.Hook_to_end_of_window
 
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
