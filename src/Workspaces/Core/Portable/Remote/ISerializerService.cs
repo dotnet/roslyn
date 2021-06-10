@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         void SerializeOptionSet(SerializableOptionSet options, ObjectWriter writer, CancellationToken cancellationToken);
 
-        T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
+        T? Deserialize<T>(WellKnownSynchronizationKind kind, Checksum? checksum, ObjectReader reader, CancellationToken cancellationToken);
 
         Checksum CreateChecksum(object value, CancellationToken cancellationToken);
         Checksum CreateParseOptionsChecksum(ParseOptions value);

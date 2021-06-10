@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), checksum: null, objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
 
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 using var objectReader = ObjectReader.TryGetReader(stream);
 
-                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var newText = serializer.Deserialize<SourceText>(sourceText.GetWellKnownSynchronizationKind(), checksum: null, objectReader, CancellationToken.None);
                 Assert.Equal(sourceText.ToString(), newText.ToString());
             }
         }
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
                 stream.Position = 0;
                 using var objectReader = ObjectReader.TryGetReader(stream);
-                var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), objectReader, CancellationToken.None);
+                var recoveredOptions = serializer.Deserialize<CompilationOptions>(originalOptions.GetWellKnownSynchronizationKind(), checksum: null, objectReader, CancellationToken.None);
 
                 var original = serializer.CreateChecksum(originalOptions, CancellationToken.None);
                 var recovered = serializer.CreateChecksum(recoveredOptions, CancellationToken.None);
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
-            var recovered = serializer.Deserialize<object>(asset.Kind, reader, CancellationToken.None);
+            var recovered = serializer.Deserialize<object>(asset.Kind, checksum: null, reader, CancellationToken.None);
             var assetFromStorage = new SolutionAsset(serializer.CreateChecksum(recovered, CancellationToken.None), recovered);
 
             Assert.Equal(asset.Checksum, assetFromStorage.Checksum);

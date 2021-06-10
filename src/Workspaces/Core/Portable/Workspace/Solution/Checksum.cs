@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -35,6 +34,13 @@ namespace Microsoft.CodeAnalysis
 
         public Checksum(HashData hash)
             => _checksum = hash;
+
+        internal ImmutableArray<byte> ToImmutableArray()
+        {
+            var data = new byte[HashSize];
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(data, ref Unsafe.AsRef(in _checksum)));
+            return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref data);
+        }
 
         /// <summary>
         /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be

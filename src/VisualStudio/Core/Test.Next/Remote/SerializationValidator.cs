@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var reader = ObjectReader.TryGetReader(stream);
 
             // deserialize bits to object
-            var result = Serializer.Deserialize<T>(data.Kind, reader, CancellationToken.None);
+            var result = Serializer.Deserialize<T>(data.Kind, checksum, reader, CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;
         }

@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Attach to existing <see cref="ITemporaryTextStorage"/> with given name.
         /// </summary>
-        ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken = default);
+        ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, Checksum? checksum, CancellationToken cancellationToken = default);
     }
 }

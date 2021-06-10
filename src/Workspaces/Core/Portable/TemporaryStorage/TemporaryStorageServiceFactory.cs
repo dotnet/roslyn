@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -118,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Host
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
                 => new TemporaryTextStorage(this);
 
-            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken)
-                => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, Checksum? checksum, CancellationToken cancellationToken)
+                => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding, checksum);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
                 => new TemporaryStreamStorage(this);
@@ -180,19 +181,21 @@ namespace Microsoft.CodeAnalysis.Host
             private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryTextStorageWithName
             {
                 private readonly TemporaryStorageService _service;
+                private readonly Checksum? _checksum;
                 private SourceHashAlgorithm _checksumAlgorithm;
                 private Encoding? _encoding;
-                private ImmutableArray<byte> _checksum;
+                private ImmutableArray<byte> _checksumData;
                 private MemoryMappedInfo? _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
                     => _service = service;
 
-                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, Checksum? checksum)
                 {
                     _service = service;
                     _checksumAlgorithm = checksumAlgorithm;
                     _encoding = encoding;
+                    _checksum = checksum;
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
 
@@ -206,12 +209,20 @@ namespace Microsoft.CodeAnalysis.Host
 
                 public ImmutableArray<byte> GetChecksum()
                 {
-                    if (_checksum.IsDefault)
+                    if (_checksumData.IsDefault)
                     {
-                        ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetChecksum());
+                        if (_checksum is not null)
+                        {
+                            Debug.Assert(_checksum.ToImmutableArray().SequenceEqual(ReadText(CancellationToken.None).GetChecksum()));
+                            ImmutableInterlocked.InterlockedInitialize(ref _checksumData, _checksum.ToImmutableArray());
+                        }
+                        else
+                        {
+                            ImmutableInterlocked.InterlockedInitialize(ref _checksumData, ReadText(CancellationToken.None).GetChecksum());
+                        }
                     }
 
-                    return _checksum;
+                    return _checksumData;
                 }
 
                 public void Dispose()

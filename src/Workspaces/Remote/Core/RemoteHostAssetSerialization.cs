@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                 // in service hub, cancellation means simply closed stream
-                var result = serializerService.Deserialize<object>(kind, reader, cancellationToken);
+                var result = serializerService.Deserialize<object>(kind, responseChecksum, reader, cancellationToken);
 
                 Debug.Assert(result != null, "We should not be requesting null assets");
 

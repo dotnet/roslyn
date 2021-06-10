@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        private SerializableSourceText DeserializeSerializableSourceText(ObjectReader reader, CancellationToken cancellationToken)
+        private SerializableSourceText DeserializeSerializableSourceText(Checksum? checksum, ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, cancellationToken);
+                var storage = storage2.AttachTemporaryTextStorage(name, offset, size, checksumAlgorithm, encoding, checksum, cancellationToken);
                 if (storage is ITemporaryTextStorageWithName storageWithName)
                 {
                     return new SerializableSourceText(storageWithName);
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             return new SerializableSourceText(SourceTextExtensions.ReadFrom(_textService, reader, encoding, cancellationToken));
         }
 
-        private SourceText DeserializeSourceText(ObjectReader reader, CancellationToken cancellationToken)
+        private SourceText DeserializeSourceText(Checksum? checksum, ObjectReader reader, CancellationToken cancellationToken)
         {
-            var serializableSourceText = DeserializeSerializableSourceText(reader, cancellationToken);
+            var serializableSourceText = DeserializeSerializableSourceText(checksum, reader, cancellationToken);
             return serializableSourceText.Text ?? serializableSourceText.Storage!.ReadText(cancellationToken);
         }
 

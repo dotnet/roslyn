@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+        public T? Deserialize<T>(WellKnownSynchronizationKind kind, Checksum? checksum, ObjectReader reader, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
             {
@@ -212,9 +212,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.AnalyzerReference:
                         return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
+                        return (T)(object)DeserializeSerializableSourceText(checksum, reader, cancellationToken);
                     case WellKnownSynchronizationKind.SourceText:
-                        return (T)(object)DeserializeSourceText(reader, cancellationToken);
+                        return (T)(object)DeserializeSourceText(checksum, reader, cancellationToken);
                     case WellKnownSynchronizationKind.OptionSet:
                         return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
