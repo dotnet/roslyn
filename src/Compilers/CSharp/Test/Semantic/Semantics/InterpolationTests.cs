@@ -5660,6 +5660,36 @@ End Structure
         }
 
         [Fact]
+        public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_03()
+        {
+            var vbCode = @"
+Imports System.Runtime.CompilerServices
+Public Class C
+    Public Sub M(i As Integer, <InterpolatedStringHandlerArgument(CStr(Nothing))> c As CustomHandler)
+    End Sub
+End Class
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+
+            var customHandler = comp.GetTypeByMetadataName("CustomHandler");
+            Assert.True(customHandler.IsInterpolatedStringHandlerType);
+
+            var cParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
+            AssertEx.Equal("System.Runtime.CompilerServices.InterpolatedStringHandlerArgumentAttribute",
+                           cParam.GetAttributes().Single().AttributeClass.ToTestDisplayString());
+            Assert.Empty(cParam.InterpolatedStringHandlerArgumentIndexes);
+            Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
+        }
+
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnStaticMethod()
         {
             var code = @"

@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && HasCallerMemberNameAttribute;
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
-            => GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments ?? ImmutableArray<int>.Empty;
+            => (GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments).NullToEmpty();
 
         internal override bool HasInterpolatedStringHandlerArgumentError
-            => GetDecodedWellKnownAttributeData()?.HasInterpolatedStringHandlerArgumentAttributeError ?? false;
+            => GetDecodedWellKnownAttributeData()?.InterpolatedStringHandlerArguments.IsDefault ?? false;
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
@@ -1132,7 +1132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
             parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
-            parameterWellKnownAttributeData.HasInterpolatedStringHandlerArgumentAttributeError = false;
 
             (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             {
@@ -1193,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             {
-                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().HasInterpolatedStringHandlerArgumentAttributeError = true;
+                arguments.GetOrCreateData<ParameterWellKnownAttributeData>().InterpolatedStringHandlerArguments = default;
             }
         }
 #nullable disable

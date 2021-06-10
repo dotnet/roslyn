@@ -35,32 +35,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerFilePath = 0x1 << 5,
             IsCallerLineNumber = 0x1 << 6,
             IsCallerMemberName = 0x1 << 7,
-            HasInterpolatedStringArgumentAttributeError = 0x1 << 8,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |..|fffffffff|n|rr|ccccccccc|vvvvvvvvv|
+            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
-            // v = decoded well known attribute values. 9 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 9 bits.
+            // v = decoded well known attribute values. 8 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 9;
-            private const int RefKindOffset = 18;
-            private const int FlowAnalysisAnnotationsOffset = 22;
+            private const int WellKnownAttributeCompletionFlagOffset = 8;
+            private const int RefKindOffset = 16;
+            private const int FlowAnalysisAnnotationsOffset = 20;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0x1FF;
+            private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
 
-            private const int HasNameInMetadataBit = 0x1 << 20;
-            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 21;
+            private const int HasNameInMetadataBit = 0x1 << 18;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -142,7 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyDefaultValue = ConstantValue.Unset;
         private ThreeState _lazyIsParams;
-        private ImmutableArray<int> _lazyInterpolatedStringHandlerAttributeIndexes;
+
+        private static readonly ImmutableArray<int> s_defaultStringHandlerAttributeIndexes = ImmutableArray.Create(int.MinValue);
+        private ImmutableArray<int> _lazyInterpolatedStringHandlerAttributeIndexes = s_defaultStringHandlerAttributeIndexes;
 
         /// <summary>
         /// Attributes filtered out from m_lazyCustomAttributes, ParamArray, etc.
@@ -712,8 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 EnsureInterpolatedStringHandlerArgumentAttributeDecoded();
                 ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
-                Debug.Assert(!indexes.IsDefault);
-                return indexes;
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                return indexes.NullToEmpty();
             }
         }
 
@@ -722,48 +723,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureInterpolatedStringHandlerArgumentAttributeDecoded();
-                var setFlag = _packedFlags.TryGetWellKnownAttribute(WellKnownAttributeFlags.HasInterpolatedStringArgumentAttributeError, out bool value);
-                Debug.Assert(setFlag);
-                return value;
+                ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                return indexes.IsDefault;
             }
         }
 
         private void EnsureInterpolatedStringHandlerArgumentAttributeDecoded()
         {
             ImmutableArray<int> indexes = _lazyInterpolatedStringHandlerAttributeIndexes;
-            if (indexes.IsDefault)
+            if (indexes == s_defaultStringHandlerAttributeIndexes)
             {
-                (indexes, var hasError) = DecodeInterpolatedStringHandlerArgumentAttribute();
-                Debug.Assert(!indexes.IsDefault);
-                _packedFlags.SetWellKnownAttribute(WellKnownAttributeFlags.HasInterpolatedStringArgumentAttributeError, hasError);
-                var initialized = ImmutableInterlocked.InterlockedInitialize(ref _lazyInterpolatedStringHandlerAttributeIndexes, indexes);
-                Debug.Assert(_packedFlags.TryGetWellKnownAttribute(WellKnownAttributeFlags.HasInterpolatedStringArgumentAttributeError, out bool setFlag) && setFlag == hasError);
-                Debug.Assert(initialized || indexes.SequenceEqual(_lazyInterpolatedStringHandlerAttributeIndexes));
+                indexes = DecodeInterpolatedStringHandlerArgumentAttribute();
+                Debug.Assert(indexes != s_defaultStringHandlerAttributeIndexes);
+                var initialized = ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterpolatedStringHandlerAttributeIndexes, value: indexes, comparand: s_defaultStringHandlerAttributeIndexes);
+                Debug.Assert(initialized == s_defaultStringHandlerAttributeIndexes || indexes == initialized || indexes.SequenceEqual(initialized));
             }
         }
 
-        private (ImmutableArray<int> Indexes, bool HasError) DecodeInterpolatedStringHandlerArgumentAttribute()
+        private ImmutableArray<int> DecodeInterpolatedStringHandlerArgumentAttribute()
         {
             var (paramNames, hasAttribute) = _moduleSymbol.Module.GetInterpolatedStringHandlerArgumentAttributeValues(_handle);
 
             if (!hasAttribute)
             {
-                return (ImmutableArray<int>.Empty, HasError: false);
+                return ImmutableArray<int>.Empty;
             }
-            else if (paramNames.IsDefault)
+            else if (paramNames.IsDefault || Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
             {
-                // There was an error decoding names from the attribute
-                return (ImmutableArray<int>.Empty, HasError: true);
-            }
-
-            if (Type is not NamedTypeSymbol { IsInterpolatedStringHandlerType: true })
-            {
-                return (ImmutableArray<int>.Empty, HasError: true);
+                return default;
             }
 
             if (paramNames.IsEmpty)
             {
-                return (ImmutableArray<int>.Empty, HasError: false);
+                return ImmutableArray<int>.Empty;
             }
 
             var builder = ArrayBuilder<int>.GetInstance(paramNames.Length);
@@ -777,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case "" when ContainingSymbol.IsStatic:
                         // Invalid data, bail
                         builder.Free();
-                        return (ImmutableArray<int>.Empty, HasError: true);
+                        return default;
 
                     case "":
                         builder.Add(-1);
@@ -793,12 +786,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         else
                         {
                             builder.Free();
-                            return (ImmutableArray<int>.Empty, HasError: true);
+                            return default;
                         }
                 }
             }
 
-            return (builder.ToImmutableAndFree(), HasError: false);
+            return builder.ToImmutableAndFree();
         }
 #nullable disable
 

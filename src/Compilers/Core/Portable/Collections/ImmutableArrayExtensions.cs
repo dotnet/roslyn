@@ -532,6 +532,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns an empty array if the input nullable value type is null or the underlying array is null (default)
+        /// </summary>
+        public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
+            => array switch
+            {
+                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                { } underlying => underlying
+            };
+
+        /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
         /// If the array has no duplicates, the original array is returned. The original array must not be null.
         /// </summary>
