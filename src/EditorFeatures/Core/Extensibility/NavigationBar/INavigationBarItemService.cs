@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -23,7 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
-        Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
+        /// </summary>
+        Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
     }
 
     internal class NavigationBarItemServiceWrapper : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
@@ -41,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor
         public bool ShowItemGrayedIfNear(NavigationBarItem item)
             => _service.ShowItemGrayedIfNear(item);
 
-        public Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             _service.NavigateToItem(document, item, view, cancellationToken);
-            return Task.CompletedTask;
+            return SpecializedTasks.True;
         }
     }
 }
