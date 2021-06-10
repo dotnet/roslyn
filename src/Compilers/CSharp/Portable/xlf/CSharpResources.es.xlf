@@ -1088,8 +1088,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialMethodTypeDifference_Title">
-        <source>Partial method declarations have differences in parameter names, parameter types, or return types.</source>
-        <target state="new">Partial method declarations have differences in parameter names, parameter types, or return types.</target>
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">

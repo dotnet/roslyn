@@ -6329,7 +6329,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Partial method declarations '{0}' and '{1}' have signature differences.</value>
   </data>
   <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
-    <value>Partial method declarations have differences in parameter names, parameter types, or return types.</value>
+    <value>Partial method declarations have signature differences.</value>
   </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
