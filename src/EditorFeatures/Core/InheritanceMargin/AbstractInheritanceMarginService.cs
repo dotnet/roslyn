@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             if (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol
-                || symbol is IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation })
+                or IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation })
             {
                 return true;
             }
