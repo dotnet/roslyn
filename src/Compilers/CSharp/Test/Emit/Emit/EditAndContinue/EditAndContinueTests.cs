@@ -913,7 +913,7 @@ class D
             CheckNames(readers, reader2.GetMemberRefNames());
 
             CheckAttributes(reader2,
-                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(1, TableIndex.MemberRef)));  // 0, delete
+                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)));  // 0, delete
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),

@@ -534,9 +534,13 @@ class C
 
                 using (var md1 = diff1.GetMetadata())
                 {
+                    CheckAttributes(md1.Reader,
+                        new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));  // row id 0 == delete
+
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Delete IteratorStateMachineAttribute
                 }
             }
         }
@@ -581,9 +585,13 @@ class C
 
                 using (var md1 = diff1.GetMetadata())
                 {
+                    CheckAttributes(md1.Reader,
+                       new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef))); // row id 0 == delete
+
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default));  // Delete AsyncStateMachineAttribute
                 }
             }
         }
