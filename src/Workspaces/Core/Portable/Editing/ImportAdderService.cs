@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
                 nodesToSimplify.Add(node);
 
-                if (addedSymbols.Contains(namespaceSymbol))
+                if (addedSymbols.Contains(namespaceSymbol!))
                     continue;
 
                 var namespaceSyntax = GenerateNamespaceImportDeclaration(namespaceSymbol, generator);
