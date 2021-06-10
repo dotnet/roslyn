@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -52,9 +53,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var documentId = arguments.DocumentId;
                     var projectId = arguments.ProjectId;
                     var project = solution.GetProject(projectId);
+                    var document = arguments.DocumentId != null
+                        ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
+                        : null;
                     var documentSpan = arguments.DocumentSpan;
                     var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var diagnosticComputer = new DiagnosticComputer(documentId, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                    var diagnosticComputer = new DiagnosticComputer(document, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
                     var result = await diagnosticComputer.GetDiagnosticsAsync(
                         arguments.AnalyzerIds,

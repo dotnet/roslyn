@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -57,19 +58,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
             }
         }
 
-        private static void TestAll(string markup)
+        /// <summary>
+        /// Verifies all breakpoint spans of the declaration node marked by $$ in <paramref name="markup"/>
+        /// and it's breakpoint span envelope (span that contains all breakpoint span of the declaration).
+        /// 
+        /// Only test declarations that have a single possible body (e.g. <see cref="VariableDeclaratorSyntax"/>,
+        /// not <see cref="FieldDeclarationSyntax"/> or <see cref="VariableDeclarationSyntax"/>).
+        /// </summary>
+        private static void VerifyAllSpansInDeclaration<TDeclaration>(string markup)
+            where TDeclaration : SyntaxNode
         {
             MarkupTestFile.GetPositionAndSpans(markup,
                 out var source, out var position, out ImmutableArray<TextSpan> expectedSpans);
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var root = tree.GetRoot();
+            var declarationNode = root.FindToken(position).Parent.FirstAncestorOrSelf<TDeclaration>();
 
-            var actualSpans = GetBreakpointSequence(root, position).ToArray();
+            var actualSpans = GetBreakpointSequence(declarationNode, position).ToArray();
 
             AssertEx.Equal(expectedSpans, actualSpans,
                 itemSeparator: "\r\n",
                 itemInspector: span => "[|" + source.Substring(span.Start, span.Length) + "|]");
+
+            var expectedEnvelope = expectedSpans.IsEmpty ? default : TextSpan.FromBounds(expectedSpans[0].Start, expectedSpans[^1].End);
+            Assert.NotNull(declarationNode);
+
+            var actualEnvelope = BreakpointSpans.GetEnvelope(declarationNode);
+            Assert.Equal(expectedEnvelope, actualEnvelope);
         }
 
         public static IEnumerable<TextSpan> GetBreakpointSequence(SyntaxNode root, int position)
@@ -91,11 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
         [Fact]
         public void GetBreakpointSequence1()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    void Goo()
-    $$[|{|]
+    $$void Goo()
+    [|{|]
         [|int d = 5;|]
         [|int a = 1|], [|b = 2|], [|c = 3|];
         for ([|int i = 0|], [|j = 1|], [|k = 2|]; [|i < 10|]; [|i++|], [|j++|], [|k--|])
@@ -125,11 +141,11 @@ class C
         [Fact]
         public void GetBreakpointSequence2()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    void Goo()
-    $$[|{|]
+    $$void Goo()
+    [|{|]
         do
         [|{|]
             label:
@@ -151,11 +167,11 @@ class C
         [Fact]
         public void GetBreakpointSequence3()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    int Goo()
-    $$[|{|]
+    $$int Goo()
+    [|{|]
         [|switch(a)|]
         {
             case 1:
@@ -180,11 +196,11 @@ class C
         [Fact]
         public void GetBreakpointSequence4()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    IEnumerable<int> Goo()
-    $$[|{|]
+    $$IEnumerable<int> Goo()
+    [|{|]
         [|yield return 1;|]
         [|foreach|] ([|var f|] [|in|] [|Goo()|])
         [|{|]
@@ -204,22 +220,22 @@ class C
         [Fact]
         public void GetBreakpointSequence5()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    IEnumerable<int> Goo()
-    $$[|{|][|while(t)|][|{|][|}|][|}|]
+    $$IEnumerable<int> Goo()
+    [|{|][|while(t)|][|{|][|}|][|}|]
 }");
         }
 
         [Fact]
         public void GetBreakpointSequence6()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    IEnumerable<int> Goo()
-    $$[|{|]
+    $$IEnumerable<int> Goo()
+    [|{|]
         checked 
         [|{|]
             const int a = 1;
@@ -239,14 +255,16 @@ class C
 }");
         }
 
+        #region Switch Expression
+
         [Fact]
-        public void GetBreakpointSequence7()
+        public void SwitchExpression_All()
         {
-            TestAll(@"
+            VerifyAllSpansInDeclaration<MethodDeclarationSyntax>(@"
 class C
 {
-    IEnumerable<int> Goo()
-    $$[|{|]
+    $$IEnumerable<int> Goo()
+    [|{|]
         [|_ = M2(
             c
             switch
@@ -478,6 +496,10 @@ $$            _ => [|5|],
 }");
         }
 
+        #endregion
+
+        #region For and ForEach
+
         [Fact]
         public void ForStatementInitializer1a()
         {
@@ -633,6 +655,8 @@ $$    (
   }
 }");
         }
+
+        #endregion
 
         #region Lambdas
 
@@ -1237,6 +1261,18 @@ $$    (
 
         #endregion
 
+        #region Field and Veriable Declarators
+
+        [Fact]
+        public void FieldDeclarator_WithoutInitializer_All()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    int $$i, j;
+}");
+        }
+
         [Fact]
         public void FieldDeclarator_WithoutInitializer1()
         {
@@ -1258,7 +1294,72 @@ $$    (
         }
 
         [Fact]
-        public void FieldDeclarator1()
+        public void FieldDeclarator_SingleVariable_Initializer_All1()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    private int $$i;
+}");
+        }
+
+        [Fact]
+        public void FieldDeclarator_SingleVariable_Initializer_All2()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    [|int $$i = 0;|]
+}");
+        }
+        [Fact]
+        public void FieldDeclarator_SingleVariable_Initializer_All3()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    [|private int $$i = 0;|]
+}");
+        }
+
+        [Fact]
+        public void FieldDeclarator_MultiVariable_Initializer_All1()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    [|private int $$i = 0|], j = 2;
+}");
+        }
+
+        [Fact]
+        public void FieldDeclarator_MultiVariable_Initializer_All2()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    [|int $$i = 0|], j = 2;
+}");
+        }
+
+        [Fact]
+        public void FieldDeclarator_MultiVariable_Initializer_All3()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    private int i = 0, [|$$j = 0|];
+}");
+        }
+
+        [Fact]
+        public void FieldDeclarator_Initializer1()
         {
             TestSpan(
 @"class C
@@ -1268,7 +1369,7 @@ $$    (
         }
 
         [Fact]
-        public void FieldDeclarator2()
+        public void FieldDeclarator_Initializer2()
         {
             TestSpan(
 @"class C
@@ -1278,7 +1379,7 @@ $$    (
         }
 
         [Fact]
-        public void FieldDeclarator3()
+        public void FieldDeclarator_Initializer3()
         {
             TestSpan(
 @"class C
@@ -1289,7 +1390,7 @@ $$    (
         }
 
         [Fact]
-        public void FieldDeclarator4()
+        public void FieldDeclarator_Initializer4()
         {
             TestSpan(
 @"class C
@@ -1299,7 +1400,7 @@ $$    (
         }
 
         [Fact]
-        public void FieldDeclarator5()
+        public void FieldDeclarator_Initializer5()
         {
             TestSpan(
 @"class C
@@ -1319,6 +1420,17 @@ $$    [|private int i = 3;|]
         [Fact]
         public void ConstVariableDeclarator2()
             => TestMissing("class C { void Goo() { $$const int a = 1; } }");
+
+        [Fact]
+        public void ConstFieldVariableDeclarator_All()
+        {
+            VerifyAllSpansInDeclaration<VariableDeclaratorSyntax>(
+@"class C
+{
+    [Goo]
+    private const int i = 0, j, $$k = 0;
+}");
+        }
 
         [Fact]
         public void ConstFieldVariableDeclarator0()
@@ -1704,6 +1816,8 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
     public event EventHandler MyEvent = delegate [|{|] $$ };
 }");
         }
+
+        #endregion
 
         [Fact]
         public void EventAccessorAdd()
@@ -4133,8 +4247,20 @@ $$    using ([|var vv = goo()|])
 }");
         }
 
+        #region Constructors
+
         [Fact]
-        public void InstanceConstructor_NoInitializer()
+        public void InstanceConstructor_NoInitializer_BlockBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3][|$$public C()|] [|{|] [|}|]
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_NoInitializer_BlockBody()
         {
             // a sequence point for base constructor call
             TestSpan(
@@ -4143,6 +4269,90 @@ $$    using ([|var vv = goo()|])
     [|pub$$lic C()|]
     {
     }
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_NoInitializer_ExpressionBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3][|$$public C()|] => [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody1()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    [|pub$$lic C()|] => F();
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody2()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    [|public C()|] $$=> x = 1);
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody3()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    public C() =$$> [|x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody4()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    public C() => [|$$x = 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody5()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x =$$ 1|];
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody6()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|]$$;
+}");
+        }
+
+        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
+        public void InstanceConstructor_NoInitializer_ExpressionBody7()
+        {
+            TestSpan(
+@"class C
+{
+    public C() => [|x = 1|];$$
 }");
         }
 
@@ -4163,7 +4373,17 @@ $$    using ([|var vv = goo()|])
         }
 
         [Fact]
-        public void InstanceConstructor_BaseInitializer()
+        public void InstanceConstructor_BaseInitializer_BlockBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3]$$public C() : [|base(42)|] [|{|][|}|]
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_BlockBody()
         {
             // a sequence point for base constructor call
             TestSpan(
@@ -4173,6 +4393,64 @@ $$    using ([|var vv = goo()|])
         : [|base(42)|]
     {
     }
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_ExpressionBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3]$$public C() : [|base(42)|] => [|x = 1|];
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_ExpressionBody1()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    pub$$lic C() : [|base(42)|] => F();
+    
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_ExpressionBody2()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    public C() : [|base(42)|] $$=> F();
+    
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_ExpressionBody3()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    public C() : base(42) =$$> [|F()|];
+    
+}");
+        }
+
+        [Fact]
+        public void InstanceConstructor_BaseInitializer_ExpressionBody4()
+        {
+            // a sequence point for base constructor call
+            TestSpan(
+@"class C
+{
+    public C() : base(42) => [|$$F()|];
+    
 }");
         }
 
@@ -4191,7 +4469,17 @@ $$    using ([|var vv = goo()|])
         }
 
         [Fact]
-        public void StaticConstructor()
+        public void StaticConstructor_BlockBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3]$$static public C() [|{|] [|}|]
+}");
+        }
+
+        [Fact]
+        public void StaticConstructor_BlockBody()
         {
             TestSpan(
 @"class C
@@ -4199,6 +4487,26 @@ $$    using ([|var vv = goo()|])
     $$static C()
     [|{|]
     }
+}");
+        }
+
+        [Fact]
+        public void StaticConstructor_ExpressionBody_All()
+        {
+            VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(
+@"class C
+{
+    [Attribute1, Attribute2][Attribute3]$$static public C() => [|x = 1|];
+}");
+        }
+
+        [Fact]
+        public void StaticConstructor_ExpressionBody()
+        {
+            TestSpan(
+@"class C
+{
+    static C() => [|$$F()|];
 }");
         }
 
@@ -4243,6 +4551,8 @@ $$    using ([|var vv = goo()|])
     }
 }");
         }
+
+        #endregion
 
         [Fact]
         public void OnDestructor()
@@ -4685,56 +4995,6 @@ $$    public event Action Goo { add => [|123|]; remove => 456; }
 @"class C
 {
     public event Action Goo { add => 123; remove => [|456|]; }$$
-}");
-        }
-
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        public void OnCtorExpressionBody1()
-        {
-            TestSpan(
-@"class C
-{
-$$    public C() => [|x = 1|];
-}");
-        }
-
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        public void OnCtorExpressionBody2()
-        {
-            TestSpan(
-@"class C
-{
-    public C() => $$[|x = 1|];
-}");
-        }
-
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        public void OnCtorExpressionBody3()
-        {
-            TestSpan(
-@"class C
-{
-    public C() => [|x =$$ 1|];
-}");
-        }
-
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        public void OnCtorExpressionBody4()
-        {
-            TestSpan(
-@"class C
-{
-    public C() => [|x = 1|]$$;
-}");
-        }
-
-        [Fact, WorkItem(14438, "https://github.com/dotnet/roslyn/issues/14438")]
-        public void OnCtorExpressionBody5()
-        {
-            TestSpan(
-@"class C
-{
-    public C() => [|x = 1|];$$
 }");
         }
 

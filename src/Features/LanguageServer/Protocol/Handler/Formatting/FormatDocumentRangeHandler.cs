@@ -25,7 +25,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 
-        public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetTextEditsAsync(context, cancellationToken, range: request.Range);
+        public override Task<TextEdit[]> HandleRequestAsync(
+            DocumentRangeFormattingParams request,
+            RequestContext context,
+            CancellationToken cancellationToken)
+            => GetTextEditsAsync(context, request.Options, cancellationToken, range: request.Range);
     }
 }

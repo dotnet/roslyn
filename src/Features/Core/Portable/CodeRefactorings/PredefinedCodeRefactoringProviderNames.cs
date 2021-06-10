@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertForEachToLinqQuery = nameof(ConvertForEachToLinqQuery);
         public const string ConvertNumericLiteral = nameof(ConvertNumericLiteral);
         public const string IntroduceLocalForExpression = nameof(IntroduceLocalForExpression);
+        public const string IntroduceParameter = nameof(IntroduceParameter);
         public const string AddParameterCheck = nameof(AddParameterCheck);
         public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);
         public const string NameTupleElement = nameof(NameTupleElement);

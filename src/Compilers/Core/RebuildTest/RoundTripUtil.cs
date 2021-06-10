@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             MemoryStream peStream,
             MemoryStream? pdbStream,
             string assemblyFileName,
-            ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableArray<MetadataReference> metadataReferences,
+            IRebuildArtifactResolver rebuildArtifactResolver,
             CancellationToken cancellationToken = default)
         {
             using var peReader = new PEReader(peStream);
@@ -45,41 +44,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
-            VerifyMetadataReferenceInfo(optionsReader, metadataReferences);
-
             var compilationFactory = CompilationFactory.Create(
                 assemblyFileName,
                 optionsReader);
             using var rebuildPeStream = new MemoryStream();
             using var rebuildPdbStream = optionsReader.HasEmbeddedPdb ? null : new MemoryStream();
-            var emitResult = compilationFactory.Emit(rebuildPeStream, rebuildPdbStream, syntaxTrees, metadataReferences, cancellationToken);
+            var emitResult = compilationFactory.Emit(
+                rebuildPeStream,
+                rebuildPdbStream,
+                rebuildArtifactResolver,
+                cancellationToken);
+
             Assert.True(emitResult.Success);
             Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
             Assert.Equal(pdbStream?.ToArray(), rebuildPdbStream?.ToArray());
-        }
-
-        public static void VerifyMetadataReferenceInfo(CompilationOptionsReader optionsReader, ImmutableArray<MetadataReference> metadataReferences)
-        {
-            var count = 0;
-            foreach (var info in optionsReader.GetMetadataReferences())
-            {
-                count++;
-                var metadataReference = metadataReferences.FirstOrDefault(x =>
-                    info.Mvid == x.GetModuleVersionId() &&
-                    info.ExternAlias == GetSingleAlias(x));
-                AssertEx.NotNull(metadataReference);
-
-                string? GetSingleAlias(MetadataReference metadataReference)
-                {
-                    Assert.True(metadataReference.Properties.Aliases.Length is 0 or 1);
-                    return metadataReference.Properties.Aliases.Length == 1
-                        ? metadataReference.Properties.Aliases[0]
-                        : null;
-                }
-            }
-
-            Assert.Equal(metadataReferences.Length, count);
-
         }
 
         private record EmitInfo(ImmutableArray<byte> PEBytes, PEReader PEReader, ImmutableArray<byte> PdbBytes, MetadataReader PdbReader) : IDisposable

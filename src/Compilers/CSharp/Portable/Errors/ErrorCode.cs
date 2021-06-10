@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1860,7 +1858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1932,15 +1930,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        #region diagnostics introduced for C# 10.0
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
+        ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
+        ERR_CannotInferDelegateType = 8917,
+
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,
         ERR_UnsupportedTypeForSlicePattern,
         ERR_UnsupportedTypeForLengthPattern,
         ERR_MisplacedSlicePattern,
-
-        #region diagnostics introduced for C# 10.0
-
-        ERR_InheritingFromRecordWithSealedToString = 8912
 
         #endregion
 

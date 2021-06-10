@@ -349,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         [Conditional("DEBUG")]

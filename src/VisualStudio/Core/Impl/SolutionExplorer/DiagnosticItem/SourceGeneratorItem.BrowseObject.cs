@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Type_Name))]
-            public string TypeName => _sourceGeneratorItem.Generator.GetType().FullName;
+            public string TypeName => _sourceGeneratorItem.GeneratorTypeName;
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
             public string? Path => _sourceGeneratorItem.AnalyzerReference.FullPath;

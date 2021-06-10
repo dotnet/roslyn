@@ -53,13 +53,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return True
             End Function
 
-            Public Function TrySymbolNavigationNotify(symbol As ISymbol,
-                                                      project As Project,
-                                                      cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
+            Public Function TrySymbolNavigationNotifyAsync(
+                    symbol As ISymbol,
+                    project As Project,
+                    cancellationToken As CancellationToken) As Task(Of Boolean) Implements ISymbolNavigationService.TrySymbolNavigationNotifyAsync
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
                 Me.TrySymbolNavigationNotifyProvidedProject = project
 
-                Return TrySymbolNavigationNotifyReturnValue
+                Return Task.FromResult(TrySymbolNavigationNotifyReturnValue)
             End Function
 
             Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem,

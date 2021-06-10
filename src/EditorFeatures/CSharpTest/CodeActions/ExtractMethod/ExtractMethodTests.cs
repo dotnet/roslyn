@@ -118,6 +118,68 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArm()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => [|1 + x|]
+    };
+}",
+@"class Program
+{
+    int Foo(int x) => x switch
+    {
+        1 => 1,
+        _ => {|Rename:NewMethod|}(x)
+    };
+    private static int NewMethod(int x) => 1 + x;
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task TestSelectionOfSwitchExpressionArmContainingVariables()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => [|(T)array.GetValue(0)|],
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+}",
+@"using System;
+using System.Collections.Generic;
+
+class TestClass
+{
+    public static T RecursiveExample<T>(IEnumerable<T> sequence) =>
+    sequence switch
+    {
+        Array { Length: 0 } => default(T),
+        Array { Length: 1 } array => {|Rename:NewMethod|}<T>(array),
+        Array { Length: 2 } array => (T)array.GetValue(1),
+        Array array => (T)array.GetValue(2),
+        _ => throw new NotImplementedException(),
+    };
+    private static T NewMethod<T>(Array array) => (T)array.GetValue(0);
+}",
+new TestParameters(options: Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TestUseExpressionBodyWhenPossible()
         {
             await TestInRegularAndScript1Async(
@@ -4206,24 +4268,50 @@ class C
         }
 
         [WorkItem(48453, "https://github.com/dotnet/roslyn/issues/48453")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task TestInRecord(string record)
+        {
+            await TestInRegularAndScript1Async($@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => [|this.field|];
+}}",
+$@"
+{record} Program
+{{
+    int field;
+
+    public int this[int i] => {{|Rename:GetField|}}();
+
+    private int GetField()
+    {{
+        return this.field;
+    }}
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
-        public async Task TestInRecord()
+        public async Task TestInRecordStruct()
         {
             await TestInRegularAndScript1Async(@"
-record Program
+record struct Program
 {
     int field;
 
     public int this[int i] => [|this.field|];
 }",
 @"
-record Program
+record struct Program
 {
     int field;
 
     public int this[int i] => {|Rename:GetField|}();
 
-    private int GetField()
+    private readonly int GetField()
     {
         return this.field;
     }

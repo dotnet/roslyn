@@ -35,8 +35,11 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string OOPServerGC = "Roslyn.OOPServerGC";
         public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
         public const string LspTextSyncEnabled = "Roslyn.LspTextSyncEnabled";
+        public const string SourceGeneratorsEnableOpeningInWorkspace = "Roslyn.SourceGeneratorsEnableOpeningInWorkspace";
         public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
         public const string LSPCompletion = "Roslyn.LSP.Completion";
+        public const string CloudCache = "Roslyn.CloudCache";
         public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
+        public const string RazorLspEditorFeatureFlag = "Razor.LSP.Editor";
     }
 }

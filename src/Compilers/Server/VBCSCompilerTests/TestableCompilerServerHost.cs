@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Logger = logger ?? EmptyCompilerServerLogger.Instance;
         }
 
-        BuildResponse ICompilerServerHost.RunCompilation(RunRequest request, CancellationToken cancellationToken)
+        BuildResponse ICompilerServerHost.RunCompilation(in RunRequest request, CancellationToken cancellationToken)
         {
             return RunCompilation(request, cancellationToken);
         }

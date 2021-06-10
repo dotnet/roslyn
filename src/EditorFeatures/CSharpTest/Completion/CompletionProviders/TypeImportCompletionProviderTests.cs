@@ -29,8 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool IsExpandedCompletion { get; set; } = true;
 
-        private bool DisallowAddingImports { get; set; }
-
         private bool HideAdvancedMembers { get; set; }
 
         private bool UsePartialSemantic { get; set; } = false;
@@ -40,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports)
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
                 .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
         }
@@ -935,41 +932,6 @@ namespace Baz
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script)]
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task Commit_NoImport_InProject_DisallowAddingImports(SourceCodeKind kind)
-        {
-            DisallowAddingImports = true;
-
-            var file1 = $@"
-namespace Foo
-{{
-    public class Bar
-    {{
-    }}
-}}";
-
-            var file2 = @"
-namespace Baz
-{
-    class Bat
-    {
-        $$
-    }
-}";
-            var expectedCodeAfterCommit = @"
-namespace Baz
-{
-    class Bat
-    {
-        Foo.Bar$$
-    }
-}";
-            var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
-            await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind: kind);
-        }
-
-        [InlineData(SourceCodeKind.Regular)]
-        [InlineData(SourceCodeKind.Script)]
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Commit_TopLevelStatement_NoImport_InProject(SourceCodeKind kind)
         {
             var file1 = $@"
@@ -1553,7 +1515,7 @@ namespace Baz
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {
             var hashset = new HashSet<string>(expectedTypesInRelativeOrder);
-            var actualTypesInRelativeOrder = allCompletionItems.Where(item => hashset.Contains(item.DisplayText)).Select(item => item.DisplayText).ToImmutableArray();
+            var actualTypesInRelativeOrder = allCompletionItems.SelectAsArray(item => hashset.Contains(item.DisplayText), item => item.DisplayText);
 
             Assert.Equal(expectedTypesInRelativeOrder.Count, actualTypesInRelativeOrder.Length);
             for (var i = 0; i < expectedTypesInRelativeOrder.Count; ++i)

@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 }
 
                 // Stop when meet lambda or local function
-                if (operation.Kind == OperationKind.AnonymousFunction || operation.Kind == OperationKind.LocalFunction)
+                if (operation.Kind is OperationKind.AnonymousFunction or OperationKind.LocalFunction)
                 {
                     return;
                 }
