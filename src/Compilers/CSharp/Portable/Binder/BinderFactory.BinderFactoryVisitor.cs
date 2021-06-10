@@ -1297,13 +1297,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(crefSyntax != null);
             Debug.Assert(memberSyntax != null);
 
-            BaseTypeDeclarationSyntax typeDeclSyntax = memberSyntax as BaseTypeDeclarationSyntax;
-
-            Binder binder = (object)typeDeclSyntax == null
-                ? factory.GetBinder(memberSyntax)
-                : factory.GetBinder(memberSyntax, typeDeclSyntax.OpenBraceToken.SpanStart);
+            Binder binder = memberSyntax is BaseTypeDeclarationSyntax typeDeclSyntax
+                ? getBinder(typeDeclSyntax)
+                : factory.GetBinder(memberSyntax);
 
             return MakeCrefBinderInternal(crefSyntax, binder, inParameterOrReturnType);
+
+            Binder getBinder(BaseTypeDeclarationSyntax baseTypeDeclaration)
+            {
+                if (baseTypeDeclaration is RecordDeclarationSyntax { SemicolonToken: { RawKind: (int)SyntaxKind.SemicolonToken } } recordDeclaration)
+                {
+                    return factory.GetInRecordBodyBinder(recordDeclaration);
+                }
+
+                return factory.GetBinder(baseTypeDeclaration, baseTypeDeclaration.OpenBraceToken.SpanStart);
+            }
         }
 
         /// <summary>
