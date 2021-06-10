@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -22,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     public class InheritanceMarginTests
     {
         private const string SearchAreaTag = "SeachTag";
-        private static readonly string s_lessThanToken = SecurityElement.Escape("<");
-        private static readonly string s_greaterThanToken = SecurityElement.Escape(">");
 
         #region Helpers
 
@@ -35,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             string languageName,
             params TestInheritanceMemberItem[] memberItems)
         {
-            // Escapse < and > for xml
-            markup = markup.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken);
+            markup = @$"<![CDATA[
+{markup}]]>";
 
             var workspaceFile = $@"
 <Workspace>
@@ -143,12 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     <Project Language=""{markup1.languageName}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <ProjectReference>Assembly2</ProjectReference>
         <Document>
-            {markup1.markupInProject1.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken)}
+            <![CDATA[
+                {markup1.markupInProject1}]]>
         </Document>
     </Project>
     <Project Language=""{markup2.languageName}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
-            {markup2.markupInProject2.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken)}
+            <![CDATA[
+                {markup2.markupInProject2}]]>
         </Document>
     </Project>
 </Workspace>";
