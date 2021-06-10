@@ -757,6 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter1 = typeParameters1[i];
                 var typeParameter2 = typeParameters2[i];
+
                 if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.Locations[0], implementation, typeParameter2.Name);

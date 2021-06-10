@@ -1170,12 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
 
         /// <returns>
-        /// Returns true if there is:
-        /// <list type="bullet">
-        /// <item><description>DoesNotReturn mismatch.</description></item>
-        /// <item><description>Parameter type mismatch.</description></item>
-        /// <item><description>Return type mismatch.</description></item>
-        /// </list>
+        /// <see langword="true"/> if a diagnostic was added. Otherwise, <see langword="false"/>.
         /// </returns>
         internal static bool CheckValidNullableMethodOverride<TArg>(
             CSharpCompilation compilation,
