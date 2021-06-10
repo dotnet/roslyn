@@ -621,6 +621,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+
+            internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)

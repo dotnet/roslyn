@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
 
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }

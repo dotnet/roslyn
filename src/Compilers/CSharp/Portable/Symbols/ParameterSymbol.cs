@@ -406,6 +406,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
 
+        /// <summary>
+        /// True if the parameter is attributed with <c>InterpolatedStringHandlerArgumentAttribute</c> and the attribute
+        /// has some error (such as invalid names).
+        /// </summary>
+        internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get

@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(!arguments.Attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);

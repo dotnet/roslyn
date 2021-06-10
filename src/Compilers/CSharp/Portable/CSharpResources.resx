@@ -6678,10 +6678,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Parameter to interpolated string handler conversion occurs after handler parameter</value>
   </data>
   <data name="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument" xml:space="preserve">
-    <value>Interpolated string handler arguments cannot refer to themselves.</value>
-  </data>
-  <data name="ERR_CouldNotFindApplicableInterpolatedStringHandlerConstructor" xml:space="preserve">
-    <value>Could not find a constructor on '{0}' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.</value>
+    <value>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</value>
     <remarks>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</remarks>
   </data>
 </root>

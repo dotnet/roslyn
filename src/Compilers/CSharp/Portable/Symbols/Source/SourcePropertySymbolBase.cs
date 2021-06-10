@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
+        internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
 

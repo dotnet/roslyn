@@ -1018,7 +1018,7 @@ next:;
             }
         }
 
-        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, Binder binder)
+        internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;

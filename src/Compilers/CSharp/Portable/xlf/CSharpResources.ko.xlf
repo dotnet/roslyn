@@ -203,8 +203,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
-        <source>Interpolated string handler arguments cannot refer to themselves.</source>
-        <target state="new">Interpolated string handler arguments cannot refer to themselves.</target>
+        <source>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</source>
+        <target state="new">InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
@@ -250,11 +250,6 @@
       <trans-unit id="ERR_CopyConstructorWrongAccessibility">
         <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
         <target state="translated">레코드가 봉인되지 않았으므로 복사 생성자 '{0}'이(가) 퍼블릭이거나 보호되어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_CouldNotFindApplicableInterpolatedStringHandlerConstructor">
-        <source>Could not find a constructor on '{0}' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.</source>
-        <target state="new">Could not find a constructor on '{0}' that matches the parameters specified in the InterpolatedStringHandlerArgumentAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)));
+                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)), $"Message for error {code} is null or empty.");
             }
         }
 

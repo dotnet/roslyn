@@ -293,6 +293,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        // https://github.com/dotnet/roslyn/issues/53994 tracks re-enabling nullable and fixing this method
+#nullable disable
         private static IEnumerable<string> ReadLanguagesFromAttribute(ref BlobReader argsReader)
         {
             if (argsReader.Length > 4)
@@ -300,27 +302,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Arguments are present--check prologue.
                 if (argsReader.ReadByte() == 1 && argsReader.ReadByte() == 0)
                 {
-                    string? firstLanguageName;
+                    string firstLanguageName;
                     if (!PEModule.CrackStringInAttributeValue(out firstLanguageName, ref argsReader))
                     {
                         return SpecializedCollections.EmptyEnumerable<string>();
                     }
 
-                    ImmutableArray<string?> additionalLanguageNames;
+                    ImmutableArray<string> additionalLanguageNames;
                     if (PEModule.CrackStringArrayInAttributeValue(out additionalLanguageNames, ref argsReader))
                     {
                         if (additionalLanguageNames.Length == 0)
                         {
-                            return firstLanguageName == null ? SpecializedCollections.EmptyEnumerable<string>() : SpecializedCollections.SingletonEnumerable(firstLanguageName);
+                            return SpecializedCollections.SingletonEnumerable(firstLanguageName);
                         }
 
-                        return additionalLanguageNames.Insert(0, firstLanguageName).WhereNotNull();
+                        return additionalLanguageNames.Insert(0, firstLanguageName);
                     }
                 }
             }
             return SpecializedCollections.EmptyEnumerable<string>();
         }
-
+#nullable enable
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {

@@ -2020,7 +2020,7 @@
 
   <Node Name="BoundInterpolatedStringHandlerPlaceholder" Base="BoundValuePlaceholderBase"/>
 
-  <!-- Type expression placeholder for the arguments to the constructor call for an interpolated string handler
+  <!-- A typed expression placeholder for the arguments to the constructor call for an interpolated string handler
        conversion. We intentionally use a placeholder for overload resolution here to ensure that no conversion
        from expression can occur. -->
   <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase">

@@ -1190,29 +1190,29 @@ namespace Microsoft.CodeAnalysis
             return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
         }
 
-        internal ImmutableArray<string?> GetInterpolatedStringHandlerArgumentAttributeValues(EntityHandle token)
+        internal (ImmutableArray<string?> Names, bool FoundAttribute) GetInterpolatedStringHandlerArgumentAttributeValues(EntityHandle token)
         {
             var targetAttribute = FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerArgumentAttribute);
             if (!targetAttribute.HasValue)
             {
-                return ImmutableArray<string?>.Empty;
+                return (default, false);
             }
 
             Debug.Assert(AttributeDescription.InterpolatedStringHandlerArgumentAttribute.Signatures.Length == 2);
+            Debug.Assert(targetAttribute.SignatureIndex is 0 or 1);
             if (targetAttribute.SignatureIndex == 0)
             {
                 if (TryExtractStringValueFromAttribute(targetAttribute.Handle, out string? paramName))
                 {
-                    return ImmutableArray.Create(paramName);
+                    return (ImmutableArray.Create(paramName), true);
                 }
             }
             else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
             {
-                Debug.Assert(targetAttribute.SignatureIndex == 1);
-                return paramNames.NullToEmpty();
+                return (paramNames.NullToEmpty(), true);
             }
 
-            return ImmutableArray<string?>.Empty;
+            return (default, true);
         }
 #nullable disable
 

@@ -174,5 +174,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SetDataStored();
             }
         }
+
+        private bool _hasInterpolatedStringHandlerArgumentAttributeError = false;
+        public bool HasInterpolatedStringHandlerArgumentAttributeError
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasInterpolatedStringHandlerArgumentAttributeError;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasInterpolatedStringHandlerArgumentAttributeError = value;
+                SetDataStored();
+            }
+        }
     }
 }
