@@ -743,7 +743,7 @@ lambda_expression
   ;
 
 parenthesized_lambda_expression
-  : attribute_list* modifier* parameter_list '=>' (block | expression)
+  : attribute_list* modifier* type? parameter_list '=>' (block | expression)
   ;
 
 simple_lambda_expression
