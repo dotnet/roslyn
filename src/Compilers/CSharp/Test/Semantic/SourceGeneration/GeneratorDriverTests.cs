@@ -1642,7 +1642,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.AsSingleValue())
+                var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.Collect())
                                                 // comparer that ignores the LHS (additional texts)
                                                 .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
                 ctx.RegisterSourceOutput(compilationSource, (spc, c) =>

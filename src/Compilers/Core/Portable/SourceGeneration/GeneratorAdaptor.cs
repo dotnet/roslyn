@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                                             .Select(c => new GeneratorContextBuilder(c))
                                             .Combine(executionContext.ParseOptionsProvider).Select(p => p.Item1 with { ParseOptions = p.Item2 })
                                             .Combine(executionContext.AnalyzerConfigOptionsProvider).Select(p => p.Item1 with { ConfigOptions = p.Item2 })
-                                            .Combine(executionContext.AdditionalTextsProvider.AsSingleValue()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
+                                            .Combine(executionContext.AdditionalTextsProvider.Collect()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
 
                 if (syntaxContextReceiverCreator is object)
                 {
