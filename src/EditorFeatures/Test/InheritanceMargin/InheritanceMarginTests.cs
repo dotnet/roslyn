@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     public class InheritanceMarginTests
     {
         private const string SearchAreaTag = "SeachTag";
+        private static readonly string s_lessThanToken = SecurityElement.Escape("<");
+        private static readonly string s_greaterThanToken = SecurityElement.Escape(">");
 
         #region Helpers
 
@@ -33,6 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             string languageName,
             params TestInheritanceMemberItem[] memberItems)
         {
+            // Escapse < and > for xml
+            markup = markup.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken);
+
             var workspaceFile = $@"
 <Workspace>
    <Project Language=""{languageName}"" CommonReferences=""true"">
@@ -138,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     <Project Language=""{markup1.languageName}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <ProjectReference>Assembly2</ProjectReference>
         <Document>
-            {markup1.markupInProject1}
+            {markup1.markupInProject1.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken)}
         </Document>
     </Project>
     <Project Language=""{markup2.languageName}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
-            {markup2.markupInProject2}
+            {markup2.markupInProject2.Replace("<", s_lessThanToken).Replace(">", s_greaterThanToken)}
         </Document>
     </Project>
 </Workspace>";
@@ -933,18 +938,16 @@ public class {|target5:Bar2|} : Bar1, IBar
         [Fact]
         public Task TestCSharpFindGenericsBaseType()
         {
-            var lessThanToken = SecurityElement.Escape("<");
-            var greaterThanToken = SecurityElement.Escape(">");
-            var markup = $@"
-public interface {{|target2:IBar|}}{lessThanToken}T{greaterThanToken}
-{{
-    void {{|target4:Foo|}}();
-}}
+            var markup = @"
+public interface {|target2:IBar|}<T>
+{
+    void {|target4:Foo|}();
+}
 
-public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar{lessThanToken}string{greaterThanToken}
-{{
-    public void {{|target3:Foo|}}();
-}}";
+public class {|target1:Bar2|} : IBar<int>, IBar<string>
+{
+    public void {|target3:Foo|}();
+}";
 
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
@@ -992,21 +995,19 @@ public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar
         [Fact]
         public Task TestCSharpExplicitInterfaceImplementation()
         {
-            var lessThanToken = SecurityElement.Escape("<");
-            var greaterThanToken = SecurityElement.Escape(">");
-            var markup = $@"
-interface {{|target2:IBar|}}{lessThanToken}T{greaterThanToken}
-{{
-    void {{|target3:Foo|}}(T t);
-}}
+            var markup = @"
+interface {|target2:IBar|}<T>
+{
+    void {|target3:Foo|}(T t);
+}
 
-abstract class {{|target1:AbsBar|}} : IBar{lessThanToken}int{greaterThanToken}
-{{
-    void IBar{lessThanToken}int{greaterThanToken}.{{|target4:Foo|}}(int t)
-    {{
+abstract class {|target1:AbsBar|} : IBar<int>
+{
+    void IBar<int>.{|target4:Foo|}(int t)
+    {
         throw new System.NotImplementedException();
-    }}
-}}";
+    }
+}";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
                 memberName: "interface IBar<T>",
