@@ -1463,27 +1463,31 @@ class C { }
         [Fact]
         public void User_WrappedFunc_Throw_Exceptions()
         {
-            Func<int, int> func = (input) => input;
-            Func<int, int> throwsFunc = (input) => throw new InvalidOperationException("user code exception");
-            Func<int, int> timeoutFunc = (input) => throw new OperationCanceledException();
+            Func<int, CancellationToken, int> func = (input, _) => input;
+            Func<int, CancellationToken, int> throwsFunc = (input, _) => throw new InvalidOperationException("user code exception");
+            Func<int, CancellationToken, int> timeoutFunc = (input, ct) => { ct.ThrowIfCancellationRequested(); return input; };
+            Func<int, CancellationToken, int> otherTimeoutFunc = (input, _) => throw new OperationCanceledException();
+
 
             var userFunc = func.WrapUserFunction();
             var userThrowsFunc = throwsFunc.WrapUserFunction();
             var userTimeoutFunc = timeoutFunc.WrapUserFunction();
+            var userOtherTimeoutFunc = otherTimeoutFunc.WrapUserFunction();
+
 
             // user functions return same values when wrapped
-            var result = userFunc(10);
-            var userResult = userFunc(10);
+            var result = userFunc(10, CancellationToken.None);
+            var userResult = userFunc(10, CancellationToken.None);
             Assert.Equal(10, result);
             Assert.Equal(result, userResult);
 
             // exceptions thrown in user code are wrapped
-            Assert.Throws<InvalidOperationException>(() => throwsFunc(20));
-            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20));
+            Assert.Throws<InvalidOperationException>(() => throwsFunc(20, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20, CancellationToken.None));
 
             try
             {
-                userThrowsFunc(20);
+                userThrowsFunc(20, CancellationToken.None);
             }
             catch (UserFunctionException e)
             {
@@ -1491,8 +1495,12 @@ class C { }
             }
 
             // cancellation is not wrapped, and is bubbled up
-            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30));
-            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30));
+            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30, new CancellationToken(true)));
+            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, new CancellationToken(true)));
+
+            // unless it wasn't *our* cancellation token, in which case it still gets wrapped
+            Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30, CancellationToken.None));
         }
 
         [Fact]
@@ -1511,7 +1519,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var filePaths = ctx.CompilationProvider.SelectMany(c => c.SyntaxTrees).Select(tree => tree.FilePath);
+                var filePaths = ctx.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).Select((tree, _) => tree.FilePath);
 
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
             }));
@@ -1727,7 +1735,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.RegisterSourceOutput(pc.SyntaxProvider.CreateSyntaxProvider(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
+                    pc.RegisterSourceOutput(pc.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
                 });
             }));
 
@@ -1749,6 +1757,32 @@ class C { }
             driver = driver.RunGenerators(c2);
             Assert.Single(classes);
             Assert.Equal("E", classes[0].Identifier.ValueText);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Can_Be_Cancelled()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+
+                var step1 = ctx.CompilationProvider.Select((c, ct) => { cts.Cancel(); return c; });
+                var step2 = step1.Select((c, ct) => { ct.ThrowIfCancellationRequested(); return c; });
+
+                ctx.RegisterSourceOutput(step2, (spc, c) => spc.AddSource("a", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
         }
     }
 }

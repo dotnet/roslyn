@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> should be transformed</param>
         /// <param name="transform">A function that performs the transform, when <paramref name="predicate"/>returns <c>true</c> for a given node</param>
         /// <returns>An <see cref="IncrementalValueProvider{T}"/> that provides the results of the transformation</returns>
-        public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, bool> predicate, Func<GeneratorSyntaxContext, T> transform)
+        public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform)
         {
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));

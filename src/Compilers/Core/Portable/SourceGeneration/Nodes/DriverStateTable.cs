@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             try
                             {
-                                builders[i].VisitTree(root, state, model);
+                                builders[i].VisitTree(root, state, model, _cancellationToken);
                             }
                             catch (UserFunctionException ufe)
                             {

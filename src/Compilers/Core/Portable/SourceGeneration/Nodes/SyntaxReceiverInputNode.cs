@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
+            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (_walker is object && state != EntryState.Removed)
                 {

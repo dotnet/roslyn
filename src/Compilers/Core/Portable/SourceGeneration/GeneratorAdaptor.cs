@@ -33,16 +33,16 @@ namespace Microsoft.CodeAnalysis
             initContext.RegisterExecutionPipeline((executionContext) =>
             {
                 var contextBuilderSource = executionContext.CompilationProvider
-                                            .Select(c => new GeneratorContextBuilder(c))
-                                            .Combine(executionContext.ParseOptionsProvider).Select(p => p.Item1 with { ParseOptions = p.Item2 })
-                                            .Combine(executionContext.AnalyzerConfigOptionsProvider).Select(p => p.Item1 with { ConfigOptions = p.Item2 })
-                                            .Combine(executionContext.AdditionalTextsProvider.Collect()).Select(p => p.Item1 with { AdditionalTexts = p.Item2 });
+                                            .Select((c, _) => new GeneratorContextBuilder(c))
+                                            .Combine(executionContext.ParseOptionsProvider).Select((p, _) => p.Item1 with { ParseOptions = p.Item2 })
+                                            .Combine(executionContext.AnalyzerConfigOptionsProvider).Select((p, _) => p.Item1 with { ConfigOptions = p.Item2 })
+                                            .Combine(executionContext.AdditionalTextsProvider.Collect()).Select((p, _) => p.Item1 with { AdditionalTexts = p.Item2 });
 
                 if (syntaxContextReceiverCreator is object)
                 {
                     contextBuilderSource = contextBuilderSource
                                            .Combine(executionContext.SyntaxProvider.CreateSyntaxReceiverProvider(syntaxContextReceiverCreator))
-                                           .Select(p => p.Item1 with { Receiver = p.Item2 });
+                                           .Select((p, _) => p.Item1 with { Receiver = p.Item2 });
                 }
 
                 executionContext.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>

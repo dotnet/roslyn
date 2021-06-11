@@ -11,16 +11,16 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class TransformNode<TInput, TOutput> : IIncrementalGeneratorNode<TOutput>
     {
-        private readonly Func<TInput, ImmutableArray<TOutput>> _func;
+        private readonly Func<TInput, CancellationToken, ImmutableArray<TOutput>> _func;
         private readonly IEqualityComparer<TOutput> _comparer;
         private readonly IIncrementalGeneratorNode<TInput> _sourceNode;
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null)
-            : this(sourceNode, userFunc: i => ImmutableArray.Create(userFunc(i)), comparer)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, TOutput> userFunc, IEqualityComparer<TOutput>? comparer = null)
+            : this(sourceNode, userFunc: (i, token) => ImmutableArray.Create(userFunc(i, token)), comparer)
         {
         }
 
-        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null)
+        public TransformNode(IIncrementalGeneratorNode<TInput> sourceNode, Func<TInput, CancellationToken, ImmutableArray<TOutput>> userFunc, IEqualityComparer<TOutput>? comparer = null)
         {
             _sourceNode = sourceNode;
             _func = userFunc;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 else if (entry.state != EntryState.Cached || !newTable.TryUseCachedEntries())
                 {
                     // generate the new entries
-                    var newOutputs = _func(entry.item);
+                    var newOutputs = _func(entry.item, cancellationToken);
 
                     if (entry.state != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer))
                     {

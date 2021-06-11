@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SyntaxInputNode<T> : IIncrementalGeneratorNode<T>, ISyntaxInputNode
     {
-        private readonly Func<GeneratorSyntaxContext, T> _transformFunc;
+        private readonly Func<GeneratorSyntaxContext, CancellationToken, T> _transformFunc;
         private readonly Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> _registerOutputAndNode;
-        private readonly Func<SyntaxNode, bool> _filterFunc;
+        private readonly Func<SyntaxNode, CancellationToken, bool> _filterFunc;
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, bool> filterFunc, Func<GeneratorSyntaxContext, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null)
+        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null)
         {
             _transformFunc = transformFunc;
             _registerOutputAndNode = registerOutputAndNode;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
+            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (state == EntryState.Removed)
                 {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<SyntaxNode> nodes;
                     if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
                     {
-                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc);
+                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc, cancellationToken);
                         _filterTable.AddEntries(nodes, EntryState.Added);
                     }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
                     foreach (var node in nodes)
                     {
                         var value = new GeneratorSyntaxContext(node, model);
-                        var transformed = ImmutableArray.Create(_owner._transformFunc(value));
+                        var transformed = ImmutableArray.Create(_owner._transformFunc(value, cancellationToken));
 
                         if (state == EntryState.Added || !_transformTable.TryModifyEntries(transformed, _owner._comparer))
                         {

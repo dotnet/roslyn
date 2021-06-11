@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     {
         ISyntaxInputNode SyntaxInputNode { get; }
 
-        void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model);
+        void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
 
         void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables);
     }
