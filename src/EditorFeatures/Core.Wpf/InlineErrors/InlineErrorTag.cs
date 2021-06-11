@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 Child = block,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(3, top: 0, 0, bottom: 0),
+                Margin = new Thickness(10, top: 0, 0, bottom: 0),
                 Padding = new Thickness(1)
             };
 
