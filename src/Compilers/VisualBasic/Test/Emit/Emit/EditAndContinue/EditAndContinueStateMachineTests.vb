@@ -911,7 +911,8 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
             End Using
         End Sub
@@ -958,7 +959,9 @@ End Class
                 Using md1 = diff1.GetMetadata()
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
             End Using
         End Sub
