@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SerializableSourceText:
-                        return Checksum.Create(kind, ((SerializableSourceText)value).GetChecksum());
+                        return Checksum.From(((SerializableSourceText)value).GetChecksum());
 
                     case WellKnownSynchronizationKind.SourceText:
-                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
+                        return Checksum.From(((SourceText)value).GetChecksum());
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
