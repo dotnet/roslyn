@@ -77,15 +77,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ImmutableArray.Create(context.Document);
         }
 
-        protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
             // For open documents, directly use the IDiagnosticAnalyzerService.  This will use the actual snapshots
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            return await _analyzerService.GetDiagnosticsForSpanAsync(
-                document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
     }
 }
