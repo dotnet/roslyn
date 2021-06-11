@@ -1559,7 +1559,6 @@ class C { }
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, c) => { textsCalledFor.Add(c); });
             }));
 
-
             // run the generator once, and check it was passed the compilation
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
@@ -1770,10 +1769,11 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             CancellationTokenSource cts = new CancellationTokenSource();
+            bool generatorCancelled = false;
+
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-
-                var step1 = ctx.CompilationProvider.Select((c, ct) => { cts.Cancel(); return c; });
+                var step1 = ctx.CompilationProvider.Select((c, ct) => { generatorCancelled = true; cts.Cancel(); return c; });
                 var step2 = step1.Select((c, ct) => { ct.ThrowIfCancellationRequested(); return c; });
 
                 ctx.RegisterSourceOutput(step2, (spc, c) => spc.AddSource("a", ""));
@@ -1781,6 +1781,7 @@ class C { }
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
+            Assert.True(generatorCancelled);
         }
     }
 }

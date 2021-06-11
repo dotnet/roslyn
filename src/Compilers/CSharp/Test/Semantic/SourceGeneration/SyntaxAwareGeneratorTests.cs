@@ -1611,6 +1611,70 @@ class C
                 );
         }
 
+        [Fact]
+        public void Incremental_Generators_Can_Be_Cancelled_During_Syntax()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            int filterCalled = 0;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var step1 = ctx.SyntaxProvider.CreateSyntaxProvider((c, ct) => { filterCalled++; if (c is AssignmentExpressionSyntax) cts.Cancel(); return true; }, (a, _) => a);
+                ctx.RegisterSourceOutput(step1, (spc, c) => spc.AddSource("step1", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
+            Assert.Equal(19, filterCalled);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Can_Be_Cancelled_During_Syntax_And_Stop_Other_SyntaxVisits()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            bool generatorCancelled = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var step1 = ctx.SyntaxProvider.CreateSyntaxProvider((c, ct) => { generatorCancelled = true; cts.Cancel(); return true; }, (a, _) => a);
+                ctx.RegisterSourceOutput(step1, (spc, c) => spc.AddSource("step1", ""));
+
+                var step2 = ctx.SyntaxProvider.CreateSyntaxProvider((c, ct) => { return true; }, (a, _) => a);
+                ctx.RegisterSourceOutput(step2, (spc, c) => spc.AddSource("step2", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
+            Assert.True(generatorCancelled);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

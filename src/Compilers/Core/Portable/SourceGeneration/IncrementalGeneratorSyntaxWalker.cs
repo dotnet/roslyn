@@ -33,6 +33,8 @@ namespace Microsoft.CodeAnalysis
 
         public override void Visit(SyntaxNode node)
         {
+            _token.ThrowIfCancellationRequested();
+
             if (_filter(node, _token))
             {
                 (_results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);

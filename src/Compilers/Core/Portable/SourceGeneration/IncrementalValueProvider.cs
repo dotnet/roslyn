@@ -9,7 +9,7 @@ using System.Text;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a provider of a value that can be transformed as part of constructing an execution pipeline
+    /// Represents a provider of a single value that can be transformed as part of constructing an execution pipeline
     /// </summary>
     /// <remarks>
     /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Represents a provider of values that can be transformed to construct an execution pipeline
+    /// Represents a provider of multiple values that can be transformed to construct an execution pipeline
     /// </summary>
     /// <remarks>
     /// This is an opaque type that cannot be used directly. Instead an <see cref="IIncrementalGenerator" />
