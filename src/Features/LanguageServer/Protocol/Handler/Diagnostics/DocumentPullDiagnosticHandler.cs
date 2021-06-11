@@ -84,9 +84,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return await _analyzerService.GetDiagnosticsForSpanAsync(
-                document, new TextSpan(0, text.Length), cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }
