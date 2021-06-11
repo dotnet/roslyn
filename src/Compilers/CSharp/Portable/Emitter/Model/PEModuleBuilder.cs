@@ -270,7 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var atLeastOneMethodhasIL = false;
             foreach (var method in typeMethods)
             {
-                //if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
                 if (Cci.Extensions.HasBody(method) && (method.GetBody(context) != null) && !method.GetBody(context).SequencePoints.IsEmpty)
                 {
                     atLeastOneMethodhasIL = true;

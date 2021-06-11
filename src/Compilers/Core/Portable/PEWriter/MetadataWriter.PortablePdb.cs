@@ -1004,11 +1004,8 @@ namespace Microsoft.Cci
                     var def = (ITypeDefinition)pair.definition;
                     foreach (var val in pair.document)
                     {
-                        if (!(val == null))
-                        {
-                            rowid = GetOrAddDocument(val, _documentIndex);
-                            builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
-                        }
+                        rowid = GetOrAddDocument(val, _documentIndex);
+                        builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
                     }
                     _debugMetadataOpt.AddCustomDebugInformation(
                     parent: GetTypeDefinitionHandle(def),

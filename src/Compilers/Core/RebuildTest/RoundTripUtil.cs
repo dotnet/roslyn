@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 cancellationToken);
 
             Assert.True(emitResult.Success);
-            Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
             Assert.Equal(pdbStream?.ToArray(), rebuildPdbStream?.ToArray());
+            Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
         }
 
         private record EmitInfo(ImmutableArray<byte> PEBytes, PEReader PEReader, ImmutableArray<byte> PdbBytes, MetadataReader PdbReader) : IDisposable
