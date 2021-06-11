@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 {
     internal class LineSeparatorAdornmentManager : AdornmentManager<LineSeparatorTag>
     {
-        public LineSeparatorAdornmentManager(IThreadingContext threadingContext, IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService, IAsynchronousOperationListener asyncListener, string adornmentLayerName)
+        public LineSeparatorAdornmentManager(IThreadingContext threadingContext, IWpfTextView textView,
+            IViewTagAggregatorFactoryService tagAggregatorFactoryService, IAsynchronousOperationListener asyncListener, string adornmentLayerName)
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
         {
         }
