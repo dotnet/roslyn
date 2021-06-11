@@ -2696,5 +2696,41 @@ public class C
             Assert.True(IsFileFullSigned(tempFile));
         }
         #endregion
+
+        [Fact, WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
+        public void IVT_Circularity()
+        {
+            string lib_cs = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
+
+public abstract class TestBaseClass
+{
+    protected internal virtual bool SupportSvgImages { get; }
+}
+";
+            var libRef = CreateCompilation(lib_cs, options: TestOptions.SigningReleaseDll).EmitToImageReference();
+
+            string source1 = @"
+[assembly: Class1]
+";
+
+            string source2 = @"
+public class Class1 : TestBaseClass
+{
+    protected internal override bool SupportSvgImages { get { return true; } }
+}
+";
+            // To find what the property overrides, we need to bind assembly-level attributes
+            var c2 = CreateCompilation(new[] { source1, source2 }, new[] { libRef }, assemblyName: "WantsIVTAccess", options: TestOptions.SigningReleaseDll);
+            c2.VerifyEmitDiagnostics(
+                // (2,12): error CS0616: 'Class1' is not an attribute class
+                // [assembly: Class1]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Class1").WithArguments("Class1").WithLocation(2, 12)
+                );
+        }
+        // TODO2 add test where attribute pulls on a member explicitly (such as a constant)
+        // TODO2 add test where attribute pulls on the property explicitly
+        // TODO2 add and skip test for the irreduceable case with special attribute type
+        // TODO2 add similar tests (and fix?) in VB
     }
 }
