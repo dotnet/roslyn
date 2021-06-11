@@ -2484,6 +2484,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         {
                                             // A delete of a global statement, when newSymbol isn't null, is an update to the implicit Main method
                                             editKind = SemanticEditKind.Update;
+
+                                            // Since we're deleting we don't have any new nodes, so we have to use the declaring syntax reference 
+                                            Contract.ThrowIfTrue(oldDeclaration == null);
+                                            Contract.ThrowIfFalse(newDeclaration == null);
+                                            newDeclaration = GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+                                            var oldBody = oldDeclaration;
+                                            var newBody = newDeclaration;
+
+                                            AnalyzeChangedMemberBody(
+                                                  oldDeclaration,
+                                                  newDeclaration,
+                                                  oldBody,
+                                                  newBody,
+                                                  oldModel,
+                                                  newModel,
+                                                  oldSymbol,
+                                                  newSymbol,
+                                                  newText,
+                                                  oldActiveStatements: ImmutableArray<UnmappedActiveStatement>.Empty,
+                                                  newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
+                                                  capabilities: capabilities,
+                                                  newActiveStatements,
+                                                  newExceptionRegions,
+                                                  diagnostics,
+                                                  out syntaxMap,
+                                                  cancellationToken);
                                         }
                                         else if (!newSymbol.IsImplicitlyDeclared)
                                         {
@@ -2661,6 +2687,35 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         {
                                             // An insert of a global statement, when oldSymbol isn't null, is an update to the implicit Main method
                                             editKind = SemanticEditKind.Update;
+
+                                            // Since we're inserting we don't have any old nodes, so we have to use the declaring syntax reference 
+                                            Contract.ThrowIfFalse(oldDeclaration == null);
+                                            oldDeclaration = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+                                            var oldBody = oldDeclaration;
+                                            var newBody = newDeclaration;
+
+                                            // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
+                                            var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree);
+                                            var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                                            AnalyzeChangedMemberBody(
+                                                  oldDeclaration,
+                                                  newDeclaration,
+                                                  oldBody,
+                                                  newBody,
+                                                  oldSyntaxModel,
+                                                  newModel,
+                                                  oldSymbol,
+                                                  newSymbol,
+                                                  newText,
+                                                  oldActiveStatements: ImmutableArray<UnmappedActiveStatement>.Empty,
+                                                  newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
+                                                  capabilities: capabilities,
+                                                  newActiveStatements,
+                                                  newExceptionRegions,
+                                                  diagnostics,
+                                                  out syntaxMap,
+                                                  cancellationToken);
                                         }
                                         else if (oldSymbol.DeclaringSyntaxReferences.Length == 1 && newSymbol.DeclaringSyntaxReferences.Length == 1)
                                         {

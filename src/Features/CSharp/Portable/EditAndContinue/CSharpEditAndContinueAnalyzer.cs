@@ -160,6 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 return variableDeclarator.Initializer?.Value;
             }
+            else if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            {
+                // For top level statements, where there is no syntax node to represent the entire body of the synthesized
+                // main method we just use the compilation unit itself
+                return node;
+            }
 
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
         }
@@ -169,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
+            if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            {
+                return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, ((GlobalStatementSyntax)unit.Members[^1]).Statement)!.Captured;
+            }
+
             Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
             return model.AnalyzeDataFlow(memberBody).Captured;
         }
@@ -1110,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => node.IsKind(SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
 
         internal override SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node)
-            => node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
+            => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
             => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&

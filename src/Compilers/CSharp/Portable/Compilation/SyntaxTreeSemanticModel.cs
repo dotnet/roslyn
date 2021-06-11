@@ -2229,7 +2229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("statements not within tree");
             }
 
-            if (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent)
+            if ((firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent) &&
+                // Special case for global statements, since they have no common parent that is a statement syntax
+                firstStatement.Parent is not GlobalStatementSyntax &&
+                lastStatement.Parent is not GlobalStatementSyntax)
             {
                 throw new ArgumentException("statements not within the same statement list");
             }

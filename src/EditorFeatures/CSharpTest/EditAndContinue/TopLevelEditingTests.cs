@@ -13273,9 +13273,6 @@ public class C
 
         #region Top Level Statements
 
-        // This test don't _really_ belong here, but it's actually the top level syntax comparer that is aware of global statements
-        // in order to recognize that an edit has actually occured.
-
         [Fact]
         public void TopLevelStatements_Update()
         {
@@ -13659,7 +13656,8 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
         [Fact]
@@ -13712,7 +13710,107 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Insert()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Update()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(2);
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Delete()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_UpdateMultiple()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(1);
+Console.WriteLine(2);
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(3);
+Console.WriteLine(4);
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // Since each individual statement is a separate update to a separate node, this just validates we correctly
+            // only anaylze the things once
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
         }
 
         #endregion
