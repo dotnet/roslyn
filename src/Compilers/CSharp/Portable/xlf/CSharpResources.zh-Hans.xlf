@@ -1097,6 +1097,16 @@
         <target state="translated">析构中混用的声明和表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">类型和别名不应命名为 "record"。</target>

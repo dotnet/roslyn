@@ -1837,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
