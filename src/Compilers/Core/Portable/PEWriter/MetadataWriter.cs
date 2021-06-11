@@ -2132,9 +2132,9 @@ namespace Microsoft.Cci
             if (constructor != null)
             {
                 metadata.AddCustomAttribute(
-                                parent: parentHandle,
-                                constructor: GetCustomAttributeTypeCodedIndex(constructor),
-                                value: GetCustomAttributeSignatureIndex(customAttribute));
+                    parent: parentHandle,
+                    constructor: GetCustomAttributeTypeCodedIndex(constructor),
+                    value: GetCustomAttributeSignatureIndex(customAttribute));
             }
         }
 
