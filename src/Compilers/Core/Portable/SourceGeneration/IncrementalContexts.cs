@@ -56,10 +56,16 @@ namespace Microsoft.CodeAnalysis
     {
         internal readonly AdditionalSourcesCollection AdditionalSources;
 
-        internal IncrementalGeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources)
+        internal IncrementalGeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken)
         {
             AdditionalSources = additionalSources;
+            CancellationToken = cancellationToken;
         }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Adds source code in the form of a <see cref="string"/> to the compilation that will be available during subsequent phases

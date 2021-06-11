@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis
                     if (generatorState.Info.PostInitCallback is object)
                     {
                         var sourcesCollection = this.CreateSourcesCollection();
-                        var postContext = new IncrementalGeneratorPostInitializationContext(sourcesCollection);
+                        var postContext = new IncrementalGeneratorPostInitializationContext(sourcesCollection, cancellationToken);
                         try
                         {
                             generatorState.Info.PostInitCallback(postContext);

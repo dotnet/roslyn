@@ -28,6 +28,7 @@ Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.SyntaxProvider.get ->
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.IncrementalGeneratorPostInitializationContext() -> void
 Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>
 Microsoft.CodeAnalysis.IncrementalValueProvider<TValue>.IncrementalValueProvider() -> void
