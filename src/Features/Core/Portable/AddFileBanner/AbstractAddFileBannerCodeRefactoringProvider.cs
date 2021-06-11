@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var siblingBanner = await TryGetBannerAsync(siblingDocument, siblingRoot, cancellationToken).ConfigureAwait(false);
+                var siblingBanner = await TryGetBannerAsync(siblingDocument, siblingRoot!, cancellationToken).ConfigureAwait(false);
                 if (siblingBanner.Length > 0 && !siblingDocument.IsGeneratedCode(cancellationToken))
                 {
                     context.RegisterRefactoring(
