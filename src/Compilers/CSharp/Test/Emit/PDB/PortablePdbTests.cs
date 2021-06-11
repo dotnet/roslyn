@@ -681,6 +681,7 @@ class seven
             var pdbReader = GetMetadataReaderfromTwoSource(source, sourceB);
             Guid typeDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
             BlobReader[] reader = new BlobReader[10];
+
             int i = 0;
 
             foreach (var handle in pdbReader.CustomDebugInformation)
@@ -697,13 +698,15 @@ class seven
             }
             i = 0;
             int[] testVals = new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            foreach (var val in reader)
-            {
+            foreach (var read in reader) { 
+                while (read.RemainingBytes > 0)
+                {
 
-                Assert.Equal(testVals[0], val.Length);
-                i++;
+                    Assert.Equal(testVals[0], read.ReadCompressedInteger());
+                    i++;
 
 
+                }
             }
         }
 

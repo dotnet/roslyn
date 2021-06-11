@@ -209,9 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public sealed override List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> GetTypeDocument(EmitContext context)
+        public sealed override List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> GetTypeDocument(EmitContext context)
         {
-            var result = new List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)>();
+            var result = new List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)>();
 
             var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
@@ -281,7 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                     }
                 }
-                else
+                // This statement will only work if constructor is the last on the list, if the list changes
+                // then the whole method will break. Note to find a better way to check if constructor has no body and 
+                // any other method does not have body.
+
+                else if (!method.IsConstructor && atLeastOneMethodhasIL)
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
                 }
@@ -422,24 +426,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> result, Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
+        private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> result,
+                                                    Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
         {
-            int i = 0;
-            Cci.DebugSourceDocument[] sourceDoc = new Cci.DebugSourceDocument[location.Length];
+            // var sourceDoc = new List<Cci.DebugSourceDocument>();
             foreach (var loc in location)
             {
                 FileLinePositionSpan span = loc.GetLineSpan();
                 Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
-                sourceDoc[i] = doc;
-                i++;
-            }
-            foreach (var source in sourceDoc)
-            {
-                if (!doclist.Contains(source))
+
+                if (doc != null)
                 {
-                    result.Add((definition, sourceDoc));
+                    doclist.Add(doc);
+                    //sourceDoc.Add(doc);
                 }
             }
+            result.Add((definition, doclist.ToList()));
+
+            //foreach (var source in sourceDoc)
+            //{
+            //    if (!doclist.Contains(source))
+            //    {
+            //        result.Add((definition, sourceDoc));
+            //    }
+            //}
         }
 
         private Location GetSmallestSourceLocationOrNull(Symbol symbol)

@@ -997,7 +997,7 @@ namespace Microsoft.Cci
             DocumentHandle rowid;
             var builder = new BlobBuilder();
             var document = module.GetTypeDocument(Context);
-            if (!(document == null))
+            if (document.Count > 0)
             {
                 foreach (var pair in document)
                 {
