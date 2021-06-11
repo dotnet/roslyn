@@ -51,6 +51,8 @@ stages:
       LclSource: lclFilesfromPackage
       LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
+  - template: eng/common/templates/jobs/source-build.yml
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
