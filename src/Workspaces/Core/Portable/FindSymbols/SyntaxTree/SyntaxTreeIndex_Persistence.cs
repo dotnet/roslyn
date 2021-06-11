@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var textChecksum = documentChecksumState.Text;
 
             return Checksum.Create(
-                WellKnownSynchronizationKind.SyntaxTreeIndex,
                 new[] { textChecksum, parseOptionsChecksum, SerializationFormatChecksum });
         }
 

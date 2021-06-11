@@ -162,7 +162,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // version ever changes, all persisted data won't match the current checksum
                 // we expect, and we'll recompute things.
                 return Checksum.Create(
-                    WellKnownSynchronizationKind.SymbolTreeInfo,
                     new[] { checksum, SerializationFormatChecksum });
             });
         }

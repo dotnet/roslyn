@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal abstract class ChecksumCollection : ChecksumWithChildren, IEnumerable<Checksum>
     {
-        protected ChecksumCollection(WellKnownSynchronizationKind kind, Checksum[] checksums) : this(kind, (object[])checksums)
+        protected ChecksumCollection(Checksum[] checksums) : this((object[])checksums)
         {
         }
 
-        protected ChecksumCollection(WellKnownSynchronizationKind kind, object[] checksums) : base(kind, checksums)
+        protected ChecksumCollection(object[] checksums) : base(checksums)
         {
         }
 
@@ -87,42 +87,42 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal class ProjectChecksumCollection : ChecksumCollection
     {
         public ProjectChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public ProjectChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.ProjectChecksumCollection, checksums) { }
+        public ProjectChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class DocumentChecksumCollection : ChecksumCollection
     {
         public DocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public DocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.DocumentChecksumCollection, checksums) { }
+        public DocumentChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class TextDocumentChecksumCollection : ChecksumCollection
     {
         public TextDocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public TextDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.TextDocumentChecksumCollection, checksums) { }
+        public TextDocumentChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class AnalyzerConfigDocumentChecksumCollection : ChecksumCollection
     {
         public AnalyzerConfigDocumentChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public AnalyzerConfigDocumentChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.AnalyzerConfigDocumentChecksumCollection, checksums) { }
+        public AnalyzerConfigDocumentChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class ProjectReferenceChecksumCollection : ChecksumCollection
     {
         public ProjectReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public ProjectReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.ProjectReferenceChecksumCollection, checksums) { }
+        public ProjectReferenceChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class MetadataReferenceChecksumCollection : ChecksumCollection
     {
         public MetadataReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public MetadataReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.MetadataReferenceChecksumCollection, checksums) { }
+        public MetadataReferenceChecksumCollection(object[] checksums) : base(checksums) { }
     }
 
     internal class AnalyzerReferenceChecksumCollection : ChecksumCollection
     {
         public AnalyzerReferenceChecksumCollection(Checksum[] checksums) : this((object[])checksums) { }
-        public AnalyzerReferenceChecksumCollection(object[] checksums) : base(WellKnownSynchronizationKind.AnalyzerReferenceChecksumCollection, checksums) { }
+        public AnalyzerReferenceChecksumCollection(object[] checksums) : base(checksums) { }
     }
 }
