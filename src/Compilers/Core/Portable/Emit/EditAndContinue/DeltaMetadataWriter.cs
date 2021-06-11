@@ -43,11 +43,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // For the EncMap table we need to keep a list of exactly which rows in the CustomAttributes table are updated
         // since we spread these out amongst existing rows, it's not just a contiguous set
-        private readonly List<int> _customAttributeRows;
+        private readonly List<int> _customAttributeEncMapRows;
 
         // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
         // original metadata
-        private readonly Dictionary<int, EntityHandle> _customAttributesAdded;
+        private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
 
         private readonly HeapOrReferenceIndex<AssemblyIdentity> _assemblyRefIndex;
         private readonly HeapOrReferenceIndex<string> _moduleRefIndex;
@@ -101,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Emit
             _methodImpls = new MethodImplIndex(this, sizes[(int)TableIndex.MethodImpl]);
 
             _customAttributeParentCounts = new Dictionary<EntityHandle, int>();
-            _customAttributeRows = new List<int>();
-            _customAttributesAdded = new Dictionary<int, EntityHandle>();
+            _customAttributeEncMapRows = new List<int>();
+            _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -822,254 +822,105 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private void PopulateEncLogTableCustomAttributes()
         {
-            if (_customAttributeParentCounts.Count == 0)
+            // List of attributes that need to be emitted to delete a previously emitted attribute
+            var deletedAttributeRows = new List<(int parentRowId, HandleKind kind)>();
+            var customAttributesAdded = new Dictionary<EntityHandle, ArrayBuilder<int>>();
+
+            // The data in _previousGeneration.CustomAttributesAdded is not nicely sorted, or even necessarily contiguous
+            // so we need to map each target onto the rows its attributes occupy so we know which rows to update
+            var lastRowId = _previousGeneration.OriginalMetadata.MetadataReader.GetTableRowCount(TableIndex.CustomAttribute);
+            if (_previousGeneration.CustomAttributesAdded.Count > 0)
             {
-                return;
+                lastRowId = _previousGeneration.CustomAttributesAdded.SelectMany(s => s.Value).Max();
             }
 
-            // We need to be able to process parents in the same order as the original metadata for this algorithm to work.
-            var customAttributeParents = _customAttributeParentCounts.Keys.OrderBy(k => CodedIndex.HasCustomAttribute(k)).ToArray();
-
-            // We might need more (for deletes), but we need at least enough rows for each attribute emitted
-            var initialEncLogRowsSize = _customAttributeParentCounts.Sum(t => t.Value);
-
-            // Because we skip emitted rows when processing the original metadata, for efficiency, we can't emit log records
-            // as we go so we use a list to hold the rowIds we will need to log. We need a list because we need direct element
-            // but also need to resize because at this point we can't know how many attributes might have been deleted.
-            var encLogRows = new List<int>(Enumerable.Repeat(0, initialEncLogRowsSize));
-
-            // The first phase of this is to iterate through the (potentially huge) custom attributes from the original
-            // compilation, and issue updates for existing rows as we go.
-            var skippedParents = PopulateEncLogTableCustomAttributesFromOriginalMetadata(customAttributeParents, encLogRows);
-
-            // The second phase is to go through the rows emitted for each delta and issue updates to them, and also
-            // additions for new attributes, from whatever parents were skipped in the first phase
-            PopulateEncLogTableCustomAttributesFromDeltas(skippedParents, encLogRows);
-
-            // Now we just write out our log table that we calculated previously
-            foreach (var rowId in encLogRows)
+            // Iterate through the parents we emitted custom attributes for, in parent order
+            foreach (var (parent, count) in _customAttributeParentCounts.OrderBy(kvp => CodedIndex.HasCustomAttribute(kvp.Key)))
             {
-                _customAttributeRows.Add(rowId);
+                int index = 0;
+
+                // First we try to update any existing attributes.
+                // GetCustomAttributes does a binary search, so is fast. We presume that the number of rows in the original metadata
+                // greatly outnumbers the amount of parents emitted in this delta so even with repeated searches this is still
+                // quicker than iterating the entire original table, even once.
+                var existingRows = _previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(parent);
+                foreach (var row in existingRows)
+                {
+                    int rowId = MetadataTokens.GetRowNumber(row);
+                    AddLogEntryOrDelete(rowId, parent, add: index < count);
+                    index++;
+                }
+
+                // If we emitted any attributes for this parent in previous deltas then we either need to update
+                // them next, or delete them if necessary
+                if (_previousGeneration.CustomAttributesAdded.TryGetValue(parent, out var rowIds))
+                {
+                    foreach (var rowId in rowIds)
+                    {
+                        TrackCustomAttributeAdded(rowId, parent);
+                        AddLogEntryOrDelete(rowId, parent, add: index < count);
+                        index++;
+                    }
+                }
+
+                // Finally if there are still attributes for this parent left, they are additions new to this delta
+                for (int i = index; i < count; i++)
+                {
+                    lastRowId++;
+                    TrackCustomAttributeAdded(lastRowId, parent);
+                    AddEncLogEntry(lastRowId);
+                }
+            }
+
+            // Save the attributes we've emitted, and the ones from previous deltas, for use in the next generation
+            foreach (var (parent, rowIds) in customAttributesAdded)
+            {
+                _customAttributesAdded.Add(parent, rowIds.ToImmutableAndFree());
+            }
+
+            // Add attributes and log entries for everything we've deleted
+            foreach (var row in deletedAttributeRows)
+            {
+                // now emit a "delete" row with a parent that is for the 0 row of the same table as the existing one
+                if (!MetadataTokens.TryGetTableIndex(row.kind, out var tableIndex))
+                {
+                    throw new InvalidOperationException("Trying to delete a custom attribute for a parent kind that doesn't have a matching table index.");
+                }
+                metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), MetadataTokens.EntityHandle(TableIndex.MemberRef, 0), value: default);
+
+                AddEncLogEntry(row.parentRowId);
+            }
+
+            void AddEncLogEntry(int rowId)
+            {
+                _customAttributeEncMapRows.Add(rowId);
                 metadata.AddEncLogEntry(
                     entity: MetadataTokens.CustomAttributeHandle(rowId),
                     code: EditAndContinueOperation.Default);
             }
-        }
 
-        private List<EntityHandle> PopulateEncLogTableCustomAttributesFromOriginalMetadata(EntityHandle[] emittedAttributeParents, List<int> encLogRows)
-        {
-            var metadataReader = _previousGeneration.OriginalMetadata.MetadataReader;
-
-            // The row id in the original CA table that we're mapping attributes on to
-            var rowId = 1;
-            // The index into emittedAttributeParents, that is the thing we're currently looking for
-            var emittedIndex = 0;
-            // The index in encLogRows we're going to update
-            var encLogRowId = 0;
-
-            // Create a list to store the parents we skip, that come from subsequent generations
-            var skippedParents = new List<EntityHandle>();
-
-            // We iterate through the original metadata, and the emitted attributes at the same time, since they're sorted the same.
-            // metadataReader.CustomAttributes isn't indexable so we're enumerating manually in order to have control of things.
-            using var enumerator = metadataReader.CustomAttributes.GetEnumerator();
-            var hasData = enumerator.MoveNext();
-
-            // We want to manually control where we are in the list of custom attributes so we only MoveNext at the end
-            while (hasData)
+            void AddLogEntryOrDelete(int rowId, EntityHandle parent, bool add)
             {
-                // Data from the existing CA table
-                var customAttributeHandle = enumerator.Current;
-                var parent = metadataReader.GetCustomAttribute(customAttributeHandle).Parent;
-                var parentCodedIndex = CodedIndex.HasCustomAttribute(parent);
-
-                // Data from the CA table delta we are emitting
-                var emittedParent = emittedAttributeParents[emittedIndex];
-                var emittedCodedIndex = CodedIndex.HasCustomAttribute(emittedParent);
-
-                if (parentCodedIndex > emittedCodedIndex)
+                if (add)
                 {
-                    // If the existing data is ahead of the emitted data then it means the current emitted attribute
-                    // must be for something that wasn't in the original compilation so we'll deal with it later.
-                    skippedParents.Add(emittedParent);
-
-                    // Move our log row index on enough to skip over the remaining attributes for this parent, which will
-                    // be filled in later when we process the deltas
-                    encLogRowId += _customAttributeParentCounts[emittedParent];
-
-                    // We're skipping the emitted attribute, so move that index on, but we want to re-check the
-                    // existing attribute in case it matches our next emitted attribute
-                    emittedIndex++;
-                }
-                else if (parent == emittedParent)
-                {
-                    // If we found the attribute we want then add an EncLog table record for it in the right position
-                    // If the right position doesn't exist, then that means we found a parent for which an attribute has
-                    // been deleted
-                    if (encLogRows.Count <= encLogRowId)
-                    {
-                        // Expand our enc log table to accommodate
-                        encLogRows.Add(0);
-                        var ca = metadataReader.GetCustomAttribute(customAttributeHandle);
-                        AddDeletedCustomAttribute(ca.Parent.Kind, ca.Constructor, ca.Value);
-                    }
-                    encLogRows[encLogRowId] = rowId;
-
-                    // We matched, so decrement the count of attributes emitted for this parent
-                    _customAttributeParentCounts[emittedParent]--;
-                    // If there are no more attributes for this parent to emit, then move on to the next
-                    if (_customAttributeParentCounts[emittedParent] <= 0)
-                    {
-                        emittedIndex++;
-                    }
-                    encLogRowId++;
-                    rowId++;
-                    hasData = enumerator.MoveNext();
+                    // Update this row
+                    AddEncLogEntry(rowId);
                 }
                 else
                 {
-                    // No match, but ordering is how we want it, so we're still looking for our current emitted parent
-                    rowId++;
-                    hasData = enumerator.MoveNext();
-                }
-
-                // If we've looked for everything we emitted we can stop looking in existing metadata.
-                // We'll deal with anything we've skipped later.
-                if (emittedIndex == emittedAttributeParents.Length)
-                {
-                    break;
+                    // Delete this row
+                    deletedAttributeRows.Add((rowId, parent.Kind));
                 }
             }
 
-            // If we exhausted the original custom attributes table but there are still attributes that were emitted
-            // they must be part of the deltas
-            for (int i = emittedIndex; i < emittedAttributeParents.Length; i++)
+            void TrackCustomAttributeAdded(int nextRowId, EntityHandle parent)
             {
-                skippedParents.Add(emittedAttributeParents[i]);
+                if (!customAttributesAdded.ContainsKey(parent))
+                {
+                    customAttributesAdded.Add(parent, new ArrayBuilder<int>());
+                }
+                customAttributesAdded[parent].Add(nextRowId);
             }
-
-            return skippedParents;
-        }
-
-        private void PopulateEncLogTableCustomAttributesFromDeltas(List<EntityHandle> remainingEmittedAttributeParents, List<int> encLogRows)
-        {
-            if (remainingEmittedAttributeParents.Count == 0)
-            {
-                return;
-            }
-
-            // The data in _previousGeneration.CustomAttributesAdded is not nicely sorted, or even necessarily contiguous
-            // so we need to map each target onto the rows its attributes occupy so we know which rows to update
-            var attributeMap = CreateExistingAttributeMap(_previousGeneration.OriginalMetadata.MetadataReader, _previousGeneration.CustomAttributesAdded, out var lastRowId);
-
-            int rowId;
-            var nextRowId = lastRowId + 1;
-            var logIndex = 0;
-
-            var index = 0;
-            while (index < remainingEmittedAttributeParents.Count)
-            {
-                var customAttributeTarget = remainingEmittedAttributeParents[index];
-
-                if (attributeMap.TryGetValue(customAttributeTarget, out var queue) &&
-                    queue.Count > 0)
-                {
-                    // If there is already an attribute for this parent, then pull the next available row number
-                    // off the queue and update it
-                    rowId = queue.Dequeue();
-                }
-                else
-                {
-                    // If the target wasn't in the map, and has no more attributes to emit, then thats fine, it means we didn't
-                    // emit attribute for it in this delta, nor any previous deltas
-                    if (_customAttributeParentCounts[customAttributeTarget] == 0)
-                    {
-                        index++;
-                        continue;
-                    }
-
-                    // Either this is a new parent that hasn't had an attribute before, or we've run
-                    // out of existing rows to update for this parent. Either way, we want to add to the end of the table.
-                    rowId = nextRowId++;
-
-                    // Keep track of the addition for passing to the next generation
-                    _customAttributesAdded[rowId] = customAttributeTarget;
-                }
-
-                // If there are no more attributes for this parent to emit, then it means this was a delete of something
-                // added in the previous generation
-                if (_customAttributeParentCounts[customAttributeTarget] == 0)
-                {
-                    // Expand our enc log table to accommodate
-                    encLogRows.Add(0);
-                    logIndex = encLogRows.Count - 1;
-                    // The custom attribute we're deleting came from a previous delta, so we don't have any data about it
-                    // so we just set its constructor to a MemberRef for row id 0
-                    AddDeletedCustomAttribute(customAttributeTarget.Kind, MetadataTokens.EntityHandle(TableIndex.MemberRef, 0), value: default);
-                }
-                else
-                {
-                    _customAttributeParentCounts[customAttributeTarget]--;
-                }
-
-                if (_customAttributeParentCounts[customAttributeTarget] == 0)
-                {
-                    // Finished with this parent
-                    index++;
-                }
-
-                // remainingEmittedAttributeParents only contains records that haven't been logged, but since we know it is in the
-                // right order, we don't need to know the original index we can just fill log rows in order, and skip any
-                // that were already filled in the previous phase.
-                Debug.Assert(logIndex < encLogRows.Count, "logIndex is invalid, possibly caused by a bug in this loop specifically. Is something incrementing it twice?");
-                while (encLogRows[logIndex] != 0)
-                {
-                    logIndex++;
-                }
-
-                Debug.Assert(rowId > 0, "Shouldn't ever emit a log row for custom attribute row 0");
-                encLogRows[logIndex] = rowId;
-            }
-        }
-
-        private void AddDeletedCustomAttribute(HandleKind parentKind, EntityHandle constructor, BlobHandle value)
-        {
-            // now emit a "delete" row with a parent that is for the 0 row of the same table as the existing one
-            var isValidKind = MetadataTokens.TryGetTableIndex(parentKind, out var tableIndex);
-
-            Debug.Assert(isValidKind, "Trying to delete a custom attribute for a parent kind that doesn't have a matching table index.");
-
-            if (isValidKind)
-            {
-                metadata.AddCustomAttribute(MetadataTokens.Handle(tableIndex, 0), constructor, value);
-            }
-        }
-
-        /// <summary>
-        /// For each custom attribute target that was emitted in previous generations, we need to keep a list of
-        /// which row numbers are used because whilst each generation is sorted by parent, we're looking across multiple
-        /// generations.
-        /// </summary>
-        private static Dictionary<EntityHandle, Queue<int>> CreateExistingAttributeMap(MetadataReader metadataReader, IReadOnlyDictionary<int, EntityHandle> customAttributesAdded, out int lastRowId)
-        {
-            var result = new Dictionary<EntityHandle, Queue<int>>(HandleComparer.Default);
-
-            lastRowId = metadataReader.GetTableRowCount(TableIndex.CustomAttribute);
-
-            foreach (var (rowId, parent) in customAttributesAdded)
-            {
-                lastRowId = Math.Max(lastRowId, rowId);
-
-                if (!result.TryGetValue(parent, out var queue))
-                {
-                    queue = new Queue<int>();
-                    result.Add(parent, queue);
-                }
-
-                queue.Enqueue(rowId);
-            }
-
-            return result;
         }
 
         private void PopulateEncLogTableRows<T>(DefinitionIndex<T> index, TableIndex tableIndex)
@@ -1124,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             AddReferencedTokens(tokens, TableIndex.Param, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.Constant, previousSizes, deltaSizes);
-            AddRowNumberTokens(tokens, _customAttributeRows, TableIndex.CustomAttribute);
+            AddRowNumberTokens(tokens, _customAttributeEncMapRows, TableIndex.CustomAttribute);
             AddReferencedTokens(tokens, TableIndex.DeclSecurity, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.ClassLayout, previousSizes, deltaSizes);
             AddReferencedTokens(tokens, TableIndex.FieldLayout, previousSizes, deltaSizes);

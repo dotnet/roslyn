@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: new Dictionary<int, int>(),
                 propertyMapAdded: new Dictionary<int, int>(),
                 methodImplsAdded: new Dictionary<MethodImplKey, int>(),
-                customAttributesAdded: new Dictionary<int, EntityHandle>(),
+                customAttributesAdded: new Dictionary<EntityHandle, ImmutableArray<int>>(),
                 tableEntriesAdded: s_emptyTableSizes,
                 blobStreamLengthAdded: 0,
                 stringStreamLengthAdded: 0,
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
-        internal readonly IReadOnlyDictionary<int, EntityHandle> CustomAttributesAdded;
+        internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
 
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
-            IReadOnlyDictionary<int, EntityHandle> customAttributesAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<int, int> eventMapAdded,
             IReadOnlyDictionary<int, int> propertyMapAdded,
             IReadOnlyDictionary<MethodImplKey, int> methodImplsAdded,
-            IReadOnlyDictionary<int, EntityHandle> customAttributesAdded,
+            IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> customAttributesAdded,
             ImmutableArray<int> tableEntriesAdded,
             int blobStreamLengthAdded,
             int stringStreamLengthAdded,
