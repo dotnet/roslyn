@@ -96,6 +96,35 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
+        public static Checksum Create(Checksum checksum1, Checksum checksum2)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+                checksum3.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
         public static Checksum Create(IEnumerable<Checksum> checksums)
         {
             using var stream = SerializableBytes.CreateWritableStream();

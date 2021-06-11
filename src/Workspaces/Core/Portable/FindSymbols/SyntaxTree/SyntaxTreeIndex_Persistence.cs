@@ -64,8 +64,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
             var textChecksum = documentChecksumState.Text;
 
-            return Checksum.Create(
-                new[] { textChecksum, parseOptionsChecksum, SerializationFormatChecksum });
+            return Checksum.Create(textChecksum, parseOptionsChecksum, SerializationFormatChecksum);
         }
 
         private async Task<bool> SaveAsync(
