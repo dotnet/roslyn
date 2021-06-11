@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
             For Each [interface] In UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit()
                 Dim typeRef = moduleBeingBuilt.Translate([interface],
-                                                            DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                                                            DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                                                             context.Diagnostics)
 
                 Yield [interface].GetTypeRefWithAttributes(UnderlyingNamedType.AdaptedNamedTypeSymbol.DeclaringCompilation, typeRef)

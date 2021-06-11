@@ -158,7 +158,9 @@ namespace RunTests
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var setEnvironmentVariables = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
+                var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
+                var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
+                var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
                     : "";
                 var workItem = $@"
@@ -168,8 +170,10 @@ namespace RunTests
                 {lsCommand}
                 {rehydrateCommand}
                 {lsCommand}
-                dotnet --version
-                {setEnvironmentVariables}
+                {setRollforward}
+                {setPrereleaseRollforward}
+                dotnet --info
+                {setTestIOperation}
                 dotnet {commandLineArguments}
             </Command>
             <Timeout>00:15:00</Timeout>
@@ -245,7 +249,7 @@ namespace RunTests
                 }
 
                 // Display the current status of the TestRunner.
-                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
+                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns.
                 ConsoleUtil.Write($"  {running.Count,2} running, {waiting.Count,2} queued, {completed.Count,2} completed");
                 if (failures > 0)
                 {

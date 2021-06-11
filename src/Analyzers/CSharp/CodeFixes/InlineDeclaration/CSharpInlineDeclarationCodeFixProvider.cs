@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // Then the type is not-apparent, and we should not use var if the user only wants
             // it for apparent types
 
-            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
             var newType = GenerateTypeSyntaxOrVar(local.Type, options);
 
             var declarationExpression = GetDeclarationExpression(
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 }
 
                 var updatedInvocationOrCreation = updatedTopmostContainer.GetAnnotatedNodes(annotation).Single();
-                var updatedSymbolInfo = speculativeModel.GetSymbolInfo(updatedInvocationOrCreation);
+                var updatedSymbolInfo = speculativeModel.GetSymbolInfo(updatedInvocationOrCreation, cancellationToken);
 
                 if (!SymbolEquivalenceComparer.Instance.Equals(previousSymbol, updatedSymbolInfo.Symbol))
                 {

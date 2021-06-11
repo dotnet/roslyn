@@ -372,6 +372,22 @@ namespace CSharpSyntaxGenerator
             }
         }
 
+        protected List<Kind> GetKindsOfFieldOrNearestParent(TreeType nd, Field field)
+        {
+            while ((field.Kinds is null || field.Kinds.Count == 0) && IsOverride(field))
+            {
+                nd = GetTreeType(nd.Base);
+                field = (nd switch
+                {
+                    Node node => node.Fields,
+                    AbstractNode abstractNode => abstractNode.Fields,
+                    _ => throw new InvalidOperationException("Unexpected node type.")
+                }).Single(f => f.Name == field.Name);
+            }
+
+            return field.Kinds;
+        }
+
         #endregion Node helpers
     }
 }

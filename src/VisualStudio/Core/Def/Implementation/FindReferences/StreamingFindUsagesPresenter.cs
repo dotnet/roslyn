@@ -137,38 +137,28 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// <param name="title"></param>
         /// <param name="supportsReferences"></param>
         /// <returns></returns>
-        public FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
-        {
-            this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false, cancellationToken);
-
-            // Keep track of this context object as long as it is being displayed in the UI.
-            // That way we can Clear it out if requested by a client.  When the context is
-            // no longer being displayed, VS will dispose it and it will remove itself from
-            // this set.
-            _currentContexts.Add(context);
-            return context;
-        }
+        public (FindUsagesContext context, CancellationToken cancellationToken) StartSearch(string title, bool supportsReferences)
+            => StartSearchWithCustomColumns(title, supportsReferences, includeContainingTypeAndMemberColumns: false, includeKindColumn: false);
 
         /// <summary>
         /// Start a search that may include Containing Type, Containing Member, or Kind information about the reference
         /// </summary>
-        public FindUsagesContext StartSearchWithCustomColumns(
-            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+        public (FindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(
+            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             this.AssertIsForeground();
-            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            var context = StartSearchWorker(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn);
 
             // Keep track of this context object as long as it is being displayed in the UI.
             // That way we can Clear it out if requested by a client.  When the context is
             // no longer being displayed, VS will dispose it and it will remove itself from
             // this set.
             _currentContexts.Add(context);
-            return context;
+            return (context, context.CancellationTokenSource!.Token);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWorker(
-            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             this.AssertIsForeground();
 
@@ -187,12 +177,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             return supportsReferences
-                ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
-                : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+                ? StartSearchWithReferences(window, desiredGroupingPriority, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : StartSearchWithoutReferences(window, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithReferences(
-            IFindAllReferencesWindow window, int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+            IFindAllReferencesWindow window, int desiredGroupingPriority, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             // Ensure that the window's definition-grouping reflects what the user wants.
             // i.e. we may have disabled this column for a previous GoToImplementation call. 
@@ -207,17 +197,17 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
-            IFindAllReferencesWindow window, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
+            IFindAllReferencesWindow window, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
         {
             // If we're not showing references, then disable grouping by definition, as that will
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken);
+            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
@@ -254,6 +244,24 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             tableControl.SetColumnStates(newColumns);
+        }
+
+        protected static (Guid, string projectName, string? projectFlavor) GetGuidAndProjectInfo(Document document)
+        {
+            // The FAR system needs to know the guid for the project that a def/reference is 
+            // from (to support features like filtering).  Normally that would mean we could
+            // only support this from a VisualStudioWorkspace.  However, we want till work 
+            // in cases like Any-Code (which does not use a VSWorkspace).  So we are tolerant
+            // when we have another type of workspace.  This means we will show results, but
+            // certain features (like filtering) may not work in that context.
+            var vsWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspace;
+
+            var (projectName, projectFlavor) = document.Project.State.NameAndFlavor;
+            projectName ??= document.Project.Name;
+
+            var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
+
+            return (guid, projectName, projectFlavor);
         }
     }
 }

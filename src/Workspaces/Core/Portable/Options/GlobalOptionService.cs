@@ -336,6 +336,12 @@ namespace Microsoft.CodeAnalysis.Options
 
             _currentValues = _currentValues.Add(optionKey, value);
 
+            // Track options with non-default values from serializers as changed options.
+            if (!object.Equals(value, optionKey.Option.DefaultValue))
+            {
+                _changedOptionKeys = _changedOptionKeys.Add(optionKey);
+            }
+
             return value;
         }
 

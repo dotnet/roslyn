@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     Friend Class ViewCreationListener
         Implements ITextViewConnectionListener
 
-        Private ReadOnly _waitIndicator As IWaitIndicator
+        Private ReadOnly _uiThreadOperationExecutor As IUIThreadOperationExecutor
 
         <ImportingConstructor()>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(waitIndicator As IWaitIndicator)
-            Me._waitIndicator = waitIndicator
+        Public Sub New(uiThreadOperationExecutor As IUIThreadOperationExecutor)
+            _uiThreadOperationExecutor = uiThreadOperationExecutor
         End Sub
 
         Public Sub SubjectBuffersConnected(
@@ -47,11 +47,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Sub
 
         Private Sub AddConstructPairTo(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Connect())
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _uiThreadOperationExecutor)).Connect())
         End Sub
 
         Private Sub RemoveConstructPairFrom(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Disconnect())
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _uiThreadOperationExecutor)).Disconnect())
 
             buffers.Where(
                 Function(b) b.Properties.GetProperty(Of AutomaticEndConstructCorrector)(GetType(AutomaticEndConstructCorrector)).IsDisconnected).Do(

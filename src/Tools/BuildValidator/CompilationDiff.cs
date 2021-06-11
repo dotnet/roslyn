@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -54,7 +55,9 @@ namespace BuildValidator
 
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly byte[]? _originalPortableExecutableBytes;
+        private readonly MetadataReader? _originalPdbReader;
         private readonly byte[]? _rebuildPortableExecutableBytes;
+        private readonly MetadataReader? _rebuildPdbReader;
         private readonly Compilation? _rebuildCompilation;
         private readonly ImmutableArray<MetadataReferenceInfo> _references;
         private readonly LocalReferenceResolver? _localReferenceResolver;
@@ -89,7 +92,9 @@ namespace BuildValidator
             RebuildResult outcome,
             ImmutableArray<Diagnostic> diagnostics = default,
             byte[]? originalPortableExecutableBytes = null,
+            MetadataReader? originalPdbReader = null,
             byte[]? rebuildPortableExecutableBytes = null,
+            MetadataReader? rebuildPdbReader = null,
             Compilation? rebuildCompilation = null,
             LocalReferenceResolver? localReferenceResolver = null,
             ImmutableArray<MetadataReferenceInfo> references = default,
@@ -99,7 +104,9 @@ namespace BuildValidator
             Result = outcome;
             _diagnostics = diagnostics;
             _originalPortableExecutableBytes = originalPortableExecutableBytes;
+            _originalPdbReader = originalPdbReader;
             _rebuildPortableExecutableBytes = rebuildPortableExecutableBytes;
+            _rebuildPdbReader = rebuildPdbReader;
             _rebuildCompilation = rebuildCompilation;
             _references = references;
             _localReferenceResolver = localReferenceResolver;
@@ -127,14 +134,16 @@ namespace BuildValidator
         public static unsafe CompilationDiff Create(
             AssemblyInfo assemblyInfo,
             CompilationFactory compilationFactory,
-            ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableArray<MetadataReference> metadataReferences,
+            RebuildArtifactResolver artifactResolver,
             ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
-            var rebuildCompilation = compilationFactory.CreateCompilation(syntaxTrees, metadataReferences);
+            var hasEmbeddedPdb = compilationFactory.OptionsReader.HasEmbeddedPdb;
+            var rebuildPdbStream = hasEmbeddedPdb ? null : new MemoryStream();
+            var rebuildCompilation = compilationFactory.CreateCompilation(artifactResolver);
             var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 rebuildCompilation,
                 CancellationToken.None);
 
@@ -165,8 +174,24 @@ namespace BuildValidator
                         assemblyInfo,
                         RebuildResult.BinaryDifference,
                         originalPortableExecutableBytes: originalBytes,
+                        originalPdbReader: compilationFactory.OptionsReader.PdbReader,
                         rebuildPortableExecutableBytes: rebuildBytes,
+                        rebuildPdbReader: getRebuildPdbReader(),
                         rebuildCompilation: rebuildCompilation);
+                }
+
+                MetadataReader getRebuildPdbReader()
+                {
+                    if (hasEmbeddedPdb)
+                    {
+                        var peReader = new PEReader(rebuildBytes.ToImmutableArray());
+                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
+                    }
+                    else
+                    {
+                        rebuildPdbStream!.Position = 0;
+                        return MetadataReaderProvider.FromPortablePdbStream(rebuildPdbStream).GetMetadataReader();
+                    }
                 }
             }
         }
@@ -220,14 +245,14 @@ namespace BuildValidator
                 using var writer = new StreamWriter(Path.Combine(debugPath, "references.txt"), append: false);
                 foreach (var info in _references)
                 {
-                    if (_localReferenceResolver.TryGetCachedAssemblyInfo(info.Mvid, out var assemblyInfo))
+                    if (_localReferenceResolver.TryGetCachedAssemblyInfo(info.ModuleVersionId, out var assemblyInfo))
                     {
-                        writer.WriteLine($"Found: {info.Mvid} {info.Name} at {assemblyInfo.FilePath}");
+                        writer.WriteLine($"Found: {info.ModuleVersionId} {info.FileName} at {assemblyInfo.FilePath}");
                     }
                     else
                     {
-                        writer.WriteLine($"Missing: {info.Mvid} {info.Name}");
-                        foreach (var cachedInfo in _localReferenceResolver.GetCachedAssemblyInfos(info.Name))
+                        writer.WriteLine($"Missing: {info.ModuleVersionId} {info.FileName}");
+                        foreach (var cachedInfo in _localReferenceResolver.GetCachedAssemblyInfos(info.FileName))
                         {
                             writer.WriteLine($"\t{cachedInfo.Mvid} {cachedInfo.FilePath}");
                         }
@@ -239,27 +264,25 @@ namespace BuildValidator
             {
                 Debug.Assert(Result == RebuildResult.BinaryDifference);
                 Debug.Assert(_originalPortableExecutableBytes is object);
+                Debug.Assert(_originalPdbReader is object);
                 Debug.Assert(_rebuildPortableExecutableBytes is object);
+                Debug.Assert(_rebuildPdbReader is object);
                 Debug.Assert(_rebuildCompilation is object);
 
-                fixed (byte* originalPtr = _originalPortableExecutableBytes)
-                fixed (byte* rebuildPtr = _rebuildPortableExecutableBytes)
-                {
-                    using var originalPeReader = new PEReader(originalPtr, _originalPortableExecutableBytes.Length);
-                    using var rebuildPeReader = new PEReader(rebuildPtr, _rebuildPortableExecutableBytes.Length);
-                    var originalInfo = new BuildInfo(
-                        AssemblyBytes: _originalPortableExecutableBytes,
-                        AssemblyReader: originalPeReader,
-                        PdbMetadataReader: originalPeReader.GetEmbeddedPdbMetadataReader());
+                var originalPeReader = new PEReader(_originalPortableExecutableBytes.ToImmutableArray());
+                var rebuildPeReader = new PEReader(_rebuildPortableExecutableBytes.ToImmutableArray());
+                var originalInfo = new BuildInfo(
+                    AssemblyBytes: _originalPortableExecutableBytes,
+                    AssemblyReader: originalPeReader,
+                    PdbMetadataReader: _originalPdbReader);
 
-                    var rebuildInfo = new BuildInfo(
-                        AssemblyBytes: _rebuildPortableExecutableBytes,
-                        AssemblyReader: rebuildPeReader,
-                        PdbMetadataReader: rebuildPeReader.GetEmbeddedPdbMetadataReader());
+                var rebuildInfo = new BuildInfo(
+                    AssemblyBytes: _rebuildPortableExecutableBytes,
+                    AssemblyReader: rebuildPeReader,
+                    PdbMetadataReader: _rebuildPdbReader);
 
-                    createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
-                    SearchForKnownIssues(logger, originalInfo, rebuildInfo);
-                }
+                createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
+                SearchForKnownIssues(logger, originalInfo, rebuildInfo);
             }
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
@@ -383,13 +406,12 @@ namespace BuildValidator
                 {
                     writer.WriteLine("Embedded File Info");
                     var optionsReader = new CompilationOptionsReader(EmptyLogger.Instance, pdbMetadataReader, peReader);
-                    var sourceFileInfos = optionsReader.GetSourceFileInfos(optionsReader.GetEncoding());
-                    foreach (var info in sourceFileInfos)
+                    foreach (var info in optionsReader.GetEmbeddedSourceTextInfo())
                     {
-                        if (info.EmbeddedCompressedHash is { } hash)
+                        if (!info.CompressedHash.IsDefaultOrEmpty)
                         {
-                            var hashString = BitConverter.ToString(hash).Replace("-", "");
-                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceFilePath)}"" - {hashString}");
+                            var hashString = BitConverter.ToString(info.CompressedHash.ToArray()).Replace("-", "");
+                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceTextInfo.OriginalSourceFilePath)}"" - {hashString}");
                         }
                     }
                 }
@@ -406,8 +428,21 @@ namespace BuildValidator
 
             bool hasPdbCompressionDifferences()
             {
-                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (originalEntry.Type == DebugDirectoryEntryType.Unknown && rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
+                {
+                    return false;
+                }
+
+                var originalMissingEmbeddedPdb = originalEntry.Type == DebugDirectoryEntryType.Unknown;
+                if (originalMissingEmbeddedPdb || rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
+                {
+                    var (hasEmbedded, doesntHaveEmbedded) = originalMissingEmbeddedPdb ? ("rebuild", "original") : ("original", "rebuild");
+                    logger.LogError($"Known issue: {hasEmbedded} has an embedded PDB but {doesntHaveEmbedded} does not have an embedded PDB");
+                    return true;
+                }
+
                 if (originalEntry.DataSize != rebuildEntry.DataSize)
                 {
                     var originalPdbSpan = new Span<byte>(originalInfo.PdbMetadataReader.MetadataPointer, originalInfo.PdbMetadataReader.MetadataLength);

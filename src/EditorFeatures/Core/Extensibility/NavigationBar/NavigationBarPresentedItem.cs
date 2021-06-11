@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -18,14 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor
         public NavigationBarPresentedItem(
             string text,
             Glyph glyph,
-            IList<TextSpan> spans,
-            IList<NavigationBarItem> childItems = null,
-            bool bolded = false,
-            bool grayed = false)
+            ImmutableArray<ITrackingSpan> trackingSpans,
+            ITrackingSpan? navigationTrackingSpan,
+            ImmutableArray<NavigationBarItem> childItems,
+            bool bolded,
+            bool grayed)
             : base(
                   text,
                   glyph,
-                  spans,
+                  trackingSpans,
+                  navigationTrackingSpan,
                   childItems,
                   indent: 0,
                   bolded: bolded,

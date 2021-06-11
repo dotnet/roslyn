@@ -35,30 +35,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         public bool CanFilter => _searchService?.CanFilter ?? false;
 
-        public async Task SearchDocumentAsync(
+        public async Task<NavigateToSearchLocation> SearchDocumentAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
             Func<INavigateToSearchResult, Task> onResultFound,
             bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
 
-            var results = await _searchService.SearchDocumentAsync(document, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(Convert(result)).ConfigureAwait(false);
+            return NavigateToSearchLocation.Latest;
         }
 
-        public async Task SearchProjectAsync(
+        public async Task<NavigateToSearchLocation> SearchProjectAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
             IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound,
             bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            if (_searchService == null)
-                return;
+            if (_searchService != null)
+            {
+                var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+                foreach (var result in results)
+                    await onResultFound(Convert(result)).ConfigureAwait(false);
+            }
 
-            var results = await _searchService.SearchProjectAsync(project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
-            foreach (var result in results)
-                await onResultFound(Convert(result)).ConfigureAwait(false);
+            return NavigateToSearchLocation.Latest;
         }
 
         private static INavigateToSearchResult Convert(IVSTypeScriptNavigateToSearchResult result)
@@ -127,6 +131,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             public Document Document => _navigableItem.Document;
 
             public TextSpan SourceSpan => _navigableItem.SourceSpan;
+
+            public bool IsStale => false;
 
             public ImmutableArray<INavigableItem> ChildItems
                 => _navigableItem.ChildItems.IsDefault

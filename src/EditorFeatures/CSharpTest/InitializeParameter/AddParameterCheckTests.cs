@@ -4,16 +4,10 @@
 
 #nullable disable
 
-using System.Globalization;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddParameter;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -161,6 +155,24 @@ using System;
 interface I
 {
     void M([||]string s);
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnNullableParameter()
+        {
+            var code = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    void M([||]string? s)
+    {
+    }
 }";
 
             await VerifyCS.VerifyRefactoringAsync(code, code);
@@ -405,19 +417,6 @@ partial class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnExternMethod()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    extern void M([||]string s);
-}";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExistingFieldAssignment()
         {
             await VerifyCS.VerifyRefactoringAsync(
@@ -481,6 +480,47 @@ class C
         if (string.IsNullOrEmpty(c))
         {{
             throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("\"", "\\\"")}"", nameof(c));
+        }}
+    }}
+}}",
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMultiNullableParametersSomeNullableReferenceTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+#nullable enable
+
+using System;
+
+class C
+{
+    public C([||]string a, string b, string? c)
+    {
+    }
+}",
+                FixedCode = @$"
+#nullable enable
+
+using System;
+
+class C
+{{
+    public C(string a, string b, string? c)
+    {{
+        if (string.IsNullOrEmpty(a))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("\"", "\\\"")}"", nameof(a));
+        }}
+
+        if (string.IsNullOrEmpty(b))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("\"", "\\\"")}"", nameof(b));
         }}
     }}
 }}",
@@ -1755,13 +1795,12 @@ class C
 {
     public C(string s)
     {
-        if (s is null)
-            throw new ArgumentNullException(nameof(s));
+        if (s is null) throw new ArgumentNullException(nameof(s));
     }
 }",
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) }
+                    { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) },
                 }
             }.RunAsync();
         }
@@ -2031,6 +2070,507 @@ class C
     }
 }";
             await VerifyCS.VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")]
+        public async Task TestImportSystem()
+        {
+            await VerifyCS.VerifyRefactoringAsync(
+@"
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesNone_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+            throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+        {
+            throw new ArgumentNullException(nameof(o));
+        }
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesNone_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null) throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesWhenMultiline_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null) throw new ArgumentNullException(nameof(o));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_BracesAlways_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$object o)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object o)
+    {
+        if (o is null)
+        {
+            throw new ArgumentNullException(nameof(o));
+        }
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                }
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = $@"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline},
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineFalse()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        }}
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesNone_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesWhenMultiline_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.WhenMultiline },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_StringIsNullOrEmpty_BracesAlways_SameLineTrue()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C($$string s)
+    {
+    }
+}",
+                FixedCode = @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        }}
+    }}
+}}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.Always },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(52385, "https://github.com/dotnet/roslyn/issues/52385")]
+        public async Task SingleLineStatement_NullCheck_AllParameters()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]object a, object b, object c)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(object a, object b, object c)
+    {
+        if (a is null) throw new ArgumentNullException(nameof(a));
+        if (b is null) throw new ArgumentNullException(nameof(b));
+        if (c is null) throw new ArgumentNullException(nameof(c));
+    }
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false },
+                    { CSharpCodeStyleOptions.PreferBraces, PreferBracesPreference.None },
+                    { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
+                },
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+            }.RunAsync();
         }
     }
 }

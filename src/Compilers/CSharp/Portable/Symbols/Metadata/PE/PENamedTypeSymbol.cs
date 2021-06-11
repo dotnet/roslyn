@@ -560,10 +560,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var discarededUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discarededUseSiteInfo) != null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return SynthesizedRecordClone.FindValidCloneMethod(this, ref discardedUseSiteInfo) != null;
             }
         }
+
+        // Record structs get erased when emitted to metadata
+        internal override bool IsRecordStruct => false;
 
         public override Accessibility DeclaredAccessibility
         {
@@ -1083,7 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return HandleComparer.Default.Compare(((PENamedTypeSymbol)x).Handle, ((PENamedTypeSymbol)y).Handle);
             }
         }
-
 
         private void EnsureEnumUnderlyingTypeIsLoaded(UncommonProperties uncommon)
         {
@@ -1958,7 +1960,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
         }
 
-
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (!_lazyCachedUseSiteInfo.IsInitialized)
@@ -2254,8 +2255,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get { return null; }
         }
-
-        public IEnumerable<object> fieldDefs { get; set; }
 
         /// <summary>
         /// Returns the index of the first member of the specific kind.

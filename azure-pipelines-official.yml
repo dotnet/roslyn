@@ -45,6 +45,14 @@ stages:
   displayName: Build and Test
 
   jobs:
+  - template: /eng/common/templates/job/onelocbuild.yml
+    parameters:
+      CreatePr: false
+      LclSource: lclFilesfromPackage
+      LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
+  - template: eng/common/templates/jobs/source-build.yml
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
@@ -58,7 +66,7 @@ stages:
         - DotNetFramework
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCoreInternal-Pool
-        queue: BuildPool.Windows.10.Amd64.VS2019.Pre
+        queue: BuildPool.Server.Amd64.VS2017
 
     steps:
     # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
@@ -71,6 +79,7 @@ stages:
           arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
+      condition: eq(variables['System.JobAttempt'], '1')
 
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
@@ -130,6 +139,17 @@ stages:
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
+    # Needed because the dnceng image we build on fails the next task without it
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+      condition: eq(variables['System.TeamProject'], 'internal')
+
+    # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
     - task: NuGetCommand@2
       displayName: Restore internal tools
       inputs:
@@ -193,7 +213,7 @@ stages:
         ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-        buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
@@ -320,6 +340,7 @@ stages:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
+      publishingInfraVersion: 3
       # Symbol validation is not entirely reliable as of yet, so should be turned off until
       # https://github.com/dotnet/arcade/issues/2871 is resolved.
       enableSymbolValidation: false

@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
-
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -174,27 +175,35 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
             => factory.ObjectCreationExpression(
-                compilation.GetTypeByMetadataName("System.ArgumentNullException"),
+                compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName),
                 factory.NameOfExpression(
-                    factory.IdentifierName(parameter.Name)));
+                    factory.IdentifierName(parameter.Name))).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
         public static SyntaxNode CreateNullCheckAndThrowStatement(
             this SyntaxGenerator factory,
             SemanticModel semanticModel,
             IParameterSymbol parameter)
         {
-            var identifier = factory.IdentifierName(parameter.Name);
+            var condition = factory.CreateNullCheckExpression(semanticModel, parameter.Name);
+            var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
+
+            // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
+            return factory.IfStatement(
+                condition,
+                SpecializedCollections.SingletonEnumerable(throwStatement));
+        }
+
+        public static SyntaxNode CreateThrowArgumentNullExceptionStatement(this SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
+            => factory.ThrowStatement(CreateNewArgumentNullException(factory, compilation, parameter));
+
+        public static SyntaxNode CreateNullCheckExpression(this SyntaxGenerator factory, SemanticModel semanticModel, string identifierName)
+        {
+            var identifier = factory.IdentifierName(identifierName);
             var nullExpr = factory.NullLiteralExpression();
             var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
                 ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
                 : factory.ReferenceEqualsExpression(identifier, nullExpr);
-
-            // generates: if (s == null) throw new ArgumentNullException(nameof(s))
-            return factory.IfStatement(
-               condition,
-                SpecializedCollections.SingletonEnumerable(
-                    factory.ThrowStatement(CreateNewArgumentNullException(
-                        factory, semanticModel.Compilation, parameter))));
+            return condition;
         }
 
         public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(

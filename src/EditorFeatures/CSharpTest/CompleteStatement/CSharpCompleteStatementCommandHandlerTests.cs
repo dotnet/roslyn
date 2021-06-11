@@ -45,11 +45,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
         #region ParameterList
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [InlineData("extern void M(object o$$)", "extern void M(object o)")]
+        [InlineData("partial void M(object o$$)", "partial void M(object o)")]
         [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = default($$object))", "abstract void M(object o = default(object))")]
         [InlineData("abstract void M(object o = $$default(object))", "abstract void M(object o = default(object))")]
+        [InlineData("public record C(int X, $$int Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int$$ Y)", "public record C(int X, int Y)")]
+        [InlineData("public record C(int X, int Y$$)", "public record C(int X, int Y)")]
+        [InlineData("public record class C(int X, int Y$$)", "public record class C(int X, int Y)")]
+        [InlineData("public record struct C(int X, int Y$$)", "public record struct C(int X, int Y)")]
         public void ParameterList_CouldBeHandled(string signature, string expectedSignature)
         {
             var code = $@"
@@ -64,9 +71,25 @@ public class Class1
     {expectedSignature};$$
 }}";
 
-            // These cases are not currently handled. If support is added in the future, 'expected' should be correct.
-            _ = expected;
-            VerifyNoSpecialSemicolonHandling(code);
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ParameterList_InterfaceMethod()
+        {
+            var code = @"
+public interface I
+{
+    public void M(object o$$)
+}";
+
+            var expected = @"
+public interface I
+{
+    public void M(object o);$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
@@ -74,6 +97,7 @@ public class Class1
         [InlineData("void Me$$thod(object o)")]
         [InlineData("void Method(object o$$")]
         [InlineData("void Method($$object o")]
+        [InlineData("partial void Method($$object o) { }")]
         public void ParameterList_NotHandled(string signature)
         {
             var code = $@"
@@ -2396,6 +2420,58 @@ public class Class1
         int i = {expectedExpression};$$
     }}
 }}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52137, "https://github.com/dotnet/roslyn/issues/52137")]
+        [InlineData("typeof(object$$)", "typeof(object)")]
+        [InlineData("typeof($$object)", "typeof(object)")]
+        public void TypeOfExpression_Handled(string expression, string expectedExpression)
+        {
+            var code = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expression}
+    }}
+}}";
+
+            var expected = $@"
+public class Class1
+{{
+    void M()
+    {{
+        var x = {expectedExpression};$$
+    }}
+}}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(52365, "https://github.com/dotnet/roslyn/issues/52365")]
+        public void TupleExpression_Handled()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0$$)
+    }
+}";
+
+            var expected = @"
+public class Class1
+{
+    void M()
+    {
+        var x = (0, 0);$$
+    }
+}";
 
             VerifyTypingSemicolon(code, expected);
         }

@@ -102,17 +102,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 finally
                 {
                     await localPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-
-                    if (cancellationToken.IsCancellationRequested && exception is null or OperationCanceledException)
-                    {
-                        // Throw rather than close the pipe writer. The caller will coordinate cancellation and closing
-                        // of the reader and writer together.
-                        cancellationToken.ThrowIfCancellationRequested();
-                    }
-                    else
-                    {
-                        await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
-                    }
+                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
                 }
             }
         }

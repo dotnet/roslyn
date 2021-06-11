@@ -8,21 +8,21 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        ValueTask SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
-
-        ValueTask SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
+        ValueTask SearchFullyLoadedDocumentAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchFullyLoadedProjectAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
 
         public interface ICallback
         {
-            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, SerializableNavigateToSearchResult result);
+            ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
         }
     }
 
@@ -38,27 +38,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, SerializableNavigateToSearchResult result)
+        public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
             => GetCallback(callbackId).OnResultFoundAsync(result);
     }
 
     internal sealed class NavigateToSearchServiceCallback
     {
-        private readonly Solution _solution;
-        private readonly Func<INavigateToSearchResult, Task> _onResultFound;
-        private readonly CancellationToken _cancellationToken;
+        private readonly Func<RoslynNavigateToItem, Task> _onResultFound;
 
-        public NavigateToSearchServiceCallback(
-            Solution solution,
-            Func<INavigateToSearchResult, Task> onResultFound,
-            CancellationToken cancellationToken)
+        public NavigateToSearchServiceCallback(Func<RoslynNavigateToItem, Task> onResultFound)
         {
-            _solution = solution;
             _onResultFound = onResultFound;
-            _cancellationToken = cancellationToken;
         }
 
-        public async ValueTask OnResultFoundAsync(SerializableNavigateToSearchResult result)
-            => await _onResultFound(await result.RehydrateAsync(_solution, _cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+        public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+            => await _onResultFound(result).ConfigureAwait(false);
     }
 }

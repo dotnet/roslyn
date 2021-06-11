@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
-            var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
+            var pdbOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
+            var langVersionString = pdbOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
+            pdbOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
 
             IEnumerable<GlobalImport>? globalImports = null;
             if (!string.IsNullOrEmpty(globalNamespacesString))
@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.Rebuild
             VB.LanguageVersionFacts.TryParse(langVersionString, ref langVersion);
 
             IReadOnlyDictionary<string, object>? preprocessorSymbols = null;
-            if (OptionToString(CompilationOptionNames.Define) is string defineString)
+            if (pdbOptions.OptionToString(CompilationOptionNames.Define) is string defineString)
             {
                 preprocessorSymbols = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineString, out var diagnostics);
                 var diagnostic = diagnostics?.FirstOrDefault(x => x.IsUnsuppressedError);
                 if (diagnostic is object)
                 {
-                    throw new Exception($"Cannot create compilation options: {diagnostic}");
+                    throw new Exception(string.Format(RebuildResources.Cannot_create_compilation_options_0, diagnostic));
                 }
             }
 
@@ -88,21 +88,21 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 .WithPreprocessorSymbols(preprocessorSymbols.ToImmutableArrayOrEmpty());
 
             var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
-            var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? true;
-            var embedVBRuntime = OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
-            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespace);
+            var isChecked = pdbOptions.OptionToBool(CompilationOptionNames.Checked) ?? true;
+            var embedVBRuntime = pdbOptions.OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
+            var rootNamespace = pdbOptions.OptionToString(CompilationOptionNames.RootNamespace);
 
             var compilationOptions = new VisualBasicCompilationOptions(
-                optionsReader.GetOutputKind(),
+                pdbOptions.OptionToEnum<OutputKind>(CompilationOptionNames.OutputKind) ?? OutputKind.DynamicallyLinkedLibrary,
                 moduleName: assemblyFileName,
                 mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: "Script",
                 globalImports: globalImports,
                 rootNamespace: rootNamespace,
-                optionStrict: OptionToEnum<OptionStrict>(CompilationOptionNames.OptionStrict) ?? OptionStrict.Off,
-                optionInfer: OptionToBool(CompilationOptionNames.OptionInfer) ?? false,
-                optionExplicit: OptionToBool(CompilationOptionNames.OptionExplicit) ?? false,
-                optionCompareText: OptionToBool(CompilationOptionNames.OptionCompareText) ?? false,
+                optionStrict: pdbOptions.OptionToEnum<OptionStrict>(CompilationOptionNames.OptionStrict) ?? OptionStrict.Off,
+                optionInfer: pdbOptions.OptionToBool(CompilationOptionNames.OptionInfer) ?? false,
+                optionExplicit: pdbOptions.OptionToBool(CompilationOptionNames.OptionExplicit) ?? false,
+                optionCompareText: pdbOptions.OptionToBool(CompilationOptionNames.OptionCompareText) ?? false,
                 parseOptions: parseOptions,
                 embedVbCoreRuntime: embedVBRuntime,
                 optimizationLevel: optimizationLevel,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 concurrentBuild: true,
                 deterministic: true,
                 xmlReferenceResolver: null,
-                sourceReferenceResolver: null,
+                sourceReferenceResolver: RebuildSourceReferenceResolver.Instance,
                 metadataReferenceResolver: null,
                 assemblyIdentityComparer: null,
                 strongNameProvider: null,
@@ -127,12 +127,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
             compilationOptions.DebugPlusMode = plus;
 
             return compilationOptions;
-
-            string? OptionToString(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? value : null;
-            bool? OptionToBool(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToBool(value) : null;
-            T? OptionToEnum<T>(string option) where T : struct => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToEnum<T>(value) : null;
-            static bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
-            static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
     }
 }
