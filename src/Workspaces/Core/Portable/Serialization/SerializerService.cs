@@ -184,13 +184,13 @@ namespace Microsoft.CodeAnalysis.Serialization
                     case WellKnownSynchronizationKind.SolutionState:
                     case WellKnownSynchronizationKind.ProjectState:
                     case WellKnownSynchronizationKind.DocumentState:
-                    case WellKnownSynchronizationKind.Projects:
-                    case WellKnownSynchronizationKind.Documents:
-                    case WellKnownSynchronizationKind.TextDocuments:
-                    case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
-                    case WellKnownSynchronizationKind.ProjectReferences:
-                    case WellKnownSynchronizationKind.MetadataReferences:
-                    case WellKnownSynchronizationKind.AnalyzerReferences:
+                    case WellKnownSynchronizationKind.ChecksumCollection:
+                        //case WellKnownSynchronizationKind.Documents:
+                        //case WellKnownSynchronizationKind.TextDocuments:
+                        //case WellKnownSynchronizationKind.AnalyzerConfigDocuments:
+                        //case WellKnownSynchronizationKind.ProjectReferences:
+                        //case WellKnownSynchronizationKind.MetadataReferences:
+                        //case WellKnownSynchronizationKind.AnalyzerReferences:
                         return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
 
                     case WellKnownSynchronizationKind.SolutionAttributes:
