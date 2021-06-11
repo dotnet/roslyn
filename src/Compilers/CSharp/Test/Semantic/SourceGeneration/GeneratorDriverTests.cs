@@ -1706,7 +1706,7 @@ class C { }
                 });
             }));
 
-            // run the generator and check that we didn't multiple register the generate source node through the comine
+            // run the generator and check that we didn't multiple register the generate source node through the combine
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
             Assert.Equal(1, compilationsCalledFor.Count);
