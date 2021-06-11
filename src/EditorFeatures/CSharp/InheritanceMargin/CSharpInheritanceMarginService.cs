@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
                         SyntaxKind.MethodDeclaration,
                         SyntaxKind.PropertyDeclaration,
                         SyntaxKind.EventDeclaration,
-                        SyntaxKind.IndexerDeclaration))
+                        SyntaxKind.IndexerDeclaration,
+                        SyntaxKind.OperatorDeclaration))
                     {
                         builder.Add(member);
                     }
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
                 VariableDeclaratorSyntax variableDeclaratorNode => variableDeclaratorNode.Identifier,
                 TypeDeclarationSyntax baseTypeDeclarationNode => baseTypeDeclarationNode.Identifier,
                 IndexerDeclarationSyntax indexerDeclarationNode => indexerDeclarationNode.ThisKeyword,
+                OperatorDeclarationSyntax operatorDeclarationNode => operatorDeclarationNode.OperatorToken,
                 // Shouldn't reach here since the input declaration nodes are coming from GetMembers() method above
                 _ => throw ExceptionUtilities.UnexpectedValue(declarationNode),
             };

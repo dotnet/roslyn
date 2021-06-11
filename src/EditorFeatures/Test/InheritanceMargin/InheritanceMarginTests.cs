@@ -1048,6 +1048,24 @@ abstract class {|target1:AbsBar|} : IBar<int>
                 itemForFooInAbsBar);
         }
 
+//        [Fact]
+//        public Task Test()
+//        {
+//            var markup = @"
+//interface {|target:I1|}<T> where T : I1<T>
+//{
+//    static abstract int operator +(T i1);
+//}
+
+//public class {|target1:Class1|} : I1<Class1>
+//{
+//    public static int operator +(Class1 i) => 1;
+//}";
+//            return VerifyInSingleDocumentAsync(
+//                markup,
+//                LanguageNames.CSharp);
+//        }
+
         [Fact]
         public Task TestStaticAbstractMemberInterface()
         {

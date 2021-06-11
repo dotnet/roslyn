@@ -137,7 +137,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var methodSymbol = (IMethodSymbol)symbol;
                     if (methodSymbol.MethodKind == MethodKind.Ordinary ||
                         methodSymbol.MethodKind == MethodKind.PropertyGet ||
-                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                        methodSymbol.MethodKind == MethodKind.PropertySet ||
+                        methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
                     {
                         return true;
                     }
