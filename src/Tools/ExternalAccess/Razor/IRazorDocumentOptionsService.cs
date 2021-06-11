@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal interface IRazorDocumentOptionsService : IDocumentService
+    internal interface IRazorDocumentOptionsService
     {
         Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
     }
