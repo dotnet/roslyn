@@ -53,20 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         protected override string FeatureAttributeName => FeatureAttribute.LineSeparators;
         protected override string AdornmentLayerName => LayerName;
 
-        public override void TextViewCreated(IWpfTextView textView)
+        protected override void CreateAdornmentManager(IWpfTextView textView)
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!textView.TextBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Adornment))
-            {
-                return;
-            }
-
-            _ = new LineSeparatorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
             // the manager keeps itself alive by listening to text view events.
+            _ = new LineSeparatorAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName);
         }
     }
 }
