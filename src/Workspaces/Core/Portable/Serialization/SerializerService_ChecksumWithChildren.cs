@@ -88,12 +88,6 @@ namespace Microsoft.CodeAnalysis.Serialization
                 .Add(WellKnownSynchronizationKind.ProjectState, children => new ProjectStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.DocumentState, children => new DocumentStateChecksums(children))
                 .Add(WellKnownSynchronizationKind.ChecksumCollection, children => new ChecksumCollection(children));
-            //.Add(WellKnownSynchronizationKind.Documents, children => new ChecksumCollection(children))
-            //.Add(WellKnownSynchronizationKind.TextDocuments, children => new ChecksumCollection(children))
-            //.Add(WellKnownSynchronizationKind.AnalyzerConfigDocuments, children => new ChecksumCollection(children))
-            //.Add(WellKnownSynchronizationKind.ProjectReferences, children => new ChecksumCollection(children))
-            //.Add(WellKnownSynchronizationKind.MetadataReferences, children => new ChecksumCollection(children))
-            //.Add(WellKnownSynchronizationKind.AnalyzerReferences, children => new ChecksumCollection(children));
         }
     }
 }

@@ -112,12 +112,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
             => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
 
-        //public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
-        //    => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
-
-        //public ChecksumObjectCollection<DocumentStateChecksums> ToDocumentObjects(ChecksumCollection collection)
-        //    => new ChecksumObjectCollection<DocumentStateChecksums>(this, collection);
-
         internal async Task VerifyAssetAsync(SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
