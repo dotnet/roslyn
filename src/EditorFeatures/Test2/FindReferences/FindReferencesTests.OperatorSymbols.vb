@@ -484,7 +484,7 @@ class B
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpStaticAbstractOperatorInInterface(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCSharpStaticAbstractConversionOperatorInInterface(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -512,7 +512,7 @@ class C5_2 : I5<C5_2>
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpStaticAbstractOperatorViaFeature1(host As TestHost) As Task
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaFeature1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -539,7 +539,7 @@ class C5_2 : I5<C5_2>
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpStaticAbstractOperatorViaFeature2(host As TestHost) As Task
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaFeature2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -566,7 +566,7 @@ class C5_2 : I5<C5_2>
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpStaticAbstractOperatorViaAPI1(host As TestHost) As Task
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaApi1(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -593,7 +593,7 @@ class C5_2 : I5<C5_2>
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpStaticAbstractOperatorViaAPI2(host As TestHost) As Task
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaApi2(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -617,6 +617,141 @@ class C5_2 : I5<C5_2>
     </Project>
 </Workspace>
             Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+$$|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaApi1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:$$+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaApi2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:$$+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:$$+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator +(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator +(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:$$+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
     End Class
 End Namespace
