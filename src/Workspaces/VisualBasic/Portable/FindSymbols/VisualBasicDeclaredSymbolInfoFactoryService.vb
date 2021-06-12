@@ -123,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         End Function
 
         Protected Overrides Sub AddDeclaredSymbolInfosWorker(
+                container As SyntaxNode,
                 node As StatementSyntax,
                 stringTable As StringTable,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
@@ -168,13 +169,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
                         If(kind = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module,
                         DeclaredSymbolInfoKind.Struct))),
-                        GetAccessibility(typeBlock, typeBlock.BlockStatement.Modifiers),
+                        GetAccessibility(container, typeBlock, typeBlock.BlockStatement.Modifiers),
                         typeBlock.BlockStatement.Identifier.Span,
                         GetInheritanceNames(stringTable, typeBlock),
                         IsNestedType(typeBlock)))
                     Return
                 Case SyntaxKind.EnumBlock
-                    Dim enumDecl = CType(node, EnumBlockSyntax)
+                    Dim enumDecl = DirectCast(node, EnumBlockSyntax)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
@@ -182,15 +183,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         fullyQualifiedContainerName,
                         enumDecl.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
+                        GetAccessibility(container, enumDecl, enumDecl.EnumStatement.Modifiers),
                         enumDecl.EnumStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
                         IsNestedType(enumDecl)))
                     Return
                 Case SyntaxKind.SubNewStatement
                     Dim constructor = DirectCast(node, SubNewStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is ConstructorBlockSyntax, node.Parent, node)
-                    Dim typeBlock = TryCast(statementOrBlock.Parent, TypeBlockSyntax)
+                    Dim typeBlock = TryCast(container, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
                         declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             fullyQualifiedContainerName,
                             constructor.Modifiers.Any(SyntaxKind.PartialKeyword),
                             DeclaredSymbolInfoKind.Constructor,
-                            GetAccessibility(statementOrBlock, constructor.Modifiers),
+                            GetAccessibility(container, constructor, constructor.Modifiers),
                             constructor.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
                             parameterCount:=If(constructor.ParameterList?.Parameters.Count, 0)))
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         Return
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
-                    Dim delegateDecl = CType(node, DelegateStatementSyntax)
+                    Dim delegateDecl = DirectCast(node, DelegateStatementSyntax)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
@@ -217,12 +217,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
-                        GetAccessibility(delegateDecl, delegateDecl.Modifiers),
+                        GetAccessibility(container, delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty))
                     Return
                 Case SyntaxKind.EnumMemberDeclaration
-                    Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
+                    Dim enumMember = DirectCast(node, EnumMemberDeclarationSyntax)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
@@ -236,8 +236,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return
                 Case SyntaxKind.EventStatement
                     Dim eventDecl = DirectCast(node, EventStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
-                    Dim eventParent = statementOrBlock.Parent
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
@@ -245,13 +243,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
-                        GetAccessibility(statementOrBlock, eventDecl.Modifiers),
+                        GetAccessibility(container, eventDecl, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty))
                     Return
                 Case SyntaxKind.FunctionStatement, SyntaxKind.SubStatement
                     Dim funcDecl = DirectCast(node, MethodStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is MethodBlockBaseSyntax, node.Parent, node)
                     Dim isExtension = IsExtensionMethod(funcDecl)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
@@ -261,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         fullyQualifiedContainerName,
                         funcDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
-                        GetAccessibility(statementOrBlock, funcDecl.Modifiers),
+                        GetAccessibility(container, funcDecl, funcDecl.Modifiers),
                         funcDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty,
                         parameterCount:=If(funcDecl.ParameterList?.Parameters.Count, 0),
@@ -272,8 +269,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = DirectCast(node, PropertyStatementSyntax)
-                    Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
-                    Dim propertyParent = statementOrBlock.Parent
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         propertyDecl.Identifier.ValueText,
@@ -282,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         fullyQualifiedContainerName,
                         propertyDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
-                        GetAccessibility(statementOrBlock, propertyDecl.Modifiers),
+                        GetAccessibility(container, propertyDecl, propertyDecl.Modifiers),
                         propertyDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty))
                     Return
@@ -299,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                                 If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
                                     DeclaredSymbolInfoKind.Constant,
                                     DeclaredSymbolInfoKind.Field),
-                                GetAccessibility(fieldDecl, fieldDecl.Modifiers),
+                                GetAccessibility(container, fieldDecl, fieldDecl.Modifiers),
                                 modifiedIdentifier.Identifier.Span,
                                 ImmutableArray(Of String).Empty))
                         Next
@@ -352,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return TypeOf node.Parent Is TypeBlockSyntax
         End Function
 
-        Private Shared Function GetAccessibility(node As SyntaxNode, modifiers As SyntaxTokenList) As Accessibility
+        Private Shared Function GetAccessibility(container As SyntaxNode, node As StatementSyntax, modifiers As SyntaxTokenList) As Accessibility
             Dim sawFriend = False
 
             For Each modifier In modifiers
@@ -371,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End If
 
             ' No accessibility modifiers
-            Select Case node.Parent.Kind()
+            Select Case container.Kind()
                 Case SyntaxKind.ClassBlock
                     ' In a class, fields and shared-constructors are private by default,
                     ' everything Else Is Public
@@ -379,13 +374,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         Return Accessibility.Private
                     End If
 
-                    If node.Kind() = SyntaxKind.ConstructorBlock AndAlso
-                       DirectCast(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword) Then
+                    If node.Kind() = SyntaxKind.SubNewStatement AndAlso
+                       DirectCast(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword) Then
                         Return Accessibility.Private
                     End If
 
                     Return Accessibility.Public
-
                 Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
                     ' Everything in a struct/interface/module is public
                     Return Accessibility.Public

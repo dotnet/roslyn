@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         }
 
         protected override void AddDeclaredSymbolInfosWorker(
+            SyntaxNode container,
             MemberDeclarationSyntax node,
             StringTable stringTable,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                         },
-                        GetAccessibility(typeDecl, typeDecl.Modifiers),
+                        GetAccessibility(container, typeDecl.Modifiers),
                         typeDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
                         IsNestedType(typeDecl)));
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(enumDecl, enumDecl.Modifiers),
+                        GetAccessibility(container, enumDecl.Modifiers),
                         enumDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
                         isNestedType: IsNestedType(enumDecl)));
@@ -228,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         ctorDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Constructor,
-                        GetAccessibility(ctorDecl, ctorDecl.Modifiers),
+                        GetAccessibility(container, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0));
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
-                        GetAccessibility(delegateDecl, delegateDecl.Modifiers),
+                        GetAccessibility(container, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty));
                     return;
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
-                        GetAccessibility(eventDecl, eventDecl.Modifiers),
+                        GetAccessibility(container, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty));
                     return;
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         indexerDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Indexer,
-                        GetAccessibility(indexerDecl, indexerDecl.Modifiers),
+                        GetAccessibility(container, indexerDecl.Modifiers),
                         indexerDecl.ThisKeyword.Span,
                         inheritanceNames: ImmutableArray<string>.Empty));
                     return;
@@ -296,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         method.Modifiers.Any(SyntaxKind.PartialKeyword),
                         isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
-                        GetAccessibility(method, method.Modifiers),
+                        GetAccessibility(container, method.Modifiers),
                         method.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         fullyQualifiedContainerName,
                         property.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
-                        GetAccessibility(property, property.Modifiers),
+                        GetAccessibility(container, property.Modifiers),
                         property.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty));
                     return;
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             fullyQualifiedContainerName,
                             fieldDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
                             kind,
-                            GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers),
+                            GetAccessibility(container, fieldDeclaration.Modifiers),
                             variableDeclarator.Identifier.Span,
                             inheritanceNames: ImmutableArray<string>.Empty));
                     }
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override string GetFullyQualifiedContainerName(MemberDeclarationSyntax node, string rootNamespace)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
-        private static Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)
+        private static Accessibility GetAccessibility(SyntaxNode container, SyntaxTokenList modifiers)
         {
             var sawInternal = false;
             foreach (var modifier in modifiers)
@@ -477,12 +478,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
 
             if (sawInternal)
-            {
                 return Accessibility.Internal;
-            }
 
             // No accessibility modifiers:
-            switch (node.Parent.Kind())
+            switch (container.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
@@ -495,10 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     return Accessibility.Public;
                 case SyntaxKind.CompilationUnit:
                     // Things are private by default in script
-                    if (((CSharpParseOptions)node.SyntaxTree.Options).Kind == SourceCodeKind.Script)
-                    {
+                    if (((CSharpParseOptions)container.SyntaxTree.Options).Kind == SourceCodeKind.Script)
                         return Accessibility.Private;
-                    }
 
                     return Accessibility.Internal;
 

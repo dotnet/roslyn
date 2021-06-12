@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
         protected abstract void AddDeclaredSymbolInfosWorker(
-            TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         /// <summary>
         /// Get the name of the target type of specified extension method declaration. 
         /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
@@ -157,10 +157,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
 
             foreach (var child in GetChildren((TCompilationUnitSyntax)root))
-                AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
+                AddDeclaredSymbolInfos(root, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
         }
 
         private void AddDeclaredSymbolInfos(
+            SyntaxNode container,
             TMemberDeclarationSyntax memberDeclaration,
             StringTable stringTable,
             string rootNamespace,
@@ -178,24 +179,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 containerDisplayName = GetContainerDisplayName(memberDeclaration);
                 fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(namespaceDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
             else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
             {
                 containerDisplayName = GetContainerDisplayName(memberDeclaration);
                 fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(baseTypeDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
                 containerDisplayName = GetContainerDisplayName(memberDeclaration);
                 fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(enumDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
 
             AddDeclaredSymbolInfosWorker(
+                container,
                 memberDeclaration,
                 stringTable,
                 declaredSymbolInfos,
