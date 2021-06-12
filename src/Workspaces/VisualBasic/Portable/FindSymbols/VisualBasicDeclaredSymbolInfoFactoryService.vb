@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -16,7 +17,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     <ExportLanguageService(GetType(IDeclaredSymbolInfoFactoryService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicDeclaredSymbolInfoFactoryService
-        Inherits AbstractDeclaredSymbolInfoFactoryService
+        Inherits AbstractDeclaredSymbolInfoFactoryService(Of
+            CompilationUnitSyntax,
+            NamespaceBlockSyntax,
+            TypeBlockSyntax,
+            EnumBlockSyntax,
+            StatementSyntax)
 
         Private Const ExtensionName As String = "Extension"
         Private Const ExtensionAttributeName As String = "ExtensionAttribute"
@@ -116,7 +122,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
-        Public Overrides Function TryGetDeclaredSymbolInfo(stringTable As StringTable, node As SyntaxNode, rootNamespace As String, ByRef declaredSymbolInfo As DeclaredSymbolInfo) As Boolean
+        Protected Overrides Sub AddDeclaredSymbolInfosWorker(
+                node As StatementSyntax,
+                stringTable As StringTable,
+                rootNamespace As String,
+                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
+                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
+                cancellationToken As CancellationToken)
+
             ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
             ' That's because we effectively think of this as just being a virtual container just to hold the nested
             ' types, And Not something someone would want to explicitly navigate to itself.  Similar to how we think of
@@ -127,15 +140,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                typeDecl.Members.Any() AndAlso
                typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
-                declaredSymbolInfo = Nothing
-                Return False
+                Return
             End If
 
             Dim kind = node.Kind()
             Select Case kind
                 Case SyntaxKind.ClassBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock
                     Dim typeBlock = CType(node, TypeBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         typeDecl.BlockStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
@@ -153,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -169,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim constructor = CType(node, ConstructorBlockSyntax)
                     Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                             stringTable,
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
@@ -186,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
@@ -200,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -215,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim eventDecl = CType(node, EventStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(eventParent),
@@ -228,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
@@ -247,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
                     Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
                     If fieldDecl IsNot Nothing Then
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                             stringTable,
                             modifiedIdentifier.Identifier.ValueText, Nothing,
                             GetContainerDisplayName(fieldDecl.Parent),
@@ -265,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
                     Dim propertyParent = statementOrBlock.Parent
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
                         stringTable,
                         propertyDecl.Identifier.ValueText,
                         GetPropertySuffix(propertyDecl),
@@ -279,8 +291,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return True
             End Select
 
-            declaredSymbolInfo = Nothing
+            DeclaredSymbolInfo = Nothing
             Return False
+        End Sub
+
+        Protected Overrides Function GetChildren(node As CompilationUnitSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetChildren(node As NamespaceBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetChildren(node As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return node.Members
+        End Function
+
+        Protected Overrides Function GetChildren(node As EnumBlockSyntax) As IEnumerable(Of StatementSyntax)
+            Return node.Members
         End Function
 
         Private Shared Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean

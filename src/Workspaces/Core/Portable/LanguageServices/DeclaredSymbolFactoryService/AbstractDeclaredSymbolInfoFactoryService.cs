@@ -8,14 +8,28 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractDeclaredSymbolInfoFactoryService : IDeclaredSymbolInfoFactoryService
+    internal abstract class AbstractDeclaredSymbolInfoFactoryService<
+        TCompilationUnitSyntax,
+        TNamespaceDeclarationSyntax,
+        TTypeDeclarationSyntax,
+        TEnumDeclarationSyntax,
+        TMemberDeclarationSyntax> : IDeclaredSymbolInfoFactoryService
+        where TCompilationUnitSyntax : SyntaxNode
+        where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
+        where TTypeDeclarationSyntax : TMemberDeclarationSyntax
+        where TEnumDeclarationSyntax : TMemberDeclarationSyntax
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
@@ -30,6 +44,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // Find all references.
         private static readonly ObjectPool<Dictionary<string, string>> s_aliasMapPool
             = SharedPools.StringIgnoreCaseDictionary<string>();
+
+        protected AbstractDeclaredSymbolInfoFactoryService()
+        {
+        }
+
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TCompilationUnitSyntax node);
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TNamespaceDeclarationSyntax node);
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TTypeDeclarationSyntax node);
+        protected abstract IEnumerable<TMemberDeclarationSyntax> GetChildren(TEnumDeclarationSyntax node);
+        protected abstract void AddDeclaredSymbolInfosWorker(TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, string rootNamespace, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
+        /// <summary>
+        /// Get the name of the target type of specified extension method declaration. 
+        /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
+        /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
+        /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
+        /// </summary>
+        protected abstract string GetReceiverTypeName(SyntaxNode node);
+        public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+        protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
             => s_aliasMapListPool.Allocate();
@@ -118,18 +151,95 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
-        public abstract bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
+        public async Task AddDeclaredSymbolInfosAsync(
+            Document document,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            CancellationToken cancellationToken)
+        {
+            var project = document.Project;
+            var stringTable = SyntaxTreeIndex.GetStringTable(project);
+            var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
 
-        /// <summary>
-        /// Get the name of the target type of specified extension method declaration. 
-        /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
-        /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
-        /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
-        /// </summary>
-        public abstract string GetReceiverTypeName(SyntaxNode node);
+            var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            AddDeclaredSymbolInfos(root, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+        }
 
-        public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+        private void AddDeclaredSymbolInfos(
+            TCompilationUnitSyntax root,
+            StringTable stringTable,
+            string rootNamespace,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            CancellationToken cancellationToken)
+        {
+            foreach (var child in GetChildren(root))
+                AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+        }
 
-        public abstract string GetRootNamespace(CompilationOptions compilationOptions);
+        private void AddDeclaredSymbolInfos(
+            TMemberDeclarationSyntax memberDeclaration,
+            StringTable stringTable,
+            string rootNamespace,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (memberDeclaration is TNamespaceDeclarationSyntax namespaceDeclaration)
+            {
+                foreach (var child in GetChildren(namespaceDeclaration))
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+            }
+            else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
+            {
+                foreach (var child in GetChildren(baseTypeDeclaration))
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+            }
+            else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
+            {
+                foreach (var child in GetChildren(enumDeclaration))
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+            }
+
+            AddDeclaredSymbolInfosWorker(memberDeclaration, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+        }
+
+        protected void AddExtensionMethodInfo(
+            TMemberDeclarationSyntax node,
+            Dictionary<string, string> aliases,
+            int declaredSymbolInfoIndex,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
+        {
+            var receiverTypeName = this.GetReceiverTypeName(node);
+
+            // Target type is an alias
+            if (aliases.TryGetValue(receiverTypeName, out var originalName))
+            {
+                // it is an alias of multiple with identical name,
+                // simply treat it as a complex method.
+                if (originalName == null)
+                {
+                    receiverTypeName = FindSymbols.Extensions.ComplexReceiverTypeName;
+                }
+                else
+                {
+                    // replace the alias with its original name.
+                    receiverTypeName = originalName;
+                }
+            }
+
+            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
+            {
+                arrayBuilder = ArrayBuilder<int>.GetInstance();
+                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
+            }
+
+            arrayBuilder.Add(declaredSymbolInfoIndex);
+        }
     }
 }

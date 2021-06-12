@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,15 +24,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo);
-
-        // Get the name of the receiver type of specified extension method declaration node.
-        // The returned value would be "" or "[]" for complex types.
-        string GetReceiverTypeName(SyntaxNode node);
+        Task AddDeclaredSymbolInfosAsync(Document document, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
 
         bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
-
-        string GetRootNamespace(CompilationOptions compilationOptions);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -53,14 +46,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// this string table.  The table will have already served its purpose at that point and 
         /// doesn't need to be kept around further.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
-            new();
+        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var project = document.Project;
-            var stringTable = GetStringTable(project);
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
@@ -72,9 +63,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            var declaredSymbolInfos = ArrayBuilder<DeclaredSymbolInfo>.GetInstance();
-            var extensionMethodInfoBuilder = PooledDictionary<string, ArrayBuilder<int>>.GetInstance();
-            using var _ = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+            using var _1 = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+            using var _2 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
+            using var _3 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
 
             try
             {
@@ -99,7 +90,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (syntaxFacts != null)
                 {
                     var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var rootNamespace = infoFactory.GetRootNamespace(project.CompilationOptions);
 
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
@@ -148,42 +138,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     {
                                         usingAliases[aliasName] = name;
                                     }
-                                }
-                            }
-
-                            // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
-                            // crash because the document's syntax root doesn't contain the span of the node returned
-                            // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
-                            //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
-                            //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
-                            //      returning a bad syntax root that doesn't represent the original parsed document.
-                            // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
-                            // the future then we know the problem lies in (2).  If, however, the problem is really in
-                            // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
-                            // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, rootNamespace, out var declaredSymbolInfo))
-                            {
-                                if (root.FullSpan.Contains(declaredSymbolInfo.Span))
-                                {
-                                    var declaredSymbolInfoIndex = declaredSymbolInfos.Count;
-                                    declaredSymbolInfos.Add(declaredSymbolInfo);
-
-                                    AddExtensionMethodInfo(
-                                        infoFactory,
-                                        node,
-                                        usingAliases,
-                                        declaredSymbolInfoIndex,
-                                        declaredSymbolInfo,
-                                        extensionMethodInfoBuilder);
-                                }
-                                else
-                                {
-                                    var message =
-$@"Invalid span in {nameof(declaredSymbolInfo)}.
-{nameof(declaredSymbolInfo.Span)} = {declaredSymbolInfo.Span}
-{nameof(root.FullSpan)} = {root.FullSpan}";
-
-                                    FatalError.ReportAndCatch(new InvalidOperationException(message));
                                 }
                             }
                         }
@@ -247,6 +201,19 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             }
                         }
                     }
+
+                    // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
+                    // crash because the document's syntax root doesn't contain the span of the node returned
+                    // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
+                    //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
+                    //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
+                    //      returning a bad syntax root that doesn't represent the original parsed document.
+                    // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
+                    // the future then we know the problem lies in (2).  If, however, the problem is really in
+                    // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
+                    // and will prevent the crash from occurring.
+                    await infoFactory.AddDeclaredSymbolInfosAsync(
+                        document, declaredSymbolInfos, usingAliases, extensionMethodInfo, cancellationToken).ConfigureAwait(false);
                 }
 
                 return new SyntaxTreeIndex(
@@ -273,10 +240,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                             containsImplicitObjectCreation,
                             containsGlobalAttributes,
                             containsConversion),
-                    new DeclarationInfo(
-                            declaredSymbolInfos.ToImmutable()),
+                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
                     new ExtensionMethodInfo(
-                        extensionMethodInfoBuilder.ToImmutableDictionary(
+                        extensionMethodInfo.ToImmutableDictionary(
                             static kvp => kvp.Key,
                             static kvp => kvp.Value.ToImmutable())));
             }
@@ -286,58 +252,13 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
 
-                foreach (var (_, builder) in extensionMethodInfoBuilder)
-                {
+                foreach (var (_, builder) in extensionMethodInfo)
                     builder.Free();
-                }
-
-                extensionMethodInfoBuilder.Free();
-                declaredSymbolInfos.Free();
             }
         }
 
-        private static void AddExtensionMethodInfo(
-            IDeclaredSymbolInfoFactoryService infoFactory,
-            SyntaxNode node,
-            PooledDictionary<string, string> aliases,
-            int declaredSymbolInfoIndex,
-            DeclaredSymbolInfo declaredSymbolInfo,
-            PooledDictionary<string, ArrayBuilder<int>> extensionMethodsInfoBuilder)
-        {
-            if (declaredSymbolInfo.Kind != DeclaredSymbolInfoKind.ExtensionMethod)
-            {
-                return;
-            }
-
-            var receiverTypeName = infoFactory.GetReceiverTypeName(node);
-
-            // Target type is an alias
-            if (aliases.TryGetValue(receiverTypeName, out var originalName))
-            {
-                // it is an alias of multiple with identical name,
-                // simply treat it as a complex method.
-                if (originalName == null)
-                {
-                    receiverTypeName = Extensions.ComplexReceiverTypeName;
-                }
-                else
-                {
-                    // replace the alias with its original name.
-                    receiverTypeName = originalName;
-                }
-            }
-
-            if (!extensionMethodsInfoBuilder.TryGetValue(receiverTypeName, out var arrayBuilder))
-            {
-                arrayBuilder = ArrayBuilder<int>.GetInstance();
-                extensionMethodsInfoBuilder[receiverTypeName] = arrayBuilder;
-            }
-
-            arrayBuilder.Add(declaredSymbolInfoIndex);
-        }
-
-        private static StringTable GetStringTable(Project project)
-            => s_projectStringTable.GetValue(project, _ => StringTable.GetInstance());
+        public static StringTable GetStringTable(Project project)
+            => s_projectStringTable.GetValue(project, static _ => StringTable.GetInstance());
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
         {

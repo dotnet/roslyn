@@ -11,6 +11,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -24,7 +25,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 {
     [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
-    internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
+    internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
+        CompilationUnitSyntax,
+        NamespaceDeclarationSyntax,
+        TypeDeclarationSyntax,
+        EnumDeclarationSyntax,
+        MemberDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -147,7 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, string rootNamespace, out DeclaredSymbolInfo declaredSymbolInfo)
+        protected override void AddDeclaredSymbolInfosWorker(
+            MemberDeclarationSyntax node,
+            StringTable stringTable,
+            string rootNamespace,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            CancellationToken cancellationToken)
         {
             // If this is a part of partial type that only contains nested types, then we don't make an info type for
             // it. That's because we effectively think of this as just being a virtual container just to hold the nested
@@ -158,8 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 typeDeclaration.Members.Any() &&
                 typeDeclaration.Members.All(m => m is BaseTypeDeclarationSyntax))
             {
-                declaredSymbolInfo = default;
-                return false;
+                return;
             }
 
             switch (node.Kind())
@@ -170,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
                     var typeDecl = (TypeDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         typeDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(typeDecl.TypeParameterList),
@@ -189,11 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetAccessibility(typeDecl, typeDecl.Modifiers),
                         typeDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
-                        IsNestedType(typeDecl));
-                    return true;
+                        IsNestedType(typeDecl)));
+                    return;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -203,11 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetAccessibility(enumDecl, enumDecl.Modifiers),
                         enumDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        isNestedType: IsNestedType(enumDecl));
-                    return true;
+                        isNestedType: IsNestedType(enumDecl)));
+                    return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
@@ -218,11 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetAccessibility(ctorDecl, ctorDecl.Modifiers),
                         ctorDecl.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
-                        parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0);
-                    return true;
+                        parameterCount: ctorDecl.ParameterList?.Parameters.Count ?? 0));
+                    return;
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
@@ -232,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -245,11 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -258,11 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(eventDecl, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         "this", GetIndexerSuffix(indexerDecl),
                         GetContainerDisplayName(node.Parent),
@@ -271,26 +283,29 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Indexer,
                         GetAccessibility(indexerDecl, indexerDecl.Modifiers),
                         indexerDecl.ThisKeyword.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    var isExtensionMethod = IsExtensionMethod(method);
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         method.Identifier.ValueText, GetMethodSuffix(method),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         method.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        IsExtensionMethod(method) ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
+                        isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
                         GetAccessibility(method, method.Modifiers),
                         method.Identifier.Span,
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
-                        typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0);
-                    return true;
+                        typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0));
+                    if (isExtensionMethod)
+                        AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
+                    return;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
-                    declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         property.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
@@ -299,13 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(property, property.Modifiers),
                         property.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty);
-                    return true;
-                case SyntaxKind.VariableDeclarator:
-                    // could either be part of a field declaration or an event field declaration
-                    var variableDeclarator = (VariableDeclaratorSyntax)node;
-                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
-                    if (variableDeclaration?.Parent is BaseFieldDeclarationSyntax fieldDeclaration)
+                        inheritanceNames: ImmutableArray<string>.Empty));
+                    return;
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    var fieldDeclaration = (BaseFieldDeclarationSyntax)node;
+                    foreach (var variableDeclarator in fieldDeclaration.Declaration.Variables)
                     {
                         var kind = fieldDeclaration is EventFieldDeclarationSyntax
                             ? DeclaredSymbolInfoKind.Event
@@ -313,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 
-                        declaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
                             variableDeclarator.Identifier.ValueText, null,
                             GetContainerDisplayName(fieldDeclaration.Parent),
@@ -322,16 +336,23 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             kind,
                             GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers),
                             variableDeclarator.Identifier.Span,
-                            inheritanceNames: ImmutableArray<string>.Empty);
-                        return true;
+                            inheritanceNames: ImmutableArray<string>.Empty));
                     }
-
-                    break;
+                    return;
             }
-
-            declaredSymbolInfo = default;
-            return false;
         }
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(CompilationUnitSyntax node)
+            => node.Members;
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(NamespaceDeclarationSyntax node)
+            => node.Members;
+
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(TypeDeclarationSyntax node)
+            => node.Members;
+
+        protected override IEnumerable<MemberDeclarationSyntax> GetChildren(EnumDeclarationSyntax node)
+            => node.Members;
 
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
@@ -512,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                method.ParameterList.Parameters[0].Modifiers.Any(SyntaxKind.ThisKeyword);
 
         // Root namespace is a VB only concept, which basically means root namespace is always global in C#.
-        public override string GetRootNamespace(CompilationOptions compilationOptions)
+        protected override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 
         public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
@@ -531,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        public override string GetReceiverTypeName(SyntaxNode node)
+        protected override string GetReceiverTypeName(SyntaxNode node)
         {
             var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));
