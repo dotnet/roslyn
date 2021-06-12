@@ -144,8 +144,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
         }
 
-        public async Task AddDeclaredSymbolInfosAsync(
+        public void AddDeclaredSymbolInfos(
             Document document,
+            SyntaxNode root,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, string> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
@@ -155,9 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var stringTable = SyntaxTreeIndex.GetStringTable(project);
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
 
-            var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var child in GetChildren(root))
+            foreach (var child in GetChildren((TCompilationUnitSyntax)root))
                 AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
         }
 

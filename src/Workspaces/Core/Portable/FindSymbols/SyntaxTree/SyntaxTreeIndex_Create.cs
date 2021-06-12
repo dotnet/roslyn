@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        Task AddDeclaredSymbolInfosAsync(Document document, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
+        void AddDeclaredSymbolInfos(Document document, SyntaxNode node, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
 
         bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
     }
@@ -51,11 +49,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
-            var project = document.Project;
+            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
-            var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return CreateIndex(document, root, checksum, cancellationToken);
+        }
+
+        private static SyntaxTreeIndex CreateIndex(
+            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
+            var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
             GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            using var _1 = PooledDictionary<string, string>.GetInstance(out var usingAliases);
+            using var _1 = PooledDictionary<string, string?>.GetInstance(out var usingAliases);
             using var _2 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
             using var _3 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
 
@@ -89,13 +94,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 if (syntaxFacts != null)
                 {
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
                     foreach (var current in root.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true))
                     {
                         if (current.IsNode)
                         {
-                            var node = (SyntaxNode)current;
+                            var node = current.AsNode();
 
                             containsForEachStatement = containsForEachStatement || syntaxFacts.IsForEachStatement(node);
                             containsLockStatement = containsLockStatement || syntaxFacts.IsLockStatement(node);
@@ -177,7 +180,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                             if (syntaxFacts.IsCharacterLiteral(token))
                             {
-                                longLiterals.Add((char)token.Value);
+                                longLiterals.Add((char)token.Value!);
                             }
 
                             if (syntaxFacts.IsNumericLiteral(token))
@@ -212,8 +215,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // the future then we know the problem lies in (2).  If, however, the problem is really in
                     // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                     // and will prevent the crash from occurring.
-                    await infoFactory.AddDeclaredSymbolInfosAsync(
-                        document, declaredSymbolInfos, usingAliases, extensionMethodInfo, cancellationToken).ConfigureAwait(false);
+                    infoFactory.AddDeclaredSymbolInfos(
+                        document, root, declaredSymbolInfos, usingAliases, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
