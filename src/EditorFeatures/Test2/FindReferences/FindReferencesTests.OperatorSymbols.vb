@@ -483,5 +483,140 @@ class B
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:i$$nt|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:int|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+
+    static implicit I5<C5_2>.operator {|Definition:int|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:i$$nt|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator int(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator int(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:i$$nt|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaAPI1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:int|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:i$$nt|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaAPI2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:in$$t|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:int|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

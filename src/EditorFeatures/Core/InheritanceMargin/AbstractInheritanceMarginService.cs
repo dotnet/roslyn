@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (symbol is IEventSymbol or IPropertySymbol
                 or IMethodSymbol
                 {
-                    MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.UserDefinedOperator
+                    MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.UserDefinedOperator or MethodKind.Conversion
                 })
             {
                 return true;
