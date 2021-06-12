@@ -5,7 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -234,10 +237,23 @@ namespace Microsoft.CodeAnalysis
                 return array;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
+            private struct ImmutableArrayProxy<T>
+            {
+                internal T[] MutableArray;
+            }
+
+            private static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
+            {
+                var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
+                array = null!;
+                return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
+            }
+
             public ImmutableArray<byte> ToImmutableArray()
             {
                 var array = ToArray();
-                return ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref array);
+                return DangerousCreateFromUnderlyingArray(ref array);
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }
