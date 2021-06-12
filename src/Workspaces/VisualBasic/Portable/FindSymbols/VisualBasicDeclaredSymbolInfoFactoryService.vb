@@ -543,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Dim genericName = DirectCast(node, GenericNameSyntax)
                 Dim name = genericName.Identifier.Text
                 Dim arity = genericName.Arity
-                simpleTypeName = If(arity = 0, name, name + GetMetadataAritySuffix(arity))
+                simpleTypeName = If(arity = 0, name, name + ArityUtilities.GetMetadataAritySuffix(arity))
                 Return True
 
             ElseIf TypeOf node Is QualifiedNameSyntax Then

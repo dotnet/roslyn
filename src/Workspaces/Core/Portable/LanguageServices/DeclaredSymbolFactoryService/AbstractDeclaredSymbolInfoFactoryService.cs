@@ -31,9 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TEnumDeclarationSyntax : TMemberDeclarationSyntax
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        private const string GenericTypeNameManglingString = "`";
-        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
-
         private static readonly ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool
             = SharedPools.Default<List<Dictionary<string, string>>>();
 
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return ValueTupleName;
             }
             // A ValueTuple can have up to 8 type parameters.
-            return ValueTupleName + GetMetadataAritySuffix(elementCount > 8 ? 8 : elementCount);
+            return ValueTupleName + ArityUtilities.GetMetadataAritySuffix(elementCount > 8 ? 8 : elementCount);
         }
 
         protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
@@ -141,14 +138,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 builder[i] = stringTable.Add(builder[i]);
             }
-        }
-
-        public static string GetMetadataAritySuffix(int arity)
-        {
-            Debug.Assert(arity > 0);
-            return (arity <= s_aritySuffixesOneToNine.Length)
-                ? s_aritySuffixesOneToNine[arity - 1]
-                : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
         public async Task AddDeclaredSymbolInfosAsync(

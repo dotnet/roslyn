@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     case GenericNameSyntax genericNameNode:
                         var name = genericNameNode.Identifier.Text;
                         var arity = genericNameNode.Arity;
-                        simpleTypeName = arity == 0 ? name : name + GetMetadataAritySuffix(arity);
+                        simpleTypeName = arity == 0 ? name : name + ArityUtilities.GetMetadataAritySuffix(arity);
                         return true;
 
                     case PredefinedTypeSyntax predefinedTypeNode:
