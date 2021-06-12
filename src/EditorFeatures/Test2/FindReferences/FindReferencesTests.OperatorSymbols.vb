@@ -502,7 +502,6 @@ class C5_1 : I5<C5_1>
 
 class C5_2 : I5<C5_2>
 {
-
     static implicit I5<C5_2>.operator {|Definition:int|}(C5_2 x) => default;
 }]]>
         </Document>
