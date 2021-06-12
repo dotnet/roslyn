@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode node, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
+        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
 
         bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
     }
@@ -205,16 +205,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
-                    // crash because the document's syntax root doesn't contain the span of the node returned
-                    // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
-                    //   1) syntaxFacts.TryGetDeclaredSymbolInfo() is returning a bad span, or
-                    //   2) Document.GetSyntaxRootAsync() (called from DeclaredSymbolInfo.GetSymbolAsync) is
-                    //      returning a bad syntax root that doesn't represent the original parsed document.
-                    // By adding the `root.FullSpan.Contains()` check below, if we get similar crash reports in
-                    // the future then we know the problem lies in (2).  If, however, the problem is really in
-                    // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
-                    // and will prevent the crash from occurring.
                     infoFactory.AddDeclaredSymbolInfos(
                         document, root, declaredSymbolInfos, usingAliases, extensionMethodInfo, cancellationToken);
                 }

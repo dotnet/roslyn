@@ -145,11 +145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Return
             End If
 
-            ' TODO(cyrusn): Fix vb impl.  It doesn't handle any other abstract member forms.
             If node.Kind() = SyntaxKind.PropertyBlock Then
                 node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
             ElseIf node.Kind() = SyntaxKind.EventBlock Then
                 node = DirectCast(node, EventBlockSyntax).EventStatement
+            ElseIf TypeOf node Is MethodBlockBaseSyntax Then
+                node = DirectCast(node, MethodBlockBaseSyntax).BlockStatement
             End If
 
             Dim kind = node.Kind()
@@ -186,9 +187,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         ImmutableArray(Of String).Empty,
                         IsNestedType(enumDecl)))
                     Return
-                Case SyntaxKind.ConstructorBlock
-                    Dim constructor = CType(node, ConstructorBlockSyntax)
-                    Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
+                Case SyntaxKind.SubNewStatement
+                    Dim constructor = DirectCast(node, SubNewStatementSyntax)
+                    Dim statementOrBlock = If(TypeOf node.Parent Is ConstructorBlockSyntax, node.Parent, node)
+                    Dim typeBlock = TryCast(statementOrBlock.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
                         declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
@@ -196,12 +198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             GetConstructorSuffix(constructor),
                             containerDisplayName,
                             fullyQualifiedContainerName,
-                            constructor.SubNewStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                            constructor.Modifiers.Any(SyntaxKind.PartialKeyword),
                             DeclaredSymbolInfoKind.Constructor,
-                            GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
-                            constructor.SubNewStatement.NewKeyword.Span,
+                            GetAccessibility(statementOrBlock, constructor.Modifiers),
+                            constructor.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
-                            parameterCount:=If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0)))
+                            parameterCount:=If(constructor.ParameterList?.Parameters.Count, 0)))
 
                         Return
                     End If
@@ -233,7 +235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         ImmutableArray(Of String).Empty))
                     Return
                 Case SyntaxKind.EventStatement
-                    Dim eventDecl = CType(node, EventStatementSyntax)
+                    Dim eventDecl = DirectCast(node, EventStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
@@ -247,28 +249,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         eventDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty))
                     Return
-                Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
-                    Dim funcDecl = CType(node, MethodBlockSyntax)
+                Case SyntaxKind.FunctionStatement, SyntaxKind.SubStatement
+                    Dim funcDecl = DirectCast(node, MethodStatementSyntax)
+                    Dim statementOrBlock = If(TypeOf node.Parent Is MethodBlockBaseSyntax, node.Parent, node)
                     Dim isExtension = IsExtensionMethod(funcDecl)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
-                        funcDecl.SubOrFunctionStatement.Identifier.ValueText,
+                        funcDecl.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
                         containerDisplayName,
                         fullyQualifiedContainerName,
-                        funcDecl.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        funcDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
-                        GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
-                        funcDecl.SubOrFunctionStatement.Identifier.Span,
+                        GetAccessibility(statementOrBlock, funcDecl.Modifiers),
+                        funcDecl.Identifier.Span,
                         ImmutableArray(Of String).Empty,
-                        parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
-                        typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0)))
+                        parameterCount:=If(funcDecl.ParameterList?.Parameters.Count, 0),
+                        typeParameterCount:=If(funcDecl.TypeParameterList?.Parameters.Count, 0)))
                     If isExtension Then
                         AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
                     End If
                     Return
                 Case SyntaxKind.PropertyStatement
-                    Dim propertyDecl = CType(node, PropertyStatementSyntax)
+                    Dim propertyDecl = DirectCast(node, PropertyStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
                     Dim propertyParent = statementOrBlock.Parent
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
@@ -320,15 +323,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return node.Members
         End Function
 
-        Private Shared Function IsExtensionMethod(node As MethodBlockSyntax) As Boolean
-            Dim parameterCount = node.SubOrFunctionStatement.ParameterList?.Parameters.Count
+        Private Shared Function IsExtensionMethod(node As MethodStatementSyntax) As Boolean
+            Dim parameterCount = node.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
             If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent IsNot ModuleBlockSyntax Then
                 Return False
             End If
 
-            For Each attributeList In node.BlockStatement.AttributeLists
+            For Each attributeList In node.AttributeLists
                 For Each attribute In attributeList.Attributes
                     ' ExtensionAttribute takes no argument.
                     If attribute.ArgumentList?.Arguments.Count > 0 Then
@@ -392,13 +395,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return Accessibility.Internal
         End Function
 
-        Private Shared Function GetMethodSuffix(method As MethodBlockSyntax) As String
-            Return GetTypeParameterSuffix(method.SubOrFunctionStatement.TypeParameterList) &
-                   GetSuffix(method.SubOrFunctionStatement.ParameterList)
+        Private Shared Function GetMethodSuffix(method As MethodStatementSyntax) As String
+            Return GetTypeParameterSuffix(method.TypeParameterList) & GetSuffix(method.ParameterList)
         End Function
 
-        Private Shared Function GetConstructorSuffix(method As ConstructorBlockSyntax) As String
-            Return ".New" & GetSuffix(method.SubNewStatement.ParameterList)
+        Private Shared Function GetConstructorSuffix(method As SubNewStatementSyntax) As String
+            Return ".New" & GetSuffix(method.ParameterList)
         End Function
 
         Private Shared Function GetPropertySuffix([property] As PropertyStatementSyntax) As String
@@ -488,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
 
         Protected Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
             Dim funcDecl = CType(node, MethodBlockSyntax)
-            Debug.Assert(IsExtensionMethod(funcDecl))
+            Debug.Assert(IsExtensionMethod(funcDecl.SubOrFunctionStatement))
 
             Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
             Dim targetTypeName As String = Nothing
