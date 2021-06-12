@@ -50,7 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TNamespaceDeclarationSyntax node);
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TTypeDeclarationSyntax node);
         protected abstract IEnumerable<TMemberDeclarationSyntax> GetChildren(TEnumDeclarationSyntax node);
-        protected abstract void AddDeclaredSymbolInfosWorker(TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, string rootNamespace, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
+        protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
+        protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
+
+        protected abstract void AddDeclaredSymbolInfosWorker(
+            TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, string rootNamespace, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         /// <summary>
         /// Get the name of the target type of specified extension method declaration. 
         /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
@@ -152,20 +156,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
 
             var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            AddDeclaredSymbolInfos(root, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
-        }
 
-        private void AddDeclaredSymbolInfos(
-            TCompilationUnitSyntax root,
-            StringTable stringTable,
-            string rootNamespace,
-            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
-            CancellationToken cancellationToken)
-        {
             foreach (var child in GetChildren(root))
-                AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+                AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
         }
 
         private void AddDeclaredSymbolInfos(
@@ -175,27 +168,44 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, string> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (memberDeclaration is TNamespaceDeclarationSyntax namespaceDeclaration)
             {
+                containerDisplayName = GetContainerDisplayName(memberDeclaration);
+                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(namespaceDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
             else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
             {
+                containerDisplayName = GetContainerDisplayName(memberDeclaration);
+                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(baseTypeDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
+                containerDisplayName = GetContainerDisplayName(memberDeclaration);
+                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(enumDeclaration))
-                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+                    AddDeclaredSymbolInfos(child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
 
-            AddDeclaredSymbolInfosWorker(memberDeclaration, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, cancellationToken);
+            AddDeclaredSymbolInfosWorker(
+                memberDeclaration,
+                stringTable,
+                rootNamespace,
+                declaredSymbolInfos,
+                aliases,
+                extensionMethodInfo,
+                containerDisplayName,
+                fullyQualifiedContainerName,
+                cancellationToken);
         }
 
         protected void AddExtensionMethodInfo(

@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, string> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
         {
             // If this is a part of partial type that only contains nested types, then we don't make an info type for
@@ -186,8 +188,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         stringTable,
                         typeDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(typeDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         node.Kind() switch
                         {
@@ -208,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
                         GetAccessibility(enumDecl, enumDecl.Modifiers),
@@ -223,8 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         stringTable,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         ctorDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Constructor,
                         GetAccessibility(ctorDecl, ctorDecl.Modifiers),
@@ -238,8 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
@@ -251,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumMember.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
@@ -264,8 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(eventDecl, eventDecl.Modifiers),
@@ -277,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         "this", GetIndexerSuffix(indexerDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         indexerDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Indexer,
                         GetAccessibility(indexerDecl, indexerDecl.Modifiers),
@@ -291,8 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         method.Identifier.ValueText, GetMethodSuffix(method),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         method.Modifiers.Any(SyntaxKind.PartialKeyword),
                         isExtensionMethod ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method,
                         GetAccessibility(method, method.Modifiers),
@@ -308,8 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         property.Identifier.ValueText, null,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         property.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(property, property.Modifiers),
@@ -330,8 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
                             variableDeclarator.Identifier.ValueText, null,
-                            GetContainerDisplayName(fieldDeclaration.Parent),
-                            GetFullyQualifiedContainerName(fieldDeclaration.Parent),
+                            containerDisplayName,
+                            fullyQualifiedContainerName,
                             fieldDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
                             kind,
                             GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers),
@@ -453,10 +455,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        private static string GetContainerDisplayName(SyntaxNode node)
+        protected override string GetContainerDisplayName(MemberDeclarationSyntax node)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters);
 
-        private static string GetFullyQualifiedContainerName(SyntaxNode node)
+        protected override string GetFullyQualifiedContainerName(MemberDeclarationSyntax node, string rootNamespace)
             => CSharpSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces);
 
         private static Accessibility GetAccessibility(SyntaxNode node, SyntaxTokenList modifiers)

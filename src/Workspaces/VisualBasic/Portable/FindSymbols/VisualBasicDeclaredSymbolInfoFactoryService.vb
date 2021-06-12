@@ -114,11 +114,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return simpleName.Identifier.ValueText
         End Function
 
-        Private Shared Function GetContainerDisplayName(node As SyntaxNode) As String
+        Protected Overrides Function GetContainerDisplayName(node As StatementSyntax) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)
         End Function
 
-        Private Shared Function GetFullyQualifiedContainerName(node As SyntaxNode, rootNamespace As String) As String
+        Protected Overrides Function GetFullyQualifiedContainerName(node As StatementSyntax, rootNamespace As String) As String
             Return VisualBasicSyntaxFacts.Instance.GetDisplayName(node, DisplayNameOptions.IncludeNamespaces, rootNamespace)
         End Function
 
@@ -129,6 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
                 aliases As Dictionary(Of String, String),
                 extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
+                containerDisplayName As String,
+                fullyQualifiedContainerName As String,
                 cancellationToken As CancellationToken)
 
             ' If this Is a part of partial type that only contains nested types, then we don't make an info type for it.
@@ -159,8 +161,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         typeDecl.BlockStatement.Identifier.ValueText,
                         GetTypeParameterSuffix(typeBlock.BlockStatement.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         typeBlock.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         If(kind = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
                         If(kind = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
@@ -176,8 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         enumDecl.EnumStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Enum,
                         GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
@@ -193,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             stringTable,
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
-                            GetContainerDisplayName(node.Parent),
-                            GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                            containerDisplayName,
+                            fullyQualifiedContainerName,
                             constructor.SubNewStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                             DeclaredSymbolInfoKind.Constructor,
                             GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
@@ -210,8 +212,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         delegateDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
@@ -223,8 +225,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         isPartial:=False,
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
@@ -238,8 +240,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
-                        GetContainerDisplayName(eventParent),
-                        GetFullyQualifiedContainerName(eventParent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         eventDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(statementOrBlock, eventDecl.Modifiers),
@@ -253,8 +255,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
-                        GetContainerDisplayName(node.Parent),
-                        GetFullyQualifiedContainerName(node.Parent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         funcDecl.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                         If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
                         GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
@@ -274,8 +276,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         stringTable,
                         propertyDecl.Identifier.ValueText,
                         GetPropertySuffix(propertyDecl),
-                        GetContainerDisplayName(propertyParent),
-                        GetFullyQualifiedContainerName(propertyParent, rootNamespace),
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
                         propertyDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(statementOrBlock, propertyDecl.Modifiers),
@@ -289,8 +291,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                                 stringTable,
                                 modifiedIdentifier.Identifier.ValueText, Nothing,
-                                GetContainerDisplayName(fieldDecl.Parent),
-                                GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
+                                containerDisplayName,
+                                fullyQualifiedContainerName,
                                 fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
                                 If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
                                     DeclaredSymbolInfoKind.Constant,
