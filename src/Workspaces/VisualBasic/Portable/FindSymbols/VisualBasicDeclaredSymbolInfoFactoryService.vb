@@ -248,6 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Return
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
+                    Dim isExtension = IsExtensionMethod(funcDecl)
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
@@ -255,12 +256,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent, rootNamespace),
                         funcDecl.SubOrFunctionStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        If(IsExtensionMethod(funcDecl), DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
+                        If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method),
                         GetAccessibility(node, funcDecl.SubOrFunctionStatement.Modifiers),
                         funcDecl.SubOrFunctionStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
                         parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
                         typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0)))
+                    If isExtension Then
+                        AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
+                    End If
                     Return
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
