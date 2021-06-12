@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     Friend Class VisualBasicDeclaredSymbolInfoFactoryService
         Inherits AbstractDeclaredSymbolInfoFactoryService(Of
             CompilationUnitSyntax,
+            ImportsStatementSyntax,
             NamespaceBlockSyntax,
             TypeBlockSyntax,
             EnumBlockSyntax,
@@ -318,6 +319,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return node.Members
         End Function
 
+        Protected Overrides Function GetUsingAliases(node As CompilationUnitSyntax) As SyntaxList(Of ImportsStatementSyntax)
+            Return node.Imports
+        End Function
+
+        Protected Overrides Function GetUsingAliases(node As NamespaceBlockSyntax) As SyntaxList(Of ImportsStatementSyntax)
+            Return Nothing
+        End Function
+
         Private Shared Function IsExtensionMethod(node As MethodStatementSyntax) As Boolean
             Dim parameterCount = node.ParameterList?.Parameters.Count
 
@@ -494,12 +503,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Return CreateReceiverTypeString(targetTypeName, isArray)
         End Function
 
-        Public Overrides Function TryGetAliasesFromUsingDirective(node As SyntaxNode, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
-
-            Dim importStatement = TryCast(node, ImportsStatementSyntax)
+        Protected Overrides Function TryGetAliasesFromUsingDirective(importStatement As ImportsStatementSyntax, ByRef aliases As ImmutableArray(Of (aliasName As String, name As String))) As Boolean
             Dim builder = ArrayBuilder(Of (String, String)).GetInstance()
 
-            If (importStatement IsNot Nothing) Then
+            If importStatement IsNot Nothing Then
                 For Each importsClause In importStatement.ImportsClauses
 
                     If importsClause.Kind = SyntaxKind.SimpleImportsClause Then

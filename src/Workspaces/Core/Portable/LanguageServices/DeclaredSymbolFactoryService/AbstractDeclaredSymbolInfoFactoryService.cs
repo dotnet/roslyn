@@ -21,11 +21,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractDeclaredSymbolInfoFactoryService<
         TCompilationUnitSyntax,
+        TUsingDirectiveSyntax,
         TNamespaceDeclarationSyntax,
         TTypeDeclarationSyntax,
         TEnumDeclarationSyntax,
         TMemberDeclarationSyntax> : IDeclaredSymbolInfoFactoryService
         where TCompilationUnitSyntax : SyntaxNode
+        where TUsingDirectiveSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
         where TTypeDeclarationSyntax : TMemberDeclarationSyntax
         where TEnumDeclarationSyntax : TMemberDeclarationSyntax
@@ -50,6 +52,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TNamespaceDeclarationSyntax node);
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetChildren(TTypeDeclarationSyntax node);
         protected abstract IEnumerable<TMemberDeclarationSyntax> GetChildren(TEnumDeclarationSyntax node);
+
+        protected abstract SyntaxList<TUsingDirectiveSyntax> GetUsingAliases(TCompilationUnitSyntax node);
+        protected abstract SyntaxList<TUsingDirectiveSyntax> GetUsingAliases(TNamespaceDeclarationSyntax node);
+
         protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
@@ -62,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
         protected abstract string GetReceiverTypeName(SyntaxNode node);
-        public abstract bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+        protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
         protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
         protected static List<Dictionary<string, string>> AllocateAliasMapList()
@@ -148,13 +154,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             Document document,
             SyntaxNode root,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             CancellationToken cancellationToken)
         {
             var project = document.Project;
             var stringTable = SyntaxTreeIndex.GetStringTable(project);
             var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
+
+            using var _1 = PooledDictionary<string, string>.GetInstance(out var aliases);
+
+            foreach (var usingAlias in GetUsingAliases((TCompilationUnitSyntax)root))
+            {
+                if (this.TryGetAliasesFromUsingDirective(usingAlias, out var current))
+                    AddAliases(aliases, current);
+            }
 
             foreach (var child in GetChildren((TCompilationUnitSyntax)root))
                 AddDeclaredSymbolInfos(root, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, "", "", cancellationToken);
@@ -178,6 +191,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 containerDisplayName = GetContainerDisplayName(memberDeclaration);
                 fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
+
+                foreach (var usingAlias in GetUsingAliases(namespaceDeclaration))
+                {
+                    if (this.TryGetAliasesFromUsingDirective(usingAlias, out var current))
+                        AddAliases(aliases, current);
+                }
+
                 foreach (var child in GetChildren(namespaceDeclaration))
                     AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
             }
@@ -239,6 +259,33 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             arrayBuilder.Add(declaredSymbolInfoIndex);
+        }
+
+        private static void AddAliases(Dictionary<string, string> allAliases, ImmutableArray<(string aliasName, string name)> aliases)
+        {
+            foreach (var (aliasName, name) in aliases)
+            {
+                // In C#, it's valid to declare two alias with identical name,
+                // as long as they are in different containers.
+                //
+                // e.g.
+                //      using X = System.String;
+                //      namespace N
+                //      {
+                //          using X = System.Int32;
+                //      }
+                //
+                // If we detect this, we will simply treat extension methods whose
+                // target type is this alias as complex method.
+                if (allAliases.ContainsKey(aliasName))
+                {
+                    allAliases[aliasName] = null;
+                }
+                else
+                {
+                    allAliases[aliasName] = name;
+                }
+            }
         }
     }
 }

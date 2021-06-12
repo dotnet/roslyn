@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
         CompilationUnitSyntax,
+        UsingDirectiveSyntax,
         NamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
@@ -356,6 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override IEnumerable<MemberDeclarationSyntax> GetChildren(EnumDeclarationSyntax node)
             => node.Members;
 
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(CompilationUnitSyntax node)
+            => node.Usings;
+
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(NamespaceDeclarationSyntax node)
+            => node.Usings;
+
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
             => typeDecl.Parent is BaseTypeDeclarationSyntax;
 
@@ -534,9 +541,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override string GetRootNamespace(CompilationOptions compilationOptions)
             => string.Empty;
 
-        public override bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases)
+        protected override bool TryGetAliasesFromUsingDirective(
+            UsingDirectiveSyntax usingDirectiveNode, out ImmutableArray<(string aliasName, string name)> aliases)
         {
-            if (node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null)
+            if (usingDirectiveNode.Alias != null)
             {
                 if (TryGetSimpleTypeName(usingDirectiveNode.Alias.Name, typeParameterNames: null, out var aliasName, out _) &&
                     TryGetSimpleTypeName(usingDirectiveNode.Name, typeParameterNames: null, out var name, out _))

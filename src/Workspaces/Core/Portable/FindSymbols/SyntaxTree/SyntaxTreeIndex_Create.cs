@@ -22,9 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
         // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
-
-        bool TryGetAliasesFromUsingDirective(SyntaxNode node, out ImmutableArray<(string aliasName, string name)> aliases);
+        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -68,7 +66,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            using var _1 = PooledDictionary<string, string?>.GetInstance(out var usingAliases);
             using var _2 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
             using var _3 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
 
@@ -116,33 +113,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation = containsImplicitObjectCreation || syntaxFacts.IsImplicitObjectCreationExpression(node);
                             containsGlobalAttributes = containsGlobalAttributes || syntaxFacts.IsGlobalAttribute(node);
                             containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
-
-                            if (syntaxFacts.IsUsingAliasDirective(node) && infoFactory.TryGetAliasesFromUsingDirective(node, out var aliases))
-                            {
-                                foreach (var (aliasName, name) in aliases)
-                                {
-                                    // In C#, it's valid to declare two alias with identical name,
-                                    // as long as they are in different containers.
-                                    //
-                                    // e.g.
-                                    //      using X = System.String;
-                                    //      namespace N
-                                    //      {
-                                    //          using X = System.Int32;
-                                    //      }
-                                    //
-                                    // If we detect this, we will simply treat extension methods whose
-                                    // target type is this alias as complex method.
-                                    if (usingAliases.ContainsKey(aliasName))
-                                    {
-                                        usingAliases[aliasName] = null;
-                                    }
-                                    else
-                                    {
-                                        usingAliases[aliasName] = name;
-                                    }
-                                }
-                            }
                         }
                         else
                         {
@@ -206,7 +176,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     infoFactory.AddDeclaredSymbolInfos(
-                        document, root, declaredSymbolInfos, usingAliases, extensionMethodInfo, cancellationToken);
+                        document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
