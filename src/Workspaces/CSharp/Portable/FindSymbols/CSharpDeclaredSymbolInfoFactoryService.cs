@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override void AddDeclaredSymbolInfosWorker(
             MemberDeclarationSyntax node,
             StringTable stringTable,
-            string rootNamespace,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
             Dictionary<string, string> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,

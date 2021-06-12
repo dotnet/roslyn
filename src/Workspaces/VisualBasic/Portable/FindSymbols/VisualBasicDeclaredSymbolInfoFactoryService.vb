@@ -125,7 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         Protected Overrides Sub AddDeclaredSymbolInfosWorker(
                 node As StatementSyntax,
                 stringTable As StringTable,
-                rootNamespace As String,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
                 aliases As Dictionary(Of String, String),
                 extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
         protected abstract void AddDeclaredSymbolInfosWorker(
-            TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, string rootNamespace, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+            TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         /// <summary>
         /// Get the name of the target type of specified extension method declaration. 
         /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             AddDeclaredSymbolInfosWorker(
                 memberDeclaration,
                 stringTable,
-                rootNamespace,
                 declaredSymbolInfos,
                 aliases,
                 extensionMethodInfo,
