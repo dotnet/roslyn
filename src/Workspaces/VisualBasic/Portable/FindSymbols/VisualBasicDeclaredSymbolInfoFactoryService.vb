@@ -127,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 stringTable As StringTable,
                 rootNamespace As String,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
+                aliases As Dictionary(Of String, String),
                 extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
                 cancellationToken As CancellationToken)
 
@@ -141,6 +142,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                typeDecl.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
                 Return
+            End If
+
+            ' TODO(cyrusn): Fix vb impl.  It doesn't handle any other abstract member forms.
+            If node.Kind() = SyntaxKind.PropertyBlock Then
+                node = DirectCast(node, PropertyBlockSyntax).PropertyStatement
+            ElseIf node.Kind() = SyntaxKind.EventBlock Then
+                node = DirectCast(node, EventBlockSyntax).EventStatement
             End If
 
             Dim kind = node.Kind()
@@ -161,11 +169,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         GetAccessibility(typeBlock, typeBlock.BlockStatement.Modifiers),
                         typeBlock.BlockStatement.Identifier.Span,
                         GetInheritanceNames(stringTable, typeBlock),
-                        IsNestedType(typeBlock))
-                    Return True
+                        IsNestedType(typeBlock)))
+                    Return
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumDecl.EnumStatement.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -175,13 +183,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         GetAccessibility(enumDecl, enumDecl.EnumStatement.Modifiers),
                         enumDecl.EnumStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
-                        IsNestedType(enumDecl))
-                    Return True
+                        IsNestedType(enumDecl)))
+                    Return
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
                     Dim typeBlock = TryCast(constructor.Parent, TypeBlockSyntax)
                     If typeBlock IsNot Nothing Then
-                        DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                        declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                             stringTable,
                             typeBlock.BlockStatement.Identifier.ValueText,
                             GetConstructorSuffix(constructor),
@@ -192,13 +200,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                             GetAccessibility(constructor, constructor.SubNewStatement.Modifiers),
                             constructor.SubNewStatement.NewKeyword.Span,
                             ImmutableArray(Of String).Empty,
-                            parameterCount:=If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0))
+                            parameterCount:=If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0)))
 
-                        Return True
+                        Return
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
@@ -208,11 +216,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.Delegate,
                         GetAccessibility(delegateDecl, delegateDecl.Modifiers),
                         delegateDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         enumMember.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(node.Parent),
@@ -221,13 +229,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.EnumMember,
                         Accessibility.Public,
                         enumMember.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
                 Case SyntaxKind.EventStatement
                     Dim eventDecl = CType(node, EventStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent, node)
                     Dim eventParent = statementOrBlock.Parent
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         eventDecl.Identifier.ValueText, Nothing,
                         GetContainerDisplayName(eventParent),
@@ -236,11 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.Event,
                         GetAccessibility(statementOrBlock, eventDecl.Modifiers),
                         eventDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetMethodSuffix(funcDecl),
@@ -252,32 +260,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         funcDecl.SubOrFunctionStatement.Identifier.Span,
                         ImmutableArray(Of String).Empty,
                         parameterCount:=If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0),
-                        typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0))
-                    Return True
-                Case SyntaxKind.ModifiedIdentifier
-                    Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
-                    Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
-                    Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
-                    If fieldDecl IsNot Nothing Then
-                        DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
-                            stringTable,
-                            modifiedIdentifier.Identifier.ValueText, Nothing,
-                            GetContainerDisplayName(fieldDecl.Parent),
-                            GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
-                            fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                            If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
-                                DeclaredSymbolInfoKind.Constant,
-                                DeclaredSymbolInfoKind.Field),
-                            GetAccessibility(fieldDecl, fieldDecl.Modifiers),
-                            modifiedIdentifier.Identifier.Span,
-                            ImmutableArray(Of String).Empty)
-                        Return True
-                    End If
+                        typeParameterCount:=If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0)))
+                    Return
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
                     Dim statementOrBlock = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent, node)
                     Dim propertyParent = statementOrBlock.Parent
-                    DeclaredSymbolInfo = DeclaredSymbolInfo.Create(
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
                         propertyDecl.Identifier.ValueText,
                         GetPropertySuffix(propertyDecl),
@@ -287,12 +276,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         DeclaredSymbolInfoKind.Property,
                         GetAccessibility(statementOrBlock, propertyDecl.Modifiers),
                         propertyDecl.Identifier.Span,
-                        ImmutableArray(Of String).Empty)
-                    Return True
+                        ImmutableArray(Of String).Empty))
+                    Return
+                Case SyntaxKind.FieldDeclaration
+                    Dim fieldDecl = DirectCast(node, FieldDeclarationSyntax)
+                    For Each variableDeclarator In fieldDecl.Declarators
+                        For Each modifiedIdentifier In variableDeclarator.Names
+                            declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                                stringTable,
+                                modifiedIdentifier.Identifier.ValueText, Nothing,
+                                GetContainerDisplayName(fieldDecl.Parent),
+                                GetFullyQualifiedContainerName(fieldDecl.Parent, rootNamespace),
+                                fieldDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                                If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
+                                    DeclaredSymbolInfoKind.Constant,
+                                    DeclaredSymbolInfoKind.Field),
+                                GetAccessibility(fieldDecl, fieldDecl.Modifiers),
+                                modifiedIdentifier.Identifier.Span,
+                                ImmutableArray(Of String).Empty))
+                        Next
+                    Next
             End Select
-
-            DeclaredSymbolInfo = Nothing
-            Return False
         End Sub
 
         Protected Overrides Function GetChildren(node As CompilationUnitSyntax) As SyntaxList(Of StatementSyntax)
@@ -477,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Public Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
+        Protected Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
             Dim funcDecl = CType(node, MethodBlockSyntax)
             Debug.Assert(IsExtensionMethod(funcDecl))
 
@@ -604,7 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             End Select
         End Function
 
-        Public Overrides Function GetRootNamespace(compilationOptions As CompilationOptions) As String
+        Protected Overrides Function GetRootNamespace(compilationOptions As CompilationOptions) As String
             Return DirectCast(compilationOptions, VisualBasicCompilationOptions).RootNamespace
         End Function
     End Class
