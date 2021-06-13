@@ -85,6 +85,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+                return null;
+
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
             if (!s_documentToIndex.TryGetValue(document, out var index))
