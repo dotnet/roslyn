@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Dim parameterCount = node.ParameterList?.Parameters.Count
 
             ' Extension method must have at least one parameter and declared inside a module
-            If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent IsNot ModuleBlockSyntax Then
+            If Not parameterCount.HasValue OrElse parameterCount.Value = 0 OrElse TypeOf node.Parent?.Parent IsNot ModuleBlockSyntax Then
                 Return False
             End If
 
@@ -491,15 +491,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             Next
         End Sub
 
-        Protected Overrides Function GetReceiverTypeName(node As SyntaxNode) As String
-            Dim funcDecl = CType(node, MethodBlockSyntax)
-            Debug.Assert(IsExtensionMethod(funcDecl.SubOrFunctionStatement))
+        Protected Overrides Function GetReceiverTypeName(node As StatementSyntax) As String
+            Dim funcDecl = DirectCast(node, MethodStatementSyntax)
+            Debug.Assert(IsExtensionMethod(funcDecl))
 
-            Dim typeParameterNames = funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
+            Dim typeParameterNames = funcDecl.TypeParameterList?.Parameters.SelectAsArray(Function(p) p.Identifier.Text)
             Dim targetTypeName As String = Nothing
             Dim isArray As Boolean = False
 
-            TryGetSimpleTypeNameWorker(funcDecl.BlockStatement.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
+            TryGetSimpleTypeNameWorker(funcDecl.ParameterList.Parameters(0).AsClause?.Type, typeParameterNames, targetTypeName, isArray)
             Return CreateReceiverTypeString(targetTypeName, isArray)
         End Function
 

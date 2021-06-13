@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             return false;
         }
 
-        protected override string GetReceiverTypeName(SyntaxNode node)
+        protected override string GetReceiverTypeName(MemberDeclarationSyntax node)
         {
             var methodDeclaration = (MethodDeclarationSyntax)node;
             Debug.Assert(IsExtensionMethod(methodDeclaration));

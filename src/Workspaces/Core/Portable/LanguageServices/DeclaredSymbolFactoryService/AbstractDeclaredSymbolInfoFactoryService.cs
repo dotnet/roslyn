@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
         /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
-        protected abstract string GetReceiverTypeName(SyntaxNode node);
+        protected abstract string GetReceiverTypeName(TMemberDeclarationSyntax node);
         protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
         protected abstract string GetRootNamespace(CompilationOptions compilationOptions);
 
