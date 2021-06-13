@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             if (memberDeclaration is TNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                containerDisplayName = GetContainerDisplayName(memberDeclaration);
-                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
+                var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
 
                 foreach (var usingAlias in GetUsingAliases(namespaceDeclaration))
                 {
@@ -199,21 +199,33 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
 
                 foreach (var child in GetChildren(namespaceDeclaration))
-                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                {
+                    AddDeclaredSymbolInfos(
+                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
+                }
             }
             else if (memberDeclaration is TTypeDeclarationSyntax baseTypeDeclaration)
             {
-                containerDisplayName = GetContainerDisplayName(memberDeclaration);
-                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
+                var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(baseTypeDeclaration))
-                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                {
+                    AddDeclaredSymbolInfos(
+                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
+                }
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
-                containerDisplayName = GetContainerDisplayName(memberDeclaration);
-                fullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
+                var innerContainerDisplayName = GetContainerDisplayName(memberDeclaration);
+                var innerFullyQualifiedContainerName = GetFullyQualifiedContainerName(memberDeclaration, rootNamespace);
                 foreach (var child in GetChildren(enumDeclaration))
-                    AddDeclaredSymbolInfos(memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+                {
+                    AddDeclaredSymbolInfos(
+                        memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
+                        innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
+                }
             }
 
             AddDeclaredSymbolInfosWorker(
