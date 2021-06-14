@@ -92,6 +92,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We should now have converted three additional files -- the two from the original run and then the one that was changed.
             // The other one should have been kept constant because that didn't change.
             Assert.Equal(3, generator.AdditionalFilesConvertedCount);
+
+            // Change one of the source documents, and rerun; we should again only reprocess that one change.
+            project = project.AddDocument("Source.cs", SourceText.From("")).Project;
+
+            compilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
+
+            // We have one extra syntax tree now, but it did not require any invocations of the incremental generator.
+            Assert.Equal(3, compilation.SyntaxTrees.Count());
+            Assert.Equal(3, generator.AdditionalFilesConvertedCount);
         }
 
         [Fact]
