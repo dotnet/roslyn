@@ -4,11 +4,9 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -99,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                                     >= LogLevel.Information => LogType.UserAction,
                                     _ => LogType.Trace
                                 };
-
 
         private void EndScope<T>(FunctionId functionId, int blockId, LogMessage logMessage, CancellationToken cancellationToken)
             where T : OperationEvent
