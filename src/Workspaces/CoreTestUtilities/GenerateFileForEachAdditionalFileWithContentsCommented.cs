@@ -30,7 +30,7 @@ namespace Roslyn.Test.Utilities
                 pipelineContext.Sources.AdditionalTexts.GenerateSource((generatorContext, additionalText) =>
                     generatorContext.AddSource(
                         GetGeneratedFileName(additionalText.Path),
-                        GenerateSourceForAdditionalFile(additionalText, CancellationToken.None)));
+                        GenerateSourceForAdditionalFile(additionalText, generatorContext.CancellationToken)));
             });
         }
 
