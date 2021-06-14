@@ -902,7 +902,7 @@ class classD
             var testGenerator = new PipelineCallbackGenerator(context =>
             {
                 var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText);
-                context.RegisterSourceOutput(source,(spc, fieldName) =>
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
                 {
                     spc.AddSource(fieldName, "");
                 });
