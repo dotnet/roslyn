@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We're missing the cached completion list for this incomplete request.
                 // We can re-compute what the list would have been had the user just started typing the word.
                 // We get this by creating a document that has the filter text removed.
-                var originalDocument = document.WithText(sourceText.WithChanges(new TextChange(completionListSpan, string.Empty)));
+                var originalDocument = document.WithText(textWithoutCompletionListSpan);
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
                 var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
@@ -501,19 +501,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 SourceText textWithoutCompletionListSpan,
                 CompletionListCache completionListCache)
             {
-                if (lastResultId.HasValue)
+                if (!lastResultId.HasValue)
                 {
-                    if (textWithoutCompletionListSpan.ContentEquals(lastResultId.Value.SourceText))
-                    {
-                        var cachedList = completionListCache.GetCachedCompletionList(lastResultId.Value.ResultId);
-                        if (cachedList != null)
-                        {
-                            return (cachedList.CompletionList, lastResultId.Value.ResultId);
-                        }
-                    }
+                    return null;
                 }
 
-                return null;
+                if (!textWithoutCompletionListSpan.ContentEquals(lastResultId.Value.SourceText))
+                {
+                    return null;
+                }
+
+                var cachedList = completionListCache.GetCachedCompletionList(lastResultId.Value.ResultId);
+                if (cachedList == null)
+                {
+                    return null;
+                }
+
+                return (cachedList.CompletionList, lastResultId.Value.ResultId);
             }
         }
 
@@ -540,7 +544,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return (completionList, resultId);
         }
 
-        private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(CompletionList completionList, TextSpan completionListSpan, CompletionTrigger completionTrigger, SourceText sourceText, Document document)
+        private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(
+            CompletionList completionList,
+            TextSpan completionListSpan,
+            CompletionTrigger completionTrigger,
+            SourceText sourceText,
+            Document document)
         {
             var filterText = sourceText.GetSubText(completionListSpan).ToString();
 
@@ -557,7 +566,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     filterText,
                     completionTrigger.Kind,
                     GetFilterReason(completionTrigger),
-                    ImmutableArray<string>.Empty,
+                    recentItems: ImmutableArray<string>.Empty,
                     includeMatchSpans: false,
                     index,
                     out var matchResult))
@@ -586,7 +595,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // User types "So" -> server gives subset of items for "So" with isIncomplete = true
             // User types "m" -> server gives entire set of items for "Som" with isIncomplete = false
             // User deletes "m" -> client has to remember that "So" results were incomplete and re-request if the user types something else, like "n"
-
+            //
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
