@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor
             Glyph glyph,
             ImmutableArray<ITrackingSpan> trackingSpans,
             ITrackingSpan? navigationTrackingSpan,
-            ImmutableArray<NavigationBarItem> childItems = default,
-            bool bolded = false,
-            bool grayed = false)
+            ImmutableArray<NavigationBarItem> childItems,
+            bool bolded,
+            bool grayed)
             : base(
                   text,
                   glyph,

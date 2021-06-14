@@ -36,11 +36,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             _textUndoHistoryRegistry = textUndoHistoryRegistry
         End Sub
 
-        Public Overrides Function ShowItemGrayedIfNear(item As NavigationBarItem) As Boolean
-            ' We won't show gray things that don't actually exist
-            Return TypeOf DirectCast(item, WrappedNavigationBarItem).UnderlyingItem Is SymbolItem
-        End Function
-
         Friend Overrides Async Function GetNavigationLocationAsync(
                 document As Document,
                 item As NavigationBarItem,
