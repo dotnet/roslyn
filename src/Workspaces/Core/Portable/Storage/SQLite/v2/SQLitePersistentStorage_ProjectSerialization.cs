@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
     internal partial class SQLitePersistentStorage
     {
-        public override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
+        protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? project, string name, Checksum checksum, CancellationToken cancellationToken)
             => _projectAccessor.ChecksumMatchesAsync((projectKey, name), checksum, cancellationToken);
 
-        public override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
+        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? project, string name, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.ReadStreamAsync((projectKey, name), checksum, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => _projectAccessor.WriteStreamAsync((projectKey, name), stream, checksum, cancellationToken);
 
         /// <summary>

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
     {
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
             // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
-            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+            var usePartialSemantic = completionContext.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion);
+            var syntaxContext = await CreateContextAsync(document, completionContext.Position, usePartialSemantic, cancellationToken).ConfigureAwait(false);
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
                 return;
@@ -106,7 +107,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return namespacesInScope;
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem completionItem, char? commitKey, CancellationToken cancellationToken)
         {
             LogCommit();
             var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
@@ -126,13 +128,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (await ShouldCompleteWithFullyQualifyTypeName().ConfigureAwait(false))
             {
                 var completionText = $"{containingNamespace}.{insertText}";
-                return CompletionChange.Create(new TextChange(completionListSpan, completionText));
+                return CompletionChange.Create(new TextChange(completionItem.Span, completionText));
             }
 
             // Find context node so we can use it to decide where to insert using/imports.
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addImportContextNode = root.FindToken(completionListSpan.Start, findInsideTrivia: true).Parent;
+            var addImportContextNode = root.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
 
             // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //       above, we will get a TextChange of "AsnEncodedDat" with 0 length span, instead of a change of 
             //       the full display text with a span of length 1. This will later mess up span-tracking and end up 
             //       with "AsnEncodedDatasd" in the code.
-            builder.Add(new TextChange(completionListSpan, insertText));
+            builder.Add(new TextChange(completionItem.Span, insertText));
 
             // Then get the combined change
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             async Task<bool> ShouldCompleteWithFullyQualifyTypeName()
             {
-                if (!IsAddingImportsSupported(document, disallowAddingImports))
+                if (!IsAddingImportsSupported(document))
                 {
                     return true;
                 }
@@ -204,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //      }
                 //
                 // Here we will always choose to qualify the unimported type, just to be consistent and keeps things simple.
-                return await IsInImportsDirectiveAsync(document, completionListSpan.Start, cancellationToken).ConfigureAwait(false);
+                return await IsInImportsDirectiveAsync(document, completionItem.Span.Start, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -217,13 +219,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
         }
 
-        protected static bool IsAddingImportsSupported(Document document, bool disallowAddingImports)
+        protected static bool IsAddingImportsSupported(Document document)
         {
-            if (disallowAddingImports)
-            {
-                return false;
-            }
-
             var workspace = document.Project.Solution.Workspace;
 
             // Certain types of workspace don't support document change, e.g. DebuggerIntelliSenseWorkspace

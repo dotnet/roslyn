@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                     // type itself has a System.Index-based indexer, or because the language just
                     // allows types to implicitly seem like they support this through:
                     //
-                    // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-index-support
+                    // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-index-support
                     return new MemberInfo(lengthLikeProperty, overloadedMethodOpt: null);
                 }
                 else

@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../VBResources.resx">
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
-        <target state="new">Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</target>
+        <target state="translated">Właściwość tylko do inicjowania „{0}” może być przypisana tylko przez inicjatora składowej obiektu lub w elemencie „Me”, „MyClass” lub „MyBase” w konstruktorze wystąpień.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
         <source>'{0}' cannot override init-only '{1}'.</source>
-        <target state="new">'{0}' cannot override init-only '{1}'.</target>
+        <target state="translated">Właściwość „{0}” nie może przesłonić właściwości tylko do inicjowania „{1}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
         <source>Init-only '{0}' cannot be implemented.</source>
-        <target state="new">Init-only '{0}' cannot be implemented.</target>
+        <target state="translated">Nie można zaimplementować właściwości tylko do inicjowania „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
-        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">Atrybut „UnmanagedCallersOnly” jest nieobsługiwany.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
-        <target state="new">assigning to or passing 'ByRef' properties with init-only setters</target>
+        <target state="translated">przypisywanie lub przekazywanie właściwości „ByRef” za pomocą metod ustawiających tylko do inicjowania</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">

@@ -102,6 +102,14 @@ namespace Roslyn.Test.Utilities
 
                 return Task.FromResult(mappedResult);
             }
+
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                Document oldDocument,
+                Document newDocument,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected class OrderLocations : Comparer<LSP.Location>
@@ -235,15 +243,18 @@ namespace Roslyn.Test.Utilities
             };
 
         protected static async Task<LSP.VSCompletionItem> CreateCompletionItemAsync(
-            string insertText,
+            string label,
             LSP.CompletionItemKind kind,
             string[] tags,
             LSP.CompletionParams request,
             Document document,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
+            LSP.TextEdit? textEdit = null,
+            string? insertText = null,
             string? sortText = null,
-            int resultId = 0)
+            string? filterText = null,
+            long resultId = 0)
         {
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -252,18 +263,15 @@ namespace Roslyn.Test.Utilities
 
             var item = new LSP.VSCompletionItem()
             {
-                FilterText = insertText,
+                TextEdit = textEdit,
                 InsertText = insertText,
-                Label = insertText,
-                SortText = sortText ?? insertText,
+                FilterText = filterText ?? label,
+                Label = label,
+                SortText = sortText ?? label,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    DisplayText = insertText,
-                    TextDocument = request.TextDocument,
-                    Position = request.Position,
-                    CompletionTrigger = completionTrigger,
                     ResultId = resultId,
                 }),
                 Preselect = preselect
@@ -278,8 +286,19 @@ namespace Roslyn.Test.Utilities
             return item;
         }
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
-            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
+            => new LSP.TextEdit
+            {
+                NewText = newText,
+                Range = new LSP.Range
+                {
+                    Start = new LSP.Position { Line = startLine, Character = startChar },
+                    End = new LSP.Position { Line = endLine, Character = endChar }
+                }
+            };
+
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
+            => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
@@ -386,7 +405,7 @@ namespace Roslyn.Test.Utilities
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
             var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(registrationService, "Tests", "TestClient");
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

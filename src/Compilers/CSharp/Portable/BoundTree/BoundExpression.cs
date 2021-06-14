@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedInterpolatedString:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -286,9 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundInterpolatedString
+    internal partial class BoundInterpolatedStringBase
     {
-        public override ConstantValue? ConstantValue
+        public sealed override ConstantValue? ConstantValue
         {
             get { return this.ConstantValueOpt; }
         }

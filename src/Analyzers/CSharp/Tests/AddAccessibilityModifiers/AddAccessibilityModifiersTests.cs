@@ -198,6 +198,32 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestRecordStructs()
+        {
+            var source = @"
+record struct [|Record|]
+{
+    int [|field|];
+}
+";
+            var fixedSource = @"
+internal record struct Record
+{
+    private int field;
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestReadOnlyStructs()
         {
             await VerifyCS.VerifyCodeFixAsync(@"

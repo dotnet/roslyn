@@ -262,6 +262,7 @@ namespace Roslyn.Test.Utilities
                     debugEntryPoint: null,
                     sourceLinkStream: null,
                     embeddedTexts,
+                    rebuildData: null,
                     testData: testData,
                     cancellationToken: default);
             }

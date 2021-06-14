@@ -2184,21 +2184,24 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
         Left: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
         Right: 
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsInvalid) (Syntax: 'y ? throw e ... : throw ex2')
-            Condition: 
-              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'y')
-            WhenTrue: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex1')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex1')
-                    IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex1')
-            WhenFalse: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex2')
-                    IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex2')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IConditionalOperation (OperationKind.Conditional, Type: System.Boolean, IsInvalid) (Syntax: 'y ? throw e ... : throw ex2')
+                Condition: 
+                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'y')
+                WhenTrue: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex1')
+                        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex1')
+                WhenFalse: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw ex2')
+                        IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex2')
 ";
             VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
@@ -2238,11 +2241,15 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitThrow)
+                        (ConditionalExpression)
                       Operand: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitThrow)
+                          Operand: 
+                            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex2')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
@@ -2276,21 +2283,24 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         Left: 
           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
         Right: 
-          IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax: 'y ? throw e ... : throw ex2')
-            Condition: 
-              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
-            WhenTrue: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex1')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex1')
-                    IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
-            WhenFalse: 
-              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
-                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Operand: 
-                  IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex2')
-                    IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand: 
+              IConditionalOperation (OperationKind.Conditional, Type: System.Boolean) (Syntax: 'y ? throw e ... : throw ex2')
+                Condition: 
+                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'y')
+                WhenTrue: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex1')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex1')
+                        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+                WhenFalse: 
+                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Operand: 
+                      IThrowOperation (OperationKind.Throw, Type: null) (Syntax: 'throw ex2')
+                        IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
 ";
             VerifyOperationTreeForTest<BlockSyntax>(compilation, expectedOperationTree);
 
@@ -2330,11 +2340,15 @@ Block[B0] - Entry
                   Left: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'x')
                   Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'y ? throw e ... : throw ex2')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (ImplicitThrow)
+                        (ConditionalExpression)
                       Operand: 
-                        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'throw ex2')
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'throw ex2')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (ImplicitThrow)
+                          Operand: 
+                            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'throw ex2')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }

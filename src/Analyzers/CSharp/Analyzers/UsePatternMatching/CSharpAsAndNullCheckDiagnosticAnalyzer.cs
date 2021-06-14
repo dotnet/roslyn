@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
-            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
+            if (semanticModel.GetSymbolInfo(comparison, cancellationToken).GetAnySymbol().IsUserDefinedOperator())
             {
                 return;
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     // Check if this is a 'write' to the asOperand.
                     if (identifierName.Identifier.ValueText == asOperand?.Name &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
-                        identifierName.IsWrittenTo())
+                        identifierName.IsWrittenTo(semanticModel, cancellationToken))
                     {
                         return;
                     }

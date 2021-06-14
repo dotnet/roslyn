@@ -378,15 +378,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Async Function AssertSelectedCompletionItem(
-                                                    Optional displayText As String = Nothing,
-                                                    Optional displayTextSuffix As String = Nothing,
-                                                    Optional description As String = Nothing,
-                                                    Optional isSoftSelected As Boolean? = Nothing,
-                                                    Optional isHardSelected As Boolean? = Nothing,
-                                                    Optional shouldFormatOnCommit As Boolean? = Nothing,
-                                                    Optional inlineDescription As String = Nothing,
-                                                    Optional automationText As String = Nothing,
-                                                    Optional projectionsView As ITextView = Nothing) As Task
+                Optional displayText As String = Nothing,
+                Optional displayTextSuffix As String = Nothing,
+                Optional description As String = Nothing,
+                Optional isSoftSelected As Boolean? = Nothing,
+                Optional isHardSelected As Boolean? = Nothing,
+                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                Optional inlineDescription As String = Nothing,
+                Optional automationText As String = Nothing,
+                Optional projectionsView As ITextView = Nothing) As Task
 
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)

@@ -2125,6 +2125,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the most pertinent conversion is the pointer conversion 
                     conversion = initializer.ElementPointerTypeConversion;
                 }
+                else if (boundExpr is BoundConvertedSwitchExpression { WasTargetTyped: true } convertedSwitch)
+                {
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.SwitchExpression })
+                    {
+                        // There was an implicit cast.
+                        type = convertedSwitch.NaturalTypeOpt;
+                        convertedType = convertedSwitch.Type;
+                        convertedNullability = convertedSwitch.TopLevelNullability;
+                        conversion = convertedSwitch.Conversion.IsValid ? convertedSwitch.Conversion : Conversion.NoConversion;
+                    }
+                    else
+                    {
+                        // There was an explicit cast on top of this
+                        type = convertedSwitch.NaturalTypeOpt;
+                        (convertedType, convertedNullability) = (type, nullability);
+                        conversion = Conversion.Identity;
+                    }
+                }
+                else if (boundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
+                {
+                    if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.ConditionalExpression })
+                    {
+                        // There was an implicit cast.
+                        type = cond.NaturalTypeOpt;
+                        convertedType = cond.Type;
+                        convertedNullability = nullability;
+                        conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
+                    }
+                    else
+                    {
+                        // There was an explicit cast on top of this.
+                        type = cond.NaturalTypeOpt;
+                        (convertedType, convertedNullability) = (type, nullability);
+                        conversion = Conversion.Identity;
+                    }
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);
@@ -2189,21 +2225,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion = exprConversion;
                     type = null;
                     nullability = new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull);
-                }
-                else if (highestBoundExpr is BoundConvertedSwitchExpression e)
-                {
-                    Debug.Assert(boundExpr == highestBoundExpr);
-                    type = e.NaturalTypeOpt;
-                    convertedType = e.Type;
-                    convertedNullability = e.TopLevelNullability;
-                    conversion = e.Conversion.IsValid ? e.Conversion : Conversion.NoConversion;
-                }
-                else if (highestBoundExpr is BoundConditionalOperator { WasTargetTyped: true } cond)
-                {
-                    type = cond.NaturalTypeOpt;
-                    convertedType = cond.Type;
-                    convertedNullability = nullability;
-                    conversion = Conversion.MakeConditionalExpression(ImmutableArray<Conversion>.Empty);
                 }
                 else
                 {
@@ -4535,8 +4556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
-                    otherBinder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace,
-                                                             extensionMethods,
+                    otherBinder.GetCandidateExtensionMethods(extensionMethods,
                                                              name,
                                                              arity,
                                                              options,

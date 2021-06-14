@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
                             useDecompiler = false;
                         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                     // to retry this a few times.
-                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath);
+                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
                     while (!Directory.Exists(directoryToCreate))
                     {
                         try

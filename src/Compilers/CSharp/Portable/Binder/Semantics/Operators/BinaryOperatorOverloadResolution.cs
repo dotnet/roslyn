@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   provided by the type of x (if any) and the candidate operators provided by the type of y (if any), 
             //   each determined using the rules of 7.3.5. Candidate operators only occur in the combined set once.
 
-            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // From https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-27.md:
             // - We only even look for operator implementations in interfaces if one of the operands has a type that is
             // an interface or a type parameter with a non-empty effective base interface list.
             // - We should look at operators from classes first, in order to avoid breaking changes.
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((result.Results.Count == 0) != hadApplicableCandidates);
 
             // If there are no applicable candidates in classes / stuctures, try with interface sources.
-            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // From https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-27.md:
             // We do not allow == and != and. Otherwise, there'd be no way to override Equals and GetHashCode,
             // so you couldn't do == and != in a recommended way.
             if (!hadApplicableCandidates &&

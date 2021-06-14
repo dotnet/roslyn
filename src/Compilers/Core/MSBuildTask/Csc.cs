@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
         private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
 
-        internal override void LogMessages(string output, MessageImportance messageImportance)
+        private protected override void LogCompilerOutput(string output, MessageImportance messageImportance)
         {
             var lines = output.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)

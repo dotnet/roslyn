@@ -823,7 +823,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 ((isFirstOperandOfDynamicOrUserDefinedLogicalOperator(reference) ||
                                      isIncrementedNullableForToLoopControlVariable(reference) ||
                                      isConditionalAccessReceiver(reference) ||
-                                     isCoalesceAssignmentTarget(reference)) &&
+                                     isCoalesceAssignmentTarget(reference) ||
+                                     isObjectInitializerInitializedObjectTarget(reference)) &&
                                  block.EnclosingRegion.EnclosingRegion.CaptureIds.Contains(id)),
                         $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
                 }
@@ -873,6 +874,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return referenceSyntax.Parent is AssignmentExpressionSyntax conditionalAccess &&
                        conditionalAccess.IsKind(CSharp.SyntaxKind.CoalesceAssignmentExpression) &&
                        conditionalAccess.Left == referenceSyntax;
+            }
+
+            bool isObjectInitializerInitializedObjectTarget(IFlowCaptureReferenceOperation reference)
+            {
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                CSharpSyntaxNode referenceSyntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)reference.Syntax);
+                return referenceSyntax.Parent is CSharp.Syntax.AssignmentExpressionSyntax
+                {
+                    RawKind: (int)CSharp.SyntaxKind.SimpleAssignmentExpression,
+                    Parent: InitializerExpressionSyntax { Parent: CSharp.Syntax.ObjectCreationExpressionSyntax },
+                    Left: var left
+                } && left == referenceSyntax;
             }
 
             bool isFirstOperandOfDynamicOrUserDefinedLogicalOperator(IFlowCaptureReferenceOperation reference)
@@ -1041,6 +1058,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                         return true;
                                     }
                                     break;
+                            }
+
+                            if (syntax.Parent is CSharp.Syntax.WithExpressionSyntax withExpr
+                                && withExpr.Initializer.Expressions.Any()
+                                && withExpr.Expression == (object)syntax)
+                            {
+                                return true;
                             }
 
                             syntax = applyParenthesizedOrNullSuppressionIfAnyCS(syntax);

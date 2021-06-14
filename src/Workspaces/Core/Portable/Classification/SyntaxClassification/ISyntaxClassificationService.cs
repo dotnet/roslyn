@@ -17,16 +17,20 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
 
+        /// <inheritdoc cref="IClassificationService.AddLexicalClassifications"/>
         void AddLexicalClassifications(SourceText text,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
-        void AddSyntacticClassifications(SyntaxTree syntaxTree,
+        /// <inheritdoc cref="IClassificationService.AddSyntacticClassificationsAsync"/>
+        void AddSyntacticClassifications(
+            SyntaxNode root,
             TextSpan textSpan,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="IClassificationService.AddSemanticClassificationsAsync"/>
         Task AddSemanticClassificationsAsync(Document document,
             TextSpan textSpan,
             Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
@@ -34,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="AddSemanticClassificationsAsync"/>
         void AddSemanticClassifications(
             SemanticModel semanticModel,
             TextSpan textSpan,
@@ -43,6 +48,11 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken);
 
+        /// <inheritdoc cref="IClassificationService.AdjustStaleClassification"/>
         ClassifiedSpan FixClassification(SourceText text, ClassifiedSpan classifiedSpan);
+
+        /// <inheritdoc cref="IClassificationService.ComputeSyntacticChangeRangeAsync"/>
+        TextChangeRange? ComputeSyntacticChangeRange(
+            SyntaxNode oldRoot, SyntaxNode newRoot, TimeSpan timeout, CancellationToken cancellationToken);
     }
 }

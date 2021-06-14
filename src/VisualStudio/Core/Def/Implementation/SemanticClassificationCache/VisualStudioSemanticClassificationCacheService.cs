@@ -9,10 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -51,18 +51,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
             }
 
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
-                (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey.Dehydrate(), textSpan, checksum, cancellationToken),
+                (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!classifiedSpans.HasValue || classifiedSpans.Value == null)
                 return default;
 
-            var list = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-            classifiedSpans.Value.Rehydrate(list);
-
-            var result = list.ToImmutableArray();
-            ClassificationUtilities.ReturnClassifiedSpanList(list);
-            return result;
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            classifiedSpans.Value.Rehydrate(result);
+            return result.ToImmutable();
         }
     }
 }

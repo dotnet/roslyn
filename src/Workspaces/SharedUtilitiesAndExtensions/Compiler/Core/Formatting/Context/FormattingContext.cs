@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // anchor token to anchor data map.
         // unlike anchorTree that would return anchor data for given span in the tree, it will return
         // anchorData based on key which is anchor token.
-        private readonly Dictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap;
+        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap;
 
         // hashset to prevent duplicate entries in the trees.
         private readonly HashSet<TextSpan> _indentationMap;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
             _anchorTree = new ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
-            _anchorBaseTokenMap = new Dictionary<SyntaxToken, AnchorData>();
+            _anchorBaseTokenMap = new SegmentedDictionary<SyntaxToken, AnchorData>();
 
             _indentationMap = new HashSet<TextSpan>();
             _suppressWrappingMap = new HashSet<TextSpan>();
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
+            var valuePairs = new SegmentedArray<(SuppressOperation operation, bool shouldSuppress, bool onSameLine)>(operations.Count);
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
             for (var i = 0; i < operations.Count; i++)
@@ -294,15 +295,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                 valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
             }
 
-            valuePairs.Do(v =>
+            foreach (var (operation, shouldSuppress, onSameLine) in valuePairs)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (v.shouldSuppress)
+                if (shouldSuppress)
                 {
-                    AddSuppressOperation(v.operation, v.onSameLine);
+                    AddSuppressOperation(operation, onSameLine);
                 }
-            });
+            }
         }
 
         private void AddSuppressOperation(SuppressOperation operation, bool onSameLine)

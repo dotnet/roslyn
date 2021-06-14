@@ -42,11 +42,6 @@
         <target state="translated">Retrait intelligent</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Mettre le document en forme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">Mise en forme du document...</target>

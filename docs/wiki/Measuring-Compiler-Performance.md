@@ -1,6 +1,6 @@
 The C# compiler has a number of different benchmarks to measure regressions and test performance changes.
 
-The tests are stored in the https://github.com/dotnet/performance repo. Roslyn compiler tests are https://github.com/dotnet/performance/tree/master/src/benchmarks/real-world/Roslyn.
+The tests are stored in the https://github.com/dotnet/performance repo. Roslyn compiler tests are https://github.com/dotnet/performance/tree/main/src/benchmarks/real-world/Roslyn.
 
 To run the tests, you need an installation of the `dotnet` CLI, potentially with preview SDK, which are available at https://github.com/dotnet/core-sdk.
 

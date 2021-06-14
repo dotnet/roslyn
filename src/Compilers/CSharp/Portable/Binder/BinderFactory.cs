@@ -140,16 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
         {
-            RecordDeclarationSyntax typeDecl = constructor.GetSyntax();
+            var recordDecl = constructor.GetSyntax();
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;
-            var key = BinderFactoryVisitor.CreateBinderCacheKey(typeDecl, extraInfo);
+            var key = BinderFactoryVisitor.CreateBinderCacheKey(recordDecl, extraInfo);
 
             if (!_binderCache.TryGetValue(key, out Binder resultBinder))
             {
                 // Ctors cannot be generic
                 Debug.Assert(constructor.Arity == 0, "Generic Ctor, What to do?");
-                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(typeDecl));
+                resultBinder = new InMethodBinder(constructor, GetInRecordBodyBinder(recordDecl));
 
                 _binderCache.TryAdd(key, resultBinder);
             }
@@ -159,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
         {
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration);
+
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);
@@ -167,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultBinder;
         }
 
+<<<<<<< HEAD
         /// <summary>
         /// Returns binder that binds usings and aliases 
         /// </summary>
@@ -176,6 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
         internal Binder GetImportsBinder(CSharpSyntaxNode unit, bool inUsing = false)
+=======
+        internal Binder GetInNamespaceBinder(CSharpSyntaxNode unit)
+>>>>>>> upstream/features/FileScopedNamespaces
         {
             switch (unit.Kind())
             {
@@ -184,7 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
+<<<<<<< HEAD
                         Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
+=======
+                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
+>>>>>>> upstream/features/FileScopedNamespaces
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
@@ -194,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: inUsing, inScript: InScript);
+                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

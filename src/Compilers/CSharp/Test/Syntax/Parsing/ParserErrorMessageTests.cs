@@ -3293,6 +3293,9 @@ class Program
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
+                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
+                //         const string message = "the parameter is obsolete";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22),
                 // (10,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] [ObsoleteAttribute(message)] int x,
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 13),
@@ -3301,10 +3304,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(10, 42),
                 // (11,13): error CS7014: Attributes are not valid in this context.
                 //             [ObsoleteAttribute(message)] int y
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13),
-                // (8,22): warning CS0219: The variable 'message' is assigned but its value is never used
-                //         const string message = "the parameter is obsolete";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[ObsoleteAttribute(message)]").WithLocation(11, 13));
         }
 
         [Fact]

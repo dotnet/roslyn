@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
@@ -35,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private IServiceProvider? _serviceProvider;
 
@@ -43,12 +41,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnusedReferencesCommandHandler(
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
-            IVsHierarchyItemManager vsHierarchyItemManager,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
-            _vsHierarchyItemManager = vsHierarchyItemManager;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
 
@@ -107,11 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
-                Project? project = null;
+                Solution? solution = null;
+                string? projectFilePath = null;
                 ImmutableArray<ReferenceUpdate> referenceUpdates = default;
                 var status = _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Analyzing_project_references, allowCancellation: true, showProgress: true, (operationContext) =>
                 {
-                    (project, referenceUpdates) = GetUnusedReferencesForProjectHierarchy(hierarchy, operationContext.UserCancellationToken);
+                    (solution, projectFilePath, referenceUpdates) = GetUnusedReferencesForProjectHierarchy(hierarchy, operationContext.UserCancellationToken);
                 });
 
                 if (status == UIThreadOperationStatus.Canceled)
@@ -119,7 +116,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                     return;
                 }
 
-                if (project is null ||
+                if (solution is null ||
+                    projectFilePath is not string { Length: > 0 } ||
                     referenceUpdates.IsEmpty)
                 {
                     MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.No_unused_references_were_found, MessageDialogCommandSet.Ok);
@@ -127,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 }
 
                 var dialog = _unusedReferenceDialogProvider.CreateDialog();
-                if (dialog.ShowModal(project, referenceUpdates) == false)
+                if (dialog.ShowModal(solution, projectFilePath, referenceUpdates) == false)
                 {
                     return;
                 }
@@ -153,48 +151,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    ApplyUnusedReferenceUpdates(project, referenceChanges, CancellationToken.None);
+                    ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
                 });
             }
 
             return;
         }
 
-        private (Project?, ImmutableArray<ReferenceUpdate>) GetUnusedReferencesForProjectHierarchy(IVsHierarchy projectHierarchy, CancellationToken cancellationToken)
+        private (Solution?, string?, ImmutableArray<ReferenceUpdate>) GetUnusedReferencesForProjectHierarchy(
+            IVsHierarchy projectHierarchy,
+            CancellationToken cancellationToken)
         {
-            if (!TryGetPropertyValue(projectHierarchy, ProjectAssetsFilePropertyName, out var projectAssetsFile) ||
-                !projectHierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out var targetFrameworkMoniker))
+            if (!TryGetPropertyValue(projectHierarchy, ProjectAssetsFilePropertyName, out var projectAssetsFile))
             {
-                return (null, ImmutableArray<ReferenceUpdate>.Empty);
+                return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
             }
 
-            var projectMap = _workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-            var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(projectHierarchy, VSConstants.VSITEMID_ROOT);
-
-            if (!projectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker, out var projectId))
+            var projectFilePath = projectHierarchy.TryGetProjectFilePath();
+            if (string.IsNullOrEmpty(projectFilePath))
             {
-                return (null, ImmutableArray<ReferenceUpdate>.Empty);
+                return (null, null, ImmutableArray<ReferenceUpdate>.Empty);
             }
 
-            var project = _workspace.CurrentSolution.GetProject(projectId);
-            if (project is null)
-            {
-                return (null, ImmutableArray<ReferenceUpdate>.Empty);
-            }
+            var solution = _workspace.CurrentSolution;
 
-            var unusedReferences = GetUnusedReferencesForProject(project, projectAssetsFile, targetFrameworkMoniker, cancellationToken);
+            var unusedReferences = GetUnusedReferencesForProject(solution, projectFilePath!, projectAssetsFile, cancellationToken);
 
-            return (project, unusedReferences);
+            return (solution, projectFilePath, unusedReferences);
         }
 
-        private ImmutableArray<ReferenceUpdate> GetUnusedReferencesForProject(Project project, string projectAssetsFile, string targetFrameworkMoniker, CancellationToken cancellationToken)
+        private ImmutableArray<ReferenceUpdate> GetUnusedReferencesForProject(Solution solution, string projectFilePath, string projectAssetsFile, CancellationToken cancellationToken)
         {
-            ImmutableArray<ReferenceInfo> unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
+            var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(project.FilePath!, cancellationToken).ConfigureAwait(true);
-                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile, targetFrameworkMoniker);
+                var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
+                var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
 
-                return await UnusedReferencesRemover.GetUnusedReferencesAsync(project, references, cancellationToken).ConfigureAwait(true);
+                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(true);
             });
 
             var referenceUpdates = unusedReferences
@@ -204,10 +197,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return referenceUpdates;
         }
 
-        private void ApplyUnusedReferenceUpdates(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        private void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
             ThreadHelper.JoinableTaskFactory.Run(
-                () => UnusedReferencesRemover.UpdateReferencesAsync(project, referenceUpdates, cancellationToken));
+                () => UnusedReferencesRemover.UpdateReferencesAsync(solution, projectFilePath, referenceUpdates, cancellationToken));
         }
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, [NotNullWhen(returnValue: true)] out string? propertyValue)

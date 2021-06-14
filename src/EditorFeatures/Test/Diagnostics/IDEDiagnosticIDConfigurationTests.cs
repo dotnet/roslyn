@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
             string languageName)
         {
-            const string diagnosticIdPrefix = "IDE";
-
             var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption2> options)>();
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
@@ -41,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                         var diagnosticId = descriptor.Id;
                         ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
-                        if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
-                            !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
+                        if (diagnosticId.StartsWith("ENC") ||
+                            !char.IsDigit(diagnosticId[^1]))
                         {
                             // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                             // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
+                or "IDE1007" or "RemoveUnnecessaryImportsFixable"
                 or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
@@ -413,9 +411,6 @@ dotnet_diagnostic.IDE1006.severity = %value%
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
 
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
-
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
@@ -436,6 +431,9 @@ dotnet_diagnostic.IDE2003.severity = %value%
 
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
+
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -583,17 +581,20 @@ dotnet_diagnostic.IDE1006.severity = %value%
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
 
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
-
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE0140
+dotnet_diagnostic.IDE0140.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
+
+# RE0001
+dotnet_diagnostic.RE0001.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -997,9 +998,6 @@ No editorconfig based code style option
 # IDE1007
 No editorconfig based code style option
 
-# IDE1008
-No editorconfig based code style option
-
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines_experimental = true
 
@@ -1014,6 +1012,9 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
+
+# RE0001
+No editorconfig based code style option
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
@@ -1203,17 +1204,20 @@ No editorconfig based code style option
 # IDE1007
 No editorconfig based code style option
 
-# IDE1008
-No editorconfig based code style option
-
 # IDE0120
 No editorconfig based code style option
+
+# IDE0140, PreferSimplifiedObjectCreation
+visual_basic_style_prefer_simplified_object_creation = true
 
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines_experimental = true
 
 # IDE2003, AllowStatementImmediatelyAfterBlock
 dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+# RE0001
+No editorconfig based code style option
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);

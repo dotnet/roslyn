@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 //  {
                 //      $anonymous$ local = value as $anonymous$;
-                //      return local != null 
+                //      return (object)local == this || (local != null 
                 //             && System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, local.backingFld_1)
                 //             ...
-                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N);
+                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N));
                 //  }
 
                 // Type and type expression
@@ -136,6 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     retExpression = MethodBodySynthesizer.GenerateFieldEquals(retExpression, boundLocal, fields, F);
                     fields.Free();
                 }
+
+                // Compare references
+                retExpression = F.LogicalOr(F.ObjectEqual(F.This(), boundLocal), retExpression);
 
                 // Final return statement
                 BoundStatement retStatement = F.Return(retExpression);

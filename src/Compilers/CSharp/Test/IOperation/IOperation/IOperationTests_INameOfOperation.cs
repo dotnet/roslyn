@@ -179,5 +179,50 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NameOfFlow_InvalidName()
+        {
+            string source = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+        string test = nameof(test2);
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,30): error CS0103: The name 'test2' does not exist in the current context
+                //         string test = nameof(test2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "test2").WithArguments("test2").WithLocation(6, 30)
+            };
+
+            string expectedFlowGraph = @"
+    Block[B0] - Entry
+        Statements (0)
+        Next (Regular) Block[B1]
+            Entering: {R1}
+    .locals {R1}
+    {
+        Locals: [System.String test]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'test = nameof(test2)')
+                  Left: 
+                    ILocalReferenceOperation: test (IsDeclaration: True) (OperationKind.LocalReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'test = nameof(test2)')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""test2"", IsInvalid) (Syntax: 'nameof(test2)')
+            Next (Regular) Block[B2]
+                Leaving: {R1}
+    }
+    Block[B2] - Exit
+        Predecessors: [B1]
+        Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

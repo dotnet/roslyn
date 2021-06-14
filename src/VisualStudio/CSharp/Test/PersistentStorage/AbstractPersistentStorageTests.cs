@@ -12,9 +12,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -74,6 +76,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
+        internal abstract AbstractPersistentStorageService GetStorageService(
+            OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
+
         public void Dispose()
         {
             // This should cause the service to release the cached connection it maintains for the primary workspace
@@ -100,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName = "stream";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             var project = solution.Projects.First();
             var document = project.Documents.First();
             Assert.False(await storage.WriteStreamAsync(project, streamName, EncodeString("")));
@@ -118,13 +123,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "PersistentService_Solution_WriteReadDifferentInstances1";
             var streamName2 = "PersistentService_Solution_WriteReadDifferentInstances2";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
                 Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
                 Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "PersistentService_Solution_WriteReadReopenSolution1";
             var streamName2 = "PersistentService_Solution_WriteReadReopenSolution2";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
                 Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
@@ -147,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             solution = CreateOrOpenSolution();
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.Equal(GetData1(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))));
                 Assert.Equal(GetData2(size), ReadStringToEnd(await storage.ReadStreamAsync(streamName2, GetChecksum2(withChecksum))));
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "PersistentService_Solution_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Solution_WriteReadSameInstance2";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
             Assert.True(await storage.WriteStreamAsync(streamName2, EncodeString(GetData2(size)), GetChecksum2(withChecksum)));
 
@@ -178,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "PersistentService_Project_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Project_WriteReadSameInstance2";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             var project = solution.Projects.Single();
 
             Assert.True(await storage.WriteStreamAsync(project, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
@@ -196,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var streamName1 = "PersistentService_Document_WriteReadSameInstance1";
             var streamName2 = "PersistentService_Document_WriteReadSameInstance2";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             var document = solution.Projects.Single().Documents.Single();
 
             Assert.True(await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
@@ -213,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "PersistentService_Solution_SimultaneousWrites1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             DoSimultaneousWrites(s => storage.WriteStreamAsync(streamName1, EncodeString(s)));
             var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(streamName1)));
             Assert.True(value >= 0);
@@ -227,7 +232,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "PersistentService_Project_SimultaneousWrites1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(s)));
             var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1)));
             Assert.True(value >= 0);
@@ -241,29 +246,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "PersistentService_Document_SimultaneousWrites1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             DoSimultaneousWrites(s => storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(s)));
             var value = int.Parse(ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1)));
             Assert.True(value >= 0);
             Assert.True(value < NumThreads);
-        }
-
-        private void DoSimultaneousWrites(Func<string, Task> write)
-        {
-            var barrier = new Barrier(NumThreads);
-            var countdown = new CountdownEvent(NumThreads);
-            for (var i = 0; i < NumThreads; i++)
-            {
-                ThreadPool.QueueUserWorkItem(s =>
-                {
-                    var id = (int)s;
-                    barrier.SignalAndWait();
-                    write(id + "").Wait();
-                    countdown.Signal();
-                }, i);
-            }
-
-            countdown.Wait();
         }
 
         [Theory]
@@ -273,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var solution = CreateOrOpenSolution();
             var streamName1 = "PersistentService_Solution_SimultaneousReads1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
             DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum))), GetData1(size));
         }
@@ -285,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var solution = CreateOrOpenSolution();
             var streamName1 = "PersistentService_Project_SimultaneousReads1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             Assert.True(await storage.WriteStreamAsync(solution.Projects.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
             DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
         }
@@ -299,7 +286,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var solution = CreateOrOpenSolution();
             var streamName1 = "PersistentService_Document_SimultaneousReads1";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             Assert.True(await storage.WriteStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
             DoSimultaneousReads(async () => ReadStringToEnd(await storage.ReadStreamAsync(solution.Projects.Single().Documents.Single(), streamName1, GetChecksum1(withChecksum))), GetData1(size));
         }
@@ -311,7 +298,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestReadChecksumReturnsNullWhenNeverWritten";
 
-            using var storage = await GetStorageAsync(solution);
+            await using var storage = await GetStorageAsync(solution);
             Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
         }
 
@@ -322,12 +309,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestCanReadWithNullChecksumSomethingWrittenWithNonNullChecksum";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(streamName1, checksum: null)));
             }
@@ -340,12 +327,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestCannotReadWithMismatchedChecksums";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), s_checksum1));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.Null(await storage.ReadStreamAsync(streamName1, s_checksum2));
             }
@@ -358,12 +345,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestCannotReadChecksumIfWriteDidNotIncludeChecksum";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
             }
@@ -376,12 +363,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestReadChecksumProducesWrittenChecksum";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
             }
@@ -394,13 +381,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestReadChecksumProducesLastWrittenChecksum1";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.False(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
             }
@@ -413,13 +400,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestReadChecksumProducesLastWrittenChecksum2";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: null));
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum1));
             }
@@ -432,13 +419,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "TestReadChecksumProducesLastWrittenChecksum3";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1));
                 Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum2));
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(streamName1, s_checksum2));
             }
@@ -452,12 +439,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -472,12 +459,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -492,12 +479,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -512,12 +499,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -532,12 +519,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -555,12 +542,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -578,12 +565,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -601,12 +588,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -624,12 +611,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -644,12 +631,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -664,12 +651,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -684,12 +671,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -704,12 +691,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -727,12 +714,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageAsync(solution))
+            await using (var storage = await GetStorageAsync(solution))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -750,12 +737,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(DocumentKey.ToDocumentKey(document), streamName1)));
@@ -773,12 +760,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var streamName1 = "stream";
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 await storage.WriteStreamAsync(document, streamName1, EncodeString(GetData1(Size.Small)), checksum: s_checksum1);
             }
 
-            using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
+            await using (var storage = await GetStorageFromKeyAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution)))
             {
                 Assert.True(await storage.ChecksumMatchesAsync(document, streamName1, s_checksum1));
                 Assert.Equal(GetData1(Size.Small), ReadStringToEnd(await storage.ReadStreamAsync(document, streamName1)));
@@ -797,6 +784,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var locationService = workspace.Services.GetRequiredService<IPersistentStorageLocationService>();
             var location = locationService.TryGetStorageLocation(workspace.CurrentSolution);
             Assert.False(location?.StartsWith("/") ?? false);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_ReadByteTwice(Size size, bool withChecksum)
+        {
+            var solution = CreateOrOpenSolution();
+            var streamName1 = "PersistentService_ReadByteTwice";
+
+            await using (var storage = await GetStorageAsync(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+            }
+
+            await using (var storage = await GetStorageAsync(solution))
+            {
+                using var stream = await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum));
+                stream.ReadByte();
+                stream.ReadByte();
+            }
         }
 
         [PartNotDiscoverable]
@@ -843,13 +850,45 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(new List<Exception>(), exceptions);
         }
 
+        private void DoSimultaneousWrites(Func<string, Task> write)
+        {
+            var barrier = new Barrier(NumThreads);
+            var countdown = new CountdownEvent(NumThreads);
+
+            var exceptions = new List<Exception>();
+            for (var i = 0; i < NumThreads; i++)
+            {
+                ThreadPool.QueueUserWorkItem(s =>
+                {
+                    var id = (int)s;
+                    barrier.SignalAndWait();
+                    try
+                    {
+                        write(id + "").Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+                    }
+                    countdown.Signal();
+                }, i);
+            }
+
+            countdown.Wait();
+
+            Assert.Empty(exceptions);
+        }
+
         protected Solution CreateOrOpenSolution(bool nullPaths = false)
         {
             var solutionFile = _persistentFolder.CreateOrOpenFile("Solution1.sln").WriteAllText("");
 
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile.Path);
 
-            var workspace = new AdhocWorkspace();
+            var workspace = new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.GetHostServices());
             workspace.AddSolution(info);
 
             var solution = workspace.CurrentSolution;
@@ -876,13 +915,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector);
+            _storageService = GetStorageService(
+                solution.Options, (IMefHostExportProvider)solution.Workspace.Services.HostServices,
+                 locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(solution, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
             }
 
             return storage;
@@ -895,13 +936,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _storageService?.GetTestAccessor().Shutdown();
             var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
 
-            _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector);
+            _storageService = GetStorageService(
+                workspace.Options, (IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(workspace, solutionKey, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
             }
 
             return storage;
@@ -927,8 +969,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 => solutionKey.Id == _solutionId ? _storageLocation : null;
         }
 
-        internal abstract AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector);
-
         protected Stream EncodeString(string text)
         {
             var bytes = _encoding.GetBytes(text);
@@ -940,14 +980,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             using (stream)
             {
-                var bytes = new byte[stream.Length];
-                var count = 0;
-                while (count < stream.Length)
-                {
-                    count = stream.Read(bytes, count, (int)stream.Length - count);
-                }
-
-                return _encoding.GetString(bytes);
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return _encoding.GetString(memoryStream.ToArray());
             }
         }
     }

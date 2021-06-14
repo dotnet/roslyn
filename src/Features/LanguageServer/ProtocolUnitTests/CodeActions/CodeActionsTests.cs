@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -41,9 +42,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                 title: CSharpAnalyzersResources.Use_implicit_type,
                 kind: CodeActionKind.Refactor,
                 children: Array.Empty<LSP.VSCodeAction>(),
-                data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation),
+                data: CreateCodeActionResolveData(
+                    CSharpAnalyzersResources.Use_implicit_type,
+                    caretLocation,
+                    customTags: new[] { PredefinedCodeRefactoringProviderNames.UseImplicitType }),
                 priority: PriorityLevel.Low,
-                groupName: "Roslyn1",
+                groupName: "Roslyn4",
                 applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
                 diagnostics: null);
 
@@ -200,9 +204,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             LSP.Location caret,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.VSCodeAction[]>(
+            var result = await testLspServer.ExecuteRequestAsync<LSP.CodeActionParams, LSP.CodeAction[]>(
                 LSP.Methods.TextDocumentCodeActionName, CreateCodeActionParams(caret), clientCapabilities, null, CancellationToken.None);
-            return result;
+            return result.Cast<LSP.VSCodeAction>().ToArray();
         }
 
         internal static LSP.CodeActionParams CreateCodeActionParams(LSP.Location caret)
@@ -242,7 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
         private static CodeActionsCache GetCodeActionsCache(TestLspServer testLspServer)
         {
             var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.VSCodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
+            var handler = (CodeActionsHandler)dispatchAccessor.GetHandler<LSP.CodeActionParams, LSP.CodeAction[]>(LSP.Methods.TextDocumentCodeActionName);
             Assert.NotNull(handler);
             var cache = handler.GetTestAccessor().GetCache();
             return Assert.IsType<CodeActionsCache>(cache);

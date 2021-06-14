@@ -9,136 +9,274 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
-    Public Class RudeEditTopLevelTests
+    <UseExportProvider>
+    Public Class TopLevelEditingTests
         Inherits EditingTestBase
 #Region "Imports"
 
         <Fact>
         Public Sub ImportDelete1()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System.Diagnostics
-</text>.Value
+"
             Dim src2 As String = ""
+
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Delete [Imports System.Diagnostics]@1")
+            edits.VerifyEdits("Delete [Imports System.Diagnostics]@2")
             Assert.IsType(Of ImportsStatementSyntax)(edits.Edits.First().OldNode)
             Assert.Equal(edits.Edits.First().NewNode, Nothing)
         End Sub
 
         <Fact>
         Public Sub ImportDelete2()
-            Dim src1 As String = <text>
-Imports System.Diagnostics
+            Dim src1 = "
+Imports D = System.Diagnostics
+Imports <xmlns=""http://roslyn/default1"">
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
-Imports System.Diagnostics
+            Dim src2 = "
 Imports System.Collections.Generic
-</text>.Value
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Delete [Imports System.Collections]@28")
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.import))
+            edits.VerifyEdits(
+                "Delete [Imports D = System.Diagnostics]@2",
+                "Delete [Imports <xmlns=""http://roslyn/default1"">]@34",
+                "Delete [Imports System.Collections]@76")
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
         Public Sub ImportInsert()
-            Dim src1 As String = <text>
-Imports System.Diagnostics
+            Dim src1 = "
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
-Imports System.Diagnostics
+            Dim src2 = "
+Imports D = System.Diagnostics
+Imports <xmlns=""http://roslyn/default1"">
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Insert [Imports System.Collections]@28")
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Imports System.Collections", VBFeaturesResources.import))
+            edits.VerifyEdits(
+                "Insert [Imports D = System.Diagnostics]@2",
+                "Insert [Imports <xmlns=""http://roslyn/default1"">]@34",
+                "Insert [Imports System.Collections]@76")
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
         Public Sub ImportUpdate1()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System.Diagnostics
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
+            Dim src2 = "
 Imports System.Diagnostics
 Imports X = System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Update [Imports System.Collections]@28 -> [Imports X = System.Collections]@28")
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X = System.Collections", VBFeaturesResources.import))
+            edits.VerifyEdits(
+                "Update [Imports System.Collections]@30 -> [Imports X = System.Collections]@30")
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(51374, "https://github.com/dotnet/roslyn/issues/51374")>
         Public Sub ImportUpdate2()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System.Diagnostics
 Imports X1 = System.Collections
+Imports <xmlns=""http://roslyn/default1"">
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
+            Dim src2 = "
 Imports System.Diagnostics
 Imports X2 = System.Collections
+Imports <xmlns=""http://roslyn/default2"">
 Imports System.Collections.Generic
-</text>.Value
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Update [Imports X1 = System.Collections]@28 -> [Imports X2 = System.Collections]@28")
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.import))
+
+            ' TODO: https://github.com/dotnet/roslyn/issues/51374
+            ' Should be following:
+            'edits.VerifyEdits(
+            '    "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
+            '    "Update [Imports <xmlns=""http://roslyn/default1"">]@28 -> [Imports <xmlns=""http://roslyn/default2"">]@28")
+            '
+            'edits.VerifyRudeDiagnostics(
+            '    Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.import),
+            '    Diagnostic(RudeEditKind.Update, "Imports <xmlns=""http://roslyn/default2"">", VBFeaturesResources.import))
+
+            edits.VerifyEdits(
+                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30")
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
         Public Sub ImportUpdate3()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System.Diagnostics
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
+            Dim src2 = "
 Imports System
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Update [Imports System.Diagnostics]@1 -> [Imports System]@1")
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Imports System", VBFeaturesResources.import))
+
+            edits.VerifyEdits(
+                "Update [Imports System.Diagnostics]@2 -> [Imports System]@2")
+
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
         Public Sub ImportReorder1()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System.Diagnostics
 Imports System.Collections
 Imports System.Collections.Generic
-</text>.Value
+"
 
-            Dim src2 As String = <text>
+            Dim src2 = "
 Imports System.Collections
 Imports System.Collections.Generic
 Imports System.Diagnostics
-</text>.Value
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Reorder [Imports System.Diagnostics]@1 -> @63")
+
+            edits.VerifyEdits(
+                "Reorder [Imports System.Diagnostics]@2 -> @66")
+        End Sub
+
+        <Fact>
+        Public Sub ImportInsert_WithNewCode()
+            Dim src1 = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Imports System
+
+Class C
+    Sub M()
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+            })
+        End Sub
+
+        <Fact>
+        Public Sub ImportDelete_WithOldCode()
+            Dim src1 = "
+Imports System
+
+Class C
+    Sub M()
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Sub M()
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.M"))
+            })
+        End Sub
+#End Region
+
+#Region "Option"
+        <Fact>
+        Public Sub OptionDelete()
+            Dim src1 = "
+Option Strict On
+"
+
+            Dim src2 = "
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Delete [Option Strict On]@2")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.option_))
+        End Sub
+
+        <Fact>
+        Public Sub OptionInsert()
+            Dim src1 = "
+"
+
+            Dim src2 = "
+Option Strict On
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Insert [Option Strict On]@2")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "Option Strict On", VBFeaturesResources.option_))
+        End Sub
+
+        <Fact>
+        Public Sub OptionUpdate()
+            Dim src1 = "
+Option Strict On
+"
+
+            Dim src2 = "
+Option Strict Off
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Option Strict On]@2 -> [Option Strict Off]@2")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "Option Strict Off", VBFeaturesResources.option_))
         End Sub
 #End Region
 
@@ -339,7 +477,10 @@ Imports System.Diagnostics
             Dim src2 = "Partial Interface C : End Interface"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics()
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C"))
+            })
         End Sub
 
         <Fact>
@@ -348,8 +489,8 @@ Imports System.Diagnostics
             Dim src2 = ""
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.interface_))
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.interface_, "C")))
         End Sub
 
         <Fact>
@@ -379,7 +520,7 @@ Imports System.Diagnostics
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, VBFeaturesResources.module_))
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "C")))
         End Sub
 
         <Fact>
@@ -419,8 +560,7 @@ Imports System.Diagnostics
             edits.VerifyEdits(
                 "Update [Module C]@0 -> [Partial Module C]@0")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Module C", VBFeaturesResources.module_))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -432,8 +572,7 @@ Imports System.Diagnostics
             edits.VerifyEdits(
                 "Update [Partial Module C]@0 -> [Module C]@0")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Module C", VBFeaturesResources.module_))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -471,8 +610,7 @@ Imports System.Diagnostics
             edits.VerifyEdits(
                 "Update [Interface C]@0 -> [Partial Interface C]@0")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Interface C", FeaturesResources.interface_))
+            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -640,6 +778,486 @@ End Interface
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub Interface_InsertMembers()
+            Dim src1 = "
+Imports System
+
+Interface I 
+End Interface
+"
+            Dim src2 = "
+Imports System
+
+Interface I
+    Sub VirtualMethod()
+    Property VirtualProperty() As String
+    Property VirtualIndexer(a As Integer) As String
+    Event VirtualEvent As Action
+
+    MustInherit Class C
+    End Class
+
+    Interface J
+    End Interface
+
+    Enum E
+        A
+    End Enum
+
+    Delegate Sub D()
+End Interface
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "Sub VirtualMethod()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertVirtual, "Property VirtualProperty()", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "Property VirtualIndexer(a As Integer)", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertVirtual, "Event VirtualEvent", FeaturesResources.event_))
+        End Sub
+
+        <Fact>
+        Public Sub Interface_InsertDelete()
+            Dim srcA1 = "
+Interface I
+    Sub VirtualMethod()
+    Function VirtualFunction() As Integer
+    Property VirtualProperty() As String
+    ReadOnly Property VirtualReadonlyProperty() As String
+    Property VirtualIndexer(a As Integer) As String
+    Event VirtualEvent As Action
+
+    MustInherit Class C
+    End Class
+
+    Interface J
+    End Interface
+
+    Enum E
+        A
+    End Enum
+
+    Delegate Sub D()
+End Interface
+"
+            Dim srcB1 = "
+"
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub GenericType_InsertMembers()
+            Dim src1 = "
+Imports System
+Class C(Of T)
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C(Of T)
+    Dim F1, F2 As New Object, F3 As Integer, F4 As New Object, F5(1, 2), F6? As Integer
+
+    Sub M()
+    End Sub
+
+    Property P1(i As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+
+    Property P2 As Integer
+    Property P3 As New Object
+
+    Event E1(sender As Object, e As EventArgs)
+
+    Event E2 As Action
+
+    Custom Event E3 As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+
+    Dim WithEvents WE As Object
+
+    Enum N
+        A
+    End Enum
+
+    Interface I
+    End Interface
+
+    Class D
+    End Class
+
+    Delegate Sub G()
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Sub M()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P1(i As Integer)", FeaturesResources.property_),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P2", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Property P3", FeaturesResources.auto_property),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E1(sender As Object, e As EventArgs)", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E2", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E3", FeaturesResources.event_),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F1", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F2", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F5(1, 2)", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F6?", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "WE As Object", VBFeaturesResources.WithEvents_field))
+        End Sub
+
+        <Fact>
+        Public Sub Type_Delete()
+            Dim src1 = "
+Class C
+  Sub F()
+  End Sub
+End Class
+
+Module M
+  Sub F()
+  End Sub
+End Module
+
+Structure S
+  Sub F()
+  End Sub
+End Structure
+
+Interface I
+  Sub F()
+End Interface
+
+Delegate Sub D()
+"
+            Dim src2 = ""
+
+            GetTopEdits(src1, src2).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.class_, "C")),
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "M")),
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.structure_, "S")),
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.interface_, "I")),
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.delegate_, "D")))
+        End Sub
+
+        <Fact>
+        Public Sub PartialType_Delete()
+            Dim srcA1 = "
+Partial Class C
+  Sub F()
+  End Sub
+  Sub M()
+  End Sub
+End Class"
+            Dim srcB1 = "
+Partial Class C
+  Sub G()
+  End Sub
+End Class
+"
+            Dim srcA2 = ""
+            Dim srcB2 = "
+Partial Class C
+  Sub G()
+  End Sub
+  Sub M()
+  End Sub
+End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.method, "C.F()"))}),
+                    DocumentResults(
+                        semanticEdits:={
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("M"))
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialType_InsertFirstDeclaration()
+            Dim src1 = ""
+            Dim src2 = "
+Partial Class C
+  Sub F()
+  End Sub
+End Class"
+
+            GetTopEdits(src1, src2).VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C"), preserveLocalVariables:=False)})
+        End Sub
+
+        <Fact>
+        Public Sub PartialType_InsertSecondDeclaration()
+            Dim srcA1 = "
+Partial Class C
+  Sub F()
+  End Sub
+End Class"
+            Dim srcB1 = ""
+
+            Dim srcA2 = "
+Partial Class C
+  Sub F()
+  End Sub
+End Class"
+            Dim srcB2 = "
+Partial Class C
+  Sub G()
+  End Sub
+End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("G"), preserveLocalVariables:=False)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_DeleteInsert()
+            Dim srcA1 = "
+Class C
+  Sub F()
+  End Sub
+End Class
+
+Module M
+  Sub F()
+  End Sub
+End Module
+
+Structure S
+  Sub F()
+  End Sub
+End Structure
+
+Interface I
+  Sub F()
+End Interface
+
+Delegate Sub D()
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("M").GetMember("F")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember("F"))
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub GenericType_DeleteInsert()
+            Dim srcA1 = "
+Class C(Of T)
+  Sub F()
+  End Sub
+End Class
+
+Structure S(Of T)
+  Sub F()
+  End Sub
+End Structure
+
+Interface I(Of T)
+  Sub F()
+End Interface
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:=
+                        {
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "Sub F()", FeaturesResources.method),
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "Sub F()", FeaturesResources.method),
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "Sub F()", FeaturesResources.method)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_DeleteInsert_NonInsertableMembers()
+            Dim srcA1 = "
+MustInherit Class C
+    Implements I
+    Public MustOverride Sub AbstractMethod()
+
+    Public Overridable Sub VirtualMethod()
+    End Sub
+
+    Public Overrides Function ToString() As String
+        Return Nothing
+    End Function
+
+    Public Sub IG() Implements I.G
+    End Sub
+End Class
+
+Interface I
+    Sub G()
+End Interface
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("VirtualMethod")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("ToString")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("IG"))
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_DeleteInsert_DataMembers()
+            Dim srcA1 = "
+Class C
+    Dim F1 = 1, F2 As New Object, F3 As Integer, F4 As New Object, F5(1, 2), F6? As Integer
+End Class
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Type_DeleteInsert_DataMembers_PartialSplit()
+            Dim srcA1 = "
+Class C
+    Public x = 1
+    Public y = 2
+    Public z = 2
+End Class
+"
+            Dim srcB1 = ""
+
+            Dim srcA2 = "
+Class C
+    Public x = 1
+    Public y = 2
+End Class
+"
+            Dim srcB2 = "
+Partial Class C
+    Public z = 3
+End Class
+"
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        })
+                })
+        End sub
+
+        <Fact>
+        Public Sub Type_DeleteInsert_DataMembers_PartialMerge()
+            Dim srcA1 = "
+Partial Class C
+    Public x = 1
+    Public y = 2
+End Class
+"
+            Dim srcB1 = "
+Class C
+    Public z = 1
+End Class
+"
+
+            Dim srcA2 = "
+Class C
+    Public x = 1
+    Public y = 2
+    Public z = 2
+End Class
+"
+
+            Dim srcB2 = "
+"
+            ' note that accessors are not updated since they do not have bodies
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        }),
+                    DocumentResults()
+                })
+        End sub
 #End Region
 
 #Region "Enums"
@@ -894,7 +1512,7 @@ End Interface
                 "Delete [Blue]@19")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Enum Color", FeaturesResources.enum_value))
+                Diagnostic(RudeEditKind.Delete, "Enum Color", DeletedSymbolDisplay(FeaturesResources.enum_value, "Blue")))
         End Sub
 #End Region
 
@@ -1330,110 +1948,114 @@ End Class
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Syntactic()
-            Dim src1 As String = <![CDATA[
+            Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
 End Class
-]]>.Value
+"
 
-            Dim src2 As String = <![CDATA[
+            Dim src2 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
     Private MustInherit Class D 
-        Declare Ansi Function A Lib "A" () As Integer
-        Declare Ansi Sub B Lib "B" ()
+        Declare Ansi Function A Lib ""A"" () As Integer
+        Declare Ansi Sub B Lib ""B"" ()
     End Class
 End Class
-]]>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function A Lib ""A"" ()", FeaturesResources.method),
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub B Lib ""B"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Function A Lib ""A"" ()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Sub B Lib ""B"" ()", FeaturesResources.method))
         End Sub
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Semantic1()
-            Dim src1 As String = <![CDATA[
+            Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
-End Class
-]]>.Value
+End Class"
 
-            Dim src2 As String = <![CDATA[
+            Dim src2 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
     Private MustInherit Class D 
-        <DllImport("msvcrt.dll")>
+        <DllImport(""msvcrt.dll"")>
         Public Shared Function puts(c As String) As Integer
         End Function
 
-        <DllImport("msvcrt.dll")>
+        <DllImport(""msvcrt.dll"")>
         Public Shared Operator +(d As D, g As D) As Integer
         End Operator
 
-        <DllImport("msvcrt.dll")>
+        <DllImport(""msvcrt.dll"")>
         Public Shared Narrowing Operator CType(d As D) As Integer
         End Operator
     End Class
-End Class
-]]>.Value
+End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertDllImport, "puts"),
-                Diagnostic(RudeEditKind.InsertDllImport, "+"),
-                Diagnostic(RudeEditKind.InsertDllImport, "CType"))
+            edits.VerifySemantics(
+                diagnostics:=
+                {
+                    Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Function puts(c As String)", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Operator +(d As D, g As D)", FeaturesResources.operator_),
+                    Diagnostic(RudeEditKind.InsertDllImport, "Public Shared Narrowing Operator CType(d As D)", FeaturesResources.operator_)
+                },
+                targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_PInvoke_Semantic2()
-            Dim src1 As String = <![CDATA[
+            Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
-End Class
-]]>.Value
+End Class"
 
-            Dim src2 As String = <![CDATA[
+            Dim src2 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
-    <DllImport("msvcrt.dll")>
+    <DllImport(""msvcrt.dll"")>
     Private Shared Function puts(c As String) As Integer
     End Function
-End Class
-]]>.Value
+End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertDllImport, "puts"))
+            edits.VerifySemantics(
+                diagnostics:=
+                {
+                    Diagnostic(RudeEditKind.InsertDllImport, "Private Shared Function puts(c As String)", FeaturesResources.method)
+                },
+                targetFrameworks:={TargetFramework.NetStandard20})
         End Sub
 
         <WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")>
         <Fact>
         Public Sub NestedClass_Insert_VirtualAbstract()
-            Dim src1 As String = <text>
+            Dim src1 = "
 Imports System
 Imports System.Runtime.InteropServices
 
 Class C
 End Class
-</text>.Value
+"
 
-            Dim src2 As String = <text>
+            Dim src2 = "
 Imports System
 Imports System.Runtime.InteropServices
 
@@ -1454,7 +2076,7 @@ Class C
         End Function
     End Class
 End Class
-</text>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics()
         End Sub
@@ -1489,7 +2111,7 @@ End Class
                 "Delete [()]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Public Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")))
         End Sub
 
         <Fact>
@@ -1507,6 +2129,342 @@ End Class
                 Diagnostic(RudeEditKind.Move, "Public Class X", FeaturesResources.class_))
         End Sub
 
+        ''' <summary>
+        ''' A new generic type can be added whether it's nested and inherits generic parameters from the containing type, or top-level.
+        ''' </summary>
+        <Fact>
+        public Sub NestedClassGeneric_Insert()
+            Dim src1 = "
+Imports System
+Class C(Of T)
+End Class
+"
+            Dim src2 = "
+Imports System
+Class C(Of T)
+    Class C
+    End Class
+
+    Structure S
+    End Structure
+
+    Enum N
+        A
+    End Enum
+
+    Interface I
+    End Interface
+
+    Class D
+    End Class
+
+    Delegate Sub G()
+End Class
+
+Class D(Of T)
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub NestedEnum_InsertMember()
+            Dim src1 = "
+Structure S
+  Enum N
+    A = 1
+  End Enum
+End Structure
+"
+            Dim src2 = "
+Structure S
+  Enum N
+    A = 1
+    B = 2
+  End Enum
+End Structure
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(
+                "Insert [B = 2]@40")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value))
+        End Sub
+
+        <Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")>
+        Public Sub NestedEnumInPartialType_InsertDelete()
+            Dim srcA1 = "Partial Structure S : End Structure"
+            Dim srcB1 = "Partial Structure S : Enum N : A = 1 : End Enum" + vbCrLf + "End Structure"
+            Dim srcA2 = "Partial Structure S : Enum N : A = 1 : End Enum" + vbCrLf + "End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")>
+        Public Sub NestedEnumInPartialType_InsertDeleteAndUpdateMember()
+            Dim srcA1 = "Partial Structure S : End Structure"
+            Dim srcB1 = "Partial Structure S : Enum N : A = 1 : End Enum" + vbCrLf + "End Structure"
+            Dim srcA2 = "Partial Structure S : Enum N : A = 2 : End Enum" + vbCrLf + "End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        diagnostics:=
+                        {
+                            Diagnostic(RudeEditKind.InitializerUpdate, "A = 2", FeaturesResources.enum_value)
+                        }),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact, WorkItem(50876, "https://github.com/dotnet/roslyn/issues/50876")>
+        Public Sub NestedEnumInPartialType_InsertDeleteAndInsertMember()
+            Dim srcA1 = "Partial Structure S : End Structure"
+            Dim srcB1 = "Partial Structure S : Enum N : A = 1 : End Enum" + vbCrLf + "End Structure"
+            Dim srcA2 = "Partial Structure S : Enum N : A = 1 : B = 2 : End Enum" + vbCrLf + "End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value)}),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        public sub NestedDelegateInPartialType_InsertDelete()
+            Dim srcA1 = "Partial Structure S : End Structure"
+            Dim srcB1 = "Partial Structure S : Delegate Sub D()" + vbCrLf + "End Structure"
+            Dim srcA2 = "Partial Structure S : Delegate Sub D()" + vbCrLf + "End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+
+            ' delegate does not have any user-defined method body and this does not need a PDB update
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        ),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedDelegateInPartialType_InsertDeleteAndChangeSignature()
+            Dim srcA1 = "Partial Structure S : End Structure"
+            Dim srcB1 = "Partial Structure S : Delegate Sub D()" + vbCrLf + "End Structure"
+            Dim srcA2 = "Partial Structure S : Delegate Sub D(a As Integer)" + vbCrLf + "End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        diagnostics:=
+                        {
+                            Diagnostic(RudeEditKind.Insert, "a As Integer", FeaturesResources.parameter)
+                        }),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteAndChange()
+            Dim srcA1 = "Partial Structure S : Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class : End Structure"
+            Dim srcB1 = "Partial Structure S : Partial Class C" + vbCrLf + "Sub F2(x As Byte) : End Sub : End Class : End Structure"
+            Dim srcC1 = "Partial Structure S : End Structure"
+
+            Dim srcA2 = "Partial Structure S : Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class : End Structure"
+            Dim srcB2 = "Partial Structure S : End Structure"
+            Dim srcC2 = "Partial Structure S : Partial Class C" + vbCrLf + "Sub F2(x As Integer) : End Sub : End Class : End Structure"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Structure S", DeletedSymbolDisplay(FeaturesResources.method, "F2(Byte)"))}),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember(Of NamedTypeSymbol)("C").GetMember("F2"))})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteAndChange_BaseType()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = ""
+            Dim srcC1 = "Partial Class C : End Class"
+
+            Dim srcA2 = ""
+            Dim srcB2 = "Partial Class C : Inherits D" + vbCrLf + "End Class"
+            Dim srcC2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Partial Class C", FeaturesResources.class_)}),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteAndChange_Attribute()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = ""
+            Dim srcC1 = "Partial Class C : End Class"
+
+            Dim srcA2 = ""
+            Dim srcB2 = "<A>Partial Class C : End Class"
+            Dim srcC2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Update, "Partial Class C", FeaturesResources.class_)}),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteAndChange_Constraint()
+            Dim srcA1 = "Partial Class C(Of T) : End Class"
+            Dim srcB1 = ""
+            Dim srcC1 = "Partial Class C(Of T) : End Class"
+
+            Dim srcA2 = ""
+            Dim srcB2 = "Partial Class C(Of T As New) : End Class"
+            Dim srcC2 = "Partial Class C(Of T) : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Update, "Partial Class C(Of T As New)", FeaturesResources.class_)}),
+                    DocumentResults()
+                })
+        End Sub
+
+        ''' <summary>
+        ''' Moves partial classes to different files while moving around their attributes and base interfaces.
+        ''' </summary>
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteRefactor()
+            Dim srcA1 = "Partial Class C : Implements I" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcB1 = "<A><B>Partial Class C : Implements J" + vbCrLf + "Sub G() : End Sub : End Class"
+            Dim srcC1 = ""
+            Dim srcD1 = ""
+
+            Dim srcA2 = ""
+            Dim srcB2 = ""
+            Dim srcC2 = "<A>Partial Class C : Implements I, J" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcD2 = "<B>Partial Class C" + vbCrLf + "Sub G() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))}),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("G"))})
+                })
+        End Sub
+
+        ''' <summary>
+        ''' Moves partial classes to different files while moving around their attributes and base interfaces.
+        ''' Currently we do not support splitting attribute lists.
+        ''' </summary>
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteRefactor_AttributeListSplitting()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcB1 = "<A,B>Partial Class C" + vbCrLf + "Sub G() : End Sub : End Class"
+            Dim srcC1 = ""
+            Dim srcD1 = ""
+
+            Dim srcA2 = ""
+            Dim srcB2 = ""
+            Dim srcC2 = "<A>Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcD2 = "<B>Partial Class C" + vbCrLf + "Sub G() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(diagnostics:={Diagnostic(RudeEditKind.Update, "Partial Class C", FeaturesResources.class_)}),
+                    DocumentResults(diagnostics:={Diagnostic(RudeEditKind.Update, "Partial Class C", FeaturesResources.class_)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteChangeMember()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F(Optional y As Integer = 1) : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Sub G(Optional x As Integer = 1) : End Sub : End Class"
+            Dim srcC1 = ""
+
+            Dim srcA2 = ""
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Sub G(Optional x As Integer = 2) : End Sub : End Class"
+            Dim srcC2 = "Partial Class C" + vbCrLf + "Sub F(Optional y As Integer = 2) : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:={Diagnostic(RudeEditKind.InitializerUpdate, "Optional x As Integer = 2", FeaturesResources.parameter)}),
+                    DocumentResults(diagnostics:={Diagnostic(RudeEditKind.InitializerUpdate, "Optional y As Integer = 2", FeaturesResources.parameter)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub NestedPartialTypeInPartialType_InsertDeleteAndInsertVirtual()
+            Dim srcA1 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub F1()" + vbCrLf + "End Sub : End Class : End Interface"
+            Dim srcB1 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub F2()" + vbCrLf + "End Sub : End Class : End Interface"
+            Dim srcC1 = "Partial Interface I : Partial Class C" + vbCrLf + "End Class : End Interface"
+            Dim srcD1 = "Partial Interface I : Partial Class C" + vbCrLf + "End Class : End Interface"
+            Dim srcE1 = "Partial Interface I : End Interface"
+            Dim srcF1 = "Partial Interface I : End Interface"
+
+            Dim srcA2 = "Partial Interface I : Partial Class C" + vbCrLf + "End Class : End Interface"
+            Dim srcB2 = ""
+            Dim srcC2 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub F1()" + vbCrLf + "End Sub : End Class : End Interface" ' move existing virtual into existing partial decl
+            Dim srcD2 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub N1()" + vbCrLf + "End Sub : End Class : End Interface" ' insert new virtual into existing partial decl
+            Dim srcE2 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub F2()" + vbCrLf + "End Sub : End Class : End Interface" ' move existing virtual into a new partial decl
+            Dim srcF2 = "Partial Interface I : Partial Class C" + vbCrLf + "Overridable Sub N2()" + vbCrLf + "End Sub : End Class : End Interface" ' insert new virtual into new partial decl
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2), GetTopEdits(srcE1, srcE2), GetTopEdits(srcF1, srcF2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("I").GetMember(Of NamedTypeSymbol)("C").GetMember("F1"))}),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.InsertVirtual, "Overridable Sub N1()", FeaturesResources.method)}),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("I").GetMember(Of NamedTypeSymbol)("C").GetMember("F2"))}),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.InsertVirtual, "Overridable Sub N2()", FeaturesResources.method)})
+                })
+        End Sub
+
 #End Region
 
 #Region "Namespaces"
@@ -1518,6 +2476,16 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "Namespace C", FeaturesResources.namespace_))
+        End Sub
+
+        <Fact>
+        Public Sub NamespaceDelete()
+            Dim src1 = "Namespace C : End Namespace"
+            Dim src2 = ""
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.namespace_))
         End Sub
 
         <Fact>
@@ -1571,6 +2539,410 @@ End Class
                 "Reorder [Namespace E : End Namespace]@129 -> @14")
 
             edits.VerifyRudeDiagnostics()
+        End Sub
+
+#End Region
+
+#Region "Members"
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert()
+            Dim srcA1 = "
+Imports System
+
+Partial Class C
+    Dim F1 = 1, F2 As New Object, F3 As Integer, F4 As New Object, F5(1, 2), F6? As Integer
+
+    Sub M()
+    End Sub
+
+    Property P1(i As Integer) As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+
+    Property P2 As Integer
+    Property P3 As New Object
+
+    Event E1(sender As Object, e As EventArgs)
+
+    Event E2 As Action
+
+    Custom Event E3 As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+
+    Dim WithEvents WE As Object
+End Class
+"
+            Dim srcB1 = "
+Imports System
+
+Partial Class C
+End Class
+"
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("M")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P1").GetMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P1").SetMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E3").AddMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E3").RemoveMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E3").RaiseMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_InsertDelete_MultipleDocuments()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"), preserveLocalVariables:=False)
+                        }),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_MultipleDocuments()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F"), preserveLocalVariables:=False)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_GenericMethod()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F(Of T)() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F(Of T)() : End Sub : End Class"
+
+            ' TODO better message
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub F(Of T)()", FeaturesResources.method)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_GenericType()
+            Dim srcA1 = "Partial Class C(Of T)" + vbCrLf + "Sub F(Of T)() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C(Of T) : End Class"
+            Dim srcA2 = "Partial Class C(Of T) : End Class"
+            Dim srcB2 = "Partial Class C(Of T)" + vbCrLf + "Sub F(Of T)() : End Sub : End Class"
+
+            ' TODO better message
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub F(Of T)()", FeaturesResources.method)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialNestedType_InsertDeleteAndChange()
+            Dim srcA1 = "
+Partial Class C 
+End Class
+"
+            Dim srcB1 = "
+Partial Class C
+    Class D
+        Sub M()
+        End Sub
+    End Class
+
+    Interface I 
+    End Interface 
+End Class"
+
+            Dim srcA2 = "
+Partial Class C
+    Class D
+        Implements I
+
+        Sub M()
+        End Sub
+    End Class
+
+    Interface I 
+    End Interface 
+End Class"
+
+            Dim srcB2 = "
+Partial Class C 
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        diagnostics:=
+                        {
+                            Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "Class D", FeaturesResources.class_)
+                        }),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
+        Public Sub PartialMember_RenameInsertDelete()
+            ' The syntactic analysis for A And B produce rename edits since it  doesn't see that the member was in fact moved.
+            ' TODO: Currently, we don't even pass rename edits to semantic analysis where we could handle them as updates.
+
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Sub F2() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Sub F1() : End Sub : End Class"
+
+            ' current outcome
+            GetTopEdits(srcA1, srcA2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F2()", FeaturesResources.method))
+            GetTopEdits(srcB1, srcB2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "Sub F1()", FeaturesResources.method))
+
+            ' correct outcome
+            'EditAndContinueValidation.VerifySemantics(
+            '     { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+            '    
+            '    {
+            '        DocumentResults(semanticEdits:=
+            '            {
+            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F2")),
+            '            }),
+            '
+            '        DocumentResults(
+            '            semanticEdits:=
+            '            {
+            '                SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F1")),
+            '            })
+            '    });
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_UpdateMethodBodyError()
+            Dim srcA1 = "
+Imports System.Collections.Generic
+
+Partial Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Yield 1
+    End Function
+End Class
+"
+            Dim srcB1 = "
+Imports System.Collections.Generic
+
+Partial Class C
+End Class
+"
+
+            Dim srcA2 = "
+Imports System.Collections.Generic
+
+Partial Class C
+End Class
+"
+            Dim srcB2 = "
+Imports System.Collections.Generic
+
+Partial Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.Insert, "Yield 2", VBFeaturesResources.Yield_statement)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_UpdatePropertyAccessors()
+            Dim srcA1 = "
+Partial Class C
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set(value As Integer)
+            Console.WriteLine(1)
+        End Set
+    End Property
+End Class
+"
+            Dim srcB1 = "Partial Class C: End Class"
+
+            Dim srcA2 = "Partial Class C: End Class"
+            Dim srcB2 = "
+Partial Class C
+    Property P As Integer
+        Get
+            Return 2
+        End Get
+        Set(value As Integer)
+            Console.WriteLine(2)
+        End Set
+    End Property
+End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").GetMethod),
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").SetMethod)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_UpdateAutoProperty()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Property P As Integer = 1 : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Property P As Integer = 2 : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_AddFieldInitializer()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Dim P As Integer : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Dim P As Integer = 1 : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_RemoveFieldInitializer()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Dim P As Integer = 1 : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Dim P As Integer : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMember_DeleteInsert_ConstructorWithInitializers()
+            Dim srcA1 = "
+Partial Class C
+    Dim F = 1
+
+    Sub New(x As Integer)
+        F = x
+    End Sub
+End Class"
+            Dim srcB1 = "
+Partial Class C
+End Class"
+
+            Dim srcA2 = "
+Partial Class C
+    Dim F = 1
+End Class"
+            Dim srcB2 = "
+Partial Class C
+    Sub New(x As Integer)
+        F = x + 1
+    End Sub
+End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
         End Sub
 
 #End Region
@@ -1661,7 +3033,7 @@ End Class
                 "Delete [()]@15")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")))
         End Sub
 
         <Fact>
@@ -1672,7 +3044,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Interface C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Interface C", DeletedSymbolDisplay(FeaturesResources.method, "Goo()")))
         End Sub
 
         <Fact>
@@ -1691,7 +3063,7 @@ End Class
                 "Delete [As Integer]@18")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo(Integer)")))
         End Sub
 
         <Fact>
@@ -1712,7 +3084,7 @@ End Class
                 "Delete [As Integer]@32")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo(Integer)")))
         End Sub
 
         <Fact>
@@ -1800,7 +3172,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "MustOverride Sub F", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertVirtual, "MustOverride Sub F", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -1812,6 +3184,36 @@ End Class
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertVirtual, "Overrides Sub F", FeaturesResources.method))
+        End Sub
+
+        <Fact>
+        Public Sub ExternMethodDeleteInsert()
+            Dim srcA1 = "
+Imports System
+Imports System.Runtime.InteropServices
+
+Class C
+    <DllImport(""msvcrt.dll"")>
+    Public Shared Function puts(c As String) As Integer
+    End Function
+End Class"
+            Dim srcA2 = "
+Imports System
+Imports System.Runtime.InteropServices
+"
+
+            Dim srcB1 = srcA2
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("puts"))
+                    })
+                })
         End Sub
 
         <Fact>
@@ -1866,7 +3268,7 @@ End Class
                 "Delete [As Integer]@55")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "f(Integer, Integer)")))
         End Sub
 
         <Fact>
@@ -2442,14 +3844,14 @@ End Class
 
         <Fact>
         Public Sub MethodInsert_Handles_Clause()
-            Dim src1 = "Class C : Event E1 As Action" & vbLf & "End Class"
-            Dim src2 = "Class C : Event E1 As Action" & vbLf & "Private Sub Goo() Handles Me.E1 : End Sub : End Class"
+            Dim src1 = "Class C : Event E1 As System.Action" & vbLf & "End Class"
+            Dim src2 = "Class C : Event E1 As System.Action" & vbLf & "Private Sub Goo() Handles Me.E1 : End Sub : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [Private Sub Goo() Handles Me.E1 : End Sub]@29",
-                "Insert [Private Sub Goo() Handles Me.E1]@29",
-                "Insert [()]@44")
+                "Insert [Private Sub Goo() Handles Me.E1 : End Sub]@36",
+                "Insert [Private Sub Goo() Handles Me.E1]@36",
+                "Insert [()]@51")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.InsertHandlesClause, "Private Sub Goo()", FeaturesResources.method))
@@ -2480,6 +3882,295 @@ End Class
             Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
             Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_DeleteInsert_DefinitionPart()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcC1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "partial class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcC2 = "partial class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_DeleteInsert_ImplementationPart()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+            Dim srcC1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+            Dim srcC2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart)})
+                })
+        End Sub
+
+        <Fact, WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
+        Public Sub PartialMethod_Swap_ImplementationAndDefinitionParts()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+
+            ' TODO: current
+            GetTopEdits(srcA1, srcA2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ModifiersUpdate, "Private Sub F()", FeaturesResources.method))
+            GetTopEdits(srcB1, srcB2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Private Sub F()", FeaturesResources.method))
+
+            ' TODO: correct 
+            ' EditAndContinueValidation.VerifySemantics(
+            '      { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+            '     
+            '     {
+            '         DocumentResults(),
+            '         DocumentResults(
+            '             semanticEdits:= { SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F")) }),
+            '     });
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_DeleteImplementation()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", DeletedSymbolDisplay(FeaturesResources.method, "F()"))})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_DeleteBoth()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", DeletedSymbolDisplay(FeaturesResources.method, "F()"))})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_DeleteInsertBoth()
+            Dim srcA1 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB1 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+            Dim srcC1 = "Partial Class C : End Class"
+            Dim srcD1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+            Dim srcC2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcD2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart)})
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialMethod_Insert()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
+            Dim srcB2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart)})
+                })
+        End Sub
+#End Region
+
+#Region "Operators"
+
+        <Fact>
+        Public Sub OperatorInsert()
+            Dim src1 = "
+Class C
+End Class
+"
+            Dim src2 = "
+Class C
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return Nothing
+    End Operator
+
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return Nothing
+    End Operator
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertOperator, "Public Shared Operator +(d As C, g As C)", FeaturesResources.operator_),
+                Diagnostic(RudeEditKind.InsertOperator, "Public Shared Narrowing Operator CType(d As C)", FeaturesResources.operator_))
+        End Sub
+
+        <Fact>
+        Public Sub OperatorDelete()
+            Dim src1 = "
+Class C
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return Nothing
+    End Operator
+
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return Nothing
+    End Operator
+End Class
+"
+            Dim src2 = "
+Class C
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.operator_, "+(C, C)")),
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.operator_, "CType(C)")))
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51011"), WorkItem(51011, "https://github.com/dotnet/roslyn/issues/51011")>
+        Public Sub OperatorInsertDelete()
+            Dim srcA1 = "
+Partial Class C
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return Nothing
+    End Operator
+End Class
+"
+            Dim srcB1 = "
+Partial Class C
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return Nothing
+    End Operator
+End Class
+"
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Addition"))
+                        }),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Implicit"))
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub OperatorUpdate()
+            Dim src1 = "
+Class C
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return 0
+    End Operator
+
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return 0
+    End Operator
+End Class
+"
+            Dim src2 = "
+Class C
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return 1
+    End Operator
+
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return 1
+    End Operator
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Explicit")),
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("op_Addition"))
+            })
+        End Sub
+
+        <Fact>
+        Public Sub OperatorReorder()
+            Dim src1 = "
+Class C
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return 0
+    End Operator
+
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return 0
+    End Operator
+End Class
+"
+            Dim src2 = "
+Class C
+    Public Shared Operator +(d As C, g As C) As Integer
+        Return 0
+    End Operator
+
+    Public Shared Narrowing Operator CType(d As C) As Integer
+        Return 0
+    End Operator
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Reorder [Public Shared Operator +(d As C, g As C) As Integer
+        Return 0
+    End Operator]@116 -> @15")
 
             edits.VerifyRudeDiagnostics()
         End Sub
@@ -2555,7 +4246,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(VBFeaturesResources.Shared_constructor, "New()")))
         End Sub
 
         <Fact>
@@ -2565,7 +4256,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Module C", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.Delete, "Module C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -2575,7 +4266,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -2585,47 +4276,39 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
-        <Fact>
-        Public Sub InstanceCtorDelete_Private1()
-            Dim src1 = "Class C" & vbLf & "Private Sub New() : End Sub : End Class"
+        <Theory>
+        <InlineData("Private")>
+        <InlineData("Protected")>
+        <InlineData("Friend")>
+        <InlineData("Protected Friend")>
+        Public Sub InstanceCtorDelete_NonPublic(visibility As String)
+            Dim src1 = "Class C" & vbLf & visibility & " Sub New() : End Sub : End Class"
             Dim src2 = "Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
-        Public Sub InstanceCtorDelete_Protected()
-            Dim src1 = "Class C" & vbLf & "Protected Sub New() : End Sub : End Class"
-            Dim src2 = "Class C : End Class"
-            Dim edits = GetTopEdits(src1, src2)
+        Public Sub InstanceCtorDelete_Public_PartialWithInitializerUpdate()
+            Dim srcA1 = "Class C" & vbLf & "Public Sub New() : End Sub : End Class"
+            Dim srcB1 = "Class C" & vbLf & "Dim x = 1 : End Class"
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
-        End Sub
+            Dim srcA2 = "Class C : End Class"
+            Dim srcB2 = "Class C" & vbLf & "Dim x = 2 : End Class"
 
-        <Fact>
-        Public Sub InstanceCtorDelete_Internal()
-            Dim src1 = "Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
-            Dim src2 = "Class C : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorDelete_ProtectedInternal()
-            Dim src1 = "Class C" & vbLf & "Protected Friend Sub New() : End Sub : End Class"
-            Dim src2 = "Class C : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
         <Fact>
@@ -2666,11 +4349,13 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' no change in document A
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
                 })
         End Sub
 
@@ -2682,7 +4367,7 @@ End Class
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=
+                semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))
                 })
@@ -2696,52 +4381,28 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Sub New(a As Integer) : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' no change in document B
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:=
                 {
-                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(Function(m) m.Parameters.IsEmpty))}),
+                    DocumentResults()
                 })
         End Sub
 
-        <Fact>
-        Public Sub InstanceCtorInsert_Private_Implicit1()
+        <Theory>
+        <InlineData("Private")>
+        <InlineData("Protected")>
+        <InlineData("Friend")>
+        <InlineData("Friend Protected")>
+        Public Sub InstanceCtorInsert_Private_Implicit1(visibility As String)
             Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C" & vbLf & "Private Sub New() : End Sub : End Class"
+            Dim src2 = "Class C" & vbLf & visibility & " Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Private Sub New()"))
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorInsert_Protected_PublicImplicit()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C" & vbLf & "Protected Sub New() : End Sub : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Protected Sub New()"))
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorInsert_Internal_PublicImplicit()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorInsert_Internal_ProtectedImplicit()
-            Dim src1 = "MustInherit Class C : End Class"
-            Dim src2 = "MustInherit Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()"))
+                Diagnostic(RudeEditKind.ChangingVisibility, visibility & " Sub New()", FeaturesResources.constructor))
         End Sub
 
         <Fact>
@@ -2765,28 +4426,13 @@ End Class
                                       InstanceConstructors.Single(Function(ctor) ctor.DeclaredAccessibility = Accessibility.Private))})
         End Sub
 
-        <Fact>
-        Public Sub InstanceCtorInsert_Internal_NoImplicit()
+        <Theory>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Friend Protected")>
+        Public Sub InstanceCtorInsert_Internal_NoImplicit(visibility As String)
             Dim src1 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : " & vbLf & "Friend Sub New() : End Sub : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorInsert_Protected_NoImplicit()
-            Dim src1 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : " & vbLf & "Protected Sub New() : End Sub : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtorInsert_FriendProtected_NoImplicit()
-            Dim src1 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : " & vbLf & "Friend Protected Sub New() : End Sub : End Class"
+            Dim src2 = "Class C" & vbLf & "Public Sub New(a As Integer) : End Sub : " & vbLf & visibility & " Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics()
@@ -2800,22 +4446,33 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
         <Fact>
-        Public Sub ModuleCtor_Partial_Delete()
+        Public Sub ModuleCtor_Partial_DeleteInsert()
             Dim srcA1 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
             Dim srcB1 = "Partial Module C : End Module"
 
             Dim srcA2 = "Partial Module C : End Module"
             Dim srcB2 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        ),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
         <Fact>
@@ -2826,9 +4483,15 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        ),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
         <Fact>
@@ -2839,9 +4502,14 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Public Sub New() : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
         <Fact>
@@ -2852,9 +4520,14 @@ End Class
             Dim srcA2 = "Partial Class C : End Class"
             Dim srcB2 = "Partial Class C" & vbLf & "Public Sub New() : End Sub : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Public Sub New()")})
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", FeaturesResources.constructor)})
+                })
         End Sub
 
         <Fact>
@@ -2865,9 +4538,15 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        )
+                })
         End Sub
 
         <Fact>
@@ -2878,9 +4557,15 @@ End Class
             Dim srcA2 = "Partial Module C" & vbLf & "Sub New() : End Sub : End Module"
             Dim srcB2 = "Partial Module C : End Module"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        )
+                })
         End Sub
 
         <Fact>
@@ -2891,9 +4576,15 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        )
+                })
         End Sub
 
         <Fact>
@@ -2904,9 +4595,15 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        )
+                })
         End Sub
 
         <Fact>
@@ -2917,9 +4614,15 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        )
+                })
         End Sub
 
         <Fact>
@@ -2930,35 +4633,39 @@ End Class
             Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New()" & vbLf & "Console.WriteLine(1) : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be represented as a semantic update in the other document where it was inserted back
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedSemanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults()
+                })
         End Sub
 
-        <Fact>
-        Public Sub InstanceCtor_Partial_InsertPublicDeletePrivate()
+        <Theory>
+        <InlineData("")>
+        <InlineData("Friend")>
+        <InlineData("Public")>
+        Public Sub InstanceCtor_Partial_VisibilityUpdate(visibility As String)
+            If visibility.Length > 0 Then
+                visibility &= " "
+            End If
+
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
 
-            Dim srcA2 = "Partial Class C" & vbLf & "Sub New() : End Sub : End Class"
+            Dim srcA2 = "Partial Class C" & vbLf & visibility & "Sub New() : End Sub : End Class"
             Dim srcB2 = "Partial Class C : End Class"
 
-            EditAndContinueValidation.VerifySemantics(
+            ' delete of the constructor in partial part will be reported as rude edit in the other document where it was inserted back with changed visibility
+            VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Sub New()")})
-        End Sub
-
-        <Fact>
-        Public Sub InstanceCtor_Partial_InsertInternalDeletePrivate()
-            Dim srcA1 = "Partial Class C : End Class"
-            Dim srcB1 = "Partial Class C" & vbLf & "Private Sub New() : End Sub : End Class"
-
-            Dim srcA2 = "Partial Class C" & vbLf & "Friend Sub New() : End Sub : End Class"
-            Dim srcB2 = "Partial Class C : End Class"
-
-            EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
-                expectedDiagnostics:={Diagnostic(RudeEditKind.ChangingConstructorVisibility, "Friend Sub New()")})
+                {
+                    DocumentResults(
+                        diagnostics:={Diagnostic(RudeEditKind.ModifiersUpdate, visibility & "Sub New()", FeaturesResources.constructor)}),
+                    DocumentResults()
+                })
         End Sub
 
         <Fact>
@@ -3175,9 +4882,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim syntaxMap = GetSyntaxMap(src1, src2)
 
-            edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New()")})
         End Sub
 
         <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
@@ -3230,6 +4936,136 @@ End Class
         End Sub
 
         <Fact>
+        public sub PartialTypes_ConstructorWithInitializerUpdates()
+            Dim srcA1 = "
+Imports System
+
+Partial Class C
+    Sub New(arg As Integer)
+        Console.WriteLine(0)
+    End Sub
+
+    Sub New(arg As Boolean)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim srcB1 = "
+Imports System
+
+Partial Class C
+    Dim a <N:0.0>= 1</N:0.0>
+
+    Sub New(arg As UInteger)
+        Console.WriteLine(2)
+    End Sub
+End Class
+"
+
+            Dim srcA2 = "
+Imports System
+
+Partial Class C
+    Sub New(arg As Integer)
+        Console.WriteLine(0)
+    End Sub
+
+    Sub New(arg As Boolean)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim srcB2 = "
+Imports System
+
+Partial Class C
+    Dim a <N:0.0>= 2</N:0.0>    ' updated field initializer
+
+    Sub New(arg As UInteger)
+        Console.WriteLine(2)
+    End Sub
+
+    Sub New(arg As Byte)
+        Console.WriteLine(3)    ' new ctor
+    End Sub
+End Class
+"
+            Dim syntaxMapB = GetSyntaxMap(srcB1, srcB2)(0)
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                           SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Int32"), partialType:="C", syntaxMap:=syntaxMapB),
+                           SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Boolean"), partialType:="C", syntaxMap:=syntaxMapB),
+                           SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "UInt32"), partialType:="C", syntaxMap:=syntaxMapB),
+                           SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Byte"), syntaxMap:=Nothing)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialTypes_ConstructorWithInitializerUpdates_SemanticErrors()
+            Dim srcA1 = "
+Imports System
+
+Partial Class C
+    Sub New(arg As Integer)
+        Console.WriteLine(0)
+    End Sub
+
+    Sub New(arg As Integer)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim srcB1 = "
+Imports System
+
+Partial Class C
+    Dim a = 1
+End Class
+"
+
+            Dim srcA2 = "
+Imports System
+
+Partial Class C
+    Sub New(arg As Integer)
+        Console.WriteLine(0)
+    End Sub
+
+    Sub New(arg As Integer)
+        Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim srcB2 = "
+Imports System
+
+Partial Class C
+    Dim a = 1
+
+    Sub New(arg As Integer)
+        Console.WriteLine(2)
+    End Sub
+End Class
+"
+
+            ' The actual edits do not matter since there are semantic errors in the compilation.
+            ' We just should not crash.
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:=Array.Empty(Of RudeEditDiagnosticDescription)())
+                })
+        End Sub
+
+        <Fact>
         Public Sub Constructor_SemanticError_Partial()
             Dim src1 = "
 Partial Class C
@@ -3242,7 +5078,6 @@ Class C
         System.Console.WriteLine(1)
     End Sub
 End Class
-
 "
             Dim src2 = "
 Partial Class C
@@ -3257,10 +5092,89 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits:=
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, semanticEdits:=
             {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Skip(1).First(), preserveLocalVariables:=True)
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.First(), preserveLocalVariables:=True)
             })
+        End Sub
+
+        <Fact>
+        public sub PartialDeclaration_Delete()
+            Dim srcA1 = "
+Partial Class C
+    Sub New()
+    End Sub
+
+    Sub F()
+    End Sub
+End Class
+"
+            Dim srcB1 = "
+Partial Class C
+    Dim x = 1
+End Class
+"
+
+            Dim srcA2 = ""
+            Dim srcB2 = "
+Partial Class C
+    Dim x = 2
+
+    Sub F()
+    End Sub
+End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub PartialDeclaration_Insert()
+            Dim srcA1 = ""
+            Dim srcB1 = "
+Partial Class C
+    Dim x = 1
+
+    Sub F()
+    End Sub
+End Class
+"
+            Dim srcA2 = "
+Partial Class C
+    Public Sub New()
+    End Sub
+
+    Sub F()
+    End Sub
+End Class"
+            Dim srcB2 = "
+Partial Class C
+    Dim x = 2
+End Class
+"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                        }),
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
+                })
         End Sub
 
 #End Region
@@ -3330,7 +5244,7 @@ End Class
                 "Delete [As Integer]@49")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo()")))
         End Sub
 
         <Fact>
@@ -3345,7 +5259,7 @@ End Class
                 "Insert [As Integer]@49")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3360,7 +5274,7 @@ End Class
                 "Insert [As Integer]@57")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Private Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertDllImport, "Private Declare Ansi Function Goo Lib ""Bar"" ()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3370,7 +5284,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Sub ExternSub Lib ""ExternDLL""()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3380,7 +5294,23 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "Declare Ansi Sub ExternSub Lib ""ExternDLL""", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertDllImport, "Declare Ansi Sub ExternSub Lib ""ExternDLL""", FeaturesResources.method))
+        End Sub
+
+        <Fact>
+        Public Sub Declare_DeleteInsert()
+            Dim srcA1 = "Module M : Declare Ansi Sub ExternSub Lib ""ExternDLL"" : End Module"
+            Dim srcB1 = "Module M : End Module"
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
         End Sub
 #End Region
 
@@ -3398,7 +5328,7 @@ End Class
                 Diagnostic(RudeEditKind.Renamed, "b", FeaturesResources.field))
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51373"), WorkItem(51373, "https://github.com/dotnet/roslyn/issues/51373")>
         Public Sub FieldUpdate_Rename2()
             Dim src1 = "Class C : Dim a1(), b1? As Integer, c1(1,2) As New D() : End Class"
             Dim src2 = "Class C : Dim a2(), b2? As Integer, c2(1,2) As New D() : End Class"
@@ -3440,9 +5370,7 @@ End Class
                 "Move [c]@27 -> @17",
                 "Delete [c]@27")
 
-            ' TODO: We could check that the types and order of b and c haven't changed. 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3458,9 +5386,7 @@ End Class
                 "Delete [c As Object]@27",
                 "Delete [As Object]@29")
 
-            ' TODO: We could check that the types and order of b and c haven't changed. 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3476,9 +5402,7 @@ End Class
                 "Move [c]@17 -> @27",
                 "Insert [As Object]@29")
 
-            ' TODO: We could check that the types and order of b and c haven't changed. 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "c", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3492,9 +5416,7 @@ End Class
                 "Update [c As Object]@30 -> [b, c As Object]@27",
                 "Move [b]@17 -> @27")
 
-            ' TODO: We could check that the types and order of b and c haven't changed. 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3508,9 +5430,7 @@ End Class
                 "Update [b, c As Object]@27 -> [c As Object]@30",
                 "Move [b]@27 -> @17")
 
-            ' TODO: We could check that the types and order of b and c haven't changed. 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3522,8 +5442,7 @@ End Class
             edits.VerifyEdits(
                 "Reorder [b As Object]@27 -> @14")
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b As Object", FeaturesResources.field))
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -3535,8 +5454,17 @@ End Class
             edits.VerifyEdits(
                 "Reorder [b, c As Object]@27 -> @14")
 
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Public Sub Field_VariableMove_TypeChange()
+            Dim src1 = "Class C : Dim a As Object, b, c As Object : End Class"
+            Dim src2 = "Class C : Dim a, b As Integer, c As Object : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "b, c As Object", FeaturesResources.field))
+                Diagnostic(RudeEditKind.TypeUpdate, "a, b As Integer", FeaturesResources.field))
         End Sub
 
         <Fact>
@@ -3552,7 +5480,7 @@ End Class
                 "Delete [As Object]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Dim b As Object", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "Dim b As Object", DeletedSymbolDisplay(FeaturesResources.field, "c")))
         End Sub
 
         <Fact>
@@ -3665,7 +5593,7 @@ End Class
                 "Delete [As Action]@16")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.field, "a")))
         End Sub
 
         <Fact>
@@ -3683,7 +5611,7 @@ End Class
                 "Delete [As Action]@18")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.event_))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.event_, "a")))
         End Sub
 
         <Fact>
@@ -3736,6 +5664,22 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub EventField_Partial_InsertDelete()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C" & vbCrLf & "Event E As System.Action : End Class"
+
+            Dim srcA2 = "Partial Class C" & vbCrLf & "Event E As System.Action : End Class"
+            Dim srcB2 = "Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
         Public Sub FieldInsert1()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Dim _private1 = 1 : Private _private2 : Public _public = 2 : Protected _protected : Friend _f : Protected Friend _pf : End Class"
@@ -3751,7 +5695,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "WithEvents F As C", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.InsertVirtual, "F As C", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
@@ -3761,7 +5705,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "G", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.InsertVirtual, "G", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
@@ -3771,25 +5715,25 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "G", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.InsertVirtual, "G As C", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
         Public Sub FieldInsert_IntoStruct()
             Dim src1 = "Structure S : Private a As Integer : End Structure"
-            Dim src2 = <text>
+            Dim src2 = "
 Structure S 
     Private a As Integer
     Private b As Integer
     Private Shared c As Integer
     Private Event d As System.Action
 End Structure
-</text>.Value
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d As System.Action", FeaturesResources.event_, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.field, VBFeaturesResources.structure_),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.field, VBFeaturesResources.structure_))
+                Diagnostic(RudeEditKind.InsertIntoStruct, "b As Integer", FeaturesResources.field, VBFeaturesResources.structure_),
+                Diagnostic(RudeEditKind.InsertIntoStruct, "c As Integer", FeaturesResources.field, VBFeaturesResources.structure_))
         End Sub
 
         <Fact>
@@ -3852,9 +5796,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -3882,9 +5826,71 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_LayoutClass_Sequential_OrderPreserved()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
+
+<StructLayoutAttribute(LayoutKind.Sequential)>
+Partial Class C
+    Private a As Integer
+    Private b As Integer
+End Class
+"
+
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+
+<StructLayoutAttribute(LayoutKind.Sequential)>
+Partial Class C
+    Private a As Integer
+End Class
+
+Partial Class C
+    Private b As Integer
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            ' TODO: We don't compare the ordering currently. We could allow this edit if the ordering is preserved.
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_))
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_LayoutClass_Sequential_OrderChanged()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
+
+<StructLayoutAttribute(LayoutKind.Sequential)>
+Partial Class C
+    Private a As Integer
+    Private b As Integer
+End Class
+"
+
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+
+<StructLayoutAttribute(LayoutKind.Sequential)>
+Partial Class C
+    Private b As Integer
+End Class
+
+Partial Class C
+    Private a As Integer
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "a As Integer", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -3930,7 +5936,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_ParameterlessConstructorInsert_WithInitializersAndLambdas1()
+        Public Sub FieldInsert_ConstructorReplacingImplicitConstructor_WithInitializersAndLambdas()
             Dim src1 = "
 Imports System
 
@@ -3954,7 +5960,7 @@ Class C
 
     Dim B As Integer = F(Function(b) b + 1)   ' new field
 
-    Sub New()                                 ' new ctor
+    Sub New()                                 ' new ctor replacing existing implicit constructor
         F(Function(c) c + 1)
     End Sub
 End Class
@@ -3967,6 +5973,53 @@ End Class
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
                  SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+        End Sub
+
+        <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
+        Public Sub FieldInsert_ParameterlessConstructorInsert_WithInitializersAndLambdas()
+            Dim src1 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 1
+    End Function
+
+    Dim A = F(<N:0.0>Function(a) a + 1</N:0.0>)
+
+    Public Sub New(x As Integer)
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class C
+    Shared Function F(x As Func(Of Integer, Integer)) As Integer
+        Return 1
+    End Function
+
+    Dim A = F(<N:0.0>Function(a) a + 1</N:0.0>)
+
+    Public Sub New(x As Integer)
+    End Sub
+
+    Public Sub New                           ' new ctor
+        F(Function(c) c + 1)
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Public Sub New"))
+
+            '  TODO (bug https//github.com/dotnet/roslyn/issues/2504):
+            ' edits.VerifySemantics(
+            '     ActiveStatementsDescription.Empty,
+            '     {
+            '         SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember<NamedTypeSymbol>("C").Constructors.Single(), syntaxMap(0))
+            '     })
         End Sub
 
         <Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")>
@@ -4002,17 +6055,15 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim syntaxMap = GetSyntaxMap(src1, src2)
-            edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
-                 SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single())})
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas, "Sub New(x As Integer)"))
 
-            ' TODO (bug https//github.com/dotnet/roslyn/issues/2504):
+            ' TODO (bug https://github.com/dotnet/roslyn/issues/2504):
             'edits.VerifySemantics(
             '    ActiveStatementsDescription.Empty,
             '    {
-            '        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
-            '        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))
+            '        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.B")),
+            '        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))
             '    })
 
         End Sub
@@ -4115,6 +6166,27 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub PropertyInsert()
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "
+Class C 
+    Property P
+        Get
+            Return 1
+        End Get
+        Set(value)
+        End Set
+    End Property
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("P"))})
+        End Sub
+
+        <Fact>
         Public Sub PrivatePropertyAccessorAddSetter()
             Dim src1 = "Class C : Private _p As Integer : Private ReadOnly Property P As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
             Dim src2 = "Class C : Private _p As Integer : Private Property P As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get" & vbLf & "Set(value As Integer)" & vbLf & "_p = value : End Set : End Property : End Class"
@@ -4162,7 +6234,7 @@ End Class
                 "Delete [As Integer]@97")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Private ReadOnly Property P", VBFeaturesResources.property_accessor))
+                Diagnostic(RudeEditKind.Delete, "Private ReadOnly Property P", DeletedSymbolDisplay(VBFeaturesResources.property_accessor, "P(Integer)")))
         End Sub
 
         <Fact>
@@ -4271,6 +6343,110 @@ End Class
                 Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c As Integer", FeaturesResources.auto_property, FeaturesResources.class_))
         End Sub
 
+        <Fact>
+        Public Sub Property_Partial_InsertDelete()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "
+Partial Class C
+    Private Property P As Integer
+        Get
+            Return 1
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").GetMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of PropertySymbol)("P").SetMethod)
+                        }),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub AutoProperty_Partial_InsertDelete()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "
+Partial Class C
+    Private Property P As Integer
+End Class
+"
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub AutoPropertyWithInitializer_Partial_InsertDelete()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "
+Partial Class C
+    Private Property P As Integer = 1
+End Class
+"
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Property_Update_LiftedParameter()
+            Dim src1 = "
+Imports System
+
+Partial Class C
+    Private Property P(a As Integer) As Integer
+        Get
+            Return New Func(Of Integer)(Function() a + 1).Invoke()
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Partial Class C
+    Private Property P(a As Integer) As Integer
+        Get
+            Return New Func(Of Integer)(Function() 2).Invoke()
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"))
+        End Sub
 #End Region
 
 #Region "Field And Property Initializers"
@@ -4337,6 +6513,56 @@ End Class
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+        End Sub
+
+        ''' <summary>
+        ''' It's a semantic error to specify array bunds and initializer at the same time.
+        ''' EnC analysis needs to handle this case without failing.
+        ''' </summary>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51373"), WorkItem(51373, "https://github.com/dotnet/roslyn/issues/51373")>
+        Public Sub Field_InitializerUpdate_InitializerAndArrayBounds()
+            Dim src1 = "
+Class C
+    Dim x(1) As Integer = 1
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim x(2) As Integer = 2
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+            })
+        End Sub
+
+        ''' <summary>
+        ''' It's a semantic error to specify array bunds and initializer at the same time.
+        ''' EnC analysis needs to handle this case without failing.
+        ''' </summary>
+        <Fact>
+        Public Sub Field_InitializerUpdate_AsNewAndArrayBounds()
+            Dim src1 = "
+Class C
+    Dim x(1) As New C
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim x(2) As New C
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
@@ -4471,7 +6697,7 @@ End Class
                 "Delete [()]@47")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4487,7 +6713,7 @@ End Class
                 "Delete [()]@51")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4503,7 +6729,7 @@ End Class
                 "Delete [()]@38")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4519,7 +6745,7 @@ End Class
                 "Delete [()]@56")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4535,7 +6761,7 @@ End Class
                 "Delete [()]@43")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4545,7 +6771,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -4555,7 +6781,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -4565,7 +6791,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4575,7 +6801,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -4948,8 +7174,10 @@ End Class
             Dim src2 = "Partial Class C : Dim a = 2 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.field))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact>
@@ -4958,8 +7186,10 @@ End Class
             Dim src2 = "Partial Class C : Property a = 2 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.auto_property))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact>
@@ -4968,8 +7198,10 @@ End Class
             Dim src2 = "Partial Class C : Dim a = 2 : End Class : Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.field))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact>
@@ -4978,8 +7210,10 @@ End Class
             Dim src2 = "Partial Class C : Property a = 2 : End Class : Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.auto_property))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact>
@@ -4988,8 +7222,10 @@ End Class
             Dim src2 = "Class C : Dim a = 2 : End Class : Partial Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "a = 2", FeaturesResources.field))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
         <Fact>
@@ -4998,29 +7234,53 @@ End Class
             Dim src2 = "Class C : Property a = 2 : End Class : Partial Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.PartialTypeInitializerUpdate, "Property a = 2", FeaturesResources.auto_property))
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single, preserveLocalVariables:=True)
+            })
         End Sub
 
-        <Fact>
-        Public Sub PrivateFieldInsert1()
+        <Theory>
+        <InlineData("Dim")>
+        <InlineData("Private")>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
+        <InlineData("Private ReadOnly")>
+        Public Sub Field_Insert(modifiers As String)
             Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Private a As Integer = 1 : End Class"
+            Dim src2 = "Class C : " & modifiers & " a As Integer = 1 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits(
-                "Insert [Private a As Integer = 1]@10",
-                "Insert [a As Integer = 1]@18",
-                "Insert [a]@18",
-                "Insert [As Integer]@20")
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("a")),
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+            })
         End Sub
 
-        <Fact(), WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
-        Public Sub PrivateFieldInsert2()
+        <Theory>
+        <InlineData("")>
+        <InlineData("Private")>
+        <InlineData("Public")>
+        <InlineData("Friend")>
+        <InlineData("Protected")>
+        <InlineData("Protected Friend")>
+        Public Sub Property_Insert(accessibility As String)
+            Dim src1 = "Class C : End Class"
+            Dim src2 = "Class C : " & accessibility & " Property a As Integer = 1 : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("a")),
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+            })
+        End Sub
+
+        <Fact, WorkItem(2543, "https://github.com/dotnet/roslyn/issues/2543")>
+        Public Sub Field_Insert_MultiDeclaration()
             Dim src1 = "Class C : Private a As Integer = 1 : End Class"
             Dim src2 = "Class C : Private a, b As Integer : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -5035,22 +7295,109 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PrivatePropertyInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Private Property a As Integer = 1 : End Class"
+        Public Sub Field_Insert_MultiDeclaration_AsNew()
+            Dim src1 = "Class C : Private a As C = New C : End Class"
+            Dim src2 = "Class C : Private a, b As New C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [Private Property a As Integer = 1]@10",
-                "Insert [As Integer]@29")
+                "Update [a As C = New C]@18 -> [a, b As New C]@18",
+                "Insert [b]@21",
+                "Delete [As C]@20")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+            ' TODO: allow this edit
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "a, b As New C", VBFeaturesResources.as_clause))
         End Sub
 
         <Fact>
-        Public Sub PrivateFieldInsert_Untyped()
+        Public Sub Field_Insert_MultiDeclaration_Split()
+            Dim src1 = "Class C : Private a, b As Integer = 1 : End Class"
+            Dim src2 = "Class C : Private a As Integer : Private b As Integer : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Insert [Private b As Integer]@33",
+                "Update [a, b As Integer = 1]@18 -> [a As Integer]@18",
+                "Insert [b As Integer]@41",
+                "Move [b]@21 -> @41",
+                "Insert [As Integer]@43")
+
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
+            })
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_MultiDeclaration_TypeChange()
+            Dim src1 = "Class C : Private a, b As Integer = 1 : End Class"
+            Dim src2 = "Class C : Private a As Integer : Private b As Byte : End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, "b As Byte", FeaturesResources.field))
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_Partial_MultiDeclaration_TypeChange()
+            Dim srcA1 = "Partial Class C : Private a As Integer = 1 : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C : Private a, b As Byte : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(diagnostics:=
+                    {
+                        Diagnostic(RudeEditKind.TypeUpdate, "a, b As Byte", FeaturesResources.field)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_MultiDeclaration_Split()
+            Dim srcA1 = "Partial Class C : Private a, b As Integer : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C : Private a As Integer = 1 : Private b As Integer = 2 : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub Field_DeleteInsert_Partial_MultiDeclaration_UpdateArrayBounds()
+            Dim srcA1 = "Partial Class C : Dim F1(1, 2), F2? As Integer : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = "Partial Class C : Dim F1(1, 3), F2? As Integer : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
+                    })
+                })
+        End Sub
+
+        <Fact>
+        Public Sub FieldInsert_PrivateUntyped()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Private a = 1 : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -5066,7 +7413,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PrivatePropertyInsert_Untyped()
+        Public Sub PropertyInsert_PrivateUntyped()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : Private Property a = 1 : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -5077,59 +7424,6 @@ End Class
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
                                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
-        End Sub
-
-        <Fact>
-        Public Sub PrivateReadOnlyFieldInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Private ReadOnly a As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Insert [Private ReadOnly a As Integer = 1]@10",
-                "Insert [a As Integer = 1]@27",
-                "Insert [a]@27",
-                "Insert [As Integer]@29")
-
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.a")),
-                                   SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
-        End Sub
-
-        <Fact>
-        Public Sub PublicFieldInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Public a As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub PublicPropertyInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Property a As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub ProtectedFieldInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Protected a As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub ProtectedPropertyInsert()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Class C : Protected Property a As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyRudeDiagnostics()
         End Sub
 
         <Fact>
@@ -5145,7 +7439,7 @@ End Class
                 "Delete [As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.field, "a")))
         End Sub
 
         <Fact>
@@ -5159,7 +7453,7 @@ End Class
                 "Delete [As Integer]@29")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.auto_property))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.auto_property, "a")))
         End Sub
 
         <Fact>
@@ -5874,12 +8168,58 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub FieldInitializerUpdate_Lambdas_PartialDeclarationDelete_SingleDocument()
+            Dim src1 = "
+Partial Class C
+    Dim x = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    Dim y = F(<N:0.1>Function(a) a + 10</N:0.1>)
+End Class
+
+Partial Class C
+    Public Sub New()
+    End Sub
+
+    Shared Function F(x As Func(Of Integer, Integer))
+        Return 1
+    End Function
+End Class
+"
+
+            Dim src2 = "
+Partial Class C
+    Dim x = F(<N:0.0>Function(a) a + 1</N:0.0>)
+End Class
+
+Partial Class C
+    Dim y = F(<N:0.1>Function(a) a + 10</N:0.1>)
+
+    Shared Function F(x As Func(Of Integer, Integer))
+        Return 1
+    End Function
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            Dim syntaxMap = GetSyntaxMap(src1, src2)
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F")),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), syntaxMap(0))
+                })
+        End Sub
+
+        <Fact>
         Public Sub FieldInitializerUpdate_ActiveStatements1()
             Dim src1 As String = "
 Imports System
 
 Class C
-    <AS:0>Dim A As Integer = <N:0.0>1</N:0.0></AS:0>
+    Dim A As Integer = <N:0.0>1</N:0.0>
     Dim B As Integer = 1
 
     Public Sub New(a As Integer) 
@@ -5895,7 +8235,7 @@ End Class
 Imports System
 
 Class C
-    <AS:0>Dim A As Integer = <N:0.0>1</N:0.0></AS:0>
+    Dim A As Integer = <N:0.0>1</N:0.0>
     Dim B As Integer = 2
 
     Public Sub New(a As Integer) 
@@ -5909,12 +8249,12 @@ End Class"
 
             Dim edits = GetTopEdits(src1, src2)
             Dim syntaxMap = GetSyntaxMap(src1, src2)
-            Dim activeStatements = GetActiveStatements(src1, src2)
 
-            edits.VerifySemantics(
-                activeStatements,
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
-                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))})
+            edits.VerifySemantics(semanticEdits:=
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(0), syntaxMap(0)),
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors(1), syntaxMap(0))
+            })
         End Sub
 
         <Fact>
@@ -5957,10 +8297,10 @@ Partial Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits:=
+            edits.VerifySemantics(ActiveStatementsDescription.Empty, semanticEdits:=
             {
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True),
-                SemanticEdit(SemanticEditKind.Update, Function(c) CType(c.GetMember(Of NamedTypeSymbol)("C").GetMembers("P").Skip(1).First(), IPropertySymbol).GetMethod)
+                SemanticEdit(SemanticEditKind.Update, Function(c) CType(c.GetMember(Of NamedTypeSymbol)("C").GetMembers("P").First(), IPropertySymbol).GetMethod),
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)
             })
         End Sub
 
@@ -6068,7 +8408,7 @@ Imports System.Runtime.InteropServices
 
 <StructLayoutAttribute(LayoutKind.Sequential)>
 Class C
-    Private Custom Event c As Action
+    Private Custom Event E As Action
         AddHandler(value As Action)
         End AddHandler
 
@@ -6081,7 +8421,71 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics()
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("E"))})
+        End Sub
+
+        <Fact>
+        Public Sub Event_Delete()
+            Dim src1 = "
+Imports System
+Imports System.Runtime.InteropServices
+
+Class C
+    Private Custom Event E As Action
+        AddHandler(value As Action)
+        End AddHandler
+
+        RemoveHandler(value As Action)
+        End RemoveHandler
+
+        RaiseEvent()
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.Runtime.InteropServices
+
+Class C
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.event_, "E")))
+        End Sub
+
+        <Fact>
+        Public Sub Event_Partial_InsertDelete()
+            Dim srcA1 = "Partial Class C : End Class"
+            Dim srcB1 = "
+Partial Class C
+    Custom Event E As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent(sender As Object, e As EventArgs)
+        End RaiseEvent
+    End Event
+End Class
+"
+            Dim srcA2 = srcB1
+            Dim srcB2 = srcA1
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").AddMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RemoveMethod),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RaiseMethod)
+                        }),
+                    DocumentResults()
+                })
         End Sub
 
 #End Region
@@ -6536,8 +8940,8 @@ End Class
 
         <Fact>
         Public Sub MethodTypeParameterInsert1()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of A)() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Sub M()" & vbLf & "End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of A)()" & vbLf & "End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -6550,8 +8954,8 @@ End Class
 
         <Fact>
         Public Sub MethodTypeParameterInsert2()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M(Of A)() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of A, B)() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Sub M(Of A)()" & vbLf & "End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of A, B)()" & vbLf & "End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
@@ -6578,8 +8982,8 @@ End Class
 
         <Fact>
         Public Sub MethodTypeParameterDelete2()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M(Of A, B)() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of B)() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Sub M(Of A, B)()" & vbLf & "End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(Of B)()" & vbLf & "End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(

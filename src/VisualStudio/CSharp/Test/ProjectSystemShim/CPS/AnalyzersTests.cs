@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,7 +21,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void RuleSet_GeneralOption_CPS()
+        public async Task RuleSet_GeneralOption_CPS()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -29,7 +30,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 </RuleSet>
 ");
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
             var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
             var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
 
@@ -45,7 +46,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void RuleSet_SpecificOptions_CPS()
+        public async Task RuleSet_SpecificOptions_CPS()
         {
             var ruleSetFile = Temp.CreateFile().WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -58,7 +59,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 ");
 
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
             // Verify SetRuleSetFile updates the ruleset.
             project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
 
@@ -70,13 +71,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void RuleSet_PathCanBeFound()
+        public async Task RuleSet_PathCanBeFound()
         {
             var ruleSetFile = Temp.CreateFile();
             using var environment = new TestEnvironment();
             ProjectId projectId;
 
-            using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+            using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
             {
                 project.SetOptions(ImmutableArray.Create($"/ruleset:{ruleSetFile.Path}"));
 
