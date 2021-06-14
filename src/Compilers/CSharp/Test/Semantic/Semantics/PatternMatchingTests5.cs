@@ -937,24 +937,90 @@ public class ContainerType
             const Type c = null!;
             if (this is c!) {}
             if (this is (c!)) {}
-            if (this is Type!) {} // 1
-            if (this is ContainerType!.Type) {} // 2
-            if (this is ContainerType.Type!) {} // 3
+            if (this is Type!) {}
+            if (this is ContainerType!.Type) {}
+            if (this is ContainerType.Type!) {}
+            if (this is < c!) {}
+
+            switch (this)
+            {
+                case c!: break;
+                case (c!): break;
+                case Type!: break; 
+                case ContainerType!.Type: break; 
+                case ContainerType.Type!: break; 
+                case < c!: break;
+            }
+
+            _ = this switch
+            {
+                c! => 0,
+                (c!) => 0,
+                Type! => 0, 
+                ContainerType!.Type => 0, 
+                ContainerType.Type! => 0, 
+                < c! => 0,
+            };
         }
     }
 }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
             compilation.VerifyEmitDiagnostics(
+                // (10,25): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is c!) {}
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(10, 25),
+                // (11,26): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is (c!)) {}
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(11, 26),
                 // (12,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is Type!) {} // 1
+                //             if (this is Type!) {}
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(12, 25),
                 // (13,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType!.Type) {} // 2
+                //             if (this is ContainerType!.Type) {}
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(13, 25),
                 // (14,25): error CS8598: The suppression operator is not allowed in this context
-                //             if (this is ContainerType.Type!) {} // 3
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(14, 25)
+                //             if (this is ContainerType.Type!) {}
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(14, 25),
+                // (15,27): error CS8598: The suppression operator is not allowed in this context
+                //             if (this is < c!) {}
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(15, 27),
+                // (19,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case c!: break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(19, 22),
+                // (20,23): error CS8598: The suppression operator is not allowed in this context
+                //                 case (c!): break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(20, 23),
+                // (21,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case Type!: break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(21, 22),
+                // (22,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case ContainerType!.Type: break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(22, 22),
+                // (23,22): error CS8598: The suppression operator is not allowed in this context
+                //                 case ContainerType.Type!: break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(23, 22),
+                // (24,24): error CS8598: The suppression operator is not allowed in this context
+                //                 case < c!: break;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(24, 24),
+                // (29,17): error CS8598: The suppression operator is not allowed in this context
+                //                 c! => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(29, 17),
+                // (30,18): error CS8598: The suppression operator is not allowed in this context
+                //                 (c!) => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(30, 18),
+                // (31,17): error CS8598: The suppression operator is not allowed in this context
+                //                 Type! => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "Type!").WithLocation(31, 17),
+                // (32,17): error CS8598: The suppression operator is not allowed in this context
+                //                 ContainerType!.Type => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType").WithLocation(32, 17),
+                // (33,17): error CS8598: The suppression operator is not allowed in this context
+                //                 ContainerType.Type! => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "ContainerType.Type!").WithLocation(33, 17),
+                // (34,19): error CS8598: The suppression operator is not allowed in this context
+                //                 < c! => 0,
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "c!").WithLocation(34, 19)
                 );
         }
 

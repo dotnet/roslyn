@@ -395,21 +395,48 @@ public class Point
                 // (15,31): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         switch (i) { case < ((default)): break; } // error 9
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(15, 31),
+                // (17,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!) {} // error 10
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(17, 18),
                 // (17,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!) {} // error 10
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(17, 18),
+                // (18,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!)) {} // error 11
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(18, 19),
                 // (18,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!)) {} // error 11
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(18, 19),
+                // (19,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!)) {} // error 12
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(19, 21),
                 // (19,22): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is < ((default)!)) {} // error 12
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(19, 22),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(20, 18),
+                // (20,18): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is default!!) {} // error 13
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(20, 18),
                 // (20,18): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is default!!) {} // error 13
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(20, 18),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!!").WithLocation(21, 19),
+                // (21,19): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is (default!!)) {} // error 14
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "default!").WithLocation(21, 19),
                 // (21,19): error CS8505: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.
                 //         if (i is (default!!)) {} // error 14
                 Diagnostic(ErrorCode.ERR_DefaultPattern, "default").WithLocation(21, 19),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!!").WithLocation(22, 21),
+                // (22,21): error CS8598: The suppression operator is not allowed in this context
+                //         if (i is < ((default)!!)) {} // error 15
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "(default)!").WithLocation(22, 21),
                 // (22,22): error CS8715: Duplicate null suppression operator ('!')
                 //         if (i is < ((default)!!)) {} // error 15
                 Diagnostic(ErrorCode.ERR_DuplicateNullSuppression, "default").WithLocation(22, 22),
