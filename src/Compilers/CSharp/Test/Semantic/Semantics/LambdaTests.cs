@@ -4432,7 +4432,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f3 = string () => default!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => default!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28));
         }
 
         [Fact]
@@ -4453,15 +4456,83 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            // PROTOTYPE: Should not report nullability warning.
             comp.VerifyDiagnostics(
-                // (10,53): warning CS8603: Possible null reference return.
+                // (10,39): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Expression<Func<string>> e3 = string? () => default;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(10, 53));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => default").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 39));
         }
 
         [Fact]
         public void LambdaReturnType_06()
+        {
+            var source =
+@"#nullable enable
+using System;
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = string? () => default;
+        Delegate d2 = string () => default;
+        Delegate d3 = S<object?> () => default(S<object?>);
+        Delegate d4 = S<object?> () => default(S<object>);
+        Delegate d5 = S<object> () => default(S<object?>);
+        Delegate d6 = S<object> () => default(S<object>);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,36): warning CS8603: Possible null reference return.
+                //         Delegate d2 = string () => default;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(9, 36),
+                // (11,40): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                //         Delegate d4 = S<object?> () => default(S<object>);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(S<object>)").WithArguments("S<object>", "S<object?>").WithLocation(11, 40),
+                // (12,39): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                //         Delegate d5 = S<object> () => default(S<object?>);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(S<object?>)").WithArguments("S<object?>", "S<object>").WithLocation(12, 39));
+        }
+
+        [Fact]
+        public void LambdaReturnType_07()
+        {
+            var source =
+@"#nullable enable
+using System;
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        Func<string?> f1 = string? () => throw null!;
+        Func<string?> f2 = string () => throw null!;
+        Func<string> f3 = string? () => throw null!;
+        Func<string> f4 = string () => throw null!;
+        Func<S<object?>> f5 = S<object?> () => throw null!;
+        Func<S<object?>> f6 = S<object> () => throw null!;
+        Func<S<object>> f7 = S<object?> () => throw null!;
+        Func<S<object>> f8 = S<object> () => throw null!;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f2 = string () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => throw null!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28),
+                // (10,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
+                //         Func<string> f3 = string? () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => throw null!").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 27),
+                // (13,31): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object?>>' (possibly because of nullability attributes).
+                //         Func<S<object?>> f6 = S<object> () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object> () => throw null!").WithArguments("lambda expression", "System.Func<S<object?>>").WithLocation(13, 31),
+                // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object>>' (possibly because of nullability attributes).
+                //         Func<S<object>> f7 = S<object?> () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object?> () => throw null!").WithArguments("lambda expression", "System.Func<S<object>>").WithLocation(14, 30));
+        }
+
+        [Fact]
+        public void LambdaReturnType_08()
         {
             var source =
 @"delegate T D1<T>(ref T t);
@@ -4489,7 +4560,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_07()
+        public void LambdaReturnType_09()
         {
             var source =
 @"using System;
@@ -4512,7 +4583,7 @@ class Program
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        public void LambdaReturnType_08()
+        public void LambdaReturnType_10()
         {
             var source =
 @"using System;
@@ -4549,7 +4620,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_09()
+        public void LambdaReturnType_11()
         {
             var source =
 @"static class S { }
@@ -4569,7 +4640,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_10()
+        public void LambdaReturnType_12()
         {
             var source =
 @"using System;
@@ -4591,7 +4662,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_11()
+        public void LambdaReturnType_13()
         {
             var source =
 @"using System;
@@ -4619,7 +4690,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_12()
+        public void LambdaReturnType_14()
         {
             var source =
 @"using System;
@@ -4646,7 +4717,33 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
         }
 
-        // PROTOTYPE: Test use-site error from explicit return type.
+        [Fact]
+        public void LambdaReturnType_UseSiteErrors()
+        {
+            var sourceA =
+@".class public sealed A extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 FF 00 00 ) 
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B
+{
+    static void F<T>(Func<T> f) { }
+    static void Main()
+    {
+        F(A () => default);
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0648: 'A' is a type not supported by the language
+                //         F(A () => default);
+                Diagnostic(ErrorCode.ERR_BogusType, "A").WithArguments("A").WithLocation(7, 11));
+        }
 
         [Fact]
         public void AsyncLambdaParameters_01()
