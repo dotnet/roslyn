@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,
                 _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
-                _operationExecutor);
+                _operationExecutor,
+                view);
         }
     }
 }

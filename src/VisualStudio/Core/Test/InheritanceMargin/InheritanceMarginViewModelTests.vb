@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
 
                     Dim acutalTag = acutalLineToTagDictionary(lineNumber)
                     Dim actualViewModel = InheritanceMarginViewModel.Create(
-                        classificationTypeMap, classificationFormatMap.GetClassificationFormatMap("tooltip"), acutalTag)
+                        classificationTypeMap, classificationFormatMap.GetClassificationFormatMap("tooltip"), acutalTag, 1)
 
                     VerifyTwoViewModelAreSame(expectedViewModel, actualViewModel)
                 Next
@@ -155,11 +155,13 @@ public class Bar : IBar
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForIBar),
                     tooltipTextForIBar,
+                    1,
                     targetForIBar)},
                 {5, New InheritanceMarginViewModel(
                     KnownMonikers.Implementing,
                     CreateTextBlock(tooltipTextForBar),
                     tooltipTextForBar,
+                    1,
                     targetForBar)}})
         End Function
 
@@ -197,21 +199,25 @@ public class Bar : AbsBar
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForAbsBar),
                     tooltipTextForAbsBar,
+                    1,
                     targetForAbsBar)},
                 {4, New InheritanceMarginViewModel(
                     KnownMonikers.Overridden,
                     CreateTextBlock(tooltipTextForAbstractFoo),
                     tooltipTextForAbstractFoo,
+                    1,
                     targetForAbsFoo)},
                 {7, New InheritanceMarginViewModel(
                     KnownMonikers.Implementing,
                     CreateTextBlock(tooltipTextForBar),
                     tooltipTextForBar,
+                    1,
                     targetForBar)},
                 {9, New InheritanceMarginViewModel(
                     KnownMonikers.Overriding,
                     CreateTextBlock(tooltipTextForOverrideFoo),
                     tooltipTextForOverrideFoo,
+                    1,
                     targetForOverrideFoo)}})
         End Function
 
@@ -244,16 +250,19 @@ public interface IBar3 : IBar2 { }
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForIBar1),
                     tooltipTextForIBar1,
+                    1,
                     targetForIBar1)},
                 {3, New InheritanceMarginViewModel(
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForIBar2),
                     tooltipTextForIBar2,
+                    1,
                     targetForIBar2)},
                 {4, New InheritanceMarginViewModel(
                     KnownMonikers.Implementing,
                     CreateTextBlock(tooltipTextForIBar3),
                     tooltipTextForIBar3,
+                    1,
                     targetForIBar3)}})
         End Function
 
@@ -300,21 +309,25 @@ public class BarSample : IBar1
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForIBar1),
                     tooltipTextForIBar1,
+                    1,
                     targetForIBar1)},
                 {5, New InheritanceMarginViewModel(
                     KnownMonikers.Implemented,
                     CreateTextBlock(tooltipTextForE1AndE2InInterface),
                     String.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, 5),
+                    1,
                     targetForE1AndE2InInterface)},
                 {8, New InheritanceMarginViewModel(
                     KnownMonikers.Implementing,
                     CreateTextBlock(tooltipTextForBarSample),
                     tooltipTextForBarSample,
+                    1,
                     targetForBarSample)},
                 {10, New InheritanceMarginViewModel(
                     KnownMonikers.Implementing,
                     CreateTextBlock(tooltipTextForE1AndE2InBarSample),
                     String.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, 10),
+                    1,
                     targetForE1AndE2InInBarSample)}})
         End Function
     End Class
