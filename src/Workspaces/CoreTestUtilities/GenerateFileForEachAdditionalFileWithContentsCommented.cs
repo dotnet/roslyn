@@ -27,7 +27,7 @@ namespace Roslyn.Test.Utilities
         {
             context.RegisterExecutionPipeline(context =>
             {
-                context.Sources.AdditionalTexts.GenerateSource((context, additionalText) =>
+                context.RegisterSourceOutput(context.AdditionalTextsProvider, (context, additionalText) =>
                     context.AddSource(
                         GetGeneratedFileName(additionalText.Path),
                         GenerateSourceForAdditionalFile(additionalText, context.CancellationToken)));
