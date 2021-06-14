@@ -1022,11 +1022,6 @@
         <target state="translated">creazione di oggetti con tipo di destinazione</target>
         <note />
       </trans-unit>
-<<<<<<< HEAD
-      <trans-unit id="IDS_SingleLineNamespace">
-        <source>single-line namespace</source>
-        <target state="new">single-line namespace</target>
-=======
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="new">inferred delegate type</target>
@@ -1060,7 +1055,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
->>>>>>> upstream/features/FileScopedNamespaces
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SingleLineNamespace">
+        <source>single-line namespace</source>
+        <target state="new">single-line namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

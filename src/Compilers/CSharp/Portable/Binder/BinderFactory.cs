@@ -170,19 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultBinder;
         }
 
-<<<<<<< HEAD
-        /// <summary>
-        /// Returns binder that binds usings and aliases 
-        /// </summary>
-        /// <param name="unit">
-        /// Specify <see cref="BaseNamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
-        /// <see cref="CompilationUnitSyntax"/> for top-level imports.
-        /// </param>
-        /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
-        internal Binder GetImportsBinder(CSharpSyntaxNode unit, bool inUsing = false)
-=======
         internal Binder GetInNamespaceBinder(CSharpSyntaxNode unit)
->>>>>>> upstream/features/FileScopedNamespaces
         {
             switch (unit.Kind())
             {
@@ -191,11 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-<<<<<<< HEAD
-                        Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
-=======
-                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
->>>>>>> upstream/features/FileScopedNamespaces
+                        Binder result = visitor.VisitNamespaceDeclaration((BaseNamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

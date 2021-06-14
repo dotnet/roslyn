@@ -855,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
 
-                if (node is NamespaceDeclarationSyntax namespaceDecl)
+                if (node is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
                     outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
                 }
@@ -972,7 +972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
             {
-                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration);
 
                 if (inUsing)
                 {

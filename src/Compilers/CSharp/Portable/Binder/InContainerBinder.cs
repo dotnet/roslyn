@@ -29,37 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(next)
         {
             Debug.Assert((object)container != null);
-<<<<<<< HEAD
-            Debug.Assert(declarationSyntax != null);
-
-            _container = container;
-            _computeImports = basesBeingResolved => Imports.FromSyntax(declarationSyntax, this, basesBeingResolved, inUsing);
-
-            if (!inUsing)
-            {
-                if (declarationSyntax.Kind() == SyntaxKind.CompilationUnit)
-                {
-                    var compilationUnit = (CompilationUnitSyntax)declarationSyntax;
-                    _usingsSyntax = compilationUnit.Usings;
-                }
-                else if (declarationSyntax.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration)
-                {
-                    var namespaceDecl = (BaseNamespaceDeclarationSyntax)declarationSyntax;
-                    _usingsSyntax = namespaceDecl.Usings;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a binder with given imports.
-        /// </summary>
-        internal InContainerBinder(NamespaceOrTypeSymbol container, Binder next, Imports imports = null)
-            : base(next)
-        {
-            Debug.Assert((object)container != null || imports != null);
-
-=======
->>>>>>> upstream/features/FileScopedNamespaces
             _container = container;
         }
 
