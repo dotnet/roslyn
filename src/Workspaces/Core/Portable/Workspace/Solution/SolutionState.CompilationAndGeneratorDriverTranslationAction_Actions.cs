@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         // TODO: update the existing generator driver; the compiler needs to add an API for that.
                         // In the mean time, drop it and we'll recreate it from scratch.
+                        // https://github.com/dotnet/roslyn/issues/54087
                         return null;
                     }
                     else
