@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
-            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+            VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
             var serverTypeName = languageClient.GetType().Name;
