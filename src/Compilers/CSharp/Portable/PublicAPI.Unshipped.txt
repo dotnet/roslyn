@@ -30,5 +30,4 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithGlobalKeyword(Micr
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetLineMappings(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.LineMapping>
 Microsoft.CodeAnalysis.CSharp.Symbols.SymbolSourceFileFinder
 Microsoft.CodeAnalysis.CSharp.SymbolSourceFileFinder
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
 static Microsoft.CodeAnalysis.CSharp.SymbolSourceFileFinder.FindSourceFiles(Microsoft.CodeAnalysis.ISymbol symbol, string pdbPath) -> System.Collections.Generic.IEnumerable<string>
