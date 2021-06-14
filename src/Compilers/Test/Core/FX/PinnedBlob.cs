@@ -11,15 +11,19 @@ using System.Collections.Immutable;
 namespace Roslyn.Test.Utilities
 {
     internal class PinnedBlob : IDisposable
-    { 
+    {
         // non-readonly as Dispose() mutates
         private MemoryHandle _handle;
         public IntPtr Pointer;
         public int Size;
 
-        public PinnedBlob(ImmutableArray<byte> blob) : this(blob.AsMemory()) { }
+        public PinnedBlob(ImmutableArray<byte> blob)
+            : this(blob.AsMemory())
+        { }
 
-        public PinnedBlob(byte[] blob) : this(blob.AsMemory()) { }
+        public PinnedBlob(byte[] blob)
+            : this(blob.AsMemory())
+        { }
 
         public unsafe PinnedBlob(ReadOnlyMemory<byte> blob)
         {
