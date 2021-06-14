@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
         private DocumentState GetRequiredDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).DocumentStates.GetRequiredState(documentId);
 
-        private TextDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
+        private AdditionalDocumentState GetRequiredAdditionalDocumentState(DocumentId documentId)
             => GetRequiredProjectState(documentId.ProjectId).AdditionalDocumentStates.GetRequiredState(documentId);
 
         private AnalyzerConfigDocumentState GetRequiredAnalyzerConfigDocumentState(DocumentId documentId)
@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis
 
         private static IEnumerable<TextDocumentState> GetDocumentStates(ProjectState projectState)
             => projectState.DocumentStates.States
-                   .Concat(projectState.AdditionalDocumentStates.States)
+                   .Concat<TextDocumentState>(projectState.AdditionalDocumentStates.States)
                    .Concat(projectState.AnalyzerConfigDocumentStates.States);
 
         /// <summary>
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis
         public SolutionState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
         {
             return AddDocumentsToMultipleProjects(documentInfos,
-                (documentInfo, project) => new TextDocumentState(documentInfo, _solutionServices),
+                (documentInfo, project) => new AdditionalDocumentState(documentInfo, _solutionServices),
                 (projectState, documents) => (projectState.AddAdditionalDocuments(documents), new CompilationAndGeneratorDriverTranslationAction.AddAdditionalDocumentsAction(documents)));
         }
 
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis
                 newFilePathToDocumentIdsMap: newFilePathToDocumentIdsMap);
         }
 
-        private SolutionState UpdateAdditionalDocumentState(TextDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        private SolutionState UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
             var newProject = oldProject.UpdateAdditionalDocument(newDocument, textChanged, recalculateDependentVersions);
