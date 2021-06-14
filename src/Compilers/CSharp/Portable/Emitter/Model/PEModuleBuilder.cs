@@ -285,12 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
                 }
-
                 // This statement will only work if constructor is the last on the list, if the list changes
                 // then the whole method will break. Note to find a better way to check if constructor has no body and 
                 // any other method does not have body.
 
-                else if (!method.IsConstructor && atLeastOneMethodhasIL)
+                else if (method.IsConstructor && !atLeastOneMethodhasIL)
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
                 }

@@ -28,6 +28,5 @@ Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.Update(Microsoft.CodeA
 Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax.WithGlobalKeyword(Microsoft.CodeAnalysis.SyntaxToken globalKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax
 *REMOVED*Microsoft.CodeAnalysis.CSharp.SyntaxKind.DataKeyword = 8441 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetLineMappings(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.LineMapping>
-Microsoft.CodeAnalysis.CSharp.Symbols.SymbolSourceFileFinder
 Microsoft.CodeAnalysis.CSharp.SymbolSourceFileFinder
 static Microsoft.CodeAnalysis.CSharp.SymbolSourceFileFinder.FindSourceFiles(Microsoft.CodeAnalysis.ISymbol symbol, string pdbPath) -> System.Collections.Generic.IEnumerable<string>
