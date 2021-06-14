@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
         {
             CheckIsEmpty(InfoBuilder.PostInitCallback);
-            InfoBuilder.PostInitCallback = callback;
+            InfoBuilder.PostInitCallback = (context) => callback(new GeneratorPostInitializationContext(context.AdditionalSources, context.CancellationToken));
         }
 
         private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class?

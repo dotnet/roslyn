@@ -679,42 +679,6 @@ class C { }
         }
 
         [Fact]
-        public void Cancellation_During_Initialization_Doesnt_Report_As_Generator_Error()
-        {
-            var source = @"
-class C 
-{
-}
-";
-            var parseOptions = TestOptions.Regular;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
-            compilation.VerifyDiagnostics();
-
-            Assert.Single(compilation.SyntaxTrees);
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            var testGenerator = new CallbackGenerator(
-                onInit: (i) => { cts.Cancel(); },
-                onExecute: (e) => { }
-                );
-
-            // test generator cancels the token. Check that the call to this generator doesn't make it look like it errored.
-            var testGenerator2 = new CallbackGenerator2(
-                onInit: (i) => { i.CancellationToken.ThrowIfCancellationRequested(); },
-                onExecute: (e) => { throw ExceptionUtilities.Unreachable; });
-
-
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator, testGenerator2 }, parseOptions: parseOptions);
-            var oldDriver = driver;
-
-            Assert.Throws<OperationCanceledException>(() =>
-               driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics, cts.Token)
-               );
-            Assert.Same(oldDriver, driver);
-        }
-
-        [Fact]
         public void Cancellation_During_Execution_Doesnt_Report_As_Generator_Error()
         {
             var source = @"
@@ -1380,7 +1344,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var e = new InvalidOperationException("abc");
-            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.Sources.Compilation.GenerateSource((spc, c) => throw e)));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e)));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
@@ -1407,8 +1371,8 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
-                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
@@ -1427,7 +1391,7 @@ class C { }
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1436,12 +1400,12 @@ class C { }
             var e = new InvalidOperationException("abc");
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => throw e);
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => throw e);
             }));
 
             var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ctx) =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) => spc.AddSource("test", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => spc.AddSource("test", ""));
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2 }, parseOptions: parseOptions);
@@ -1499,27 +1463,29 @@ class C { }
         [Fact]
         public void User_WrappedFunc_Throw_Exceptions()
         {
-            Func<int, int> func = (input) => input;
-            Func<int, int> throwsFunc = (input) => throw new InvalidOperationException("user code exception");
-            Func<int, int> timeoutFunc = (input) => throw new OperationCanceledException();
+            Func<int, CancellationToken, int> func = (input, _) => input;
+            Func<int, CancellationToken, int> throwsFunc = (input, _) => throw new InvalidOperationException("user code exception");
+            Func<int, CancellationToken, int> timeoutFunc = (input, ct) => { ct.ThrowIfCancellationRequested(); return input; };
+            Func<int, CancellationToken, int> otherTimeoutFunc = (input, _) => throw new OperationCanceledException();
 
             var userFunc = func.WrapUserFunction();
             var userThrowsFunc = throwsFunc.WrapUserFunction();
             var userTimeoutFunc = timeoutFunc.WrapUserFunction();
+            var userOtherTimeoutFunc = otherTimeoutFunc.WrapUserFunction();
 
             // user functions return same values when wrapped
-            var result = userFunc(10);
-            var userResult = userFunc(10);
+            var result = userFunc(10, CancellationToken.None);
+            var userResult = userFunc(10, CancellationToken.None);
             Assert.Equal(10, result);
             Assert.Equal(result, userResult);
 
             // exceptions thrown in user code are wrapped
-            Assert.Throws<InvalidOperationException>(() => throwsFunc(20));
-            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20));
+            Assert.Throws<InvalidOperationException>(() => throwsFunc(20, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userThrowsFunc(20, CancellationToken.None));
 
             try
             {
-                userThrowsFunc(20);
+                userThrowsFunc(20, CancellationToken.None);
             }
             catch (UserFunctionException e)
             {
@@ -1527,8 +1493,12 @@ class C { }
             }
 
             // cancellation is not wrapped, and is bubbled up
-            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30));
-            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30));
+            Assert.Throws<OperationCanceledException>(() => timeoutFunc(30, new CancellationToken(true)));
+            Assert.Throws<OperationCanceledException>(() => userTimeoutFunc(30, new CancellationToken(true)));
+
+            // unless it wasn't *our* cancellation token, in which case it still gets wrapped
+            Assert.Throws<OperationCanceledException>(() => otherTimeoutFunc(30, CancellationToken.None));
+            Assert.Throws<UserFunctionException>(() => userOtherTimeoutFunc(30, CancellationToken.None));
         }
 
         [Fact]
@@ -1547,10 +1517,9 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) =>
-                {
-                    compilationsCalledFor.Add(c);
-                });
+                var filePaths = ctx.CompilationProvider.SelectMany((c, _) => c.SyntaxTrees).Select((tree, _) => tree.FilePath);
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
             }));
 
             // run the generator once, and check it was passed the compilation
@@ -1585,17 +1554,10 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.Sources.Compilation.GenerateSource((spc, c) =>
-                {
-                    compilationsCalledFor.Add(c);
-                });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { compilationsCalledFor.Add(c); });
 
-                ctx.Sources.AdditionalTexts.GenerateSource((spc, c) =>
-                {
-                    textsCalledFor.Add(c);
-                });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (spc, c) => { textsCalledFor.Add(c); });
             }));
-
 
             // run the generator once, and check it was passed the compilation
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, additionalTexts: new[] { text1 }, parseOptions: parseOptions);
@@ -1647,8 +1609,8 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.Sources.Compilation.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
-                compilationSource.GenerateSource((spc, c) =>
+                var compilationSource = ctx.CompilationProvider.WithComparer(new LambdaComparer<Compilation>((c1, c2) => true, 0));
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
                     compilationsCalledFor.Add(c);
                 });
@@ -1668,12 +1630,12 @@ class C { }
         }
 
         [Fact]
-        public void IncrementalGenerator_Can_Add_Comparer_To_Join_Node()
+        public void IncrementalGenerator_Can_Add_Comparer_To_Combine_Node()
         {
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1685,10 +1647,10 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var compilationSource = ctx.Sources.Compilation.Join(ctx.Sources.AdditionalTexts)
+                var compilationSource = ctx.CompilationProvider.Combine(ctx.AdditionalTextsProvider.Collect())
                                                 // comparer that ignores the LHS (additional texts)
                                                 .WithComparer(new LambdaComparer<(Compilation, ImmutableArray<AdditionalText>)>((c1, c2) => c1.Item1 == c2.Item1, 0));
-                compilationSource.GenerateSource((spc, c) =>
+                ctx.RegisterSourceOutput(compilationSource, (spc, c) =>
                 {
                     calledFor.Add(c);
                 });
@@ -1717,7 +1679,7 @@ class C { }
         }
 
         [Fact]
-        public void IncrementalGenerator_Register_End_Node_Only_Once_Through_Joins()
+        public void IncrementalGenerator_Register_End_Node_Only_Once_Through_Combines()
         {
             var source = @"
 class C { }
@@ -1732,19 +1694,19 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var source = ctx.Sources.Compilation;
-                var source2 = ctx.Sources.Compilation.Join(source);
-                var source3 = ctx.Sources.Compilation.Join(source2);
-                var source4 = ctx.Sources.Compilation.Join(source3);
-                var source5 = ctx.Sources.Compilation.Join(source4);
+                var source = ctx.CompilationProvider;
+                var source2 = ctx.CompilationProvider.Combine(source);
+                var source3 = ctx.CompilationProvider.Combine(source2);
+                var source4 = ctx.CompilationProvider.Combine(source3);
+                var source5 = ctx.CompilationProvider.Combine(source4);
 
-                source5.GenerateSource((spc, c) =>
+                ctx.RegisterSourceOutput(source5, (spc, c) =>
                 {
                     compilationsCalledFor.Add(c.Item1);
                 });
             }));
 
-            // run the generator and check that we didn't multiple register the generate source node through the join
+            // run the generator and check that we didn't multiple register the generate source node through the combine
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
             Assert.Equal(1, compilationsCalledFor.Count);
@@ -1770,7 +1732,7 @@ class C { }
                 ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
                 ic.RegisterExecutionPipeline(pc =>
                 {
-                    pc.Sources.Syntax.Transform(static n => n is ClassDeclarationSyntax, gsc => (ClassDeclarationSyntax)gsc.Node).GenerateSource((spc, node) => classes.Add(node));
+                    pc.RegisterSourceOutput(pc.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
                 });
             }));
 
@@ -1792,6 +1754,34 @@ class C { }
             driver = driver.RunGenerators(c2);
             Assert.Single(classes);
             Assert.Equal("E", classes[0].Identifier.ValueText);
+        }
+
+        [Fact]
+        public void Incremental_Generators_Can_Be_Cancelled()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            bool generatorCancelled = false;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var step1 = ctx.CompilationProvider.Select((c, ct) => { generatorCancelled = true; cts.Cancel(); return c; });
+                var step2 = step1.Select((c, ct) => { ct.ThrowIfCancellationRequested(); return c; });
+
+                ctx.RegisterSourceOutput(step2, (spc, c) => spc.AddSource("a", ""));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
+            Assert.True(generatorCancelled);
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,25 +17,19 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct IncrementalGeneratorInitializationContext
     {
-        internal IncrementalGeneratorInitializationContext(CancellationToken cancellationToken)
+        internal IncrementalGeneratorInitializationContext(GeneratorInfo.Builder infoBuilder)
         {
-            this.CancellationToken = cancellationToken;
-            InfoBuilder = new GeneratorInfo.Builder();
+            InfoBuilder = infoBuilder;
         }
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
-
-        /// <summary>
-        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the initialization should be cancelled.
-        /// </summary>
-        public CancellationToken CancellationToken { get; }
 
         /// <summary>
         /// Register a callback that is invoked after initialization.
         /// </summary>
         /// <remarks>
         /// This method allows a generator to opt-in to an extra phase in the generator lifecycle called PostInitialization. After being initialized
-        /// any incremental generators that have opted in will have their provided callback invoked with a <see cref="GeneratorPostInitializationContext"/> instance
+        /// any incremental generators that have opted in will have their provided callback invoked with a <see cref="IncrementalGeneratorPostInitializationContext"/> instance
         /// that can be used to alter the compilation that is provided to subsequent generator phases.
         /// 
         /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before the incremental pipeline is 
@@ -43,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operating on the compilation. 
         /// </remarks>
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
-        public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
+        public void RegisterForPostInitialization(Action<IncrementalGeneratorPostInitializationContext> callback)
         {
             InfoBuilder.PostInitCallback = callback;
         }
@@ -54,13 +49,70 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    /// <summary>
+    /// Context passed to a source generator when it has opted-in to PostInitialization via <see cref="IncrementalGeneratorInitializationContext.RegisterForPostInitialization(Action{IncrementalGeneratorPostInitializationContext})"/>
+    /// </summary>
+    public readonly struct IncrementalGeneratorPostInitializationContext
+    {
+        internal readonly AdditionalSourcesCollection AdditionalSources;
+
+        internal IncrementalGeneratorPostInitializationContext(AdditionalSourcesCollection additionalSources, CancellationToken cancellationToken)
+        {
+            AdditionalSources = additionalSources;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        /// <summary>
+        /// Adds source code in the form of a <see cref="string"/> to the compilation that will be available during subsequent phases
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="source">The source code to add to the compilation</param>
+        public void AddSource(string hintName, string source) => AddSource(hintName, SourceText.From(source, Encoding.UTF8));
+
+        /// <summary>
+        /// Adds a <see cref="SourceText"/> to the compilation that will be available during subsequent phases
+        /// </summary>
+        /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
+        /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
+        public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
+    }
+
     public readonly struct IncrementalGeneratorPipelineContext
     {
-        public IncrementalValueSources Sources { get; }
+        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
 
-        internal IncrementalGeneratorPipelineContext(IncrementalValueSources valueSources)
+        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
         {
-            Sources = valueSources;
+            _syntaxInputBuilder = syntaxInputBuilder;
+            _outputNodes = outputNodes;
+        }
+
+        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
+
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
+        {
+            if (!_outputNodes.Contains(outputNode))
+            {
+                _outputNodes.Add(outputNode);
+            }
         }
     }
 

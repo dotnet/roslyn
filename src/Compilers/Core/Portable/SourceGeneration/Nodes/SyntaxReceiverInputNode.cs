@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class SyntaxReceiverInputNode : ISyntaxInputNode, IIncrementalGeneratorNode<ISyntaxContextReceiver>
+    internal sealed class SyntaxReceiverInputNode : ISyntaxInputNode, IIncrementalGeneratorNode<ISyntaxContextReceiver?>
     {
         private readonly SyntaxContextReceiverCreator _receiverCreator;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis
             _registerOutput = registerOutput;
         }
 
-        public NodeStateTable<ISyntaxContextReceiver> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<ISyntaxContextReceiver> previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<ISyntaxContextReceiver?> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<ISyntaxContextReceiver?> previousTable, CancellationToken cancellationToken)
         {
-            return (NodeStateTable<ISyntaxContextReceiver>)graphState.GetSyntaxInputTable(this);
+            return (NodeStateTable<ISyntaxContextReceiver?>)graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<ISyntaxContextReceiver> WithComparer(IEqualityComparer<ISyntaxContextReceiver> comparer)
+        public IIncrementalGeneratorNode<ISyntaxContextReceiver?> WithComparer(IEqualityComparer<ISyntaxContextReceiver?> comparer)
         {
             // we don't expose this node to end users
             throw ExceptionUtilities.Unreachable;
@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis
         private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxReceiverInputNode _owner;
-            private readonly NodeStateTable<ISyntaxContextReceiver>.Builder _nodeStateTable;
+            private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
 
             public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable)
             {
                 _owner = owner;
-                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver>(_owner).ToBuilder();
+                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder();
                 try
                 {
                     _receiver = owner._receiverCreator();
@@ -67,14 +67,11 @@ namespace Microsoft.CodeAnalysis
 
             public void SaveStateAndFree(ImmutableDictionary<object, IStateTable>.Builder tables)
             {
-                if (_receiver is object)
-                {
-                    _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
-                }
+                _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model)
+            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (_walker is object && state != EntryState.Removed)
                 {

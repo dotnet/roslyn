@@ -104,6 +104,12 @@ namespace Microsoft.CodeAnalysis
 
         IStateTable IStateTable.AsCached() => AsCached();
 
+        public T Single()
+        {
+            Debug.Assert(this._states.Length == 1 && this._states[0].Count == 1);
+            return this._states[0].GetItem(0);
+        }
+
         public ImmutableArray<T> Batch()
         {
             var sourceBuilder = ArrayBuilder<T>.GetInstance();
