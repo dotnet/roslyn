@@ -6862,6 +6862,36 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithTypeParamRef()
+        {
+            var markup =
+@"
+public class Program
+{
+    public static void Main() => _ = new Test<int>().$$Clone();
+}
+
+public class Test<T> : ICloneable<Test<T>>
+{
+	/// <inheritdoc/>
+	public Test<T> Clone() => new();
+}
+
+/// <summary>A type that has clonable instances.</summary>
+/// <typeparam name=""T"">The type of instances that can be cloned.</typeparam>
+public interface ICloneable<T>
+{
+    /// <summary>Clones a <typeparamref name=""T""/>.</summary>
+    /// <returns>A clone of the <typeparamref name=""T""/>.</returns>
+    public T Clone();
+}";
+
+            await TestInClassAsync(markup,
+                MainDescription("Test<int> Test<int>.Clone()"),
+                Documentation("Clones a Test<int>"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
             var markup =
