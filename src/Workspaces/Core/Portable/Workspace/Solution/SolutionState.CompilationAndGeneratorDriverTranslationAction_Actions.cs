@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
+                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
                 }
             }
         }

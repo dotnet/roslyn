@@ -36,10 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string GetGeneratorTypeName(ISourceGenerator generator)
         {
-            // PROTOTYPE(source-generators): this will return the incorrect type for wrapped generators
-            //                               there is ongoing work to remove the type dependency, so we'll
-            //                               fix it when that merges in
-            return generator.GetType().FullName!;
+            return GeneratorDriver.GetGeneratorType(generator).FullName!;
         }
 
         public static string GetGeneratorAssemblyName(ISourceGenerator generator)
