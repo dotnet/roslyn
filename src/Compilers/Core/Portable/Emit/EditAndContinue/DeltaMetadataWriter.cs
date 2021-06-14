@@ -843,10 +843,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 // GetCustomAttributes does a binary search, so is fast. We presume that the number of rows in the original metadata
                 // greatly outnumbers the amount of parents emitted in this delta so even with repeated searches this is still
                 // quicker than iterating the entire original table, even once.
-                var existingRows = _previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(parent);
-                foreach (var row in existingRows)
+                var existingCustomAttributes = _previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(parent);
+                foreach (var attributeHandle in existingCustomAttributes)
                 {
-                    int rowId = MetadataTokens.GetRowNumber(row);
+                    int rowId = MetadataTokens.GetRowNumber(attributeHandle);
                     AddLogEntryOrDelete(rowId, parent, add: index < count);
                     index++;
                 }
@@ -915,11 +915,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
             void TrackCustomAttributeAdded(int nextRowId, EntityHandle parent)
             {
-                if (!customAttributesAdded.ContainsKey(parent))
+                if (!customAttributesAdded.TryGetValue(parent, out var existing))
                 {
-                    customAttributesAdded.Add(parent, new ArrayBuilder<int>());
+                    existing = ArrayBuilder<int>.GetInstance();
+                    customAttributesAdded.Add(parent, existing);
                 }
-                customAttributesAdded[parent].Add(nextRowId);
+                existing.Add(nextRowId);
             }
         }
 
