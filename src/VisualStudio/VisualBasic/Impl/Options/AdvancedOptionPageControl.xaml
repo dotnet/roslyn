@@ -124,6 +124,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Underline_reassigned_variables"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
                     <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>

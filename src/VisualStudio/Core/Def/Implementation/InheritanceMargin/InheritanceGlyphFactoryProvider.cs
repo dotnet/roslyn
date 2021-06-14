@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private readonly IUIThreadOperationExecutor _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,13 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMapService classificationFormatMapService,
-            IUIThreadOperationExecutor waitIndicator)
+            IUIThreadOperationExecutor operationExecutor)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
             _classificationFormatMapService = classificationFormatMapService;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
         }
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
@@ -52,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,
                 _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
-                _waitIndicator);
+                _operationExecutor,
+                view);
         }
     }
 }
