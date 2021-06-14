@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis
                             // If we don't already have a generator driver, we'll have to create one from scratch
                             if (generatorDriver == null)
                             {
-                                var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.GetAdditionalText(CancellationToken.None));
+                                var additionalTexts = this.ProjectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                                 var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                                 generatorDriver = compilationFactory.CreateGeneratorDriver(

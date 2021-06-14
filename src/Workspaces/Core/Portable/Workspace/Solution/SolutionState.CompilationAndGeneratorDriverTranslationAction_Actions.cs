@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    var oldText = _oldState.GetAdditionalText(CancellationToken.None);
-                    var newText = _newState.GetAdditionalText(CancellationToken.None);
+                    var oldText = _oldState.AdditionalText;
+                    var newText = _newState.AdditionalText;
 
                     // TODO: have the compiler add an API for replacing an additional text
                     return generatorDriver.RemoveAdditionalTexts(ImmutableArray.Create(oldText))
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.GetAdditionalText(CancellationToken.None)));
+                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
 
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.GetAdditionalText(CancellationToken.None)));
+                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
         }
