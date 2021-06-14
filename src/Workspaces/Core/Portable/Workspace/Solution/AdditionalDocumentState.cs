@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class AdditionalDocumentState : TextDocumentState
     {
-        private readonly ValueSource<AdditionalText> _additionalTextValueSource;
+        private readonly AdditionalText _additionalText;
 
         private AdditionalDocumentState(
             SolutionServices solutionServices,
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TextAndVersion> textAndVersionSource)
             : base(solutionServices, documentServiceProvider, attributes, sourceText, textAndVersionSource)
         {
-            _additionalTextValueSource = CreateAdditionalTextValueSource();
+            _additionalText = new AdditionalTextWithState(this);
         }
 
         public AdditionalDocumentState(
@@ -31,18 +29,10 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices)
             : base(documentInfo, solutionServices)
         {
-            _additionalTextValueSource = CreateAdditionalTextValueSource();
+            _additionalText = new AdditionalTextWithState(this);
         }
 
-        private ValueSource<AdditionalText> CreateAdditionalTextValueSource()
-        {
-            return new AsyncLazy<AdditionalText>(
-                asynchronousComputeFunction: cancellationToken => Task.FromResult<AdditionalText>(new AdditionalTextWithState(this)),
-                synchronousComputeFunction: cancellationToken => new AdditionalTextWithState(this),
-                cacheResult: true);
-        }
-
-        public AdditionalText GetAdditionalText(CancellationToken cancellationToken) => _additionalTextValueSource.GetValue(cancellationToken);
+        public AdditionalText AdditionalText => _additionalText;
 
         public new AdditionalDocumentState UpdateText(TextLoader loader, PreservationMode mode)
             => (AdditionalDocumentState)base.UpdateText(loader, mode);
