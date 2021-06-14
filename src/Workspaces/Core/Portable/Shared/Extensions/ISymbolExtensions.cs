@@ -425,27 +425,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var loadedElements = TrySelectNodes(document, xpathValue);
-                if (loadedElements is null)
-                {
-                    return Array.Empty<XNode>();
-                }
-
-                if (loadedElements?.Length > 0)
-                {
-                    // change the current XML file path for nodes contained in the document:
-                    // prototype(inheritdoc): what should the file path be?
-                    var result = RewriteMany(symbol, visitedSymbols, compilation, loadedElements, cancellationToken);
-
-                    // The elements could be rewritten away if they are includes that refer to invalid
-                    // (but existing and accessible) XML files.  If this occurs, behave as if we
-                    // had failed to find any XPath results (as in Dev11).
-                    if (result.Length > 0)
-                    {
-                        return result;
-                    }
-                }
-
-                return null;
+                return loadedElements ?? Array.Empty<XNode>();
             }
             catch (XmlException)
             {
