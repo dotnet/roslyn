@@ -132,6 +132,16 @@ namespace Microsoft.CodeAnalysis
             return builder.GetKey();
         }
 
+        internal string GetDeterministicKey(
+            ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators)
+        {
+            var builder = CreateDetermisiticKeyBuilder();
+            builder.WriteCompilation(this, additionalTexts, analyzers, generators);
+            return builder.GetKey();
+        }
+
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
             if (globalsType != null && !IsValidHostObjectType(globalsType))

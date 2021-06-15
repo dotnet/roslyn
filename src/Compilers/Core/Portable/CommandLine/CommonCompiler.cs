@@ -1077,9 +1077,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
                 {
-                    // TODO: Need to add the following info: additional files, analyzer and generator assemblies. They are 
-                    // all input to the compilation.
-                    EmitDeterminismKey(compilation);
+                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators);
                 }
 
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
@@ -1651,9 +1649,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void EmitDeterminismKey(Compilation compilation)
+        private void EmitDeterminismKey(
+            Compilation compilation,
+            ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators)
         {
-            var key = compilation.GetDeterministicKey();
+            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using (var stream = File.Create(filePath))
             {
