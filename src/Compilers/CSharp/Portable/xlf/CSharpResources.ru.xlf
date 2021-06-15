@@ -1097,6 +1097,16 @@
         <target state="translated">Смешанные объявления и выражения в деконструировании</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
         <target state="translated">Типы и псевдонимы не могут иметь имя "record"</target>
