@@ -9861,6 +9861,54 @@ class C
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInPropertyPatterns()
+        {
+            var code = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInExtendedPropertyPatterns()
+        {
+            var code = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  CProperty . IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { CProperty.IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_Default()

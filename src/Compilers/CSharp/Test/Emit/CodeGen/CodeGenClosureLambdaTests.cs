@@ -5381,5 +5381,433 @@ class C
   IL_0059:  ret
 }");
         }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly()
+        {
+            // The lambda passed into StaticMethod depends on TLocal type argument of LocalMethod
+            // so if the delegate is cached outside the method the type argument reference is broken
+            // and code throws BadImageFormatException. Such a broken code will looks like:
+            // class DisplayClass
+            // {
+            //     Func<TLocal, string> _cachedDelegate;
+            //
+            //     void LocalMethod<TLocal>()
+            //     {
+            //         ...
+            //     }
+            //
+            // The test checks that it is not the issue.
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                StaticMethod(value, param, (_, __) => message);
+                StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        /// <summary>
+        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+        /// for the test case description
+        /// </summary>
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter2_CompilesCorrectly()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                InnerLocalFunction();
+
+                void InnerLocalFunction()
+                {
+                    StaticMethod(value, param, (_, __) => message);
+                    StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                    StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+                }
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        /// <summary>
+        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+        /// for the test case description
+        /// </summary>
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter3_CompilesCorrectly()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        OuterLocalFunction();
+
+        void OuterLocalFunction()
+        {
+            for (int i = 0; i < 1; i++)
+            {
+                void LocalFunction<TLocal>(TLocal value)
+                {
+                    StaticMethod(value, param, (_, __) => message);
+                    StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                    StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+                }
+
+                message = i.ToString();
+                LocalFunction<string>(string.Empty);
+            }
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideLocalFunctionInsideLoop_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalMethod()
+            {
+                StaticMethod(message, _ => message);
+            }
+
+            message = i.ToString();
+            LocalMethod();
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.<>c__DisplayClass0_0.<Main>g__LocalMethod|0()",
+                @"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Func<string, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string Program.<>c__DisplayClass0_0.message""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0025
+  IL_000f:  pop
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""string Program.<>c__DisplayClass0_0.<Main>b__1(string)""
+  IL_0018:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""void Program.StaticMethod<string, string>(string, System.Func<string, string>)""
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingMethodTypeParameter_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            message = i.ToString();
+
+            StaticMethod(param, _ => message);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.TestMethod<T>(T)",
+                @"{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
+                int V_1, //i
+                System.Func<T, string> V_2)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldsfld     ""string string.Empty""
+  IL_000c:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_004b
+  IL_0015:  ldloc.0
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0022:  ldarg.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0042
+  IL_002c:  pop
+  IL_002d:  ldloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__0(T)""
+  IL_0035:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stloc.2
+  IL_003c:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.1
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  blt.s      IL_0015
+  IL_004f:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericLocalFunction_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                StaticMethod(param, _ => message);
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.<>c__DisplayClass1_0<T>.<TestMethod>g__LocalFunction|0<TLocal>(TLocal)",
+                @"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Func<T, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T Program.<>c__DisplayClass1_0<T>.param""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__1""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0025
+  IL_000f:  pop
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__1<TLocal>(T)""
+  IL_0018:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__1""
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericMethod_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            message = i.ToString();
+            StaticMethod(param, _ => message);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.TestMethod<T>(T)",
+                @"{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
+                int V_1, //i
+                System.Func<T, string> V_2)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldsfld     ""string string.Empty""
+  IL_000c:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_004b
+  IL_0015:  ldloc.0
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0022:  ldarg.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0042
+  IL_002c:  pop
+  IL_002d:  ldloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__0(T)""
+  IL_0035:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stloc.2
+  IL_003c:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.1
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  blt.s      IL_0015
+  IL_004f:  ret
+}");
+        }
     }
 }

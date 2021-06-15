@@ -1254,7 +1254,18 @@
       <summary>Creates an ArgumentSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <Node Name="NameColonSyntax" Base="CSharpSyntaxNode">
+  <AbstractNode Name="BaseExpressionColonSyntax" Base="CSharpSyntaxNode">
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+  </AbstractNode>
+  <Node Name="ExpressionColonSyntax" Base="BaseExpressionColonSyntax">
+    <Kind Name="ExpressionColon"/>
+    <Field Name="Expression" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true"/>
+  </Node>
+  <Node Name="NameColonSyntax" Base="BaseExpressionColonSyntax">
     <Kind Name="NameColon"/>
     <Field Name="Name" Type="IdentifierNameSyntax">
       <Kind Name="IdentifierName"/>
@@ -1262,8 +1273,7 @@
         <summary>IdentifierNameSyntax representing the identifier name.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken"/>
+    <Field Name="ColonToken" Type="SyntaxToken" Override="true">
       <PropertyComment>
         <summary>SyntaxToken representing colon.</summary>
       </PropertyComment>
@@ -2033,7 +2043,7 @@
   </Node>
   <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
     <Kind Name="Subpattern"/>
-    <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
+    <Field Name="ExpressionColon" Type="BaseExpressionColonSyntax" Optional="true"/>
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">

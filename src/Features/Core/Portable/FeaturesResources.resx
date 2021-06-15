@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="0_directive" xml:space="preserve">
+    <value>#{0} directive</value>
+  </data>
   <data name="Add_project_reference_to_0" xml:space="preserve">
     <value>Add project reference to '{0}'.</value>
   </data>
@@ -2881,5 +2884,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Making_a_method_async_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Making a method 'async' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Updating_the_attributes_of_0_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating the attributes of '{0}' is not supported by the runtime.</value>
   </data>
 </root>

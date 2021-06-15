@@ -194,7 +194,7 @@
       "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.0",
       "vsMajorVersion": 17
     },
     "main-vs-deps": {
@@ -205,7 +205,7 @@
       "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "feature/d17initial",
+      "vsBranch": "main",
       "vsMajorVersion": 17
     },
     "main": {
@@ -216,7 +216,7 @@
       "version": "4.0.*",
       "packageFeeds": "arcade",
       "channels": [],
-      "vsBranch": "feature/d17initial",
+      "vsBranch": "main",
       "vsMajorVersion": 17
     },
     "features/NullableReferenceTypes": {
