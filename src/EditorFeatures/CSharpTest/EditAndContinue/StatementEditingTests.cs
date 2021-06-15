@@ -10580,7 +10580,6 @@ Console.WriteLine(x());
                 Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
         }
 
-
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
         public void TopLevelStatement_UpdateLocalFunction_ForEach1()
         {
@@ -10614,7 +10613,6 @@ foreach (int x0 in new[] { 1 })  // Group #0
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
         }
-
 
         #endregion
     }

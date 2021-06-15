@@ -5150,7 +5150,6 @@ $$        int Local(object[] a) => [|a.Length|];
 
         #region Top Level Statements
 
-
         [Fact]
         public void TopLevelStatements()
         {
@@ -5179,7 +5178,6 @@ for ([|int i = 0|], [|j = 1|], [|k = 2|]; [|i < 10|]; [|i++|], [|j++|], [|k--|])
     [|}|]
 ");
         }
-
 
         #endregion
     }
