@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 var image = new CrispImage
                 {
                     Moniker = (ImageMoniker)moniker,
-                    RenderSize = new Size(16, 16),
                     Margin = new Thickness(1, 0, 5, 0)
                 };
 
