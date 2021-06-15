@@ -582,6 +582,11 @@
         <target state="translated">Właściwości wystąpienia w interfejsach nie mogą mieć inicjatorów.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
+        <source>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</source>
+        <target state="new">'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
         <target state="translated">Obiekt „{0}” nie może implementować elementu członkowskiego interfejsu „{1}” w ramach typu „{2}”, ponieważ zawiera on parametr __arglist</target>
@@ -1243,8 +1248,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
-        <target state="translated">Atrybut „UnmanagedCallersOnly” może być stosowany tylko do zwykłych metod statycznych lub statycznych funkcji lokalnych.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
+        <target state="needs-review-translation">Atrybut „UnmanagedCallersOnly” może być stosowany tylko do zwykłych metod statycznych lub statycznych funkcji lokalnych.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">

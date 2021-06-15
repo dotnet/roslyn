@@ -1954,6 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 8929,
         ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
         ERR_AbstractConversionNotInvolvingContainedType = 8931,
+        ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
 
         #endregion
 

@@ -6527,7 +6527,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>extension GetEnumerator</value>
   </data>
   <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
-    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
   <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
@@ -6696,5 +6696,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_AbstractConversionNotInvolvingContainedType" xml:space="preserve">
     <value>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</value>
+  </data>
+  <data name="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
 </root>

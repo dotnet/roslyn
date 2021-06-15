@@ -26479,5 +26479,265 @@ class Other : Interface<int, int>
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Other.Interface<int, int>.Method(int)").WithLocation(11, 37)
                 );
         }
+
+        [Fact]
+        public void UnmanagedCallersOnly_01()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1
+{
+    [UnmanagedCallersOnly] abstract static void M1();
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x);
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
+}
+
+public interface I2<T> where T : I2<T>
+{
+    [UnmanagedCallersOnly] abstract static implicit operator int(T i);
+    [UnmanagedCallersOnly] abstract static explicit operator T(int i);
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static void M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
+                // (7,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static int operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 6),
+                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 6),
+                // (13,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static implicit operator int(T i);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(13, 6),
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static explicit operator T(int i);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
+                );
+        }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnly_02()
+        {
+            var ilSource = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 40 00 00 00 01 00 54 02 09 49 6e 68 65 72
+        69 74 65 64 00
+    )
+    .field public class [mscorlib]System.Type[] CallConvs
+    .field public string EntryPoint
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig abstract virtual static 
+        void M1 () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_UnaryPlus (
+            class I1 x
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_Addition (
+            class I1 x,
+            class I1 y
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+}
+
+.class interface public auto ansi abstract I2`1<(class I2`1<!T>) T>
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_Implicit (
+            !T i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        !T op_Explicit (
+            int32 i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+}
+";
+
+            var source1 =
+@"
+class Test
+{
+    static void M02<T>(T x, T y) where T : I1
+    {
+        T.M1();
+        _ = +x;
+        _ = x + y;
+    }
+
+    static int M03<T>(T x) where T : I2<T>
+    {
+        _ = (T)x;
+        return x;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            // Conversions aren't flagged due to https://github.com/dotnet/roslyn/issues/54113.
+            compilation1.VerifyDiagnostics(
+                // (6,11): error CS0570: 'I1.M1()' is not supported by the language
+                //         T.M1();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("I1.M1()").WithLocation(6, 11),
+                // (7,13): error CS0570: 'I1.operator +(I1)' is not supported by the language
+                //         _ = +x;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "+x").WithArguments("I1.operator +(I1)").WithLocation(7, 13),
+                // (8,13): error CS0570: 'I1.operator +(I1, I1)' is not supported by the language
+                //         _ = x + y;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly_03()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1<T> where T : I1<T>
+{
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
+    abstract static implicit operator int(T i);
+    abstract static explicit operator T(int i);
+}
+
+class C : I1<C>
+{
+    [UnmanagedCallersOnly] public static void M1() {}
+    [UnmanagedCallersOnly] public static int operator +(C x) => 0;
+    [UnmanagedCallersOnly] public static int operator +(C x, C y) => 0;
+    [UnmanagedCallersOnly] public static implicit operator int(C i) => 0;
+    [UnmanagedCallersOnly] public static explicit operator C(int i) => null;
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (15,47): error CS8932: 'UnmanagedCallersOnly' method 'C.M1()' cannot implement interface member 'I1<C>.M1()' in type 'C'
+                //     [UnmanagedCallersOnly] public static void M1() {}
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod, "M1").WithArguments("C.M1()", "I1<C>.M1()", "C").WithLocation(15, 47),
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static int operator +(C x) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static int operator +(C x, C y) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static implicit operator int(C i) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static explicit operator C(int i) => null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly_04()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1<T> where T : I1<T>
+{
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
+    abstract static implicit operator int(T i);
+    abstract static explicit operator T(int i);
+}
+
+class C : I1<C>
+{
+    [UnmanagedCallersOnly] static void I1<C>.M1() {}
+    [UnmanagedCallersOnly] static int I1<C>.operator +(C x) => 0;
+    [UnmanagedCallersOnly] static int I1<C>.operator +(C x, C y) => 0;
+    [UnmanagedCallersOnly] static implicit I1<C>.operator int(C i) => 0;
+    [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static void I1<C>.M1() {}
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 6),
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x, C y) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static implicit I1<C>.operator int(C i) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
+                );
+        }
     }
 }
