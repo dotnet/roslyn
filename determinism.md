@@ -77,6 +77,26 @@ Consider that build caching on outputs could be implemented
 
 ### LSIF
 
+### IDE & Compiler communication
+Consider that today when running Visual Studio today both the C# IDE and Compiler
+are running "compilation" servers. The IDE is more focused on providing services
+such as completion, semantic coloring, etc ... and the Compiler is focused on 
+compiling. 
+
+Under the hood though they are doing much of the same work: loading references, 
+parsing files, binding, etc ... This is all duplicated work that eats up CPU 
+cycles and RAM. 
+
+Given the presence of this API it opens the door for build to actually leverage
+the C# IDE for emit. Consider that the compiler server can use the output of 
+`GetDeterministicKey` to efficiently, and correctly, communicate with the IDE 
+server about the different `Compilation` they are each processing. It would be 
+reasonable for the server to first check if the IDE can satisfy emit for a
+`Compilation` before attempting to process it directly. 
+
+Note: this scenario does require more work as the `Compilation` objects created
+in the IDE and Compiler differ in subtle ways. Having this function though would
+be motivation to clean these up such that they are equal.
 
 ## Alternative Designs
 
