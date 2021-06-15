@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +19,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal static class InheritanceMarginServiceHelper
     {
-        /// <summary>
-        /// Display format used to generated the target's diplay name.
-        /// </summary>
         private static readonly SymbolDisplayFormat s_displayFormat = new(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -141,6 +139,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 }
                 else
                 {
+                    Debug.Assert(memberSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
                     var item = await CreateInheritanceItemForClassAndStructureAsync(
                         solution,
                         memberSymbol,

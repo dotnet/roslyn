@@ -16,24 +16,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal static class InheritanceMarginHelpers
     {
-        private static readonly ImmutableHashSet<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
-            = ImmutableHashSet<InheritanceRelationship>.Empty
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
             .Add(InheritanceRelationship.ImplementedInterface)
             .Add(InheritanceRelationship.InheritedInterface)
             .Add(InheritanceRelationship.ImplementedMember);
 
-        private static readonly ImmutableHashSet<InheritanceRelationship> s_relationships_Shown_As_I_Down_Arrow
-            = ImmutableHashSet<InheritanceRelationship>.Empty
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Down_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
             .Add(InheritanceRelationship.ImplementingType)
             .Add(InheritanceRelationship.ImplementingMember);
 
-        private static readonly ImmutableHashSet<InheritanceRelationship> s_relationships_Shown_As_O_Up_Arrow
-            = ImmutableHashSet<InheritanceRelationship>.Empty
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Up_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
             .Add(InheritanceRelationship.BaseType)
             .Add(InheritanceRelationship.OverriddenMember);
 
-        private static readonly ImmutableHashSet<InheritanceRelationship> s_relationships_Shown_As_O_Down_Arrow
-            = ImmutableHashSet<InheritanceRelationship>.Empty
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Down_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
             .Add(InheritanceRelationship.DerivedType)
             .Add(InheritanceRelationship.OverridingMember);
 
