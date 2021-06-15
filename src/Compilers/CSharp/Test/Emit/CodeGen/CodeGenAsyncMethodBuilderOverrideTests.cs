@@ -1133,6 +1133,9 @@ class C
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
+Console.WriteLine(await C.M());
+
 class C
 {{
     [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))]
@@ -1142,7 +1145,7 @@ class C
     static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
 
     [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))]
-    static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
+    public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
 [AsyncMethodBuilder(null)]
@@ -1156,17 +1159,44 @@ class C
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (8,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithLocation(8, 29),
-                // (11,38): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithLocation(11, 38),
-                // (14,34): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""M ""); await F(); return await G(3); }").WithLocation(14, 34)
-                );
+            CompileAndVerify(compilation, expectedOutput: "M F G 3");
+        }
+
+        [Fact]
+        public void BuilderFactoryOnMethod_BuilderFactoryIsPrivate()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+Console.WriteLine(await C.M());
+
+class C
+{{
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))]
+    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))]
+    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))]
+    public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
+
+    {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public class MyTaskMethodBuilderFactory", "private class MyTaskMethodBuilderFactory")}
+    {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public class MyTaskMethodBuilderFactory<T>", "private class MyTaskMethodBuilderFactory<T>")}
+}}
+
+[AsyncMethodBuilder(null)]
+{AwaitableTypeCode("MyTask")}
+
+[AsyncMethodBuilder(null)]
+{AwaitableTypeCode("MyTask", "T")}
+
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: "M F G 3");
         }
 
         [Fact]
@@ -2063,7 +2093,7 @@ public class MyTaskMethodBuilder<T>
         }
 
         [Fact]
-        public void BuilderFactoryOnMethod_WrongAccessibilityForFinalBuilder()
+        public void BuilderFactoryOnMethod_WrongAccessibilityForFinalBuilderMembers()
         {
             var source = $@"
 using System;
@@ -2112,12 +2142,12 @@ class Program
                 // (97,19): error CS0656: Missing compiler required member 'B2Factory.Create'
                 //     async T2 f2() => await Task.Delay(2);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(2)").WithArguments("B2Factory", "Create").WithLocation(97, 19),
-                // (100,19): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                // (100,19): error CS0656: Missing compiler required member 'B3.Task'
                 //     async T3 f3() => await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(3)").WithLocation(100, 19),
-                // (103,19): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Task").WithLocation(100, 19),
+                // (103,19): error CS0656: Missing compiler required member 'B4Factory.Create'
                 //     async T4 f4() => await Task.Delay(4);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(4)").WithLocation(103, 19)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4Factory", "Create").WithLocation(103, 19)
                 );
         }
 

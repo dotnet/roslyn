@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)methodLevelBuilder != null)
                 {
-                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: false);
+                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: false, forOverride: true);
                     customBuilder = true;
                     if ((object)initialBuilderType != null)
                     {
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)methodLevelBuilder != null)
                 {
-                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: true);
+                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: true, forOverride: true);
                     customBuilder = true;
                     if ((object)initialBuilderType != null)
                     {
@@ -361,14 +361,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.UnexpectedValue(method);
         }
 
-        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric)
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forOverride = false)
         {
             var builderType = builderAttributeArgument as NamedTypeSymbol;
 
             if ((object)builderType != null &&
                  !builderType.IsErrorType() &&
                  !builderType.IsVoidType() &&
-                 builderType.DeclaredAccessibility == desiredAccessibility)
+                 (forOverride || builderType.DeclaredAccessibility == desiredAccessibility))
             {
                 bool isArityOk = isGeneric
                                  ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
