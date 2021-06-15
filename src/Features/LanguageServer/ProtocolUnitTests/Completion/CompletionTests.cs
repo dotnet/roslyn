@@ -1125,6 +1125,32 @@ class A
             }
         }
 
+        [Fact]
+        public async Task TestCompletionRequestRespectsListSizeOptionAsync()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var listMaxSize = 1;
+            testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.CurrentSolution.Options.WithChangedOption(LspOptions.MaxCompletionListSize, listMaxSize));
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.True(results.IsIncomplete);
+            Assert.Equal(listMaxSize, results.Items.Length);
+        }
+
         private static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };

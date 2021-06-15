@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
-        /// <summary>
-        /// This sets the max list size we will return in response to a completion request.
-        /// If there are more than this many items, we will set the isIncomplete flag on the returned completion list.
-        /// </summary>
-        private const int MaxCompletionListSize = 1000;
-
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
@@ -434,7 +428,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var resultId = result.Value.ResultId;
-            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListSpan, completionTrigger, sourceText, document);
+
+            var completionListMaxSize = completionOptions.GetOption(LspOptions.MaxCompletionListSize);
+            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListMaxSize, completionListSpan, completionTrigger, sourceText, document);
 
             return (completionList, isIncomplete, resultId);
         }
@@ -464,6 +460,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static (CompletionList CompletionList, bool IsIncomplete) FilterCompletionList(
             CompletionList completionList,
+            int completionListMaxSize,
             TextSpan completionListSpan,
             CompletionTrigger completionTrigger,
             SourceText sourceText,
@@ -499,8 +496,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
-                .Take(MaxCompletionListSize)
-                .Concat(matchResultsBuilder.Skip(MaxCompletionListSize).Where(match => ShouldItemBePreselected(match.RoslynCompletionItem)))
+                .Take(completionListMaxSize)
+                .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => ShouldItemBePreselected(match.RoslynCompletionItem)))
                 .Select(matchResult => matchResult.RoslynCompletionItem)
                 .ToImmutableArray();
             var newCompletionList = completionList.WithItems(filteredList);
