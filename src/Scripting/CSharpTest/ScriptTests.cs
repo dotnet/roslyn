@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
             var peStream = new MemoryStream();
             var pdbStream = new MemoryStream();
-            _ = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
+            var emitResult = ScriptBuilder.Emit(peStream, pdbStream, compilation, emitOptions, cancellationToken: default);
 
             peStream.Position = 0;
             pdbStream.Position = 0;

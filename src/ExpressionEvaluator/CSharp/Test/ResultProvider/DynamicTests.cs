@@ -249,7 +249,8 @@ class Derived<T, U> : Base<T, U, object, dynamic>
   .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
 }";
             ImmutableArray<byte> assemblyBytes;
-            CommonTestBase.EmitILToArray(intrinsicSource, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
+            ImmutableArray<byte> pdbBytes;
+            CommonTestBase.EmitILToArray(intrinsicSource, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var reflectionType = assembly.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType(new[] { typeof(object), typeof(object), typeof(object[]) });
             var value = CreateDkmClrValue(value: null, type: reflectionType, valueFlags: DkmClrValueFlags.Synthetic);

@@ -33,13 +33,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "this.get_P()",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0571: 'C.P.get': cannot explicitly call operator or accessor", error);
         }

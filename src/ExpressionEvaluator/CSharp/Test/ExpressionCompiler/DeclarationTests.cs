@@ -1735,7 +1735,7 @@ class C
 
             ResultProperties resultProperties;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            _ = context.CompileExpression(
+            var result = context.CompileExpression(
                 declaration,
                 DkmEvaluationFlags.None,
                 NoAliases,

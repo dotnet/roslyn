@@ -287,7 +287,7 @@ namespace BuildValidator
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
             {
-                _ = Path.GetFileNameWithoutExtension(assemblyFileName);
+                var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
                 var originalDataFiles = createBuildArtifacts(Path.Combine(debugPath, "original"), assemblyFileName, originalInfo);
                 var rebuildDataFiles = createBuildArtifacts(Path.Combine(debugPath, "rebuild"), assemblyFileName, rebuildInfo);
 

@@ -423,7 +423,8 @@ namespace N
 ";
 
             ImmutableArray<byte> assemblyBytes;
-            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(il, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly = ReflectionUtilities.Load(assemblyBytes);
             var type = assembly.GetType("Type`1");
             var typeName = type.GetTypeName();

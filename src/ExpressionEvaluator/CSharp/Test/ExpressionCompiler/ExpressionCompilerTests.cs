@@ -209,14 +209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 atLineNumber: 999,
                 expr: "y ?? x",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0103: The name 'x' does not exist in the current context", error);
         }
@@ -232,13 +233,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: string.Format("new {{ {0} = o }}", longName),
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal(error, string.Format("error CS7013: Name '<{0}>i__Field' exceeds the maximum length allowed in metadata.", longName));
         }
@@ -273,11 +275,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             // Local reference.
             string error;
             var testData = new CompilationTestData();
-            _ = context.CompileExpression("F(y)", out error, testData);
+            var result = context.CompileExpression("F(y)", out error, testData);
             Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
             // No local reference.
             testData = new CompilationTestData();
-            _ = context.CompileExpression("F(x)", out _, testData);
+            result = context.CompileExpression("F(x)", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       12 (0xc)
@@ -1069,8 +1071,10 @@ class B : A
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.M");
+
+            string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("c.F", out _, testData);
+            context.CompileExpression("c.F", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        7 (0x7)
@@ -1110,8 +1114,10 @@ class B : A
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, "C.M");
+
+            string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("c.F", out _, testData);
+            context.CompileExpression("c.F", out error, testData);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
             var local = locals[0];
@@ -1153,7 +1159,7 @@ class B : A
 
             string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("s", out _, testData);
+            context.CompileExpression("s", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
@@ -1166,7 +1172,7 @@ class B : A
   IL_0001:  ret
 }");
             testData = new CompilationTestData();
-            context.CompileAssignment("s", "\"hello\"", out _, testData);
+            context.CompileAssignment("s", "\"hello\"", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        7 (0x7)
@@ -1179,7 +1185,7 @@ class B : A
   IL_0006:  ret
 }");
             testData = new CompilationTestData();
-            context.CompileExpression("f", out _, testData);
+            context.CompileExpression("f", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"
 {
@@ -1196,7 +1202,7 @@ class B : A
             Assert.Equal("error CS1656: Cannot assign to 'f' because it is a 'fixed variable'", error);
 
             testData = new CompilationTestData();
-            context.CompileExpression("i", out _, testData);
+            context.CompileExpression("i", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        3 (0x3)
@@ -1387,6 +1393,7 @@ class B : A
     {
     }
 }";
+            string error;
             ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
@@ -1394,7 +1401,7 @@ class B : A
                 methodName: "C.M",
                 expr: "null",
                 resultProperties: out resultProperties,
-                error: out _);
+                error: out error);
             Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
@@ -1624,13 +1631,14 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "P",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor", error);
         }
@@ -1648,6 +1656,7 @@ class C
     {
     }
 }";
+            string error;
             ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
@@ -1655,7 +1664,7 @@ class C
                 methodName: "C.M",
                 expr: "this.M()",
                 resultProperties: out resultProperties,
-                error: out _);
+                error: out error);
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             var methodData = testData.GetMethodData("<>x.<>m0");
             var method = (MethodSymbol)methodData.Method;
@@ -1682,13 +1691,14 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "this.M",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0428: Cannot convert method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?", error);
         }
@@ -1859,13 +1869,14 @@ class C
         }
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "N.C.M",
                 expr: "N",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             // Note: The native EE reports "CS0119: 'N' is a namespace, which is not valid in the given context"
             Assert.Equal("error CS0118: 'N' is a namespace but is used like a variable", error);
@@ -1881,13 +1892,14 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "C",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             // The native EE returns a representation of the type (but not System.Type)
             // that the user can expand to see the base type. To enable similar
@@ -2331,8 +2343,9 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
@@ -2343,7 +2356,7 @@ class C
     if (b) o = 1;
     return o;
 }))()",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0165: Use of unassigned local variable 'o'", error);
         }
@@ -2604,7 +2617,7 @@ class C<T>
     {
     }
 }";
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
@@ -2640,8 +2653,9 @@ class C<T>
         object y;
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
@@ -2651,7 +2665,7 @@ class C<T>
     object x = y;
     return y;
 }))(x, y)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             // Currently generating errors but this seems unnecessary and
             // an extra burden for the user. Consider allowing names
@@ -2737,13 +2751,14 @@ class B : A
     }
 }";
             ResultProperties resultProperties;
+            string error;
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "B.M",
                 expr: "((System.Func<object>)(() => this.G))()",
                 resultProperties: out resultProperties,
-                error: out _);
+                error: out error);
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
@@ -2760,7 +2775,7 @@ class B : A
                 methodName: "B.M",
                 expr: "((System.Func<object>)(() => this.F() ?? this.P))()",
                 resultProperties: out resultProperties,
-                error: out _);
+                error: out error);
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0()").VerifyIL(
 @"{
@@ -3892,13 +3907,14 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "sizeof(C)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C')", error);
         }
@@ -3950,13 +3966,15 @@ class C
         return false;
     }
 }";
+            string error;
+            ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "new C() { F = 1 }",
-                resultProperties: out _,
-                error: out _);
+                resultProperties: out resultProperties,
+                error: out error);
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
@@ -4077,13 +4095,14 @@ class C
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "G(F)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             // Should delegates to [Conditional] methods be supported?
             Assert.Equal("error CS1618: Cannot create delegate with 'C.F()' because it or a method it overrides has a Conditional attribute", error);
@@ -4173,6 +4192,7 @@ class C
     {
     }
 }";
+            string error;
             ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
@@ -4180,7 +4200,7 @@ class C
                 methodName: "C.M",
                 expr: "(System.Action)(() => i++)",
                 resultProperties: out resultProperties,
-                error: out _);
+                error: out error);
 
             Assert.Equal(resultProperties.Flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
             testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<>m0>b__0").VerifyIL(
@@ -4302,12 +4322,13 @@ class Derived : Base
 }
 ";
             string error;
-            _ = Evaluate(
+            ResultProperties resultProperties;
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "Derived.M",
                 expr: "base",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
 
             Assert.Equal("error CS0175: Use of keyword 'base' is not valid in this context", error);
@@ -4325,12 +4346,13 @@ struct S
 }
 ";
             string error;
+            ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "S.M",
                 expr: "base.ToString()",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -4457,12 +4479,13 @@ class C
 }
 ";
             string error;
-            _ = Evaluate(
+            ResultProperties resultProperties;
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "throw new System.Exception()",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS8115: A throw expression is not allowed in this context.", error);
         }
@@ -4518,8 +4541,10 @@ class C
             var module = ExpressionCompilerTestHelpers.GetModuleInstanceForIL(source);
             var runtime = CreateRuntimeInstance(module, new[] { MscorlibRef });
             var context = CreateMethodContext(runtime, methodName: "C.M");
+
+            string error;
             var testData = new CompilationTestData();
-            context.CompileExpression("D", out _, testData);
+            context.CompileExpression("D", out error, testData);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size        6 (0x6)
@@ -4545,12 +4570,13 @@ struct S
 }
 ";
             string error;
+            ResultProperties resultProperties;
             var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "S.M",
                 expr: "D",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Null(error);
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -5136,11 +5162,12 @@ class C
             ResultProperties resultProperties;
             string error;
             CompilationTestData testData;
+            CompileResult result;
             CompilationTestData.MethodData methodData;
 
             // Inspect the value.
             testData = new CompilationTestData();
-            _ = context.CompileExpression("E", out resultProperties, out error, testData);
+            result = context.CompileExpression("E", out resultProperties, out error, testData);
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.None, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
@@ -5159,7 +5186,7 @@ class C
 
             // Invoke the delegate.
             testData = new CompilationTestData();
-            _ = context.CompileExpression("E()", out resultProperties, out error, testData);
+            result = context.CompileExpression("E()", out resultProperties, out error, testData);
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
@@ -5179,7 +5206,7 @@ class C
 
             // Assign to the event.
             testData = new CompilationTestData();
-            _ = context.CompileExpression("E = null", out resultProperties, out _, testData);
+            result = context.CompileExpression("E = null", out resultProperties, out error, testData);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");
             Assert.True(((MethodSymbol)methodData.Method).ReturnsVoid);
@@ -5205,7 +5232,7 @@ class C
 
             // Event (compound) assignment.
             testData = new CompilationTestData();
-            _ = context.CompileExpression("E += null", out resultProperties, out error, testData);
+            result = context.CompileExpression("E += null", out resultProperties, out error, testData);
             Assert.Null(error);
             Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
             methodData = testData.GetMethodData("<>x.<>m0");

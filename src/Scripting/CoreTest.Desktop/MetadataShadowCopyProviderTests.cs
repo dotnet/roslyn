@@ -195,9 +195,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
         {
             var dir = Temp.CreateDirectory();
             var dll = dir.CreateFile("a.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
-            _ = dir.CreateFile("a.xml").WriteAllText("<hello>");
-            _ = _provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
-            _ = _provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            var doc = dir.CreateFile("a.xml").WriteAllText("<hello>");
+
+            var sc1 = _provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            var sc2 = _provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
 
             var md1 = _provider.GetMetadata(dll.Path, MetadataImageKind.Assembly);
             Assert.NotNull(md1);
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             var dll2 = dir2.CreateFile("a2.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
 
             Assert.Equal(1, _provider.CacheSize);
-            _ = _provider.GetMetadataShadowCopy(dll2.Path, MetadataImageKind.Module);
+            var sc3a = _provider.GetMetadataShadowCopy(dll2.Path, MetadataImageKind.Module);
             Assert.Equal(2, _provider.CacheSize);
         }
 
@@ -221,8 +222,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 
             var dir = Temp.CreateDirectory();
             var dll = dir.CreateFile("a.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
-            _ = dir.CreateFile("a.xml").WriteAllText("Invariant");
-            _ = dir.CreateDirectory(elGR.Name).CreateFile("a.xml").WriteAllText("Greek");
+            var docInvariant = dir.CreateFile("a.xml").WriteAllText("Invariant");
+            var docGreek = dir.CreateDirectory(elGR.Name).CreateFile("a.xml").WriteAllText("Greek");
 
             // invariant culture
             var provider = CreateProvider(CultureInfo.InvariantCulture);

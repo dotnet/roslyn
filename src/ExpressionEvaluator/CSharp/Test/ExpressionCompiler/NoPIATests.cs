@@ -156,6 +156,7 @@ public interface I
 
             var runtime = CreateRuntimeInstance(new[] { MscorlibRef.ToModuleInstance(), moduleA, modulePIA, moduleB });
             var context = CreateMethodContext(runtime, "A.M");
+            ResultProperties resultProperties;
             string error;
 
             // Bind to local of embedded PIA type.
@@ -178,7 +179,7 @@ public interface I
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
                 DebuggerDiagnosticFormatter.Instance,
-                out _,
+                out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,

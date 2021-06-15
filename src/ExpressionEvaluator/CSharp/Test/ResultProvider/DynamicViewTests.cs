@@ -107,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 EvalResult(expression, "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", expression, DkmEvaluationResultFlags.Expandable));
             var members = GetChildren(result);
             var fullNameOnAndOn = "o";
+            var fullNamePi = "o";
             // Expand 3 levels...
             for (var i = 0; i < 3; i++)
             {
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 Verify(dynamicView,
                     EvalResult(Resources.DynamicView, Resources.DynamicViewValueWarning, "", $"{fullNameOnAndOn}, dynamic", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
                 members = GetChildren(dynamicView);
-                var fullNamePi = $"new Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView({fullNameOnAndOn}).Items[1]";
+                fullNamePi = $"new Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView({fullNameOnAndOn}).Items[1]";
                 fullNameOnAndOn = $"new Microsoft.CSharp.RuntimeBinder.DynamicMetaObjectProviderDebugView({fullNameOnAndOn}).Items[0]";
                 Verify(members,
                     EvalResult("OnAndOn", "{System.Dynamic.ExpandoObject}", "System.Dynamic.ExpandoObject", fullNameOnAndOn, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly),

@@ -26,8 +26,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         private readonly DkmClrRuntimeInstance _runtimeInstance;
         private int _resolveTypeNameFailures;
 
-        public DkmClrModuleInstance(DkmClrRuntimeInstance runtimeInstance, Assembly assembly, DkmModule module)
-            : base(module)
+        public DkmClrModuleInstance(DkmClrRuntimeInstance runtimeInstance, Assembly assembly, DkmModule module) :
+            base(module)
         {
             _runtimeInstance = runtimeInstance;
             this.Assembly = assembly;

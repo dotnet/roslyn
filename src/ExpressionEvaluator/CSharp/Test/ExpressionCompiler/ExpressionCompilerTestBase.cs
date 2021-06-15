@@ -290,8 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         {
             ImmutableArray<MetadataBlock> blocks;
             Guid moduleVersionId;
+            ISymUnmanagedReader symReader;
             int typeToken;
-            GetContextState(runtime, typeName, out blocks, out moduleVersionId, out _, out typeToken, out _);
+            int localSignatureToken;
+            GetContextState(runtime, typeName, out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
             return CreateTypeContext(
                 new AppDomain(),
                 blocks,
@@ -356,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var context = CreateMethodContext(runtime, methodName, atLineNumber);
             var testData = new CompilationTestData();
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
-            _ = context.CompileExpression(
+            var result = context.CompileExpression(
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,

@@ -1211,7 +1211,7 @@ namespace Roslyn.Test.PdbUtilities
             IntHashTable names = LoadNameStream(bits);
 
             dir.streams[3].Read(reader, bits);
-            LoadDbiStream(bits, out var modules, out _, true);
+            LoadDbiStream(bits, out var modules, out var header, true);
 
             if (modules != null)
             {
@@ -1235,10 +1235,10 @@ namespace Roslyn.Test.PdbUtilities
         private static Dictionary<string, int> LoadNameIndex(BitAccess bits)
         {
             Dictionary<string, int> result = new Dictionary<string, int>();
-            bits.ReadInt32(out _);    //  0..3  Version
-            bits.ReadInt32(out _);    //  4..7  Signature
-            bits.ReadInt32(out _);    //  8..11 Age
-            bits.ReadGuid(out _);     // 12..27 GUID
+            bits.ReadInt32(out var ver);    //  0..3  Version
+            bits.ReadInt32(out var sig);    //  4..7  Signature
+            bits.ReadInt32(out var age);    //  8..11 Age
+            bits.ReadGuid(out var guid);       // 12..27 GUID
 
             // Read string buffer.
             bits.ReadInt32(out var buf);    // 28..31 Bytes of Strings
@@ -1371,7 +1371,8 @@ namespace Roslyn.Test.PdbUtilities
             Dictionary<string, int> nameIndex, PdbReader reader)
         {
             IntHashTable checks = new IntHashTable();
-            _ = bits.Position;
+
+            int begin = bits.Position;
             while (bits.Position < limit)
             {
                 bits.ReadInt32(out var sig);

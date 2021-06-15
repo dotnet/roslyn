@@ -33,7 +33,8 @@ class B : A
   .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
 }";
             ImmutableArray<byte> assemblyBytes;
-            CSharpTestBase.EmitILToArray(source1, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out _);
+            ImmutableArray<byte> pdbBytes;
+            CSharpTestBase.EmitILToArray(source1, appendDefaultHeader: true, includePdb: false, assemblyBytes: out assemblyBytes, pdbBytes: out pdbBytes);
             var assembly1 = ReflectionUtilities.Load(assemblyBytes);
             var type1 = assembly1.GetType(ExpressionCompilerConstants.TypeVariablesClassName).MakeGenericType(new[] { typeof(int), type0 });
             var value = CreateDkmClrValue(value: null, type: type1, valueFlags: DkmClrValueFlags.Synthetic);

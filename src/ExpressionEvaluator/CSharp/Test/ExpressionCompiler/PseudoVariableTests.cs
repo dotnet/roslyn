@@ -51,13 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
     {
     }
 }";
+            ResultProperties resultProperties;
             string error;
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "C.M",
                 expr: "global::$exception",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error);
             Assert.Equal("error CS0400: The type or namespace name '$exception' could not be found in the global namespace (are you missing an assembly reference?)", error);
         }
@@ -1065,6 +1066,7 @@ IL_0000:  call       ""System.Exception Microsoft.VisualStudio.Debugger.Clr.Intr
 IL_0005:  castclass  ""E""
 IL_000a:  ret
 }");
+            ResultProperties resultProperties;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             testData = new CompilationTestData();
             context.CompileAssignment(
@@ -1072,7 +1074,7 @@ IL_000a:  ret
                 "$1",
                 aliases,
                 DebuggerDiagnosticFormatter.Instance,
-                out _,
+                out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
@@ -1181,7 +1183,7 @@ IL_0010:  ret
         {
             var context = CreateMethodContext(runtime, methodName);
             var testData = new CompilationTestData();
-            _ = context.CompileExpression(
+            var result = context.CompileExpression(
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 ImmutableArray.Create(aliases),

@@ -1122,48 +1122,49 @@ namespace N
         static void M() { }
     }
 }";
+            ResultProperties resultProperties;
             string error;
 
             // With symbols, type reference without namespace qualifier.
-            _ = Evaluate(
+            var testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "A.M",
                 expr: "typeof(B)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: true);
             Assert.Null(error);
 
             // Without symbols, type reference without namespace qualifier.
-            _ = Evaluate(
+            testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "A.M",
                 expr: "typeof(B)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: false);
             Assert.Equal("error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)", error);
 
             // With symbols, type reference inside namespace.
-            _ = Evaluate(
+            testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "N.B.M",
                 expr: "typeof(B)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: true);
             Assert.Null(error);
 
             // Without symbols, type reference inside namespace.
-            _ = Evaluate(
+            testData = Evaluate(
                 source,
                 OutputKind.DynamicallyLinkedLibrary,
                 methodName: "N.B.M",
                 expr: "typeof(B)",
-                resultProperties: out _,
+                resultProperties: out resultProperties,
                 error: out error,
                 includeSymbols: false);
             Assert.Null(error);

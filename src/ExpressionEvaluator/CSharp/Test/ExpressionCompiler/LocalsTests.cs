@@ -5050,9 +5050,10 @@ class C
         {
             ImmutableArray<MetadataBlock> blocks;
             Guid moduleVersionId;
+            ISymUnmanagedReader unused;
             int methodToken;
             int localSignatureToken;
-            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out _, out methodToken, out localSignatureToken);
+            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out unused, out methodToken, out localSignatureToken);
 
             var symReader = new MockSymUnmanagedReader(
                 new Dictionary<int, MethodDebugInfoBytes>()
@@ -5069,7 +5070,9 @@ class C
                 ilOffset: 0,
                 localSignatureToken: localSignatureToken,
                 kind: MakeAssemblyReferencesKind.AllAssemblies);
-            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out _, testData: null);
+
+            string typeName;
+            var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: null);
 
             Assert.NotNull(assembly);
             if (count == 0)

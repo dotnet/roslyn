@@ -46,7 +46,7 @@ namespace BuildValidator
             // +0x0C: DLL name RVA
             exportTableHeader.ReadUInt32();
             // +0x10: ordinal base
-            exportTableHeader.ReadInt32();
+            int minOrdinal = exportTableHeader.ReadInt32();
             // +0x14: number of entries in the address table
             int addressEntryCount = exportTableHeader.ReadInt32();
             // +0x18: number of name pointers

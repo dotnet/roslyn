@@ -12,15 +12,6 @@ dotnet_diagnostic.RS0101.severity = none
 # RS0102: Braces must not have blank lines between them
 dotnet_diagnostic.RS0102.severity = none
 
-# IDE0059: Unnecessary assignment to a value
-dotnet_diagnostic.IDE0059.severity = none
-
-dotnet_diagnostic.IDE2000.severity = none
-dotnet_diagnostic.IDE2001.severity = none
-dotnet_diagnostic.IDE2002.severity = none
-dotnet_diagnostic.IDE2003.severity = none
-dotnet_diagnostic.IDE2004.severity = none
-
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none

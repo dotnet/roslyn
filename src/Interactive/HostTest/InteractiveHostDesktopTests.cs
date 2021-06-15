@@ -435,7 +435,7 @@ WriteLine(5);
             var dir = Temp.CreateDirectory();
 
             var dll = CompileLibrary(dir, "c.dll", "C", @"public class C { public static int Main() { return 1; } }");
-            _ = CompileLibrary(dir, "c.exe", "C", @"public class C { public static int Main() { return 2; } }");
+            var exe = CompileLibrary(dir, "c.exe", "C", @"public class C { public static int Main() { return 2; } }");
 
             var main = CompileLibrary(dir, "main.exe", "Main", @"public class Program { public static int Main() { return C.Main(); } }",
                 MetadataReference.CreateFromImage(dll.Image));
@@ -1009,7 +1009,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("4\r\n", await ReadOutputToEnd());
 
-            _ = await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
+            var result = await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Core));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadErrorOutputToEnd());
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", await ReadOutputToEnd());
 

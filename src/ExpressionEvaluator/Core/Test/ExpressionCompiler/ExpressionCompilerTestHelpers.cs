@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var result = context.CompileAssignment(target, expr, aliases, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
-                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out _, out missingAssemblyIdentities);
+                bool useReferencedModulesOnly;
+                error = context.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out useReferencedModulesOnly, out missingAssemblyIdentities);
             }
             else
             {
@@ -154,7 +155,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             CompilationTestData testData = null,
             DiagnosticFormatter formatter = null)
         {
-            return CompileExpression(context, expr, out _, out error, testData, formatter);
+            ResultProperties resultProperties;
+            return CompileExpression(context, expr, out resultProperties, out error, testData, formatter);
         }
 
         internal static CompileResult CompileExpression(
@@ -189,13 +191,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             CompilationTestData testData = null,
             DiagnosticFormatter formatter = null)
         {
+            ResultProperties resultProperties;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = evaluationContext.CompileExpression(
                 expr,
                 compilationFlags,
                 aliases,
                 formatter ?? DebuggerDiagnosticFormatter.Instance,
-                out _,
+                out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
@@ -226,7 +229,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var result = evaluationContext.CompileExpression(expr, compilationFlags, aliases, diagnostics, out resultProperties, testData);
             if (diagnostics.HasAnyErrors())
             {
-                error = evaluationContext.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out _, out missingAssemblyIdentities);
+                bool useReferencedModulesOnly;
+                error = evaluationContext.GetErrorMessageAndMissingAssemblyIdentities(diagnostics, formatter, preferredUICulture, EvaluationContextBase.SystemCoreIdentity, out useReferencedModulesOnly, out missingAssemblyIdentities);
             }
             else
             {
