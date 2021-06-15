@@ -443,18 +443,18 @@ class O
 ";
             var pdbReader = GetMetadataReaderfromSource(source);
             Guid typeDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
-            var list = new List<CustomDebugInformationHandle>();
+            int count = 0;
             foreach (var handle in pdbReader.CustomDebugInformation)
             {
                 var entry = pdbReader.GetCustomDebugInformation(handle);
                 var kind = entry.Kind;
                 if (typeDocuments.Equals(pdbReader.GetGuid(kind)))
                 {
-                    list.Add(handle);
+                    count++;
                 }
 
             }
-            Assert.Equal(1, list.Count);
+            Assert.Equal(1, count);
         }
 
         [Fact]
@@ -1256,6 +1256,76 @@ public partial  class C
     public void F1() {}  
 #line default
 
+}
+";
+
+            string sourceB = @"
+using System;
+
+public partial class C
+{
+
+    public void F2() {}
+    public void F3() {}      
+}
+";
+
+            var c1 = CreateCompilation(new[]
+            {
+                SyntaxFactory.ParseSyntaxTree(sourceA, path: "X.cs", encoding: Encoding.UTF8),
+                SyntaxFactory.ParseSyntaxTree(sourceB, path: "Z.cs", encoding: Encoding.UTF8)
+            }, options: TestOptions.DebugDll);
+
+            var pdbStream = new MemoryStream();
+            var peImage = c1.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            pdbStream.Position = 0;
+
+
+            string source2 = @"
+using System;
+
+public class Program
+{
+    public static void Main() { }   
+}
+";
+            var assemblyMetadata = AssemblyMetadata.CreateFromImage(peImage);
+            var metadataReference = assemblyMetadata.GetReference();
+            var c2 = CreateCompilation(new[] { source2 }, new[] { metadataReference }, options: TestOptions.DebugDll);
+            var typeC = c2.GetTypeByMetadataName("C");
+            Symbol symbol = typeC.GetMethod("F1");
+            using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
+            var pdbReader = provider.GetMetadataReader();
+            var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
+            Guid typeDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
+            int count = 0;
+            foreach (var handle in pdbReader.CustomDebugInformation)
+            {
+                var entry = pdbReader.GetCustomDebugInformation(handle);
+                var kind = entry.Kind;
+                if (typeDocuments.Equals(pdbReader.GetGuid(kind)))
+                {
+                    count++;
+                }
+
+            }
+            Assert.Equal(1, count);
+            Assert.Equal(2, docList.Count);
+            Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
+            Assert.Equal(0x30000002, MetadataTokens.GetToken(docList[1]));
+        }
+        [Fact]
+        public void TestTypetoDocumentNavigationMethodWithNoBody2()
+        {
+            string sourceA = @"
+using System;
+
+public partial  class C
+{
+#line hidden
+    public void F1() {}  
+#line default
+
     public void F2() {}
     public void F3() {}  
 
@@ -1265,9 +1335,9 @@ public partial  class C
             string sourceB = @"
 using System;
 
-public partial class C
+public class D
 {
-   
+    public void F4() {}     
     
 }
 ";
@@ -1299,8 +1369,21 @@ public class Program
             using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
             var pdbReader = provider.GetMetadataReader();
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
+            Guid typeDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
+            int count = 0;
+            foreach (var handle in pdbReader.CustomDebugInformation)
+            {
+                var entry = pdbReader.GetCustomDebugInformation(handle);
+                var kind = entry.Kind;
+                if (typeDocuments.Equals(pdbReader.GetGuid(kind)))
+                {
+                    count++;
+                }
+
+            }
+            Assert.Equal(0, count);
+            Assert.Equal(1, docList.Count);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
-            Assert.Equal(0x30000002, MetadataTokens.GetToken(docList[1]));
         }
 
 

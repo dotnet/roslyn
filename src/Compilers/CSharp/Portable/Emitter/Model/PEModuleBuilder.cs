@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> result,
                                                     Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
         {
-            // var sourceDoc = new List<Cci.DebugSourceDocument>();
+            var sourceDoc = new HashSet<Cci.DebugSourceDocument>();
             foreach (var loc in location)
             {
                 FileLinePositionSpan span = loc.GetLineSpan();
@@ -441,19 +441,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 if (doc != null)
                 {
-                    doclist.Add(doc);
-                    //sourceDoc.Add(doc);
+                    sourceDoc.Add(doc);
                 }
             }
-            result.Add((definition, doclist.ToList()));
-
-            //foreach (var source in sourceDoc)
-            //{
-            //    if (!doclist.Contains(source))
-            //    {
-            //        result.Add((definition, sourceDoc));
-            //    }
-            //}
+            foreach (var doc in sourceDoc)
+            {
+                if (!doclist.Contains(doc))
+                {
+                    result.Add((definition, sourceDoc.ToList()));
+                    return;
+                }
+            }
         }
 
         private Location GetSmallestSourceLocationOrNull(Symbol symbol)

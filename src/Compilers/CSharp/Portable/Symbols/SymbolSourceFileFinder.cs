@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var typeM = (PENamedTypeSymbol)(method.ContainingType);
-                        AddTypeDocumentsInCustomDebugInformation(typeM.Handle, pdbReader, docList);
+                        AddTypeDocuments(typeM, pdbReader, docList);
                     }
                     break;
                 case SymbolKind.Field:
