@@ -7,13 +7,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicDeterministicKeyBuilder
         Inherits DeterministicKeyBuilder
 
-        Protected Overrides Sub AppendParseOptionsCore(parseOptions As ParseOptions)
+        Protected Overrides Sub WriteParseOptionsCore(parseOptions As ParseOptions)
             Dim basicOptions = TryCast(parseOptions, VisualBasicParseOptions)
             If basicOptions Is Nothing Then
                 Throw New InvalidOperationException()
             End If
 
-            MyBase.AppendParseOptionsCore(parseOptions)
+            MyBase.WriteParseOptionsCore(parseOptions)
 
             WriteEnum("languageVersion", basicOptions.LanguageVersion)
             WriteEnum("specifiedLanguageVersion", basicOptions.SpecifiedLanguageVersion)
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Overrides Sub AppendCompilationOptionsCore(options As CompilationOptions)
+        Protected Overrides Sub WriteCompilationOptionsCore(options As CompilationOptions)
             Dim basicOptions = TryCast(options, VisualBasicCompilationOptions)
             If basicOptions Is Nothing Then
                 Throw New InvalidOperationException()
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
             End If
 
-            AppendParseOptions(basicOptions.ParseOptions)
+            WriteParseOptions(basicOptions.ParseOptions)
         End Sub
 
     End Class

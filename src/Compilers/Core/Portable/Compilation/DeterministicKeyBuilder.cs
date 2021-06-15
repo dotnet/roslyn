@@ -88,16 +88,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void AppendCompilation(Compilation compilation)
+        internal void WriteCompilation(Compilation compilation)
         {
             Writer.WriteObjectStart();
             Writer.WriteKey("options");
-            AppendCompilationOptions(compilation.Options);
+            WriteCompilationOptions(compilation.Options);
             Writer.WriteKey("syntaxTrees");
             Writer.WriteArrayStart();
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
-                AppendSyntaxTree(syntaxTree);
+                WriteSyntaxTree(syntaxTree);
             }
             Writer.WriteArrayEnd();
 
@@ -105,13 +105,13 @@ namespace Microsoft.CodeAnalysis
             Writer.WriteArrayStart();
             foreach (var reference in compilation.References)
             {
-                AppendMetadataReference(reference);
+                WriteMetadataReference(reference);
             }
             Writer.WriteArrayEnd();
             Writer.WriteObjectEnd();
         }
 
-        internal void AppendSyntaxTree(SyntaxTree syntaxTree)
+        internal void WriteSyntaxTree(SyntaxTree syntaxTree)
         {
             Writer.WriteObjectStart();
             WriteString("fileName", Path.GetFileName(syntaxTree.FilePath));
@@ -121,11 +121,11 @@ namespace Microsoft.CodeAnalysis
             WriteByteArray("checksum", debugSourceInfo.Checksum);
             WriteEnum("checksumAlgorithm", SourceHashAlgorithms.GetSourceHashAlgorithm(debugSourceInfo.ChecksumAlgorithmId));
             Writer.WriteKey("parseOptions");
-            AppendParseOptions(syntaxTree.Options);
+            WriteParseOptions(syntaxTree.Options);
             Writer.WriteObjectEnd();
         }
 
-        internal void AppendMetadataReference(MetadataReference reference)
+        internal void WriteMetadataReference(MetadataReference reference)
         {
             Writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
                 WriteString("name", Path.GetFileName(peReference.FilePath));
                 WriteString("mvid", mvid.ToString());
                 Writer.WriteKey("properties");
-                AppendMetadataReferenceProperties(reference.Properties);
+                WriteMetadataReferenceProperties(reference.Properties);
             }
             else
             {
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis
             Writer.WriteObjectEnd();
         }
 
-        internal void AppendMetadataReferenceProperties(MetadataReferenceProperties properties)
+        internal void WriteMetadataReferenceProperties(MetadataReferenceProperties properties)
         {
             Writer.WriteObjectStart();
             WriteEnum("kind", properties.Kind);
@@ -187,14 +187,14 @@ namespace Microsoft.CodeAnalysis
             Writer.WriteObjectEnd();
         }
 
-        internal void AppendCompilationOptions(CompilationOptions options)
+        internal void WriteCompilationOptions(CompilationOptions options)
         {
             Writer.WriteObjectStart();
-            AppendCompilationOptionsCore(options);
+            WriteCompilationOptionsCore(options);
             Writer.WriteObjectEnd();
         }
 
-        protected virtual void AppendCompilationOptionsCore(CompilationOptions options)
+        protected virtual void WriteCompilationOptionsCore(CompilationOptions options)
         {
             // CompilationOption values
             WriteEnum("outputKind", options.OutputKind);
@@ -247,14 +247,14 @@ namespace Microsoft.CodeAnalysis
             // - AssemblyIdentityComparer
         }
 
-        internal void AppendParseOptions(ParseOptions parseOptions)
+        internal void WriteParseOptions(ParseOptions parseOptions)
         {
             Writer.WriteObjectStart();
-            AppendParseOptionsCore(parseOptions);
+            WriteParseOptionsCore(parseOptions);
             Writer.WriteObjectEnd();
         }
 
-        protected virtual void AppendParseOptionsCore(ParseOptions parseOptions)
+        protected virtual void WriteParseOptionsCore(ParseOptions parseOptions)
         {
             WriteEnum("kind", parseOptions.Kind);
             WriteEnum("specifiedKind", parseOptions.SpecifiedKind);
