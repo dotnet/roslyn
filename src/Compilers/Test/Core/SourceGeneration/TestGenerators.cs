@@ -70,36 +70,6 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class AdditionalFileAddedGenerator : ISourceGenerator
-    {
-        public bool CanApplyChanges { get; set; } = true;
-
-        public void Execute(GeneratorExecutionContext context)
-        {
-            foreach (var file in context.AdditionalFiles)
-            {
-                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
-            }
-        }
-
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            context.RegisterForAdditionalFileChanges(UpdateContext);
-        }
-
-        bool UpdateContext(GeneratorEditContext context, AdditionalFileEdit edit)
-        {
-            if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
-            {
-                context.AdditionalSources.Add(GetGeneratedFileName(add.AddedText.Path), SourceText.From("", Encoding.UTF8));
-                return true;
-            }
-            return false;
-        }
-
-        private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path.Replace('\\', Path.DirectorySeparatorChar))}.generated";
-    }
-
     internal class InMemoryAdditionalText : AdditionalText
     {
         private readonly SourceText _content;
@@ -114,5 +84,54 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
 
+    }
+
+    internal sealed class IncrementalCallbackGenerator : IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
+
+        public IncrementalCallbackGenerator(Action<IncrementalGeneratorInitializationContext> onInit)
+        {
+            _onInit = onInit;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
+    }
+
+    internal sealed class PipelineCallbackGenerator : IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorPipelineContext> _registerPipelineCallback;
+
+        public PipelineCallbackGenerator(Action<IncrementalGeneratorPipelineContext> registerPipelineCallback)
+        {
+            _registerPipelineCallback = registerPipelineCallback;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
+    }
+
+    internal sealed class PipelineCallbackGenerator2 : IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorPipelineContext> _registerPipelineCallback;
+
+        public PipelineCallbackGenerator2(Action<IncrementalGeneratorPipelineContext> registerPipelineCallback)
+        {
+            _registerPipelineCallback = registerPipelineCallback;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
+    }
+
+    internal sealed class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
+    {
+        private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
+
+        public IncrementalAndSourceCallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Action<IncrementalGeneratorInitializationContext> onIncrementalInit)
+            : base(onInit, onExecute)
+        {
+            _onInit = onIncrementalInit;
+        }
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
     }
 }
