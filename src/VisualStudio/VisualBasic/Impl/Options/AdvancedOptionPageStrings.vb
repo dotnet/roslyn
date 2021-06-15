@@ -33,6 +33,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DisplayLineSeparators As String =
             BasicVSResources.Show_procedure_line_separators
 
+        Public ReadOnly Property Option_Underline_reassigned_variables As String =
+            ServicesVSResources.Underline_reassigned_variables
+
         Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
             ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
 

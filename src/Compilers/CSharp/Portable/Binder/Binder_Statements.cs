@@ -2264,8 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
                             }
-                            else if (targetType.SpecialType == SpecialType.System_Delegate &&
-                                syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
+                            else if (targetType.SpecialType == SpecialType.System_Delegate)
                             {
                                 Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
                                 return;

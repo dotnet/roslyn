@@ -12,12 +12,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -215,11 +217,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var typeSymbols = OfType<ITypeSymbol>(symbols);
 
-                // Only keep symbols which are accessible from the current location.
+                var options = await _document.GetOptionsAsync(searchScope.CancellationToken).ConfigureAwait(false);
+                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers);
+                var editorBrowserInfo = new EditorBrowsableInfo(_semanticModel.Compilation);
+
+                // Only keep symbols which are accessible from the current location and that are allowed by the current
+                // editor browsable rules.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
-                    s => ArityAccessibilityAndAttributeContextAreCorrect(
-                        s.Symbol, arity, inAttributeContext,
-                        hasIncompleteParentMember, looksGeneric));
+                    s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
+                         s.Symbol.IsEditorBrowsable(hideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
                 // These types may be contained within namespaces, or they may be nested 
                 // inside generic types.  Record these namespaces/types if it would be 
@@ -314,7 +320,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         {
                             // Check if the expression before the dot binds to a property or field.
                             var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
-                            if (symbol?.Kind == SymbolKind.Property || symbol?.Kind == SymbolKind.Field)
+                            if (symbol?.Kind is SymbolKind.Property or SymbolKind.Field)
                             {
                                 // Check if we have the 'Color Color' case.
                                 var propertyOrFieldType = symbol.GetSymbolType();

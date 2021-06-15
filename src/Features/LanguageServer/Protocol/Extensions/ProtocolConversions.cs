@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -26,6 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal static class ProtocolConversions
     {
+        private const string CSharpMarkdownLanguageName = "csharp";
+        private const string VisualBasicMarkdownLanguageName = "vb";
+
+        private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
+
         // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same way
         // which can confuse users
         public static readonly Dictionary<string, LSP.CompletionItemKind> RoslynTagToCompletionItemKind = new Dictionary<string, LSP.CompletionItemKind>()
@@ -630,6 +637,88 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
                 .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
             return updatedOptions;
+        }
+
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+        {
+            if (!featureSupportsMarkdown)
+            {
+                return new LSP.MarkupContent
+                {
+                    Kind = LSP.MarkupKind.PlainText,
+                    Value = tags.GetFullText(),
+                };
+            }
+
+            var builder = new StringBuilder();
+            var isInCodeBlock = false;
+            foreach (var taggedText in tags)
+            {
+                switch (taggedText.Tag)
+                {
+                    case TextTags.CodeBlockStart:
+                        var codeBlockLanguageName = GetCodeBlockLanguageName(document);
+                        builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = true;
+                        break;
+                    case TextTags.CodeBlockEnd:
+                        builder.Append($"{Environment.NewLine}```{Environment.NewLine}");
+                        builder.Append(taggedText.Text);
+                        isInCodeBlock = false;
+                        break;
+                    case TextTags.LineBreak:
+                        // A line ending with double space and a new line indicates to markdown
+                        // to render a single-spaced line break.
+                        builder.Append("  ");
+                        builder.Append(Environment.NewLine);
+                        break;
+                    default:
+                        var styledText = GetStyledText(taggedText, isInCodeBlock);
+                        builder.Append(styledText);
+                        break;
+                }
+            }
+
+            return new LSP.MarkupContent
+            {
+                Kind = LSP.MarkupKind.Markdown,
+                Value = builder.ToString(),
+            };
+
+            static string GetCodeBlockLanguageName(Document document)
+            {
+                return document.Project.Language switch
+                {
+                    (LanguageNames.CSharp) => CSharpMarkdownLanguageName,
+                    (LanguageNames.VisualBasic) => VisualBasicMarkdownLanguageName,
+                    _ => throw new InvalidOperationException($"{document.Project.Language} is not supported"),
+                };
+            }
+
+            static string GetStyledText(TaggedText taggedText, bool isInCodeBlock)
+            {
+                var text = isInCodeBlock ? taggedText.Text : s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1");
+
+                // For non-cref links, the URI is present in both the hint and target.
+                if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
+                    return $"[{text}]({taggedText.NavigationHint})";
+
+                // Markdown ignores spaces at the start of lines outside of code blocks, 
+                // so to get indented lines we replace the spaces with these.
+                if (!isInCodeBlock)
+                    text = text.Replace(" ", "&nbsp;");
+
+                return taggedText.Style switch
+                {
+                    TaggedTextStyle.None => text,
+                    TaggedTextStyle.Strong => $"**{text}**",
+                    TaggedTextStyle.Emphasis => $"_{text}_",
+                    TaggedTextStyle.Underline => $"<u>{text}</u>",
+                    TaggedTextStyle.Code => $"`{text}`",
+                    _ => text,
+                };
+            }
         }
 
         private static async Task<ImmutableArray<MappedSpanResult>?> GetMappedSpanResultAsync(TextDocument textDocument, ImmutableArray<TextSpan> textSpans, CancellationToken cancellationToken)

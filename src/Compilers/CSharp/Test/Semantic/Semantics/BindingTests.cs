@@ -246,9 +246,9 @@ class B
                 // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 //         a.E += a.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
-                // (12,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
+                // (12,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (a.E != null)
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E != null").WithArguments("!=", "method group", "<null>").WithLocation(12, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a.E").WithArguments("inferred delegate type").WithLocation(12, 13),
                 // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
                 //             M(a.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),

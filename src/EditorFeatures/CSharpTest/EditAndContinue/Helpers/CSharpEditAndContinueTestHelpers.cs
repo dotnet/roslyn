@@ -28,9 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public override string LanguageName => LanguageNames.CSharp;
         public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
 
-        public override SyntaxTree ParseText(string source)
-            => SyntaxFactory.ParseSyntaxTree(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
-
         public override SyntaxNode FindNode(SyntaxNode root, TextSpan span)
         {
             var result = root.FindToken(span.Start).Parent;

@@ -58,19 +58,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private readonly CancellationTokenSource _disposalTokenSource = new();
-
-            /// <summary>
-            /// Work queue that collects event notifications and kicks off the work to process them.
-            /// </summary>
-            private Task _eventWorkQueue = Task.CompletedTask;
-
-            /// <summary>
-            /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
-            /// to ensure threadsafe writing of _eventWorkQueue.
-            /// </summary>
-            private readonly CancellationSeries _cancellationSeries;
-
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
@@ -80,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Work queue that collects normal priority requests to call TagsChanged with.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
+
+            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
 
             #endregion
 
@@ -126,14 +115,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
-
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _disposalTokenSource.Token);
+                    _tagSourceState.Target.DisposalToken);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -148,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _disposalTokenSource.Token);
+                        _tagSourceState.Target.DisposalToken);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -191,17 +178,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                if (_disposed)
-                {
-                    Debug.Fail("Tagger already disposed");
-                    return;
-                }
+                _tagSourceState.Dispose();
 
-                // Stop computing any initial tags if we've been asked for them.
-                _disposalTokenSource.Cancel();
-                _cancellationSeries.Dispose();
-
-                _disposed = true;
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
 

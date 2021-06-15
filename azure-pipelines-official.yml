@@ -41,6 +41,26 @@ variables:
       value: $(dn-bot-devdiv-drop-rw-code-rw)
 
 stages:
+- stage: setup
+  displayName: Build Setup
+
+  jobs:
+  - job: SetBuildNumber
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+    # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
+    # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
+    - task: PowerShell@2
+      displayName: Update BuildNumber
+      inputs:
+        filePath: 'eng\update-build-number.ps1'
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
+      condition: eq(variables['System.JobAttempt'], '1')
+
 - stage: build
   displayName: Build and Test
 
@@ -50,6 +70,8 @@ stages:
       CreatePr: false
       LclSource: lclFilesfromPackage
       LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+
+  - template: eng/common/templates/jobs/source-build.yml
 
   - job: OfficialBuild
     displayName: Official Build
@@ -67,18 +89,6 @@ stages:
         queue: BuildPool.Server.Amd64.VS2017
 
     steps:
-    # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
-    # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
-    - task: PowerShell@2
-      displayName: Update BuildNumber
-      inputs:
-        filePath: 'eng\update-build-number.ps1'
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
-      condition: eq(variables['System.JobAttempt'], '1')
-
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
       displayName: Setting SourceBranchName variable
       condition: succeeded()
@@ -211,10 +221,11 @@ stages:
         ARTIFACTSERVICES_DROP_PAT: $(_DevDivDropAccessToken)
       inputs:
         dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-        buildNumber: 'ProfilingInputs/DevDiv/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+        buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
         sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
         toLowerCase: false
         usePat: false
+        retentionDays: 90
       displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
       condition: succeeded()
 
