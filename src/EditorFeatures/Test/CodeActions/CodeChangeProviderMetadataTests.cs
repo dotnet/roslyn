@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static bool TryGetExportName(ExportDefinition export, [NotNullWhen(returnValue: true)] out string? name)
         {
             if (!export.Metadata.TryGetValue("Name", out var nameObj)
-                || nameObj is string { Length: 0 })
+                || nameObj is not string { Length: > 0 })
             {
                 name = null;
                 return false;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string language)
         {
             return FindComposedPartsWithExport(configuration, exportedTypeName)
-                .Where(part => ((string[])part.Export.Metadata["Languages"]).Contains(language));
+                .Where(part => ((string[])part.Export.Metadata["Languages"]!).Contains(language));
         }
     }
 }

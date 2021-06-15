@@ -1120,7 +1120,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.NotKeyword:
-                case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
                 case SyntaxKind.RecordKeyword:
@@ -1235,8 +1234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.OrKeyword;
                 case "not":
                     return SyntaxKind.NotKeyword;
-                case "data":
-                    return SyntaxKind.DataKeyword;
                 case "with":
                     return SyntaxKind.WithKeyword;
                 case "init":
@@ -1672,8 +1669,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "or";
                 case SyntaxKind.NotKeyword:
                     return "not";
-                case SyntaxKind.DataKeyword:
-                    return "data";
                 case SyntaxKind.WithKeyword:
                     return "with";
                 case SyntaxKind.InitKeyword:

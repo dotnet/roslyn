@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../CSharpResources.resx">
     <body>
@@ -444,7 +444,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <target state="translated">V typeof v atributu se nepodporuje používání typu ukazatele funkce.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -474,7 +474,7 @@
       </trans-unit>
       <trans-unit id="ERR_HiddenPositionalMember">
         <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
-        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <target state="translated">Poziční člen {0}, který odpovídá tomuto parametru je skrytý.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
-        <target state="new">Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</target>
+        <target state="translated">Dědění ze záznamu se zapečetěným objektem Object.ToString se v jazyce C# {0} nepodporuje. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
@@ -554,7 +554,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <target state="translated">Modifikátor {0} není platný pro tuto položku v jazyce C# {1}. Použijte prosím verzi jazyka {2} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -997,6 +1002,11 @@
         <target state="translated">discards</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
+        <source>extended property patterns</source>
+        <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="new">global using directive</target>
@@ -1029,7 +1039,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
-        <target state="new">sealed ToString in record</target>
+        <target state="translated">zapečetěný ToString v záznamu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
+        <source>with on anonymous types</source>
+        <target state="new">with on anonymous types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
@@ -1079,7 +1094,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
-        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <target state="translated">Smíšené deklarace a výrazy v dekonstrukci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -8469,7 +8494,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
         <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="needs-review-translation">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo lambda výrazech.</target>
+        <target state="translated">Parametry nebo lokální proměnné typu {0} nemůžou být deklarované v asynchronních metodách nebo asynchronních výrazech lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">

@@ -58,6 +58,8 @@ class C
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifyUpdatedTypes("0x02000002");
+
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
@@ -869,6 +871,8 @@ class C
 
                 // only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004");
+
+                diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
 
                 using (var md1 = diff1.GetMetadata())
                 {
@@ -3331,6 +3335,8 @@ class C
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
+            diff1.VerifyUpdatedTypes("0x02000003", "0x02000004");
+
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
                 "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <>4__this, <x>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.Int32>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.Int32>.Current, System.Collections.IEnumerator.Current}",
@@ -3342,6 +3348,8 @@ class C
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifyUpdatedTypes("0x02000003", "0x02000004");
 
             diff2.VerifySynthesizedMembers(
                  "C: {<F>d__0}",
