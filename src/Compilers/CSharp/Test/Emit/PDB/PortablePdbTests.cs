@@ -1080,7 +1080,6 @@ public class Program
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
         }
-
         [Fact]
         public void TestTypetoDocumentNavigationEvent()
         {

@@ -246,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             {
                                 AddDefinitionAndDocument(result, locations, (Cci.IDefinition)symbol.GetCciAdapter(), docList);
                             }
-                            docList.Clear();
                         }
                         break;
                     default:
@@ -433,7 +432,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> result,
                                                     Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
         {
-            var sourceDoc = new HashSet<Cci.DebugSourceDocument>();
+            //make sure source doc has order, using order set. 
+            var sourceDoc = new SortedSet<Cci.DebugSourceDocument>();
             foreach (var loc in location)
             {
                 FileLinePositionSpan span = loc.GetLineSpan();

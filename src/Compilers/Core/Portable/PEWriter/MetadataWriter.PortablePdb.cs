@@ -995,12 +995,12 @@ namespace Microsoft.Cci
         private void TypeDocumentInformation(CommonPEModuleBuilder module)
         {
             DocumentHandle rowid;
-            var builder = new BlobBuilder();
             var document = module.GetTypeDocument(Context);
             if (document.Count > 0)
             {
                 foreach (var pair in document)
                 {
+                    var builder = new BlobBuilder();
                     var def = (ITypeDefinition)pair.definition;
                     foreach (var val in pair.document)
                     {
@@ -1011,7 +1011,6 @@ namespace Microsoft.Cci
                     parent: GetTypeDefinitionHandle(def),
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocuments),
                     value: _debugMetadataOpt.GetOrAddBlob(builder));
-                    builder.Clear();
                 }
             }
         }
