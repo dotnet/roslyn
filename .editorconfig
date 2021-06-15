@@ -63,7 +63,7 @@ dotnet_style_explicit_tuple_names = true:suggestion
 
 # Whitespace options
 dotnet_style_allow_multiple_blank_lines_experimental = false
-dotnet_style_allow_statement_immediately_after_block_experimental = true
+dotnet_style_allow_statement_immediately_after_block_experimental = false
 
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
@@ -291,7 +291,7 @@ dotnet_diagnostic.IDE2001.severity = warning
 dotnet_diagnostic.IDE2002.severity = warning
 
 # dotnet_style_allow_statement_immediately_after_block_experimental
-dotnet_diagnostic.IDE2003.severity = none
+dotnet_diagnostic.IDE2003.severity = warning
 
 # csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental
 dotnet_diagnostic.IDE2004.severity = warning
