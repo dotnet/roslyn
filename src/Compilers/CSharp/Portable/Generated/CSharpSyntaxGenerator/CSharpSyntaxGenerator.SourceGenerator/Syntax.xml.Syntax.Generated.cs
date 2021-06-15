@@ -2706,6 +2706,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public ArgumentSyntax WithExpression(ExpressionSyntax expression) => Update(this.NameColon, this.RefKindKeyword, expression);
     }
 
+    public abstract partial class BaseExpressionColonSyntax : CSharpSyntaxNode
+    {
+        internal BaseExpressionColonSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public abstract ExpressionSyntax Expression { get; }
+        public BaseExpressionColonSyntax WithExpression(ExpressionSyntax expression) => WithExpressionCore(expression);
+        internal abstract BaseExpressionColonSyntax WithExpressionCore(ExpressionSyntax expression);
+
+        public abstract SyntaxToken ColonToken { get; }
+        public BaseExpressionColonSyntax WithColonToken(SyntaxToken colonToken) => WithColonTokenCore(colonToken);
+        internal abstract BaseExpressionColonSyntax WithColonTokenCore(SyntaxToken colonToken);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExpressionColon"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ExpressionColonSyntax : BaseExpressionColonSyntax
+    {
+        private ExpressionSyntax? expression;
+
+        internal ExpressionColonSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
+
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.expression : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionColon(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExpressionColon(this);
+
+        public ExpressionColonSyntax Update(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+            if (expression != this.Expression || colonToken != this.ColonToken)
+            {
+                var newNode = SyntaxFactory.ExpressionColon(expression, colonToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override BaseExpressionColonSyntax WithExpressionCore(ExpressionSyntax expression) => WithExpression(expression);
+        public new ExpressionColonSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ColonToken);
+        internal override BaseExpressionColonSyntax WithColonTokenCore(SyntaxToken colonToken) => WithColonToken(colonToken);
+        public new ExpressionColonSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Expression, colonToken);
+    }
+
     /// <summary>Class which represents the syntax node for name colon syntax.</summary>
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
@@ -2713,7 +2773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <item><description><see cref="SyntaxKind.NameColon"/></description></item>
     /// </list>
     /// </remarks>
-    public sealed partial class NameColonSyntax : CSharpSyntaxNode
+    public sealed partial class NameColonSyntax : BaseExpressionColonSyntax
     {
         private IdentifierNameSyntax? name;
 
@@ -2726,7 +2786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public IdentifierNameSyntax Name => GetRedAtZero(ref this.name)!;
 
         /// <summary>SyntaxToken representing colon.</summary>
-        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.NameColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
 
         internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.name)! : null;
 
@@ -2748,7 +2808,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public NameColonSyntax WithName(IdentifierNameSyntax name) => Update(name, this.ColonToken);
-        public NameColonSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Name, colonToken);
+        internal override BaseExpressionColonSyntax WithColonTokenCore(SyntaxToken colonToken) => WithColonToken(colonToken);
+        public new NameColonSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Name, colonToken);
     }
 
     /// <summary>Class which represents the syntax node for the variable declaration in an out var declaration or a deconstruction declaration.</summary>
@@ -5224,7 +5285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// </remarks>
     public sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
-        private NameColonSyntax? nameColon;
+        private BaseExpressionColonSyntax? expressionColon;
         private PatternSyntax? pattern;
 
         internal SubpatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5232,14 +5293,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
         }
 
-        public NameColonSyntax? NameColon => GetRedAtZero(ref this.nameColon);
+        public BaseExpressionColonSyntax? ExpressionColon => GetRedAtZero(ref this.expressionColon);
 
         public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
-                0 => GetRedAtZero(ref this.nameColon),
+                0 => GetRedAtZero(ref this.expressionColon),
                 1 => GetRed(ref this.pattern, 1)!,
                 _ => null,
             };
@@ -5247,7 +5308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal override SyntaxNode? GetCachedSlot(int index)
             => index switch
             {
-                0 => this.nameColon,
+                0 => this.expressionColon,
                 1 => this.pattern,
                 _ => null,
             };
@@ -5255,11 +5316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSubpattern(this);
 
-        public SubpatternSyntax Update(NameColonSyntax? nameColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(BaseExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
-            if (nameColon != this.NameColon || pattern != this.Pattern)
+            if (expressionColon != this.ExpressionColon || pattern != this.Pattern)
             {
-                var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
+                var newNode = SyntaxFactory.Subpattern(expressionColon, pattern);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -5267,8 +5328,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public SubpatternSyntax WithNameColon(NameColonSyntax? nameColon) => Update(nameColon, this.Pattern);
-        public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.NameColon, pattern);
+        public SubpatternSyntax WithExpressionColon(BaseExpressionColonSyntax? expressionColon) => Update(expressionColon, this.Pattern);
+        public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.ExpressionColon, pattern);
     }
 
     /// <remarks>

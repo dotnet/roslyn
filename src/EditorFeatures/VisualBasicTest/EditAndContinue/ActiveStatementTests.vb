@@ -1937,7 +1937,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Private Const a As Integer = 1
+    <AS:0>Private Const a As Integer = 1</AS:0>
 End Class
 "
 
@@ -1982,7 +1982,7 @@ End Class
 
             Dim src2 = "
 Class C
-    Private Const a As Integer = 1, b As Integer = 2
+    <AS:0>Private Const a As Integer = 1, b As Integer = 2</AS:0>
 End Class
 "
 
