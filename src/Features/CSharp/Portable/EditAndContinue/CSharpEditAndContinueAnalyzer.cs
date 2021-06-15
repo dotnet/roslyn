@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
             {
-                return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, ((GlobalStatementSyntax)unit.Members[^1]).Statement)!.Captured;
+                return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
             }
 
             Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.GlobalStatement:
                         // Global statements can be inserted but only if there is at least one other global statement,
                         // otherwise this would be an insert of the synthesized entry point itself.
-                        if ((node.Parent as CompilationUnitSyntax)?.Members.Count == 1)
+                        if ((node.Parent as CompilationUnitSyntax)?.Members.OfType<GlobalStatementSyntax>().Take(2).Count() == 1)
                         {
                             ReportError(RudeEditKind.Insert);
                             return;
@@ -2339,7 +2339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.GlobalStatement:
                         // Global statements can be deleted unless they were the only global statement,
                         // otherwise it would be a delete of the synthesized entry point itself
-                        if ((oldNode.Parent as CompilationUnitSyntax)?.Members.Count == 1)
+                        if ((oldNode.Parent as CompilationUnitSyntax)?.Members.OfType<GlobalStatementSyntax>().Take(2).Count() == 1)
                         {
                             ReportError(RudeEditKind.Delete);
                             return;

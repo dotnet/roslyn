@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (declaration is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
             {
-                return TextSpan.FromBounds(unit.Members[0].SpanStart, unit.Members[^1].Span.End);
+                return TextSpan.FromBounds(unit.Members[0].SpanStart, unit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
             }
 
             var body = SyntaxUtilities.TryGetMethodDeclarationBody(declaration);
