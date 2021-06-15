@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,6 +14,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal interface IIncrementalGeneratorOutputNode
     {
-        void AppendOutputs(IncrementalExecutionContext context);
+        void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken);
+
+        IncrementalGeneratorOutputKind Kind { get; }
+    }
+
+    internal enum IncrementalGeneratorOutputKind
+    {
+        Source,
+        PostInit
     }
 }

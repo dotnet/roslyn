@@ -86,40 +86,28 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
     }
 
-    internal sealed class IncrementalCallbackGenerator : IIncrementalGenerator
-    {
-        private readonly Action<IncrementalGeneratorInitializationContext> _onInit;
-
-        public IncrementalCallbackGenerator(Action<IncrementalGeneratorInitializationContext> onInit)
-        {
-            _onInit = onInit;
-        }
-
-        public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
-    }
-
     internal sealed class PipelineCallbackGenerator : IIncrementalGenerator
     {
-        private readonly Action<IncrementalGeneratorPipelineContext> _registerPipelineCallback;
+        private readonly Action<IncrementalGeneratorInitializationContext> _registerPipelineCallback;
 
-        public PipelineCallbackGenerator(Action<IncrementalGeneratorPipelineContext> registerPipelineCallback)
+        public PipelineCallbackGenerator(Action<IncrementalGeneratorInitializationContext> registerPipelineCallback)
         {
             _registerPipelineCallback = registerPipelineCallback;
         }
 
-        public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _registerPipelineCallback(context);
     }
 
     internal sealed class PipelineCallbackGenerator2 : IIncrementalGenerator
     {
-        private readonly Action<IncrementalGeneratorPipelineContext> _registerPipelineCallback;
+        private readonly Action<IncrementalGeneratorInitializationContext> _registerPipelineCallback;
 
-        public PipelineCallbackGenerator2(Action<IncrementalGeneratorPipelineContext> registerPipelineCallback)
+        public PipelineCallbackGenerator2(Action<IncrementalGeneratorInitializationContext> registerPipelineCallback)
         {
             _registerPipelineCallback = registerPipelineCallback;
         }
 
-        public void Initialize(IncrementalGeneratorInitializationContext context) => context.RegisterExecutionPipeline(_registerPipelineCallback);
+        public void Initialize(IncrementalGeneratorInitializationContext context) => _registerPipelineCallback(context);
     }
 
     internal sealed class IncrementalAndSourceCallbackGenerator : CallbackGenerator, IIncrementalGenerator
