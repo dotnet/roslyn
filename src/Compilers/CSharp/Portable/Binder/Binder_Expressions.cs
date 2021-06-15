@@ -8597,7 +8597,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 (object)containingMethod == null ||
                     !containingMethod.ReturnsVoid &&
-                    !containingMethod.IsAsyncReturningTask(this.Compilation);
+                    !containingMethod.IsAsyncReturningTask(this.Compilation) &&
+                    !containingMethod.IsAsyncReturningTaskViaOverride(out _);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)

@@ -137,7 +137,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (11,25): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -150,7 +150,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async method builder override").WithLocation(17, 37)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -162,51 +162,47 @@ class C
             Assert.True(method.IsAsyncReturningGenericTask(compilation));
             verifier.VerifyIL("C.F()", @"
 {
-  // Code size       49 (0x31)
+  // Code size       45 (0x2d)
   .maxstack  2
   .locals init (C.<F>d__0 V_0)
-  IL_0000:  newobj     ""C.<F>d__0..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  call       ""MyTaskMethodBuilder MyTaskMethodBuilder.Create()""
-  IL_000c:  stfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.m1
-  IL_0013:  stfld      ""int C.<F>d__0.<>1__state""
-  IL_0018:  ldloc.0
-  IL_0019:  ldfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  callvirt   ""void MyTaskMethodBuilder.Start<C.<F>d__0>(ref C.<F>d__0)""
-  IL_0025:  ldloc.0
-  IL_0026:  ldfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
-  IL_002b:  callvirt   ""MyTask MyTaskMethodBuilder.Task.get""
-  IL_0030:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""MyTaskMethodBuilder MyTaskMethodBuilder.Create()""
+  IL_0007:  stfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""int C.<F>d__0.<>1__state""
+  IL_0014:  ldloc.0
+  IL_0015:  ldfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  callvirt   ""void MyTaskMethodBuilder.Start<C.<F>d__0>(ref C.<F>d__0)""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""MyTaskMethodBuilder C.<F>d__0.<>t__builder""
+  IL_0027:  callvirt   ""MyTask MyTaskMethodBuilder.Task.get""
+  IL_002c:  ret
 }
 ");
             verifier.VerifyIL("C.G<T>(T)", @"
 {
-  // Code size       56 (0x38)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (C.<G>d__1<T> V_0)
-  IL_0000:  newobj     ""C.<G>d__1<T>..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldloc.0
-  IL_0007:  call       ""MyTaskMethodBuilder<T> MyTaskMethodBuilder<T>.Create()""
-  IL_000c:  stfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
-  IL_0011:  ldloc.0
-  IL_0012:  ldarg.0
-  IL_0013:  stfld      ""T C.<G>d__1<T>.t""
-  IL_0018:  ldloc.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  stfld      ""int C.<G>d__1<T>.<>1__state""
-  IL_001f:  ldloc.0
-  IL_0020:  ldfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  callvirt   ""void MyTaskMethodBuilder<T>.Start<C.<G>d__1<T>>(ref C.<G>d__1<T>)""
-  IL_002c:  ldloc.0
-  IL_002d:  ldfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
-  IL_0032:  callvirt   ""MyTask<T> MyTaskMethodBuilder<T>.Task.get""
-  IL_0037:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""MyTaskMethodBuilder<T> MyTaskMethodBuilder<T>.Create()""
+  IL_0007:  stfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  stfld      ""T C.<G>d__1<T>.t""
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldc.i4.m1
+  IL_0017:  stfld      ""int C.<G>d__1<T>.<>1__state""
+  IL_001c:  ldloc.0
+  IL_001d:  ldfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  callvirt   ""void MyTaskMethodBuilder<T>.Start<C.<G>d__1<T>>(ref C.<G>d__1<T>)""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""MyTaskMethodBuilder<T> C.<G>d__1<T>.<>t__builder""
+  IL_002f:  callvirt   ""MyTask<T> MyTaskMethodBuilder<T>.Task.get""
+  IL_0034:  ret
 }
 ");
         }
@@ -214,13 +210,12 @@ class C
         [Fact]
         public void BuilderOnMethod_NoBuilderOnType()
         {
-            // Note: although we don't use the builder from the return type, we still require
-            // the return type to have the attribute.
-            // One reason is that if the return type is not "task-like" then implicit returns are disallowed.
             var source = $@"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
+Console.WriteLine(await C.M());
 
 class C
 {{
@@ -245,20 +240,64 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
+        }
+
+        [Fact]
+        public void BuilderOnMethod_NoBuilderOnType_BadReturns()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+    static async MyTask F() {{ await Task.Yield(); return 1; }} // 1
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    static async MyTask<T> G<T>(T t) {{ await Task.Yield(); return; }} // 2
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    static async MyTask<int> M() {{ await Task.Yield(); return null; }} // 3
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    static async MyTask<int> M2(MyTask<int> mt) {{ await Task.Yield(); return mt; }} // 4
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
+    static async MyTask M2(bool b) => b ? await Task.Yield() : await Task.Yield(); // 5
+}}
+
+// no attribute
+{AwaitableTypeCode("MyTask")}
+
+// no attribute
+{AwaitableTypeCode("MyTask", "T")}
+
+{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
+{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
+
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
-                // (9,25): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F").WithLocation(9, 25),
-                // (9,25): error CS0161: 'C.F()': not all code paths return a value
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F()").WithLocation(9, 25),
-                // (12,28): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "G").WithLocation(12, 28),
-                // (15,37): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     public static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(15, 37)
+                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     static async MyTask F() { await Task.Yield(); return 1; } // 1
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()").WithLocation(9, 51),
+                // (12,60): error CS0126: An object of a type convertible to 'T' is required
+                //     static async MyTask<T> G<T>(T t) { await Task.Yield(); return; } // 2
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("T").WithLocation(12, 60),
+                // (15,63): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //     static async MyTask<int> M() { await Task.Yield(); return null; } // 3
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(15, 63),
+                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
+                //     static async MyTask<int> M2(MyTask<int> mt) { await Task.Yield(); return mt; } // 4
+                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int").WithLocation(18, 78),
+                // (21,39): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //     static async MyTask M2(bool b) => b ? await Task.Yield() : await Task.Yield(); // 5
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Yield() : await Task.Yield()").WithLocation(21, 39)
                 );
         }
 
@@ -2106,8 +2145,5 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
         }
-
-        // PROTOTYPE confirm with LDM how much validation we should do on the builder type of the return type which is unused
-        // PROTOTYPE confirm with LDM that the factory indirection should only apply to overrides
     }
 }

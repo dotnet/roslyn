@@ -192,6 +192,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+        public static bool IsAsyncReturningTaskViaOverride(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
+        {
+            builderArgument = null;
+            return method.IsAsync
+                && method.HasMethodLevelBuilder(builderArgument: out builderArgument)
+                && method.ReturnType is NamedTypeSymbol { Arity: 0 };
+        }
+
+        public static bool IsAsyncReturningGenericTaskViaOverride(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
+        {
+            builderArgument = null;
+            return method.IsAsync
+                && method.HasMethodLevelBuilder(builderArgument: out builderArgument)
+                && method.ReturnType is NamedTypeSymbol { Arity: 1 };
+        }
+
         /// <summary>
         /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns the "B".
         /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.

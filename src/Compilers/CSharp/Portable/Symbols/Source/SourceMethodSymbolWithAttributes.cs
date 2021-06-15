@@ -1050,12 +1050,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ReportBadRefToken(returnTypeSyntax, diagnostics);
                     hasErrors = true;
                 }
-                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
+                else if (isBadAsyncReturn(this))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
                     hasErrors = true;
                 }
-                else if (this.HasMethodLevelBuilder(out _))
+
+                if (this.HasMethodLevelBuilder(out _))
                 {
                     hasErrors = MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
@@ -1102,6 +1103,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
                     }
                 }
+            }
+
+            static bool isBadAsyncReturn(MethodSymbol methodSymbol)
+            {
+                var returnType = methodSymbol.ReturnType;
+                var declaringCompilation = methodSymbol.DeclaringCompilation;
+                return !returnType.IsErrorType() &&
+                    !returnType.IsVoidType() &&
+                    !returnType.IsNonGenericTaskType(declaringCompilation) &&
+                    !returnType.IsGenericTaskType(declaringCompilation) &&
+                    !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                    !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
+                    !methodSymbol.IsAsyncReturningTaskViaOverride(out _) &&
+                    !methodSymbol.IsAsyncReturningGenericTaskViaOverride(out _);
             }
         }
 
