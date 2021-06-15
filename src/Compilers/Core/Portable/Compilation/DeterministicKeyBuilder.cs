@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -90,6 +92,71 @@ namespace Microsoft.CodeAnalysis
 
         internal void WriteCompilation(Compilation compilation)
         {
+            WriteCompilationCore(compilation);
+        }
+
+        internal void WriteCompilation(
+            Compilation compilation,
+            ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators)
+        {
+            Writer.WriteObjectStart();
+            Writer.WriteKey("compilation");
+            WriteCompilationCore(compilation);
+            Writer.WriteKey("additionalTexts");
+            writeAdditionalTexts();
+            Writer.WriteKey("analyzers");
+            writeAnalyzers();
+            Writer.WriteKey("generators");
+            writeGenerators();
+            Writer.WriteObjectEnd();
+
+            void writeAdditionalTexts()
+            {
+                Writer.WriteArrayStart();
+                foreach (var additionalText in additionalTexts)
+                {
+                    Writer.WriteObjectStart();
+                    WriteString("fileName", additionalText.Path);
+                    Writer.WriteKey("text");
+                    WriteSourceText(additionalText.GetText());
+                    Writer.WriteObjectEnd();
+                }
+                Writer.WriteArrayEnd();
+            }
+
+            void writeAnalyzers()
+            {
+                Writer.WriteArrayStart();
+                foreach (var analyzer in analyzers)
+                {
+                    writeType(analyzer.GetType());
+                }
+                Writer.WriteArrayEnd();
+            }
+
+            void writeGenerators()
+            {
+                Writer.WriteArrayStart();
+                foreach (var generator in generators)
+                {
+                    writeType(generator.GetType());
+                }
+                Writer.WriteArrayEnd();
+            }
+
+            void writeType(Type type)
+            {
+                Writer.WriteObjectStart();
+                WriteString("fullName", type.FullName);
+                WriteString("assemblyName", type.Assembly.FullName);
+                Writer.WriteObjectEnd();
+            }
+        }
+
+        private void WriteCompilationCore(Compilation compilation)
+        {
             Writer.WriteObjectStart();
             Writer.WriteKey("options");
             WriteCompilationOptions(compilation.Options);
@@ -115,13 +182,24 @@ namespace Microsoft.CodeAnalysis
         {
             Writer.WriteObjectStart();
             WriteString("fileName", Path.GetFileName(syntaxTree.FilePath));
-            WriteString("encoding", syntaxTree.Encoding?.EncodingName);
-
-            var debugSourceInfo = syntaxTree.GetDebugSourceInfo();
-            WriteByteArray("checksum", debugSourceInfo.Checksum);
-            WriteEnum("checksumAlgorithm", SourceHashAlgorithms.GetSourceHashAlgorithm(debugSourceInfo.ChecksumAlgorithmId));
+            Writer.WriteKey("text");
+            WriteSourceText(syntaxTree.GetText());
             Writer.WriteKey("parseOptions");
             WriteParseOptions(syntaxTree.Options);
+            Writer.WriteObjectEnd();
+        }
+
+        internal void WriteSourceText(SourceText? sourceText)
+        {
+            if (sourceText is null)
+            {
+                return;
+            }
+
+            Writer.WriteObjectStart();
+            WriteByteArray("checksum", sourceText.GetChecksum());
+            WriteEnum("checksumAlgorithm", sourceText.ChecksumAlgorithm);
+            WriteString("encoding", sourceText.Encoding?.ToString());
             Writer.WriteObjectEnd();
         }
 
