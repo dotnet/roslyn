@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -237,23 +238,25 @@ namespace Microsoft.CodeAnalysis
                 return array;
             }
 
-            [StructLayout(LayoutKind.Sequential)]
-            private struct ImmutableArrayProxy<T>
-            {
-                internal T[] MutableArray;
-            }
-
-            private static ImmutableArray<T> DangerousCreateFromUnderlyingArray<T>([MaybeNull] ref T[] array)
-            {
-                var proxy = new ImmutableArrayProxy<T> { MutableArray = array };
-                array = null!;
-                return Unsafe.As<ImmutableArrayProxy<T>, ImmutableArray<T>>(ref proxy);
-            }
-
             public ImmutableArray<byte> ToImmutableArray()
             {
-                var array = ToArray();
-                return DangerousCreateFromUnderlyingArray(ref array);
+                // ImmutableArray only supports int-sized arrays
+                var count = checked((int)Length);
+                var builder = ImmutableArray.CreateBuilder<byte>(count);
+
+                int chunkIndex = 0;
+                while (count > 0)
+                {
+                    var chunk = chunks[chunkIndex];
+                    var copyCount = Math.Min(chunk.Length, count);
+
+                    builder.AddRange(chunk, copyCount);
+                    count -= copyCount;
+                    chunkIndex++;
+                }
+                Debug.Assert(count == 0);
+
+                return builder.MoveToImmutable();
             }
 
             protected int CurrentChunkIndex { get { return GetChunkIndex(this.position); } }
