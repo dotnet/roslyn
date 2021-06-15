@@ -3179,6 +3179,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         }
                     }
                 }
+
                 return null;
             }
 

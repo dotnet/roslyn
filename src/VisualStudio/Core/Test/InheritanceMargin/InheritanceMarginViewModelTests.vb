@@ -119,6 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.InheritanceMargin
                 For i = 0 To expectedMemberMenuItem.Targets.Length
                     VerifyMenuItem(expectedMemberMenuItem.Targets(i), acutalMemberMenuItem.Targets(i))
                 Next
+
                 Return
             End If
 

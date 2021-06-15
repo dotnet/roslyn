@@ -82,6 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.CorrectNextControlVariabl
                 If forBlock Is Nothing Then
                     Return Nothing
                 End If
+
                 currentNode = forBlock
             Next
 
