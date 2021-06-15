@@ -415,19 +415,15 @@ namespace Roslyn.Test.Utilities
             Uri documentUri,
             ImmutableArray<(int startLine, int startColumn, int endLine, int endColumn, string text)> changes)
         {
-            var changeEvents = new List<LSP.TextDocumentContentChangeEvent>();
-            foreach (var change in changes)
+            var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
             {
-                changeEvents.Add(new LSP.TextDocumentContentChangeEvent
+                Text = change.text,
+                Range = new LSP.Range
                 {
-                    Text = change.text,
-                    Range = new LSP.Range
-                    {
-                        Start = new LSP.Position(change.startLine, change.startColumn),
-                        End = new LSP.Position(change.endLine, change.endColumn)
-                    }
-                });
-            }
+                    Start = new LSP.Position(change.startLine, change.startColumn),
+                    End = new LSP.Position(change.endLine, change.endColumn)
+                }
+            }).ToArray();
 
             return new LSP.DidChangeTextDocumentParams()
             {
@@ -435,7 +431,7 @@ namespace Roslyn.Test.Utilities
                 {
                     Uri = documentUri
                 },
-                ContentChanges = changeEvents.ToArray()
+                ContentChanges = changeEvents
             };
         }
 
@@ -494,7 +490,7 @@ namespace Roslyn.Test.Utilities
                     documentUri,
                     changes.Select(change => (startLine: change.line, startColumn: change.column, endLine: change.line, endColumn: change.column, change.text)).ToImmutableArray());
                 return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName,
-                           didChangeParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                           didChangeParams, new LSP.ClientCapabilities(), clientName: null, CancellationToken.None);
             }
 
             public Task DeleteTextAsync(Uri documentUri, params (int startLine, int startColumn, int endLine, int endColumn)[] changes)

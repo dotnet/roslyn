@@ -494,27 +494,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 string filterText,
                 bool highlightMatchingPortions)
             {
-                if (!highlightMatchingPortions)
+                if (highlightMatchingPortions)
                 {
-                    return ImmutableArray<Span>.Empty;
-                }
+                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText)
+                    {
+                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
+                        // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                        // However, if the Roslyn item's FilterText is different from its DisplayText,
+                        // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                        return completionHelper.GetHighlightedSpans(
+                            matchResult.EditorCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+                    }
 
-                if (matchResult.RoslynCompletionItem.HasDifferentFilterText)
-                {
-                    // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
-                    // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
-                    // However, if the Roslyn item's FilterText is different from its DisplayText,
-                    // we need to do the match against the display text of the VS item directly to get the highlighted spans.
-                    return completionHelper.GetHighlightedSpans(
-                        matchResult.EditorCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
-                }
-
-                var patternMatch = matchResult.PatternMatch;
-                if (patternMatch.HasValue)
-                {
-                    // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
-                    // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                    return patternMatch.Value.MatchedSpans.SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
+                    var patternMatch = matchResult.PatternMatch;
+                    if (patternMatch.HasValue)
+                    {
+                        // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
+                        // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
+                        return patternMatch.Value.MatchedSpans.SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
+                    }
                 }
 
                 // If there's no match for Roslyn item's filter text which is identical to its display text,
