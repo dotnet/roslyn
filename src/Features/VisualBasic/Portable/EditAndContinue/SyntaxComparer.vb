@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 Return ClassifyStatementSyntax(kind, nodeOpt, isLeaf)
             End If
 
-            Return ClassifyTopSytnax(kind, isLeaf, ignoreVariableDeclarations)
+            Return ClassifyTopSytnax(kind, nodeOpt, isLeaf, ignoreVariableDeclarations)
         End Function
 
         Friend Shared Function ClassifyStatementSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
+        Private Shared Function ClassifyTopSytnax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
             Select Case kind
                 Case SyntaxKind.CompilationUnit
                     isLeaf = False
@@ -867,12 +867,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return Label.Parameter
 
                 Case SyntaxKind.AttributeList
-                    isLeaf = False
-                    Return Label.AttributeList
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        isLeaf = False
+                        Return Label.AttributeList
+                    End If
+                    isLeaf = True
+                    Return Label.Ignored
 
                 Case SyntaxKind.Attribute
                     isLeaf = True
-                    Return Label.Attribute
+                    If nodeOpt IsNot Nothing AndAlso nodeOpt.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                        Return Label.Attribute
+                    End If
+                    Return Label.Ignored
 
                 Case Else
                     isLeaf = True
@@ -932,6 +939,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' VariableDeclaration, ModifiedIdentifier, and AsClause children.
                     ' But when comparing field definitions we should ignore VariableDeclaration children.
                     ignoreChildFunction = Function(childKind) HasLabel(childKind, ignoreVariableDeclarations:=True)
+
+                Case SyntaxKind.AttributesStatement
+                    ' Normally attributes and attribute lists are ignored, but for attribute statements
+                    ' we need to include them, so just assume they're labelled
+                    ignoreChildFunction = Function(childKind) True
 
                 Case Else
                     If HasChildren(left) Then

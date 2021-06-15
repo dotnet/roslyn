@@ -612,6 +612,11 @@
         <target state="translated">在 C# {1} 中，修饰符 "{0}" 对此项无效。请使用语言版本 "{2}" 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">对象创建无效</target>
@@ -1062,6 +1067,11 @@
         <target state="translated">弃元</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
+        <source>extended property patterns</source>
+        <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="new">global using directive</target>
@@ -1155,6 +1165,16 @@
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
         <target state="translated">析构中混用的声明和表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
