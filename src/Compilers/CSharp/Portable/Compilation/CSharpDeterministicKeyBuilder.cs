@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
-        protected override void AppendCompilationOptionsCore(CompilationOptions options)
+        protected override void WriteCompilationOptionsCore(CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
             {
                 throw new InvalidOperationException();
             }
 
-            base.AppendCompilationOptionsCore(options);
+            base.WriteCompilationOptionsCore(options);
 
             WriteBool("unsafe", csharpOptions.AllowUnsafe);
             WriteEnum("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void AppendParseOptionsCore(ParseOptions parseOptions)
+        protected override void WriteParseOptionsCore(ParseOptions parseOptions)
         {
             if (parseOptions is not CSharpParseOptions csharpOptions)
             {

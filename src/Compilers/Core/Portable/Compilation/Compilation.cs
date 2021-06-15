@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         internal string GetDeterministicKey()
         {
             var builder = CreateDetermisiticKeyBuilder();
-            builder.AppendCompilation(this);
+            builder.WriteCompilation(this);
             return builder.GetKey();
         }
 

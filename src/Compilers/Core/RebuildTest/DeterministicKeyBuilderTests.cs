@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 targetFramework: TargetFramework.NetCoreApp);
 
             var builder = new CSharpDeterministicKeyBuilder();
-            builder.AppendCompilation(compilation);
+            builder.WriteCompilation(compilation);
             var key = builder.GetKey();
             Assert.Equal("", key);
         }
