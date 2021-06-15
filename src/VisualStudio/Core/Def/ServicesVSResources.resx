@@ -1747,4 +1747,16 @@ I agree to all of the foregoing:</value>
   <data name="Overridden_members" xml:space="preserve">
     <value>Overridden members</value>
   </data>
+  <data name="Derived_types" xml:space="preserve">
+    <value>Derived types</value>
+  </data>
+  <data name="Implemented_interfaces" xml:space="preserve">
+    <value>Implemented interfaces</value>
+  </data>
+  <data name="Implementing_types" xml:space="preserve">
+    <value>Implementing types</value>
+  </data>
+  <data name="Inherited_interfaces" xml:space="preserve">
+    <value>Inherited interfaces</value>
+  </data>
 </root>
