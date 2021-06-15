@@ -2,22 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Newtonsoft;
+using Newtonsoft.Json.Linq;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed class DeterministicKeyBuilderTests
     {
+        private void AssertJson(
+            string expected,
+            string actual,
+            bool ignoreReferences = true)
+        {
+            var json = JObject.Parse(actual);
+            if (ignoreReferences)
+            {
+                json
+                    .Descendants()
+                    .OfType<JProperty>()
+                    .Where(x => x.Name == "references")
+                    .ToList()
+                    .ForEach(x => x.Remove());
+            }
+
+            actual = json.ToString(Formatting.Indented);
+            expected = JObject.Parse(expected).ToString(Formatting.Indented);
+            Assert.Equal(expected, actual);
+        }
+
         /// <summary>
         /// This check monitors the set of properties and fields on the various option types
         /// that contribute to the deterministic checksum of a <see cref="Compilation"/>. When
@@ -43,8 +63,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 var count = fields.Length + properties.Length;
                 Assert.Equal(expected, count);
             }
-
-
         }
 
         [Fact]
@@ -54,10 +72,44 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 @"System.Console.WriteLine(""Hello World"");",
                 targetFramework: TargetFramework.NetCoreApp);
 
-            var builder = new CSharpDeterministicKeyBuilder();
+            var builder = new CSharpDeterministicKeyBuilder(DeterministicKeyOptions.IgnoreToolVersions);
             builder.WriteCompilation(compilation);
             var key = builder.GetKey();
-            Assert.Equal("", key);
+            AssertJson(@"
+{
+  ""options"": {
+    ""outputKind"": ""ConsoleApplication"",
+    ""scriptClassName"": ""Script"",
+    ""cryptoPublicKey"": """",
+    ""publicSign"": false,
+    ""checkOverflow"": false,
+    ""platform"": ""AnyCpu"",
+    ""optimizationLevel"": ""Release"",
+    ""generalDiagnosticOption"": ""Default"",
+    ""warningLevel"": 9999,
+    ""deterministic"": false,
+    ""debugPlusMode"": false,
+    ""referencesSupersedeLowerVersions"": false,
+    ""reportSuppressedDiagnostics"": false,
+    ""nullableContextOptions"": ""Disable"",
+    ""unsafe"": false,
+    ""topLevelBinderFlags"": ""None""
+  },
+  ""syntaxTrees"": [
+    {
+      ""fileName"": """",
+      ""text"": {
+        ""checksum"": ""1b565cf6f2d814a4dc37ce578eda05fe0614f3d"",
+        ""checksumAlgorithm"": ""Sha1"",
+        ""encoding"": ""Unicode (UTF-8)""
+      },
+      ""parseOptions"": {
+        ""languageVersion"": ""CSharp9"",
+        ""specifiedLanguageVersion"": ""Default""
+      }
+    }
+  ]
+}", key, ignoreReferences: true);
         }
     }
 }

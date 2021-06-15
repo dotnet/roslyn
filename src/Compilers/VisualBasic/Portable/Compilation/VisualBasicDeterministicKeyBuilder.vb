@@ -7,6 +7,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class VisualBasicDeterministicKeyBuilder
         Inherits DeterministicKeyBuilder
 
+        Public Sub New(options As DeterministicKeyOptions)
+            MyBase.New(options)
+        End Sub
+
         Protected Overrides Sub WriteParseOptionsCore(parseOptions As ParseOptions)
             Dim basicOptions = TryCast(parseOptions, VisualBasicParseOptions)
             If basicOptions Is Nothing Then

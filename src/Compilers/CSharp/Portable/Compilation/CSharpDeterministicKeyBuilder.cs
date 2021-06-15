@@ -10,6 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
+        public CSharpDeterministicKeyBuilder(DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            : base(options)
+        {
+
+        }
+
         protected override void WriteCompilationOptionsCore(CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
