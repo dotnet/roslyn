@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
                 var count = checked((int)Length);
                 var builder = ImmutableArray.CreateBuilder<byte>(count);
 
-                int chunkIndex = 0;
+                var chunkIndex = 0;
                 while (count > 0)
                 {
                     var chunk = chunks[chunkIndex];
