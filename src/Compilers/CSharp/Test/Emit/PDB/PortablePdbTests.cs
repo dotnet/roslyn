@@ -698,7 +698,8 @@ class seven
             }
             i = 0;
             int[] testVals = new[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            foreach (var read in reader) { 
+            foreach (var read in reader)
+            {
                 while (read.RemainingBytes > 0)
                 {
 
@@ -1385,10 +1386,6 @@ public class Program
             Assert.Equal(1, docList.Count);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
         }
-
-
-
-
     }
 }
 
