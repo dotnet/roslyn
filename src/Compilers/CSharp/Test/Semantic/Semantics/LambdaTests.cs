@@ -4562,32 +4562,89 @@ class Program
         public void LambdaReturnType_09()
         {
             var source =
+@"#nullable enable
+struct S<T> { }
+delegate ref T D1<T>();
+delegate ref readonly T D2<T>();
+class Program
+{
+    static void Main()
+    {
+        D1<S<object?>> f1 = (ref S<object?> () => throw null!);
+        D1<S<object?>> f2 = (ref S<object> () => throw null!);
+        D1<S<object>> f3 = (ref S<object?> () => throw null!);
+        D1<S<object>> f4 = (ref S<object> () => throw null!);
+        D2<S<object?>> f5 = (ref readonly S<object?> () => throw null!);
+        D2<S<object?>> f6 = (ref readonly S<object> () => throw null!);
+        D2<S<object>> f7 = (ref readonly S<object?> () => throw null!);
+        D2<S<object>> f8 = (ref readonly S<object> () => throw null!);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object?>>' (possibly because of nullability attributes).
+                //         D1<S<object?>> f2 = (ref S<object> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object> () => throw null!").WithArguments("lambda expression", "D1<S<object?>>").WithLocation(10, 30),
+                // (11,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object>>' (possibly because of nullability attributes).
+                //         D1<S<object>> f3 = (ref S<object?> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object?> () => throw null!").WithArguments("lambda expression", "D1<S<object>>").WithLocation(11, 29),
+                // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object?>>' (possibly because of nullability attributes).
+                //         D2<S<object?>> f6 = (ref readonly S<object> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object> () => throw null!").WithArguments("lambda expression", "D2<S<object?>>").WithLocation(14, 30),
+                // (15,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object>>' (possibly because of nullability attributes).
+                //         D2<S<object>> f7 = (ref readonly S<object?> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object?> () => throw null!").WithArguments("lambda expression", "D2<S<object>>").WithLocation(15, 29));
+        }
+
+        [Fact]
+        public void LambdaReturnType_10()
+        {
+            var source =
 @"delegate T D1<T>(ref T t);
 delegate ref T D2<T>(ref T t);
+delegate ref readonly T D3<T>(ref T t);
 class Program
 {
     static void F<T>()
     {
         D1<T> d1;
         D2<T> d2;
+        D3<T> d3;
         d1 = T (ref T t) => t;
         d2 = T (ref T t) => t;
+        d3 = T (ref T t) => t;
         d1 = (ref T (ref T t) => ref t);
         d2 = (ref T (ref T t) => ref t);
+        d3 = (ref T (ref T t) => ref t);
+        d1 = (ref readonly T (ref T t) => ref t);
+        d2 = (ref readonly T (ref T t) => ref t);
+        d3 = (ref readonly T (ref T t) => ref t);
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,14): error CS8918: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                // (12,14): error CS8918: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
                 //         d2 = T (ref T t) => t;
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(10, 14),
-                // (11,15): error CS8918: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(12, 14),
+                // (13,14): error CS8918: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                //         d3 = T (ref T t) => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D3<T>").WithLocation(13, 14),
+                // (14,15): error CS8918: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
                 //         d1 = (ref T (ref T t) => ref t);
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(11, 15));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(14, 15),
+                // (16,15): error CS8918: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                //         d3 = (ref T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D3<T>").WithLocation(16, 15),
+                // (17,15): error CS8918: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                //         d1 = (ref readonly T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(17, 15),
+                // (18,15): error CS8918: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                //         d2 = (ref readonly T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D2<T>").WithLocation(18, 15));
         }
 
         [Fact]
-        public void LambdaReturnType_10()
+        public void LambdaReturnType_11()
         {
             var source =
 @"using System;
@@ -4610,7 +4667,7 @@ class Program
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        public void LambdaReturnType_11()
+        public void LambdaReturnType_12()
         {
             var source =
 @"using System;
@@ -4647,7 +4704,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_12()
+        public void LambdaReturnType_13()
         {
             var source =
 @"static class S { }
@@ -4667,7 +4724,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_13()
+        public void LambdaReturnType_14()
         {
             var source =
 @"using System;
@@ -4689,7 +4746,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_14()
+        public void LambdaReturnType_15()
         {
             var source =
 @"using System;
@@ -4717,7 +4774,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_15()
+        public void LambdaReturnType_16()
         {
             var source =
 @"using System;
