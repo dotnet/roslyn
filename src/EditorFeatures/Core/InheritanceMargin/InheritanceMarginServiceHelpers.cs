@@ -230,8 +230,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) =>
-                    CreateInheritanceItemAsync(solution,
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
                     InheritanceRelationship.ImplementingType,
                     cancellationToken), cancellationToken)
@@ -280,23 +279,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) =>
-                    symbol.IsInterfaceType()
-                        ? CreateInheritanceItemAsync(
-                            solution,
-                            symbol,
-                            InheritanceRelationship.ImplementedInterface, cancellationToken)
-                        : CreateInheritanceItemAsync(
-                            solution,
-                            symbol,
-                            InheritanceRelationship.BaseType, cancellationToken), cancellationToken)
-                .ConfigureAwait(false);
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbol,
+                    symbol.IsInterfaceType() ? InheritanceRelationship.ImplementedInterface : InheritanceRelationship.BaseType,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) =>
-                    CreateInheritanceItemAsync(solution,
+                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
                     InheritanceRelationship.DerivedType,
                     cancellationToken), cancellationToken)
@@ -349,9 +341,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 lineNumber,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                implementedMemberItems
-                    .Concat(overridenMemberItems)
-                    .Concat(overridingMemberItems));
+                implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
         }
 
         private static async ValueTask<SerializableInheritanceTargetItem> CreateInheritanceItemAsync(
