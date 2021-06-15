@@ -10003,8 +10003,8 @@ var adjusted = x with { Property = x.Property + 2 };
 System.Console.WriteLine(adjusted);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "{ Property = 44 }");
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ Property = 44 }");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(53849, "https://github.com/dotnet/roslyn/issues/53849")]
@@ -10018,8 +10018,8 @@ var adjusted = container with { Item = x with { Property = x.Property + 2 } };
 System.Console.WriteLine(adjusted);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "{ Item = { Property = 44 } }");
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ Item = { Property = 44 } }");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
