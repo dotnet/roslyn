@@ -2540,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateOrMethod = _useDelegateInvokeReturnType ? _delegateInvokeMethod : method;
+            var delegateOrMethod = _useDelegateInvokeReturnType ? _delegateInvokeMethod! : method;
             var returnType = delegateOrMethod.ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
