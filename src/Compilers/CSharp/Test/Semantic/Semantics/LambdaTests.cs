@@ -4392,6 +4392,33 @@ class Program
         {
             var source =
 @"using System;
+class Program
+{
+    static void F<T, U>() where U : T
+    {
+        Func<T> f1;
+        Func<U> f2;
+        f1 = T () => default;
+        f2 = T () => default;
+        f1 = U () => default;
+        f2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8918: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                //         f2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
+                // (10,14): error CS8918: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                //         f1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_04()
+        {
+            var source =
+@"using System;
 using System.Linq.Expressions;
 class Program
 {
@@ -4416,7 +4443,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_04()
+        public void LambdaReturnType_05()
         {
             var source =
 @"#nullable enable
@@ -4439,7 +4466,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_05()
+        public void LambdaReturnType_06()
         {
             var source =
 @"#nullable enable
@@ -4463,7 +4490,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_06()
+        public void LambdaReturnType_07()
         {
             var source =
 @"#nullable enable
@@ -4495,7 +4522,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_07()
+        public void LambdaReturnType_08()
         {
             var source =
 @"#nullable enable
@@ -4532,7 +4559,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_08()
+        public void LambdaReturnType_09()
         {
             var source =
 @"delegate T D1<T>(ref T t);
@@ -4560,7 +4587,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_09()
+        public void LambdaReturnType_10()
         {
             var source =
 @"using System;
@@ -4583,7 +4610,7 @@ class Program
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
-        public void LambdaReturnType_10()
+        public void LambdaReturnType_11()
         {
             var source =
 @"using System;
@@ -4620,7 +4647,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_11()
+        public void LambdaReturnType_12()
         {
             var source =
 @"static class S { }
@@ -4640,7 +4667,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_12()
+        public void LambdaReturnType_13()
         {
             var source =
 @"using System;
@@ -4662,7 +4689,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_13()
+        public void LambdaReturnType_14()
         {
             var source =
 @"using System;
@@ -4690,7 +4717,7 @@ class Program
         }
 
         [Fact]
-        public void LambdaReturnType_14()
+        public void LambdaReturnType_15()
         {
             var source =
 @"using System;
@@ -4858,6 +4885,78 @@ class Program
             CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
 @"A
 I");
+        }
+
+        [Fact]
+        public void BestType_03()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+class Program
+{
+    static void F<T>(Func<T> x, Func<T> y) { }
+    static void Main()
+    {
+        F(B2 () => null, B2 () => null);
+        F(A () => null, B2 () => null);
+        F(B1 () => null, B2 () => null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,25): error CS8918: Cannot convert lambda expression to type 'Func<A>' because the return type does not match the delegate return type
+                //         F(A () => null, B2 () => null);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "B2 () => null").WithArguments("lambda expression", "System.Func<A>").WithLocation(11, 25),
+                // (12,9): error CS0411: The type arguments for method 'Program.F<T>(Func<T>, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(B1 () => null, B2 () => null);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T>, System.Func<T>)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void TypeInference_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(Func<object, T> f)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    static void Main()
+    {
+        F(long (o) => 1);
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"System.Int64");
+        }
+
+        // Should method type inference make an explicit type inference
+        // from the lambda expression return type?
+        [Fact]
+        public void TypeInference_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(Func<T, T> f)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    static void Main()
+    {
+        F(int (i) => i);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'Program.F<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(int (i) => i);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T, T>)").WithLocation(10, 9));
         }
 
         // CS4031 is not reported for async lambda in [SecurityCritical] type.

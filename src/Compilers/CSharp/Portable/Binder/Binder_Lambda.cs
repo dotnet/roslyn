@@ -247,13 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
-            RefKind refKind = RefKind.None;
-            if (syntax is RefTypeSyntax refTypeSyntax)
-            {
-                refKind = RefKind.Ref;
-                syntax = refTypeSyntax.Type;
-            }
-
+            syntax = syntax.SkipRef(out RefKind refKind);
             var returnType = BindType(syntax, diagnostics);
             var type = returnType.Type;
 

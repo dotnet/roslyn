@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -1205,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
-                SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
+                SecurityWellKnownAttributeData? securityData = wellKnownData.SecurityInformation;
                 if (securityData != null)
                 {
                     return securityData.GetSecurityAttributes(attributesBag.Attributes);
