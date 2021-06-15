@@ -36,20 +36,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private const int MaxCompletionListSize = 1000;
 
-        /// <summary>
-        /// Semaphore to guard access to the <see cref="_lastIncompleteResultId"/>
-        /// While unlikely, since completion is a non-mutating request there is a possibility of concurrent requests from the client.
-        /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
-
-        /// <summary>
-        /// This is a pair of the source text with the completionListSpan removed to the resultId for an incomplete response.
-        /// When the client asks us for more items using <see cref="LSP.CompletionTriggerKind.TriggerForIncompleteCompletions"/>
-        /// we calculate the source text with the completionListSpan removed (no filter text).  If the source text
-        /// matches the value here, we can re-use the associated resultId to lookup the cached completion list.
-        /// </summary>
-        private (SourceText, long)? _lastIncompleteResultId = null;
-
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
@@ -428,97 +414,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
             var isTriggerForIncompleteCompletions = request.Context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
 
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            (CompletionList List, long ResultId)? result;
+            if (isTriggerForIncompleteCompletions)
             {
-                (CompletionList List, long ResultId)? result;
-                if (isTriggerForIncompleteCompletions)
-                {
-                    result = await GetCompletionListForIncompleteTriggerAsync(request, _lastIncompleteResultId, completionListSpan, document, sourceText, completionOptions, _completionListCache, completionService, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // This is a new completion request, clear out the last result Id for incomplete results.
-                    _lastIncompleteResultId = null;
-                    result = await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, _completionListCache, cancellationToken).ConfigureAwait(false);
-                }
-
-                if (result == null)
-                {
-                    return null;
-                }
-
-                var resultId = result.Value.ResultId;
-                var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListSpan, completionTrigger, sourceText, document);
-
-                // The list is incomplete, update our cached resultId so we can avoid recomputing the list for followup TriggerForIncompleteCompletions triggers.
-                // Even if the current filtered list is complete, the user may delete some filter text causing the client to re-query us for a previous incomplete response.
-                // So we avoid clearing the cached resultId until the client asks us for an entirely new completion list (handled above).
-                if (isIncomplete)
-                {
-                    // Store the source text as what it would be without the current completion list span.  This allows us to easily
-                    // ensure that the source texts match between an incomplete response and a new TriggerForIncompleteCompletion request.
-                    _lastIncompleteResultId = (sourceText.WithChanges(new TextChange(completionListSpan, string.Empty)), resultId);
-                }
-
-                return (completionList, isIncomplete, resultId);
-            }
-        }
-
-        private static async Task<(CompletionList CompletionList, long ResultId)?> GetCompletionListForIncompleteTriggerAsync(
-            LSP.CompletionParams request,
-            (SourceText, long)? lastResultId,
-            TextSpan completionListSpan,
-            Document document,
-            SourceText sourceText,
-            OptionSet completionOptions,
-            CompletionListCache completionListCache,
-            CompletionService completionService,
-            CancellationToken cancellationToken)
-        {
-            // Map back the current source text to what the source text would be without the current completion span.
-            // We use this for two purposes:
-            //   1.  Compare against the source text we stored with the incomplete resultId to ensure we're not using a stale cached list.
-            //   2.  If we do not have a cached list (or it didn't match), we can re-compute the list.
-            var textWithoutCompletionListSpan = sourceText.WithChanges(new TextChange(completionListSpan, string.Empty));
-
-            var cachedList = GetCachedList(lastResultId, textWithoutCompletionListSpan, completionListCache);
-            if (cachedList == null)
-            {
-                // We're missing the cached completion list for this incomplete request.
-                // We can re-compute what the list would have been had the user just started typing the word.
-                // We get this by creating a document that has the filter text removed.
-                var originalDocument = document.WithText(textWithoutCompletionListSpan);
                 // We don't have access to the original trigger, but we know the completion list is already present.
                 // It is safe to recompute with the invoked trigger as we will get all the items and filter down based on the current trigger.
                 var originalTrigger = new CompletionTrigger(CompletionTriggerKind.Invoke);
-                return await CalculateListAsync(request, originalDocument, completionListSpan.Start, originalTrigger, completionOptions, completionService, completionListCache, cancellationToken).ConfigureAwait(false);
+                result = await CalculateListAsync(request, document, position, originalTrigger, completionOptions, completionService, _completionListCache, cancellationToken).ConfigureAwait(false);
             }
-
-            return cachedList;
-
-            static (CompletionList, long)? GetCachedList(
-                (SourceText SourceText, long ResultId)? lastResultId,
-                SourceText textWithoutCompletionListSpan,
-                CompletionListCache completionListCache)
+            else
             {
-                if (!lastResultId.HasValue)
-                {
-                    return null;
-                }
-
-                if (!textWithoutCompletionListSpan.ContentEquals(lastResultId.Value.SourceText))
-                {
-                    return null;
-                }
-
-                var cachedList = completionListCache.GetCachedCompletionList(lastResultId.Value.ResultId);
-                if (cachedList == null)
-                {
-                    return null;
-                }
-
-                return (cachedList.CompletionList, lastResultId.Value.ResultId);
+                // This is a new completion request, clear out the last result Id for incomplete results.
+                result = await CalculateListAsync(request, document, position, completionTrigger, completionOptions, completionService, _completionListCache, cancellationToken).ConfigureAwait(false);
             }
+
+            if (result == null)
+            {
+                return null;
+            }
+
+            var resultId = result.Value.ResultId;
+            var (completionList, isIncomplete) = FilterCompletionList(result.Value.List, completionListSpan, completionTrigger, sourceText, document);
+
+            return (completionList, isIncomplete, resultId);
         }
 
         private static async Task<(CompletionList CompletionList, long ResultId)?> CalculateListAsync(
