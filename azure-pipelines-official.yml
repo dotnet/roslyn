@@ -18,20 +18,18 @@ variables:
     value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
 
-  # If the pipeline is running in dnceng:
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
-  - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-    - group: DotNet-Blob-Feed
-    - group: DotNet-Symbol-Server-Pats
-    - group: DotNet-Versions-Publish
-    - group: DotNet-VSTS-Infra-Access
-    - group: DotNet-DevDiv-Insertion-Workflow-Variables
-    - name: _DevDivDropAccessToken
-      value: $(dn-bot-devdiv-drop-rw-code-rw)
+  - group: DotNet-Blob-Feed
+  - group: DotNet-Symbol-Server-Pats
+  - group: DotNet-Versions-Publish
+  - group: DotNet-VSTS-Infra-Access
+  - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - name: _DevDivDropAccessToken
+    value: $(dn-bot-devdiv-drop-rw-code-rw)
 
 stages:
 - stage: build
@@ -47,11 +45,9 @@ stages:
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
-    # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        name: NetCoreInternal-Pool
-        queue: BuildPool.Server.Amd64.VS2017
+      name: NetCoreInternal-Pool
+      queue: BuildPool.Server.Amd64.VS2017
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -77,8 +73,7 @@ stages:
       displayName: Merge main-vs-deps into source branch
       inputs:
         filePath: 'scripts\merge-vs-deps.ps1'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+        arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
@@ -91,8 +86,7 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -116,9 +110,7 @@ stages:
       inputs:
         signType: $(SignType)
         zipSources: false
-        # If running in dnceng, we need to use a feed different from default
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
+        feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
       condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
 
     - task: PowerShell@2
@@ -227,9 +219,8 @@ stages:
         command: push
         packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
         allowPackageConflicts: true
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          nuGetFeedType: external
-          publishFeedCredentials: 'DevDiv - VS package feed'
+        nuGetFeedType: external
+        publishFeedCredentials: 'DevDiv - VS package feed'
       condition: succeeded()
 
     # Publish an artifact that the RoslynInsertionTool is able to find by its name.
@@ -267,9 +258,8 @@ stages:
       publishUsingPipelines: true
       dependsOn:
         - OfficialBuild
-      ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-        pool:
-          vmImage: vs2017-win2016
+      pool:
+        vmImage: vs2017-win2016
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
