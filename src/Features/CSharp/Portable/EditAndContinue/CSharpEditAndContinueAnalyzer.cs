@@ -2600,7 +2600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         case SyntaxKind.AwaitExpression:
                             // If we found an await expression, there must be one in the other root
                             // or it would mean a change of return type from non-Task to Task (or vice versa)
-                            if (!otherCompilationUnit.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).OfType<AwaitExpressionSyntax>().Any())
+                            if (!otherCompilationUnit.DescendantNodesAndSelf(IsNotLambdaOrDeclaration).OfType<AwaitExpressionSyntax>().Any())
                             {
                                 ReportError(RudeEditKind.TypeUpdate, newNode, newNode ?? oldNode);
                                 return;
@@ -2611,7 +2611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             // if we found a return statement with a non-null expression, there must be one in the other root
                             // or it would mean a change of return type from void or Task to int or Task<int> (or vice versa)
                             var returnExpression = (ReturnStatementSyntax)node;
-                            if (!otherCompilationUnit.DescendantNodesAndSelf(LambdaUtilities.IsNotLambda).OfType<ReturnStatementSyntax>().Where(r => (r.Expression == null) == (returnExpression.Expression == null)).Any())
+                            if (!otherCompilationUnit.DescendantNodesAndSelf(IsNotLambdaOrDeclaration).OfType<ReturnStatementSyntax>().Where(r => (r.Expression == null) == (returnExpression.Expression == null)).Any())
                             {
                                 ReportError(RudeEditKind.TypeUpdate, newNode, newNode ?? oldNode);
                                 return;
@@ -2619,6 +2619,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             break;
                     }
                 }
+
+                // There could be namespace or type declarations after the global statements and we don't care about what is in those
+                bool IsNotLambdaOrDeclaration(SyntaxNode node)
+                    => node is not MemberDeclarationSyntax && LambdaUtilities.IsNotLambda(node);
             }
 
             private void ClassifyUpdate(NamespaceDeclarationSyntax oldNode, NamespaceDeclarationSyntax newNode)

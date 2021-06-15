@@ -13637,6 +13637,43 @@ int Goo()
         }
 
         [Fact]
+        public void TopLevelStatements_IntToVoid4()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+public class C
+{
+    public int Goo()
+    {
+        return 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+
+public class C
+{
+    public int Goo()
+    {
+        return 1;
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
         public void TopLevelStatements_TaskToVoid()
         {
             var src1 = @"
@@ -13749,6 +13786,8 @@ Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
 Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
 Console.WriteLine(1);
+
+public class C { }
 ";
             var src2 = @"
 using System;
@@ -13757,6 +13796,8 @@ Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
 Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
 Console.WriteLine(2);
+
+public class C { }
 ";
             var edits = GetTopEdits(src1, src2);
             var syntaxMap = GetSyntaxMap(src1, src2);
@@ -13776,12 +13817,16 @@ Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
 Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
 
 Console.WriteLine(1);
+
+public class C { }
 ";
             var src2 = @"
 using System;
 
 Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
 Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+public class C { }
 ";
             var edits = GetTopEdits(src1, src2);
             var syntaxMap = GetSyntaxMap(src1, src2);
@@ -13799,12 +13844,16 @@ using System;
 
 Console.WriteLine(1);
 Console.WriteLine(2);
+
+public class C { }
 ";
             var src2 = @"
 using System;
 
 Console.WriteLine(3);
 Console.WriteLine(4);
+
+public class C { }
 ";
             var edits = GetTopEdits(src1, src2);
 
