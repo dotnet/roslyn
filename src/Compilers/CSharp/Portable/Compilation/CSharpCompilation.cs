@@ -4079,7 +4079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override DeterministicKeyBuilder CreateDetermisiticKeyBuilder() => new CSharpDeterministicKeyBuilder();
+        internal override DeterministicKeyBuilder CreateDetermisiticKeyBuilder() => new CSharpDeterministicKeyBuilder(DeterministicKeyOptions.Default);
 
         private ImmutableArray<string> GetPreprocessorSymbols()
         {

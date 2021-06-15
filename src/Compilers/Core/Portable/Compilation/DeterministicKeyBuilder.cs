@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -38,11 +40,13 @@ namespace Microsoft.CodeAnalysis
         internal StringBuilder Builder { get; } = new StringBuilder();
         internal StringWriter StringWriter { get; }
         internal JsonWriter Writer { get; }
+        internal DeterministicKeyOptions Options { get; }
 
-        public DeterministicKeyBuilder()
+        public DeterministicKeyBuilder(DeterministicKeyOptions options)
         {
             StringWriter = new StringWriter(Builder);
             Writer = new JsonWriter(StringWriter);
+            Options = options;
         }
 
         internal string GetKey() => Builder.ToString();
@@ -75,6 +79,16 @@ namespace Microsoft.CodeAnalysis
             {
                 Writer.Write(name, value);
             }
+        }
+
+        protected void WriteFileName(string name, string? filePath)
+        {
+            if (0 != (Options & DeterministicKeyOptions.IgnorePaths))
+            {
+                filePath = Path.GetFileName(filePath);
+            }
+
+            WriteString(name, filePath);
         }
 
         protected void WriteByteArray(string name, ImmutableArray<byte> value)
@@ -118,7 +132,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var additionalText in additionalTexts)
                 {
                     Writer.WriteObjectStart();
-                    WriteString("fileName", additionalText.Path);
+                    WriteFileName("fileName", additionalText.Path);
                     Writer.WriteKey("text");
                     WriteSourceText(additionalText.GetText());
                     Writer.WriteObjectEnd();
@@ -150,6 +164,8 @@ namespace Microsoft.CodeAnalysis
             {
                 Writer.WriteObjectStart();
                 WriteString("fullName", type.FullName);
+                // Note that the file path to the assembly is deliberately not included here. The file path
+                // of the assembly does not contribute to the output of the program.
                 WriteString("assemblyName", type.Assembly.FullName);
                 Writer.WriteObjectEnd();
             }
@@ -158,8 +174,15 @@ namespace Microsoft.CodeAnalysis
         private void WriteCompilationCore(Compilation compilation)
         {
             Writer.WriteObjectStart();
+            if (0 == (Options & DeterministicKeyOptions.IgnoreToolVersions))
+            {
+                Writer.WriteKey("toolsVersions");
+                writeToolsVersions();
+            }
+
             Writer.WriteKey("options");
             WriteCompilationOptions(compilation.Options);
+
             Writer.WriteKey("syntaxTrees");
             Writer.WriteArrayStart();
             foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -176,12 +199,28 @@ namespace Microsoft.CodeAnalysis
             }
             Writer.WriteArrayEnd();
             Writer.WriteObjectEnd();
+
+            void writeToolsVersions()
+            {
+                Writer.WriteObjectStart();
+
+                var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                WriteString("compilerVersion", compilerVersion);
+
+                var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                WriteString("runtimeVersion", runtimeVersion);
+
+                WriteString("framework", RuntimeInformation.FrameworkDescription);
+                WriteString("os", RuntimeInformation.OSDescription);
+
+                Writer.WriteObjectEnd();
+            }
         }
 
         internal void WriteSyntaxTree(SyntaxTree syntaxTree)
         {
             Writer.WriteObjectStart();
-            WriteString("fileName", Path.GetFileName(syntaxTree.FilePath));
+            WriteFileName("fileName", syntaxTree.FilePath);
             Writer.WriteKey("text");
             WriteSourceText(syntaxTree.GetText());
             Writer.WriteKey("parseOptions");
@@ -199,7 +238,7 @@ namespace Microsoft.CodeAnalysis
             Writer.WriteObjectStart();
             WriteByteArray("checksum", sourceText.GetChecksum());
             WriteEnum("checksumAlgorithm", sourceText.ChecksumAlgorithm);
-            WriteString("encoding", sourceText.Encoding?.ToString());
+            WriteString("encoding", sourceText.Encoding?.EncodingName);
             Writer.WriteObjectEnd();
         }
 
@@ -235,8 +274,10 @@ namespace Microsoft.CodeAnalysis
                     throw new InvalidOperationException();
                 }
 
-                WriteString("name", Path.GetFileName(peReference.FilePath));
-                WriteString("mvid", mvid.ToString());
+                // The path of a reference, unlike the path of a file, does not contribute to the output
+                // of the copmilation. Only the MVID, name and version contribute here hence the file path
+                // is deliberately omitted here.
+                WriteString("name", peReference.Display);
                 Writer.WriteKey("properties");
                 WriteMetadataReferenceProperties(reference.Properties);
             }
