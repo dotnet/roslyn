@@ -33,22 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> ReferenceHighlighting = new(nameof(FeatureOnOffOptions), nameof(ReferenceHighlighting), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.EnableHighlightReferences" : "TextEditor.%LANGUAGE%.Specific.Reference Highlighting"));
 
-        public static readonly PerLanguageOption2<bool> FormatOnPaste = new(nameof(FeatureOnOffOptions), nameof(FormatOnPaste), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new(nameof(FeatureOnOffOptions), nameof(AutoInsertBlockCommentStartString), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String"));
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
-
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
-
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
 
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(nameof(FeatureOnOffOptions), nameof(RenameTrackingPreview), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
@@ -117,11 +106,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.Outlining,
             FeatureOnOffOptions.KeywordHighlighting,
             FeatureOnOffOptions.ReferenceHighlighting,
-            FeatureOnOffOptions.FormatOnPaste,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
-            FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,

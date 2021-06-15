@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages
 {
-    [ExportLanguageService(typeof(IFindUsagesServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IFindUsagesService), LanguageNames.CSharp), Shared]
     internal class CSharpFindUsagesService : AbstractFindUsagesService
     {
         [ImportingConstructor]

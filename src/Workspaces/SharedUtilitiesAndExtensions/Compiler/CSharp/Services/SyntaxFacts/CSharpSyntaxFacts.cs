@@ -711,8 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsElementAccessExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ElementAccessExpression;
+        public bool IsElementAccessExpression(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
@@ -727,8 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedExpression.CloseParenToken;
         }
 
-        public bool IsIndexerMemberCRef(SyntaxNode node)
-            => node.Kind() == SyntaxKind.IndexerMemberCref;
+        public bool IsIndexerMemberCRef(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.IndexerMemberCref);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
@@ -1274,6 +1274,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
+        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+            => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
+
+        public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => ((ObjectCreationExpressionSyntax)objectCreationExpression)!.ArgumentList;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1407,6 +1413,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
+            => ((ParameterSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
+            => ((IdentifierNameSyntax)node).Identifier;
 
         public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);

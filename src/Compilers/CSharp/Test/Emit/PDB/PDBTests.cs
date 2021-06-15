@@ -4280,6 +4280,64 @@ public class C
 ", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
+        [Fact]
+        public void SwitchExpressionWithPattern()
+        {
+            string source = WithWindowsLineBreaks(@"
+class C
+{
+    static string M(object o)
+    {
+        return o switch
+        {
+            int i => $""Number: {i}"",
+            _ => ""Don't know""
+        };
+    }
+}
+");
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            c.VerifyPdb("C.M",
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""55"" />
+          <slot kind=""temp"" />
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x4"" startLine=""6"" startColumn=""18"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x5"" hidden=""true"" document=""1"" />
+        <entry offset=""0x14"" hidden=""true"" document=""1"" />
+        <entry offset=""0x16"" hidden=""true"" document=""1"" />
+        <entry offset=""0x18"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x2b"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x33"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x37"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x3d"">
+        <scope startOffset=""0x16"" endOffset=""0x2b"">
+          <local name=""i"" il_index=""0"" il_start=""0x16"" il_end=""0x2b"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
         #endregion
 
         #region DoStatement

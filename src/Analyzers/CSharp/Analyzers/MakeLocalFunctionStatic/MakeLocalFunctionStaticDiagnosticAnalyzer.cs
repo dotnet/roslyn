@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class MakeLocalFunctionStaticDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public MakeLocalFunctionStaticDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.MakeLocalFunctionStaticDiagnosticId,
@@ -29,7 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
+            => context.RegisterCompilationStartAction(context =>
+            {
+                // All trees are expected to have the same language version. So make the check only once in compilation start .
+                if (context.Compilation.SyntaxTrees.FirstOrDefault() is SyntaxTree tree && MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(tree))
+                {
+                    context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
+                }
+            });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
@@ -40,11 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             var syntaxTree = context.Node.SyntaxTree;
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree))
-            {
-                return;
-            }
-
             var cancellationToken = context.CancellationToken;
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, syntaxTree, cancellationToken);
             if (!option.Value)
