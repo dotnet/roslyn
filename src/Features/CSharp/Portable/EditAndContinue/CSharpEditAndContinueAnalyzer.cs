@@ -1238,13 +1238,33 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter, SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (editKind == EditKind.Update)
+            {
+                if (node.IsKind(SyntaxKind.Parameter))
+                {
+                    // If this is a parameter of a delegate, the symbol will be the Invoke method, but we need to go back up to the delegate itself
+                    // so the analysis can see the attributes
+                    var parameterSymbol = model.GetRequiredDeclaredSymbol(node, cancellationToken);
+                    if (parameterSymbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } invokeMethodSymbol)
+                    {
+                        parameterSymbol = invokeMethodSymbol.ContainingSymbol;
+                    }
+                    return parameterSymbol;
+                }
+
+                if (node is FieldDeclarationSyntax field)
+                {
+                    // If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable declaration
+                    // Fortunately attributes are shared across all of them, so we don't need to be too fancy
+                    return model.GetDeclaredSymbol(field.Declaration.Variables.First(), cancellationToken);
+                }
+            }
+            else if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
             {
                 return null;
             }
 
-            // Enum declaration update that removes/adds a trailing comma.
-            if (editKind == EditKind.Update && node.IsKind(SyntaxKind.EnumDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
             {
                 return null;
             }
@@ -1337,11 +1357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
+            EditAndContinueCapabilities capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
-            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, diagnostics, out hasErrors, cancellationToken);
+            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, capabilities, diagnostics, out hasErrors, cancellationToken);
 
             if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
             {
@@ -2283,9 +2304,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
+                        ReportError(RudeEditKind.Insert);
+                        return;
+
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
-                        ReportError(RudeEditKind.Insert);
+                        // To allow inserting of attributes we need to check if the inserted attribute
+                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a module/assembly attribute
+                        if (node.IsParentKind(SyntaxKind.CompilationUnit) || node.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Insert);
+                        }
                         return;
                 }
 
@@ -2368,10 +2400,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.AttributeList:
                     case SyntaxKind.Attribute:
-                        // To allow removal of attributes we would need to check if the removed attribute
-                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
-                        // that affects the generated IL.
-                        ReportError(RudeEditKind.Delete);
+                        // To allow removal of attributes we need to check if the removed attribute
+                        // is a pseudo-custom attribute that CLR does not allow us to change, or if it is a compiler well-know attribute
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a module/assembly attribute
+                        if (oldNode.IsParentKind(SyntaxKind.CompilationUnit) || oldNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Delete);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2518,9 +2555,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.Attribute:
-                        // Dev12 reports "Rename" if the attribute type name is changed. 
-                        // But such update is actually not renaming the attribute, it's changing what attribute is applied.
-                        ReportError(RudeEditKind.Update);
+                        // To allow update of attributes we need to check if the updated attribute
+                        // is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
+                        // that affects the generated IL, so we defer those checks until semantic analysis.
+
+                        // Unless the attribute is a module/assembly attribute
+                        if (newNode.IsParentKind(SyntaxKind.CompilationUnit) || newNode.Parent.IsParentKind(SyntaxKind.CompilationUnit))
+                        {
+                            ReportError(RudeEditKind.Update);
+                        }
                         return;
 
                     case SyntaxKind.TypeParameterList:
@@ -2798,8 +2841,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.EqualsValue, newNode.EqualsValue));
-                ReportError(RudeEditKind.InitializerUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.EqualsValue, newNode.EqualsValue))
+                {
+                    ReportError(RudeEditKind.InitializerUpdate);
+                    return;
+                }
+
+                // Attributes are processed during semantic analysis
             }
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
@@ -2926,8 +2974,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword));
-                ReportError(RudeEditKind.VarianceUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
+                {
+                    ReportError(RudeEditKind.VarianceUpdate);
+                    return;
+                }
+
+                // attribute changes are handled by semantics
             }
 
             private void ClassifyUpdate(TypeParameterConstraintClauseSyntax oldNode, TypeParameterConstraintClauseSyntax newNode)
@@ -2962,8 +3015,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default));
-                ReportError(RudeEditKind.InitializerUpdate);
+                if (!SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default))
+                {
+                    ReportError(RudeEditKind.InitializerUpdate);
+                    return;
+                }
+
+                // Attribute changes handled in semantics
             }
 
             private void ClassifyUpdate(AttributeListSyntax oldNode, AttributeListSyntax newNode)
