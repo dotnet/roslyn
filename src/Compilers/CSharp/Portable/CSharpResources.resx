@@ -6325,6 +6325,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
   </data>
+  <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' have signature differences.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
+    <value>Partial method declarations have signature differences.</value>
+  </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
   </data>
@@ -6633,6 +6639,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
+  </data>
+  <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
+    <value>Identifier or a simple member access expected.</value>
+  </data>
+  <data name="IDS_FeatureExtendedPropertyPatterns" xml:space="preserve">
+    <value>extended property patterns</value>
   </data>
   <data name="IDS_FeatureGlobalUsing" xml:space="preserve">
     <value>global using directive</value>

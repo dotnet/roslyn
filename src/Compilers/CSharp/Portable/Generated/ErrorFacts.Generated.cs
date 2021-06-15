@@ -249,6 +249,7 @@
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
