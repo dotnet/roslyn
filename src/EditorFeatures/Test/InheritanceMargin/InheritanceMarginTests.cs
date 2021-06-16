@@ -1055,7 +1055,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class Class1",
                         locationTag: "target1",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingType)));
 
             var itemForM1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 4,
@@ -1063,7 +1063,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "static void Class1.M1()",
                         locationTag: "target2",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingMember)));
 
             var itemForAbsClass1 = new TestInheritanceMemberItem(
                 lineNumber: 11,
@@ -1071,7 +1071,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "interface I1<T>",
                         locationTag: "target5",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedInterface)));
 
             var itemForM1InClass1 = new TestInheritanceMemberItem(
                 lineNumber: 13,
@@ -1079,7 +1079,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "void I1<T>.M1()",
                         locationTag: "target4",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedMember)));
 
             var itemForP1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 5,
@@ -1087,7 +1087,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "static int Class1.P1 { get; set; }",
                         locationTag: "target6",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingMember)));
 
             var itemForP1InClass1 = new TestInheritanceMemberItem(
                 lineNumber: 14,
@@ -1095,7 +1095,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "int I1<T>.P1 { get; set; }",
                         locationTag: "target7",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedMember)));
 
             var itemForE1InI1 = new TestInheritanceMemberItem(
                 lineNumber: 6,
@@ -1103,7 +1103,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "static event EventHandler Class1.e1",
                         locationTag: "target8",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingMember)));
 
             var itemForE1InClass1 = new TestInheritanceMemberItem(
                 lineNumber: 15,
@@ -1111,7 +1111,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "event EventHandler I1<T>.e1",
                         locationTag: "target9",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedMember)));
 
             var itemForPlusOperatorInI1 = new TestInheritanceMemberItem(
                 lineNumber: 7,
@@ -1119,7 +1119,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "static int Class1.operator +(Class1)",
                         locationTag: "target10",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingMember)));
 
             var itemForPlusOperatorInClass1 = new TestInheritanceMemberItem(
                 lineNumber: 16,
@@ -1127,7 +1127,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "int I1<T>.operator +(T)",
                         locationTag: "target11",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedMember)));
 
             var itemForIntOperatorInI1 = new TestInheritanceMemberItem(
                 lineNumber: 8,
@@ -1135,7 +1135,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "static Class1.implicit operator int(Class1)",
                         locationTag: "target13",
-                        relationship: InheritanceRelationship.Implemented)));
+                        relationship: InheritanceRelationship.ImplementingMember)));
 
             var itemForIntOperatorInClass1 = new TestInheritanceMemberItem(
                 lineNumber: 17,
@@ -1143,7 +1143,7 @@ public class {|target1:Class1|} : I1<Class1>
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "I1<T>.implicit operator int(T)",
                         locationTag: "target12",
-                        relationship: InheritanceRelationship.Implementing)));
+                        relationship: InheritanceRelationship.ImplementedMember)));
 
             return VerifyInSingleDocumentAsync(
                 markup,
