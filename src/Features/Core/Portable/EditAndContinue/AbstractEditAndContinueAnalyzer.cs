@@ -2898,6 +2898,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             processedSymbols.Remove(newSymbol);
                                         }
 
+                                        // Need to check for attribute rude edits for fields and properties
+                                        AnalyzeCustomAttributes(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+
                                         DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
 
                                         // Don't add a separate semantic edit.
@@ -2916,6 +2919,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         if (editKind == SemanticEditKind.Update)
                         {
+                            AnalyzeCustomAttributes(oldSymbol, newSymbol, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+
                             // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                             // which does not have impact on the emitted type metadata.
                             if (newSymbol is INamedTypeSymbol)
@@ -2923,23 +2928,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
-                            // The field/property itself is being updated. Currently we do not allow any modifiers or attributes to be updated.
+                            // The field/property itself is being updated. Currently we do not allow any modifiers to be updated. Attribute
+                            // updates will have been handled already
                             if (newSymbol is IFieldSymbol or IPropertySymbol)
                             {
                                 continue;
                             }
 
-#if TODO_ACCESSORS
-                            // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
-                            // so the only case when this happens is in C# for a property/indexer that has an expression body.
-                            // The symbol that's actually being updated is the getter.
-                            // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/52300
-                            if (newSymbol is IPropertySymbol { GetMethod: var propertyGetter and not null })
+                            // The only updates allowed for a parameter or type parameter is an attribute change, but we only need the edit
+                            // for the containing symbol which will be handled elsewhere.
+                            if (newSymbol is IParameterSymbol or ITypeParameterSymbol)
                             {
-                                newSymbol = propertyGetter;
-                                lazySymbolKey = null;
+                                continue;
                             }
-#endif
                         }
 
                         lazySymbolKey ??= SymbolKey.Create(newSymbol, cancellationToken);
@@ -3058,6 +3059,197 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : oldNode,
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
+            }
+        }
+
+        private void AnalyzeCustomAttributes(ISymbol? oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics, ArrayBuilder<SemanticEditInfo>? semanticEdits, Func<SyntaxNode, SyntaxNode?>? syntaxMap, CancellationToken cancellationToken)
+        {
+            var needsEdit = false;
+
+            if (newSymbol is IMethodSymbol newMethod)
+            {
+                if (oldSymbol is not IMethodSymbol oldMethod)
+                {
+                    return;
+                }
+
+                needsEdit |= HasCustomAttributeChanges(oldMethod.GetReturnTypeAttributes(), newMethod.GetReturnTypeAttributes(), newMethod, capabilities, diagnostics);
+            }
+            else if (newSymbol is INamedTypeSymbol { DelegateInvokeMethod: not null } newType)
+            {
+                var oldType = oldSymbol as INamedTypeSymbol;
+                // If this is a delegate with attributes on its return type for example, they are found on the DelegateInvokeMethod
+                AnalyzeCustomAttributes(oldType?.DelegateInvokeMethod, newType.DelegateInvokeMethod, capabilities, diagnostics, semanticEdits, syntaxMap, cancellationToken);
+            }
+
+            foreach (var parameter in newSymbol.GetParameters())
+            {
+                var oldParameter = oldSymbol?.GetParameters().FirstOrDefault(p => p.Name.Equals(parameter.Name));
+                needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), parameter.GetAttributes(), parameter, capabilities, diagnostics);
+            }
+
+            foreach (var typeParam in newSymbol.GetTypeParameters())
+            {
+                var oldParameter = oldSymbol?.GetTypeParameters().FirstOrDefault(p => p.Name.Equals(typeParam.Name));
+                needsEdit |= HasCustomAttributeChanges(oldParameter?.GetAttributes(), typeParam.GetAttributes(), typeParam, capabilities, diagnostics);
+            }
+
+            // This is the only case we care about whether to issue an edit or not, because this is the only case where types have their attributes checked
+            // and types are the only things that would otherwise not have edits reported.
+            needsEdit |= HasCustomAttributeChanges(oldSymbol?.GetAttributes(), newSymbol.GetAttributes(), newSymbol, capabilities, diagnostics);
+
+            // If we don't need to add an edit, then we're done
+            if (!needsEdit || semanticEdits is null)
+            {
+                return;
+            }
+
+            // Most symbol types will automatically have an edit added, so we just need to handle a few
+            if (newSymbol is INamedTypeSymbol or IFieldSymbol or IPropertySymbol)
+            {
+                var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
+            }
+            else if (newSymbol is ITypeParameterSymbol or IMethodSymbol { MethodKind: MethodKind.DelegateInvoke })
+            {
+                var symbolKey = SymbolKey.Create(newSymbol.ContainingSymbol, cancellationToken);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
+            }
+        }
+
+        private bool HasCustomAttributeChanges(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ISymbol newSymbol, EditAndContinueCapabilities capabilities, ArrayBuilder<RudeEditDiagnostic> diagnostics)
+        {
+            using var _ = ArrayBuilder<AttributeData>.GetInstance(out var changedAttributes);
+
+            FindChangedAttributes(oldAttributes, newAttributes, changedAttributes);
+            if (oldAttributes.HasValue)
+            {
+                FindChangedAttributes(newAttributes, oldAttributes.Value, changedAttributes);
+            }
+
+            if (changedAttributes.Count == 0)
+            {
+                return false;
+            }
+
+            // We need diagnostics reported if the runtime doesn't support changing attributes,
+            // but even if it does, only attributes stored in the CustomAttributes table are editable
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes) ||
+                changedAttributes.Any(IsNonCustomAttribute))
+            {
+                var newNode = FindSyntaxNode(newSymbol);
+                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, GetDiagnosticSpan(newNode, EditKind.Update), newNode, new[] { GetDisplayName(newNode, EditKind.Update) }));
+
+                // If the runtime doesn't support edits then pretend there weren't changes, so no edits are produced
+                return false;
+            }
+
+            return true;
+
+            static void FindChangedAttributes(ImmutableArray<AttributeData>? oldAttributes, ImmutableArray<AttributeData> newAttributes, ArrayBuilder<AttributeData> changedAttributes)
+            {
+                for (var i = 0; i < newAttributes.Length; i++)
+                {
+                    var newAttribute = newAttributes[i];
+                    var oldAttribute = FindMatch(newAttribute, oldAttributes);
+
+                    if (oldAttribute is null)
+                    {
+                        changedAttributes.Add(newAttribute);
+                    }
+                }
+            }
+
+            static AttributeData? FindMatch(AttributeData attribute, ImmutableArray<AttributeData>? oldAttributes)
+            {
+                if (!oldAttributes.HasValue)
+                {
+                    return null;
+                }
+
+                foreach (var match in oldAttributes.Value)
+                {
+                    if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeClass, attribute.AttributeClass))
+                    {
+                        if (SymbolEquivalenceComparer.Instance.Equals(match.AttributeConstructor, attribute.AttributeConstructor) &&
+                            match.ConstructorArguments.SequenceEqual(attribute.ConstructorArguments, TypedConstantComparer.Instance) &&
+                            match.NamedArguments.SequenceEqual(attribute.NamedArguments, NamedArgumentComparer.Instance))
+                        {
+                            return match;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            static SyntaxNode FindSyntaxNode(ISymbol symbol)
+            {
+                // In VB parameters of delegates don't have declaring syntax references so we have to go all the way up to the delegate
+                // See: https://github.com/dotnet/roslyn/issues/53337
+                if (symbol.DeclaringSyntaxReferences.Length == 0)
+                {
+                    return FindSyntaxNode(symbol.ContainingSymbol);
+                }
+
+                return symbol.DeclaringSyntaxReferences.First().GetSyntax();
+            }
+
+            static bool IsNonCustomAttribute(AttributeData attribute)
+            {
+                // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
+
+                // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
+                // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
+                return attribute.AttributeClass?.ToNameDisplayString() switch
+                {
+                    "System.CLSCompliantAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.AllowNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.DisallowNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.MaybeNullAttribute" => true,
+                    "System.Diagnostics.CodeAnalysis.NotNullAttribute" => true,
+                    "System.NonSerializedAttribute" => true,
+                    "System.Reflection.AssemblyAlgorithmIdAttribute" => true,
+                    "System.Reflection.AssemblyCultureAttribute" => true,
+                    "System.Reflection.AssemblyFlagsAttribute" => true,
+                    "System.Reflection.AssemblyVersionAttribute" => true,
+                    "System.Runtime.CompilerServices.DllImportAttribute" => true,       // Already covered by other rude edits, but included for completeness
+                    "System.Runtime.CompilerServices.IndexerNameAttribute" => true,
+                    "System.Runtime.CompilerServices.MethodImplAttribute" => true,
+                    "System.Runtime.CompilerServices.SpecialNameAttribute" => true,
+                    "System.Runtime.CompilerServices.TypeForwardedToAttribute" => true,
+                    "System.Runtime.InteropServices.ComImportAttribute" => true,
+                    "System.Runtime.InteropServices.DefaultParameterValueAttribute" => true,
+                    "System.Runtime.InteropServices.FieldOffsetAttribute" => true,
+                    "System.Runtime.InteropServices.InAttribute" => true,
+                    "System.Runtime.InteropServices.MarshalAsAttribute" => true,
+                    "System.Runtime.InteropServices.OptionalAttribute" => true,
+                    "System.Runtime.InteropServices.OutAttribute" => true,
+                    "System.Runtime.InteropServices.PreserveSigAttribute" => true,
+                    "System.Runtime.InteropServices.StructLayoutAttribute" => true,
+                    "System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute" => true,
+                    "System.Security.DynamicSecurityMethodAttribute" => true,
+                    "System.SerializableAttribute" => true,
+                    not null => IsSecurityAttribute(attribute.AttributeClass),
+                    _ => false
+                };
+            }
+
+            static bool IsSecurityAttribute(INamedTypeSymbol namedTypeSymbol)
+            {
+                // Security attributes are any attribute derived from System.Security.Permissions.SecurityAttribute, directly or indirectly
+
+                var symbol = namedTypeSymbol;
+                while (symbol is not null)
+                {
+                    if (symbol.ToNameDisplayString() == "System.Security.Permissions.SecurityAttribute")
+                    {
+                        return true;
+                    }
+
+                    symbol = symbol.BaseType;
+                }
+
+                return false;
             }
         }
 
@@ -3622,7 +3814,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return;
                     }
 
-                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, diagnostics, out var hasErrors, cancellationToken);
+                    ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaInfo.NewBody, capabilities, diagnostics, out var hasErrors, cancellationToken);
                     anySignatureErrors |= hasErrors;
                 }
 
@@ -4291,6 +4483,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
+            EditAndContinueCapabilities capabilities,
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
@@ -4309,6 +4502,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
+
+            AnalyzeCustomAttributes(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, semanticEdits: null, syntaxMap: null, cancellationToken);
 
             RudeEditKind rudeEdit;
 
@@ -4454,6 +4649,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     nodes.Add(node);
                 }
             }
+        }
+
+        private sealed class TypedConstantComparer : IEqualityComparer<TypedConstant>
+        {
+            public static TypedConstantComparer Instance = new TypedConstantComparer();
+
+            public bool Equals(TypedConstant x, TypedConstant y)
+                => x.Kind.Equals(y.Kind) &&
+                   x.IsNull.Equals(y.IsNull) &&
+                   SymbolEquivalenceComparer.Instance.Equals(x.Type, y.Type) &&
+                   x.Kind switch
+                   {
+                       TypedConstantKind.Array => x.Values.SequenceEqual(y.Values, TypedConstantComparer.Instance),
+                       _ => object.Equals(x.Value, y.Value)
+                   };
+
+            public int GetHashCode(TypedConstant obj)
+                => obj.GetHashCode();
+        }
+
+        private sealed class NamedArgumentComparer : IEqualityComparer<KeyValuePair<string, TypedConstant>>
+        {
+            public static NamedArgumentComparer Instance = new NamedArgumentComparer();
+
+            public bool Equals(KeyValuePair<string, TypedConstant> x, KeyValuePair<string, TypedConstant> y)
+                => x.Key.Equals(y.Key) &&
+                   TypedConstantComparer.Instance.Equals(x.Value, y.Value);
+
+            public int GetHashCode(KeyValuePair<string, TypedConstant> obj)
+                 => obj.GetHashCode();
         }
 
         #endregion

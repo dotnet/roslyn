@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             if (onlyHighPriorityAnalyzer)
                             {
                                 // include only high priority analyzer for active file
-                                return analyzers.Where(t => t.highPriorityForActiveFile).Select(t => t.analyzer).ToImmutableArray();
+                                return analyzers.SelectAsArray(t => t.highPriorityForActiveFile, t => t.analyzer);
                             }
 
                             // return all analyzers

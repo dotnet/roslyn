@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -159,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConstantPatternSyntax constantPattern => InferTypeInConstantPattern(constantPattern),
                     DoStatementSyntax doStatement => InferTypeInDoStatement(doStatement),
                     EqualsValueClauseSyntax equalsValue => InferTypeInEqualsValueClause(equalsValue),
+                    ExpressionColonSyntax expressionColon => InferTypeInExpressionColon(expressionColon),
                     ExpressionStatementSyntax _ => InferTypeInExpressionStatement(),
                     ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, expression),
                     ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, expression),
@@ -224,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DefaultExpressionSyntax defaultExpression => InferTypeInDefaultExpression(defaultExpression),
                     DoStatementSyntax doStatement => InferTypeInDoStatement(doStatement, token),
                     EqualsValueClauseSyntax equalsValue => InferTypeInEqualsValueClause(equalsValue, token),
+                    ExpressionColonSyntax expressionColon => InferTypeInExpressionColon(expressionColon, token),
                     ExpressionStatementSyntax _ => InferTypeInExpressionStatement(token),
                     ForEachStatementSyntax forEachStatement => InferTypeInForEachStatement(forEachStatement, previousToken: token),
                     ForStatementSyntax forStatement => InferTypeInForStatement(forStatement, previousToken: token),
@@ -1458,11 +1461,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
                 if (child == subpattern.Pattern &&
-                    subpattern.NameColon != null)
+                    subpattern.ExpressionColon != null)
                 {
-                    var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
+                    using var result = TemporaryArray<TypeInferenceInfo>.Empty;
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.ExpressionColon.Expression).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1475,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    return result.ToImmutableAndFree();
+                    return result.ToImmutableAndClear();
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1663,6 +1666,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
             }
 
+            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon, SyntaxToken previousToken)
+            {
+                if (previousToken != expressionColon.ColonToken)
+                {
+                    // Must follow the colon token.
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return expressionColon.Parent switch
+                {
+                    SubpatternSyntax subPattern => InferTypeInSubpattern(subPattern, subPattern.Pattern),
+                    _ => SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>()
+                };
+            }
+
             private IEnumerable<TypeInferenceInfo> InferTypeInMemberAccessExpression(
                 MemberAccessExpressionSyntax memberAccessExpression,
                 ExpressionSyntax expressionOpt = null,
@@ -1834,6 +1852,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon)
             {
                 if (nameColon.Parent is SubpatternSyntax subpattern)
+                {
+                    return GetPatternTypes(subpattern.Pattern);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInExpressionColon(ExpressionColonSyntax expressionColon)
+            {
+                if (expressionColon.Parent is SubpatternSyntax subpattern)
                 {
                     return GetPatternTypes(subpattern.Pattern);
                 }

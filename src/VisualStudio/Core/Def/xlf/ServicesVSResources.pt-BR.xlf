@@ -247,6 +247,11 @@
         <target state="translated">Parâmetro atual</target>
         <note />
       </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
         <target state="translated">Desabilitado</target>
@@ -382,6 +387,11 @@
         <target state="translated">ID</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">Membros implementados</target>
@@ -390,6 +400,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">Implementando membros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -420,6 +435,11 @@
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
         <target state="translated">Margem de Herança (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
