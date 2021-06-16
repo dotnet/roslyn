@@ -240,8 +240,62 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
+        }
+
+        [Fact]
+        public void BuilderOnMethod_NoBuilderOnType_Nullability()
+        {
+            var source = $@"
+#nullable enable
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    static async MyTask<T> G<T>(T t)
+    {{
+        await Task.Delay(0);
+        return default(T); // 1
+    }}
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    public static async MyTask<string> M()
+    {{
+        return await G((string?)null); // 2
+    }}
+
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+    public static async MyTask<string?> M2() {{ return await G((string?)null); }}
+}}
+
+// no attribute
+{AwaitableTypeCode("MyTask")}
+
+// no attribute
+{AwaitableTypeCode("MyTask", "T")}
+
+{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
+{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
+
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (14,16): warning CS8603: Possible null reference return.
+                //         return default(T); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(14, 16),
+                // (20,16): warning CS8603: Possible null reference return.
+                //         return await G((string?)null); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "await G((string?)null)").WithLocation(20, 16),
+                // (44,16): warning CS8618: Non-nullable field '_result' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     internal T _result;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "_result").WithArguments("field", "_result").WithLocation(44, 16)
+                );
         }
 
         [Fact]
@@ -335,7 +389,7 @@ static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return 
 {AsyncMethodBuilderAttribute}
 ";
             source = source.Replace("DUMMY_BUILDER", dummyBuilder);
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (9,21): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
@@ -348,7 +402,7 @@ static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return 
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async method builder override").WithLocation(15, 26)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
         }
@@ -516,7 +570,7 @@ class C
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3", symbolValidator: verifyMembers);
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -802,7 +856,7 @@ return;
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
             verifier.VerifyDiagnostics();
         }
@@ -832,11 +886,47 @@ return;
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             // This test will be revisited once explicit lambda return types are allowed
             Assert.Equal(16, compilation.GetDiagnostics().Length);
             //var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
             //verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void BuilderFactoryOnMethod_OnLambda_NotTaskLikeTypes()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => {{ System.Console.Write(""F ""); await Task.Delay(0); }};
+
+Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] async () => {{ System.Console.Write(""M ""); await f(); return 3; }};
+
+Console.WriteLine(await m());
+return;
+
+// no attribute
+{AwaitableTypeCode("MyTask", isStruct: true)}
+
+// no attribute
+{AwaitableTypeCode("MyTask", "T", isStruct: true)}
+
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", isStruct: true)}
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (6,91): error CS1643: Not all code paths return a value in lambda expression of type 'Func<MyTask>'
+                // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<MyTask>").WithLocation(6, 91),
+                // (8,91): error CS4010: Cannot convert async lambda expression to delegate type 'Func<MyTask<int>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<MyTask<int>>'.
+                // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] async () => { System.Console.Write("M "); await f(); return 3; };
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<MyTask<int>>").WithLocation(8, 91)
+                );
         }
 
         [Fact]

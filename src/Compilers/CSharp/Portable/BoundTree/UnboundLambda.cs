@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.Binder.Compilation))
+            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.Binder.Compilation)) // TODO2
             {
                 return false;
             }
@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !returnType.Type.IsNonGenericTaskType(compilation) &&
+                    !returnType.Type.IsNonGenericTaskType(compilation) && // TODO2
                     !returnType.Type.IsGenericTaskType(compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
