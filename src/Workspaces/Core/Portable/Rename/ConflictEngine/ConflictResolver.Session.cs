@@ -724,9 +724,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     foreach (var document in documents)
                     {
                         if (_documentsIdsToBeCheckedForConflict.Contains(document.Id))
-                        {
                             continue;
-                        }
+
+                        if (!document.SupportsSyntaxTree)
+                            continue;
 
                         var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, _cancellationToken).ConfigureAwait(false);
                         if (info.ProbablyContainsEscapedIdentifier(_originalText))
