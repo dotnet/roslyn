@@ -280,6 +280,7 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -295,6 +296,7 @@
     <Field Name="OperatorKind" Type="UnaryOperatorKind"/>
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="OperandConversion" Type="Conversion"/>
     <Field Name="ResultConversion" Type="Conversion"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
@@ -331,6 +333,7 @@
   <!-- Represents a resolved AddressOf function pointer. Not used in initial binding. -->
   <Node Name="BoundFunctionPointerLoad" Base="BoundExpression">
     <Field Name="TargetMethod" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
@@ -403,6 +406,7 @@
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
     <Field Name="MethodOpt" Type="MethodSymbol?"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
@@ -424,6 +428,7 @@
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
+    <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
         Only kept in the tree if the operator was an error and overload resolution
