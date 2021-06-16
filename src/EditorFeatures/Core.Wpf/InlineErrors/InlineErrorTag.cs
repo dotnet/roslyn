@@ -53,34 +53,38 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 NavigateUri = new Uri(_diagnostic.HelpLink)
             };
 
-            var moniker = GetMoniker();
-            if (moniker is not null)
-            {
-                var image = new CrispImage
-                {
-                    Moniker = (ImageMoniker)moniker,
-                    Margin = new Thickness(1, 0, 5, 0)
-                };
-
-                var statusImage = new InlineUIContainer(image);
-                block.Inlines.Add(statusImage);
-            }
-
             link.RequestNavigate += HandleRequestNavigate;
             block.Inlines.Add(link);
             block.Inlines.Add(": " + _diagnostic.Message);
             block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             block.Arrange(new Rect(block.DesiredSize));
 
+            var lineHeight = Math.Floor(format.Typeface.FontFamily.LineSpacing * block.FontSize);
+            var image = new CrispImage
+            {
+                Moniker = GetMoniker(),
+                MaxHeight = lineHeight,
+                Margin = new Thickness(1, 0, 5, 0)
+            };
+
+            var stackPanel = new StackPanel
+            {
+                Height = lineHeight,
+                Orientation = Orientation.Horizontal
+            };
+
+            stackPanel.Children.Add(image);
+            stackPanel.Children.Add(block);
+
             var border = new Border
             {
                 BorderBrush = format.BackgroundBrush,
                 BorderThickness = new Thickness(1),
                 Background = Brushes.Transparent,
-                Child = block,
+                Child = stackPanel,
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
-                Margin = new Thickness(10, top: 0, 0, bottom: 0),
+                Margin = new Thickness(10, top: 0, 0, bottom: 1),
                 Padding = new Thickness(1)
             };
 
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
-        private ImageMoniker? GetMoniker()
+        private ImageMoniker GetMoniker()
         {
             switch (_diagnostic.Severity)
             {
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 case DiagnosticSeverity.Error:
                     return KnownMonikers.StatusError;
                 default:
-                    return null;
+                    throw new MissingMethodException();
             }
         }
 
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
         {
             var border = (Border)adornment;
-            border.Background = format.BackgroundBrush;
+            border.BorderBrush = format.BackgroundBrush;
             var block = (TextBlock)border.Child;
             block.Foreground = format.ForegroundBrush;
         }
