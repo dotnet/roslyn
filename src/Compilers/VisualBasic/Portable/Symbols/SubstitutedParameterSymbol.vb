@@ -166,6 +166,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return _originalDefinition.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
                 Return TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.RefCustomModifiers)

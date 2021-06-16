@@ -266,6 +266,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property IsCallerFilePath As Boolean
 
+        Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+
         Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
             Get
                 Return ERRID.ERR_UnsupportedType1

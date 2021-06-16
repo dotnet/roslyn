@@ -153,6 +153,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return Me._underlyingParameter.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
             Get
                 Return Me._underlyingParameter.IsExplicitByRef

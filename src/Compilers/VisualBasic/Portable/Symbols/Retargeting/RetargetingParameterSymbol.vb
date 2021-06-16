@@ -193,6 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return _underlyingParameter.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
                 Return RetargetingTranslator.Retarget(_underlyingParameter.ContainingSymbol)

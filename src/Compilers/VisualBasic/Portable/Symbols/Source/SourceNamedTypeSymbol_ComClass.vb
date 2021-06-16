@@ -1576,6 +1576,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                    Get
+                        If IsComEventParameter Then
+                            Return -1
+                        End If
+
+                        Return _clonedFrom.CallerArgumentExpressionParameterIndex
+                    End Get
+                End Property
+
                 Public Overrides ReadOnly Property IsParamArray As Boolean
                     Get
                         If IsComEventParameter Then

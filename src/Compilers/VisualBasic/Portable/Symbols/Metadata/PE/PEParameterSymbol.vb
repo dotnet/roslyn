@@ -51,6 +51,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyHasCallerMemberNameAttribute As ThreeState = ThreeState.Unknown
         Private _lazyHasCallerFilePathAttribute As ThreeState = ThreeState.Unknown
 
+        ''' <summary>
+        ''' The index of a CallerArgumentExpression. The value -2 means uninitialized, -1 means
+        ''' Not found. Otherwise, the index of the CallerArgumentExpression.
+        ''' </summary>
+        Private _lazyCallerArgumentExpressionParameterIndex As Integer = -2
+
         Private _lazyIsParamArray As ThreeState
 
         ''' <summary>
@@ -174,6 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 _lazyHasCallerLineNumberAttribute = ThreeState.False
                 _lazyHasCallerMemberNameAttribute = ThreeState.False
                 _lazyHasCallerFilePathAttribute = ThreeState.False
+                _lazyCallerArgumentExpressionParameterIndex = -1
                 _lazyIsParamArray = ThreeState.False
             Else
                 Try
@@ -602,6 +609,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
 
                 Return _lazyHasCallerFilePathAttribute.Value
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                If _lazyCallerArgumentExpressionParameterIndex = -2 Then
+                    Debug.Assert(Not _handle.IsNil)
+
+                    Dim attribute = PEModule.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute)
+                    Dim parameterName As String = Nothing
+                    If attribute.HasValue AndAlso PEModule.TryExtractStringValueFromAttribute(attribute.Handle, parameterName) Then
+                        Dim parameters = ContainingSymbol.GetParameters()
+                        For i = 0 To parameters.Length - 1
+                            If parameters(i).Name = parameterName Then
+                                _lazyCallerArgumentExpressionParameterIndex = i
+                                Exit For
+                            End If
+                        Next
+                    Else
+                        _lazyCallerArgumentExpressionParameterIndex = -1
+                    End If
+                End If
+
+                Return _lazyCallerArgumentExpressionParameterIndex
             End Get
         End Property
 

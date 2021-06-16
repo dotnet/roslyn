@@ -3114,8 +3114,9 @@ ProduceBoundNode:
                     Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
                     Dim isCallerMemberName As Boolean = param.IsCallerMemberName
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
+                    Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
+                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse callerArgumentExpressionParameterIndex > -1 Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
@@ -3149,9 +3150,11 @@ ProduceBoundNode:
                             If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
                                 callerInfoValue = ConstantValue.Create(container.Name)
                             End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
+                        ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                        Else
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1)
+                            ' PROTOTYPE(caller-expr): TODO
                         End If
 
                         If callerInfoValue IsNot Nothing Then
