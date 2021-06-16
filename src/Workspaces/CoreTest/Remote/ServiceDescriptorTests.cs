@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+            foreach (var (serviceType, (descriptor, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -167,7 +167,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [MemberData(nameof(AllServiceDescriptors))]
         internal void GetFeatureDisplayName(
             Type serviceInterface,
-            ServiceDescriptor descriptor32,
             ServiceDescriptor descriptor64,
             ServiceDescriptor descriptor64ServerGC,
             ServiceDescriptor descriptorCoreClr64,
@@ -175,10 +174,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             Assert.NotNull(serviceInterface);
 
-            var expectedName = descriptor32.GetFeatureDisplayName();
+            var expectedName = descriptor64.GetFeatureDisplayName();
             Assert.NotEmpty(expectedName);
 
-            Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
 
             var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+                .Where(d => d.Value.descriptor64.ClientInterface != null).Select(d => d.Key);
 
             var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
             AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);

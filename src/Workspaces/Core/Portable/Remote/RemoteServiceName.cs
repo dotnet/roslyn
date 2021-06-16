@@ -44,20 +44,19 @@ namespace Microsoft.CodeAnalysis.Remote
             CustomServiceName = customServiceName;
         }
 
-        public string ToString(bool isRemoteHost64Bit, bool isRemoteHostServerGC, bool isRemoteHostCoreClr)
+        public string ToString(bool isRemoteHostServerGC, bool isRemoteHostCoreClr)
         {
             if (CustomServiceName is not null)
             {
                 return CustomServiceName;
             }
 
-            var suffix = (isRemoteHost64Bit, isRemoteHostServerGC, isRemoteHostCoreClr) switch
+            var suffix = (isRemoteHostServerGC, isRemoteHostCoreClr) switch
             {
-                (false, _, _) => string.Empty,
-                (true, false, false) => Suffix64,
-                (true, true, false) => Suffix64 + SuffixServerGC,
-                (true, false, true) => SuffixCoreClr + Suffix64,
-                (true, true, true) => SuffixCoreClr + Suffix64 + SuffixServerGC,
+                (false, false) => Suffix64,
+                (true, false) => Suffix64 + SuffixServerGC,
+                (false, true) => SuffixCoreClr + Suffix64,
+                (true, true) => SuffixCoreClr + Suffix64 + SuffixServerGC,
             };
 
             return WellKnownService switch

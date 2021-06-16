@@ -27,7 +27,6 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64S" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="Core64" />
