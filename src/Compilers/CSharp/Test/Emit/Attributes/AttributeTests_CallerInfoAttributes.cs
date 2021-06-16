@@ -360,7 +360,6 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value");
         }
 
-        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember()
         {
@@ -388,9 +387,8 @@ public static class C
 <default-arg-expression>");
         }
 
-        // PROTOTYPE(caller-expr): Should this have a warning?
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferingToItself()
+        public void TestArgumentExpressionIsSelfReferential()
         {
             string source = @"
 using System;
@@ -410,7 +408,12 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                 // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                 //         [CallerArgumentExpression("p")] string p = "<default>")
+                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
+                );
+
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value");
         }
@@ -763,7 +766,6 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value");
         }
 
-        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember_AttributeConstructor()
         {
@@ -799,7 +801,6 @@ public class Program
 <default-arg-expression>");
         }
 
-        // PROTOTYPE(caller-expr): Should this have a warning?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferingToItself_AttributeConstructor()
         {
@@ -830,7 +831,12 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                //         [CallerArgumentExpression("p")] string p = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
+                );
+
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value");
         }

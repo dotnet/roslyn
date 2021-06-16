@@ -268,6 +268,7 @@ class X
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

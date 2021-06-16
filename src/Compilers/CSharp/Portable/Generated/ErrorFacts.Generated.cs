@@ -273,6 +273,7 @@
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                     return true;
                 default:
                     return false;
