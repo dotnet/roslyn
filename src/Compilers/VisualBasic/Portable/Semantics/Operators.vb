@@ -3404,6 +3404,12 @@ Next_i:
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                Get
+                    Return _parameterToLift.CallerArgumentExpressionParameterIndex
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property IsParamArray As Boolean
                 Get
                     Return _parameterToLift.IsParamArray

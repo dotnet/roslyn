@@ -3073,7 +3073,7 @@ Bailout:
                         defaultValueDiagnostics.Clear()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt)
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments)
 
                     If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.HasAnyErrors Then
                         Debug.Assert(Not defaultValueDiagnostics.DiagnosticBag.AsEnumerable().Any())
