@@ -2,7 +2,7 @@
 
 1. Beginning with C# 10.0, null suppression operator is no longer allowed in patterns.
     ```csharp
-    void M(object b)
+    void M(object o)
     {
         if (o is null!) {} // error
     }
