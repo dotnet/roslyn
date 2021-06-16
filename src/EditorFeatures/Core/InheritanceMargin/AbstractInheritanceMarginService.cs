@@ -87,13 +87,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         private static bool CanHaveInheritanceTarget(ISymbol symbol)
         {
-            if (symbol.IsStatic)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return false;
+                return !symbol.IsStatic && namedType.TypeKind is TypeKind.Interface or TypeKind.Class or TypeKind.Struct;
             }
 
-            if (symbol is INamedTypeSymbol or IEventSymbol or IPropertySymbol
-                or IMethodSymbol { MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation })
+            if (symbol is IEventSymbol or IPropertySymbol
+                or IMethodSymbol
+                {
+                    MethodKind: MethodKind.Ordinary or MethodKind.ExplicitInterfaceImplementation or MethodKind.UserDefinedOperator or MethodKind.Conversion
+                })
             {
                 return true;
             }
