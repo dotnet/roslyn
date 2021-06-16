@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -23,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
     {
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
-        private readonly Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> _tagSpanToPointMap;
+        //private readonly Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> _tagSpanToPointMap;
 
-        public InlineErrorAdornmentManager(IThreadingContext threadingContext,
-            IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService,
+        public InlineErrorAdornmentManager(
+            IThreadingContext threadingContext, IWpfTextView textView, IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListener asyncListener, string adornmentLayerName,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService)
@@ -35,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             _classificationRegistryService = classificationTypeRegistryService;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap(textView);
             _formatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
-            _tagSpanToPointMap = new Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint>();
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -59,17 +59,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         }
 
         /// <summary>
-        /// Get the spans located on each line so that I can only display the first one that appears on the line
+        /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
-        private ImmutableDictionary<int, List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private IDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineErrorTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
-            _tagSpanToPointMap.Clear();
             if (changedSpanCollection.IsEmpty())
             {
-                return ImmutableDictionary<int, List<IMappingTagSpan<InlineErrorTag>>>.Empty;
+                return SpecializedCollections.EmptyDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineErrorTag>>>();
             }
 
-            var map = ImmutableDictionary.CreateBuilder<int, List<IMappingTagSpan<InlineErrorTag>>>();
+            var map = new Dictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineErrorTag>>>();
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
@@ -103,24 +102,21 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
                     if (!viewLines.IntersectsBufferSpan(span))
                     {
-                        // span is outside of the view so we will not get geometry for it, but may 
-                        // spent a lot of time trying.
                         continue;
                     }
 
                     var lineNum = mappedPoint.Value.GetContainingLine().LineNumber;
-                    if (!map.TryGetValue(lineNum, out var list))
+                    if (!map.TryGetValue((lineNum, changedSpan), out var list))
                     {
                         list = new List<IMappingTagSpan<InlineErrorTag>>();
-                        map.Add(lineNum, list);
+                        map.Add((lineNum, changedSpan), list);
                     }
 
                     list.Add(tagMappingSpan);
-                    _tagSpanToPointMap.Add(tagMappingSpan, point.Value);
                 }
             }
 
-            return map.ToImmutable();
+            return map;
         }
 
         protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
@@ -150,6 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
 
             var map = GetSpansOnEachLine(changedSpanCollection);
+            var tagSpanToPointMap = GetTagSpansToSnapshotPointMap(map); // new Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint>();
+            // <.Add(tagMappingSpan, point.Value);
             foreach (var (lineNum, tagMappingSpanList) in map)
             {
                 var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                         var tag = tagMappingSpan.Tag;
                         var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
                         var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-                        if (!_tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
+                        if (!tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
                         {
                             continue;
                         }
@@ -195,22 +193,30 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             }
         }
 
-        private static IMappingTagSpan<InlineErrorTag>? GetHighestOrderTag(List<IMappingTagSpan<InlineErrorTag>> list)
+        private static Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint> GetTagSpansToSnapshotPointMap(IDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineErrorTag>>> map)
         {
-            foreach (var span in list)
+            var tagSpanToPointMap = new Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint>();
+
+            foreach (var kvp in map)
             {
-                if (span.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
+                foreach (var mappingTagSpan in kvp.Value)
                 {
-                    return span;
+                    var point = mappingTagSpan.Span.Start.GetPoint(kvp.Key.Item2.Snapshot, PositionAffinity.Predecessor);
+                    if (point == null)
+                    {
+                        continue;
+                    }
+
+                    tagSpanToPointMap.Add(mappingTagSpan, point.Value);
                 }
             }
 
-            if (list.Count > 0)
-            {
-                return list[0];
-            }
+            return tagSpanToPointMap;
+        }
 
-            return null;
+        private static IMappingTagSpan<InlineErrorTag>? GetHighestOrderTag(List<IMappingTagSpan<InlineErrorTag>> list)
+        {
+            return list.Where(s => s.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError).FirstOrDefault() ?? list.First();
         }
     }
 }
