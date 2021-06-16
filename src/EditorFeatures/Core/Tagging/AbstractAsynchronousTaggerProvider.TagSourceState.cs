@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 public void EnqueueWork(
                     Func<Task> workAsync,
                     TaggerDelay delay,
+                    IExpeditableDelaySource delaySource,
                     IAsyncToken asyncToken,
                     CancellationToken cancellationToken)
                 {
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                             _ => workAsync(),
                             cancellationToken,
                             delay.ComputeTimeDelay(),
+                            delaySource,
                             TaskContinuationOptions.None,
                             TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
                     }
