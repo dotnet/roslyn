@@ -127,6 +127,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
+        public void Node_Table_Single_Returns_First_Item()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            Assert.Equal(1, table.Single());
+        }
+
+        [Fact]
+        public void Node_Table_Single_Returns_Second_Item_When_First_Is_Removed()
+        {
+            var builder = NodeStateTable<int>.Empty.ToBuilder();
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var table = builder.ToImmutableAndFree();
+
+            AssertTableEntries(table, new[] { (1, EntryState.Added) });
+
+            // remove the first item and replace it in the table
+            builder = table.ToBuilder();
+            builder.RemoveEntries();
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
+            table = builder.ToImmutableAndFree();
+
+            AssertTableEntries(table, new[] { (1, EntryState.Removed), (2, EntryState.Added) });
+            Assert.Equal(2, table.Single());
+        }
+
+        [Fact]
         public void Driver_Table_Calls_Into_Node_With_Self()
         {
             DriverStateTable.Builder? passedIn = null;
