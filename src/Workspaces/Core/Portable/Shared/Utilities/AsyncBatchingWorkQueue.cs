@@ -165,7 +165,7 @@ namespace Roslyn.Utilities
                     _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                         _ => ProcessNextBatchAsync(_cancellationToken),
                         _cancellationToken,
-                        (int)_delay.TotalMilliseconds,
+                        _delay,
                         _asyncListener,
                         TaskContinuationOptions.RunContinuationsAsynchronously,
                         TaskScheduler.Default).CompletesAsyncOperation(token);
@@ -175,7 +175,7 @@ namespace Roslyn.Utilities
                     _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
                         _ => ProcessNextBatchAsync(_cancellationToken),
                         _cancellationToken,
-                        (int)_delay.TotalMilliseconds,
+                        _delay,
                         TaskContinuationOptions.RunContinuationsAsynchronously,
                         TaskScheduler.Default);
                 }

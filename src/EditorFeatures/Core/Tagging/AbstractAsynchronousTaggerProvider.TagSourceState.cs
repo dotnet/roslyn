@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
                             _ => workAsync(),
                             cancellationToken,
-                            (int)delay.ComputeTimeDelay().TotalMilliseconds,
+                            delay.ComputeTimeDelay(),
                             TaskContinuationOptions.None,
                             TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
                     }
