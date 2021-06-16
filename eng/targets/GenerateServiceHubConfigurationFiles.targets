@@ -15,6 +15,7 @@
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" Runtime="desktop"/>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostSuffix="" HostIdSuffix="S" Runtime="desktop"/>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64" HostSuffix="" HostIdSuffix="" Runtime="core"/>
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="Core64S" HostSuffix="" HostIdSuffix="S" Runtime="core"/>
 
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json" Runtime="%(_ServicesWithBitness.Runtime)" Condition="'%(_ServicesWithBitness.Runtime)' == 'desktop'" >
         <Content>

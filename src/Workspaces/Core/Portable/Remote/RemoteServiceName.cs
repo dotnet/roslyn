@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 (false, _, _) => string.Empty,
                 (true, false, false) => Suffix64,
                 (true, true, false) => Suffix64 + SuffixServerGC,
-                (true, _, true) => SuffixCoreClr + Suffix64,   // TODO: add serverGC option on coreclr host
+                (true, false, true) => SuffixCoreClr + Suffix64,
+                (true, true, true) => SuffixCoreClr + Suffix64 + SuffixServerGC,
             };
 
             return WellKnownService switch

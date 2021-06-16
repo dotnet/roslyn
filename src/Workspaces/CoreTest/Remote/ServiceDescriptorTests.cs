@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64 });
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+            foreach (var (serviceType, (descriptor, _, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -165,7 +165,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         [Theory]
         [MemberData(nameof(AllServiceDescriptors))]
-        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64)
+        internal void GetFeatureDisplayName(
+            Type serviceInterface,
+            ServiceDescriptor descriptor32,
+            ServiceDescriptor descriptor64,
+            ServiceDescriptor descriptor64ServerGC,
+            ServiceDescriptor descriptorCoreClr64,
+            ServiceDescriptor descriptorCoreClr64ServerGC)
         {
             Assert.NotNull(serviceInterface);
 
@@ -175,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
         }
 
         [Fact]

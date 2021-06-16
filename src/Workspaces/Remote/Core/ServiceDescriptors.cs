@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
         });
 
         internal readonly RemoteSerializationOptions Options;
-        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64)> _descriptors;
+        private readonly ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> _descriptors;
         private readonly string _componentName;
         private readonly Func<string, string> _featureDisplayNameProvider;
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Remote
         internal string GetQualifiedServiceName(Type serviceInterface)
             => ServiceNameTopLevelPrefix + _componentName + "." + GetServiceName(serviceInterface);
 
-        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
+        private (ServiceDescriptor, ServiceDescriptor, ServiceDescriptor, ServiceDescriptor, ServiceDescriptor) CreateDescriptors(Type serviceInterface, Type? callbackInterface)
         {
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
@@ -112,8 +112,9 @@ namespace Microsoft.CodeAnalysis.Remote
             var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
             var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
 
-            return (descriptor32, descriptor64, descriptor64ServerGC, descriptorCoreClr64);
+            return (descriptor32, descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC);
         }
 
         public ServiceDescriptor GetServiceDescriptorForServiceFactory(Type serviceType)
@@ -121,10 +122,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public ServiceDescriptor GetServiceDescriptor(Type serviceType, bool isRemoteHost64Bit, bool isRemoteHostServerGC, bool isRemoteHostCoreClr)
         {
-            var (descriptor32, descriptor64, descriptor64ServerGC, descriptorCoreClr64) = _descriptors[serviceType];
+            var (descriptor32, descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC) = _descriptors[serviceType];
             return (isRemoteHost64Bit, isRemoteHostServerGC, isRemoteHostCoreClr) switch
             {
-                (_, _, true) => descriptorCoreClr64,
+                (_, false, true) => descriptorCoreClr64,
+                (_, true, true) => descriptorCoreClr64ServerGC,
                 (true, false, false) => descriptor64,
                 (true, true, false) => descriptor64ServerGC,
                 _ => descriptor32,
@@ -140,6 +142,10 @@ namespace Microsoft.CodeAnalysis.Remote
             if (qualifiedServiceName.EndsWith(RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64, StringComparison.Ordinal))
             {
                 suffixLength = RemoteServiceName.SuffixCoreClr.Length + RemoteServiceName.Suffix64.Length;
+            }
+            else if (qualifiedServiceName.EndsWith(RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal))
+            {
+                suffixLength = RemoteServiceName.SuffixCoreClr.Length + RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length;
             }
             else if (qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64, StringComparison.Ordinal))
             {
@@ -169,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Remote
             internal TestAccessor(ServiceDescriptors serviceDescriptors)
                 => _serviceDescriptors = serviceDescriptors;
 
-            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64)> Descriptors
+            public ImmutableDictionary<Type, (ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC, ServiceDescriptor descriptorCoreClr64, ServiceDescriptor descriptorCoreClr64ServerGC)> Descriptors
                 => _serviceDescriptors._descriptors;
         }
     }
