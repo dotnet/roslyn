@@ -2424,7 +2424,7 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments)
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, Nothing)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
@@ -3103,7 +3103,8 @@ ProduceBoundNode:
                                                             diagnostics As BindingDiagnosticBag,
                                                             callerInfoOpt As SyntaxNode,
                                                             parameterToArgumentMap As ArrayBuilder(Of Integer),
-                                                            arguments As ImmutableArray(Of BoundExpression)) As BoundExpression
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            reducedExtensionReceiverOpt As BoundExpression) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3121,7 +3122,12 @@ ProduceBoundNode:
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
                     Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse callerArgumentExpressionParameterIndex > -1 Then
+                    ' The index can be -1 when it's pointing to the receiver of a reduced extension.
+                    ' PROTOTYPE(caller-expr): Can we be setting this variable to true when it shouldn't.
+                    ' The assumption to use the extension receiver here whenever the index is -1 doesn't feel correct.
+                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse reducedExtensionReceiverOpt IsNot Nothing
+
+                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
@@ -3158,16 +3164,23 @@ ProduceBoundNode:
                         ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
                         Else
-                            Debug.Assert(callerArgumentExpressionParameterIndex > -1)
-                            Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse reducedExtensionReceiverOpt IsNot Nothing)
 
-                            ' PROTOTYPE(caller-expr): It's unlikely this assumption is correct. Keep for now until a test hits it.
-                            Debug.Assert(argumentIndex > -1 AndAlso argumentIndex < arguments.Length)
+                            Dim argumentSyntax As SyntaxNode
+                            If callerArgumentExpressionParameterIndex = -1 Then
+                                argumentSyntax = reducedExtensionReceiverOpt.Syntax
+                            Else
+                                Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+
+                                ' PROTOTYPE(caller-expr): It's unlikely this assumption is correct. Keep for now until a test hits it.
+                                Debug.Assert(argumentIndex > -1 AndAlso argumentIndex < arguments.Length)
+                                argumentSyntax = arguments(argumentIndex).Syntax
+                            End If
 
                             ' PROTOTYPE(caller-expr): ToStringWithoutTrivia
                             ' PROTOTYPE(caller-expr): Check feature availability
                             ' PROTOTYPE(caller-expr): Tests
-                            callerInfoValue = ConstantValue.Create(arguments(argumentIndex).Syntax.ToString())
+                            callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
                         End If
 
                         If callerInfoValue IsNot Nothing Then

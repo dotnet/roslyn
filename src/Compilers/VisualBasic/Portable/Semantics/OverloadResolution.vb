@@ -3073,7 +3073,12 @@ Bailout:
                         defaultValueDiagnostics.Clear()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments)
+                    Dim receiverOpt As BoundExpression = Nothing
+                    If candidateSymbol.IsReducedExtensionMethod() Then
+                        receiverOpt = methodOrPropertyGroup.ReceiverOpt
+                    End If
+
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments, receiverOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.HasAnyErrors Then
                         Debug.Assert(Not defaultValueDiagnostics.DiagnosticBag.AsEnumerable().Any())

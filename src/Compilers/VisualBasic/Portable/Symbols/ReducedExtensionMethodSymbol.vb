@@ -949,10 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                ' PROTOTYPE(caller-expr): This throw should be deleted and replaced by:
-                ' Return m_CurriedFromParameter.CallerArgumentExpressionParameterIndex - 1
-                ' Keeping it temporarily to make sure this path is tested.
-                Throw ExceptionUtilities.Unreachable
+                Return m_CurriedFromParameter.CallerArgumentExpressionParameterIndex - 1
             End Get
         End Property
 
