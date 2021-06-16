@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                              receiver.Kind == BoundKind.TypeExpression &&
                              remappedMethod is { RequiresInstanceReceiver: false, IsStatic: true });
 
-                return node.Update(remappedMethod, node.Type);
+                return node.Update(remappedMethod, constrainedToTypeOpt: node.ConstrainedToTypeOpt, node.Type);
             }
 
             return base.VisitFunctionPointerLoad(node);
