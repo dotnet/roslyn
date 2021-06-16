@@ -2424,7 +2424,7 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt)
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
@@ -3098,7 +3098,12 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol,
+                                                            syntax As SyntaxNode,
+                                                            diagnostics As BindingDiagnosticBag,
+                                                            callerInfoOpt As SyntaxNode,
+                                                            parameterToArgumentMap As ArrayBuilder(Of Integer),
+                                                            arguments As ImmutableArray(Of BoundExpression)) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3154,7 +3159,15 @@ ProduceBoundNode:
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
                         Else
                             Debug.Assert(callerArgumentExpressionParameterIndex > -1)
-                            ' PROTOTYPE(caller-expr): TODO
+                            Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+
+                            ' PROTOTYPE(caller-expr): It's unlikely this assumption is correct. Keep for now until a test hits it.
+                            Debug.Assert(argumentIndex > -1 AndAlso argumentIndex < arguments.Length)
+
+                            ' PROTOTYPE(caller-expr): ToStringWithoutTrivia
+                            ' PROTOTYPE(caller-expr): Check feature availability
+                            ' PROTOTYPE(caller-expr): Tests
+                            callerInfoValue = ConstantValue.Create(arguments(argumentIndex).Syntax.ToString())
                         End If
 
                         If callerInfoValue IsNot Nothing Then
