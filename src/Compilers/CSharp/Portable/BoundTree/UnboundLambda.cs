@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal readonly struct InferredLambdaReturnType
     {
         internal readonly int NumExpressions;
+        internal readonly bool IsExplicitType;
         internal readonly bool HadExpressionlessReturn;
         internal readonly RefKind RefKind;
         internal readonly TypeWithAnnotations TypeWithAnnotations;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InferredLambdaReturnType(
             int numExpressions,
+            bool isExplicitType,
             bool hadExpressionlessReturn,
             RefKind refKind,
             TypeWithAnnotations typeWithAnnotations,
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<AssemblySymbol> dependencies)
         {
             NumExpressions = numExpressions;
+            IsExplicitType = isExplicitType;
             HadExpressionlessReturn = hadExpressionlessReturn;
             RefKind = refKind;
             TypeWithAnnotations = typeWithAnnotations;
@@ -105,12 +108,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteInfo.AddDependencies(InferredReturnType.Dependencies);
             }
 
-            if (nullableState == null)
+            if (nullableState == null || InferredReturnType.IsExplicitType)
             {
                 return InferredReturnType.TypeWithAnnotations;
             }
             else
             {
+                Debug.Assert(!UnboundLambda.HasExplicitReturnType(out _, out _));
                 Debug.Assert(conversions != null);
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
@@ -159,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static InferredLambdaReturnType InferReturnType(ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypes,
             BoundLambda node, Binder binder, TypeSymbol? delegateType, bool isAsync, ConversionsBase conversions)
         {
+            Debug.Assert(!node.UnboundLambda.HasExplicitReturnType(out _, out _));
             return InferReturnTypeImpl(returnTypes, node, binder, delegateType, isAsync, conversions, node.UnboundLambda.WithDependencies);
         }
 
@@ -200,9 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bestType = CalculateReturnType(binder, conversions, delegateType, types, isAsync, node, ref useSiteInfo);
             int numExpressions = types.Count;
             types.Free();
-            return new InferredLambdaReturnType(numExpressions, hasReturnWithoutArgument, refKind, bestType,
-                                                useSiteInfo.Diagnostics.AsImmutableOrEmpty(),
-                                                useSiteInfo.AccumulatesDependencies ? useSiteInfo.Dependencies.AsImmutableOrEmpty() : ImmutableArray<AssemblySymbol>.Empty);
+            return new InferredLambdaReturnType(
+                numExpressions,
+                isExplicitType: false,
+                hasReturnWithoutArgument, refKind, bestType,
+                useSiteInfo.Diagnostics.AsImmutableOrEmpty(),
+                useSiteInfo.AccumulatesDependencies ? useSiteInfo.Dependencies.AsImmutableOrEmpty() : ImmutableArray<AssemblySymbol>.Empty);
         }
 
         private static TypeWithAnnotations CalculateReturnType(
@@ -800,6 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // are only used when actually inferring a type, not when the type is explicit.
                 inferredReturnType = new InferredLambdaReturnType(
                     numExpressions: 0,
+                    isExplicitType: true,
                     hadExpressionlessReturn: false,
                     refKind,
                     returnType,
@@ -1060,6 +1069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKind = inferredReturnType.RefKind;
             if (!returnType.HasType)
             {
+                Debug.Assert(!inferredReturnType.IsExplicitType);
                 var invokeMethod = DelegateInvokeMethod(delegateType);
                 returnType = DelegateReturnTypeWithAnnotations(invokeMethod, out refKind);
                 if (!returnType.HasType || returnType.Type.ContainsTypeParameter())
@@ -1080,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ToReadOnlyAndFree(),
                 lambdaBodyBinder,
                 delegateType,
-                new InferredLambdaReturnType(inferredReturnType.NumExpressions, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty, ImmutableArray<AssemblySymbol>.Empty))
+                new InferredLambdaReturnType(inferredReturnType.NumExpressions, isExplicitType: inferredReturnType.IsExplicitType, inferredReturnType.HadExpressionlessReturn, refKind, returnType, ImmutableArray<DiagnosticInfo>.Empty, ImmutableArray<AssemblySymbol>.Empty))
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
         }
 

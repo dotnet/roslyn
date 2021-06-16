@@ -4802,6 +4802,103 @@ class Program
         }
 
         [Fact]
+        public void LambdaReturnType_17()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void F(string? x, string y)
+    {
+        Func<string?> f1 = string () => { if (x is null) return x; return y; };
+        Func<string> f2 = string? () => { if (x is not null) return x; return y; };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => { if (x is null) return x; return y; }").WithArguments("lambda expression", "System.Func<string?>").WithLocation(7, 28),
+                // (7,65): warning CS8603: Possible null reference return.
+                //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(7, 65),
+                // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
+                //         Func<string> f2 = string? () => { if (x is not null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => { if (x is not null) return x; return y; }").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaReturnType_CustomModifiers_01()
+        {
+            var sourceA =
+@".class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modopt([mscorlib]System.Int16) Invoke () runtime managed { }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modopt([mscorlib]System.Int16) EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+    static void Main()
+    {
+        F(() => 1);
+        F(int () => 2);
+    }
+}";
+            CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"1
+2");
+        }
+
+        [Fact]
+        public void LambdaReturnType_CustomModifiers_02()
+        {
+            var sourceA =
+@".class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Int16) Invoke () runtime managed { }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Int16) EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+    static void Main()
+    {
+        F(() => 1);
+        F(int () => 2);
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,34): error CS0570: 'D.Invoke()' is not supported by the language
+                //         System.Console.WriteLine(d());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(5, 34),
+                // (9,11): error CS0570: 'D.Invoke()' is not supported by the language
+                //         F(() => 1);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "() => 1").WithArguments("D.Invoke()").WithLocation(9, 11),
+                // (10,11): error CS0570: 'D.Invoke()' is not supported by the language
+                //         F(int () => 2);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "int () => 2").WithArguments("D.Invoke()").WithLocation(10, 11));
+        }
+
+        [Fact]
         public void LambdaReturnType_UseSiteErrors()
         {
             var sourceA =
