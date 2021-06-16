@@ -1111,12 +1111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var declaringCompilation = methodSymbol.DeclaringCompilation;
                 return !returnType.IsErrorType() &&
                     !returnType.IsVoidType() &&
-                    !returnType.IsNonGenericTaskType(declaringCompilation) &&
-                    !returnType.IsGenericTaskType(declaringCompilation) &&
                     !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
                     !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
-                    !methodSymbol.IsAsyncReturningTaskViaOverride(out _) &&
-                    !methodSymbol.IsAsyncReturningGenericTaskViaOverride(out _);
+                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation, builderOverride: out _) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation, builderOverride: out _);
             }
         }
 

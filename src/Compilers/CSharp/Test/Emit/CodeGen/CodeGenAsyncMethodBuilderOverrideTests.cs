@@ -156,10 +156,10 @@ class C
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
             verifier.VerifyIL("C.F()", @"
 {
   // Code size       45 (0x2d)
@@ -522,10 +522,10 @@ class C
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
 
             // The initial builder type is used for Create() invocation
             verifier.VerifyIL("C.F()", @"
@@ -808,6 +808,38 @@ return;
         }
 
         [Fact]
+        public void BuilderFactoryOnMethod_OnLambda_WithExplicitType()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+var f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async MyTask () => {{ System.Console.Write(""F ""); await Task.Delay(0); }};
+
+var m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] async MyTask<int> () => {{ System.Console.Write(""M ""); await f(); return 3; }};
+
+Console.WriteLine(await m());
+return;
+
+[AsyncMethodBuilder(null)]
+{AwaitableTypeCode("MyTask", isStruct: true)}
+
+[AsyncMethodBuilder(null)]
+{AwaitableTypeCode("MyTask", "T", isStruct: true)}
+
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", isStruct: true)}
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            // This test will be revisited once explicit lambda return types are allowed
+            Assert.Equal(16, compilation.GetDiagnostics().Length);
+            //var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
+            //verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void BuilderFactoryOnMethod_TaskPropertyHasObjectType()
         {
             var source = $@"
@@ -988,7 +1020,7 @@ class C
         }
 
         [Fact]
-        public void BuilderFactoryOnMethod_CreateHasParamaeter()
+        public void BuilderFactoryOnMethod_CreateHasParameter()
         {
             var source = $@"
 using System;

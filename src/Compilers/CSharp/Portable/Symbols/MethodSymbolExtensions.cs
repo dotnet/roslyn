@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
@@ -156,21 +157,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
         {
+            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType.IsNonGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 0 }
+                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
         {
+            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType.IsGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 1 }
+                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>
@@ -191,28 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.IsIAsyncEnumeratorType(compilation);
         }
 
-#nullable enable
-        public static bool IsAsyncReturningTaskViaOverride(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
-        {
-            builderArgument = null;
-            return method.IsAsync
-                && method.HasMethodLevelBuilder(builderArgument: out builderArgument)
-                && method.ReturnType is NamedTypeSymbol { Arity: 0 };
-        }
-
-        public static bool IsAsyncReturningGenericTaskViaOverride(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
-        {
-            builderArgument = null;
-            return method.IsAsync
-                && method.HasMethodLevelBuilder(builderArgument: out builderArgument)
-                && method.ReturnType is NamedTypeSymbol { Arity: 1 };
-        }
-
         /// <summary>
         /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns the "B".
         /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
         /// </summary>
-        internal static bool HasMethodLevelBuilder(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
+        internal static bool HasMethodLevelBuilder(this MethodSymbol method, [NotNullWhen(true)] out object? builderOverride)
         {
             Debug.Assert(method is not null);
 
@@ -223,12 +211,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     && attr.CommonConstructorArguments.Length == 1
                     && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                 {
-                    builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
+                    builderOverride = attr.CommonConstructorArguments[0].ValueInternal!;
                     return true;
                 }
             }
 
-            builderArgument = null;
+            builderOverride = null;
             return false;
         }
 #nullable disable

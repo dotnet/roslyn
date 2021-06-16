@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ImplicitReturnIsOkay(MethodSymbol method)
         {
-            return method.ReturnsVoid || method.IsIterator || method.IsAsyncReturningTask(this.Compilation) || method.IsAsyncReturningTaskViaOverride(out _);
+            return method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(this.Compilation, builderOverride: out _);
         }
 
         public BoundStatement BindExpressionStatement(ExpressionStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -2644,28 +2644,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsInAsyncMethod(this.ContainingMemberOrLambda as MethodSymbol);
         }
 
-        protected bool IsTaskReturningAsyncMethod()
+        protected bool IsEffectivelyTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningTask(this.Compilation);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningTask(this.Compilation, builderOverride: out _);
         }
 
-        protected bool IsTaskReturningAsyncMethodViaOverride()
+        protected bool IsEffectivelyGenericTaskReturningAsyncMethod()
         {
             var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningTaskViaOverride(out _);
-        }
-
-        protected bool IsGenericTaskReturningAsyncMethod()
-        {
-            var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningGenericTask(this.Compilation);
-        }
-
-        protected bool IsGenericTaskReturningAsyncMethodViaOverride()
-        {
-            var symbol = this.ContainingMemberOrLambda;
-            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncReturningGenericTaskViaOverride(out _);
+            return symbol?.Kind == SymbolKind.Method && ((MethodSymbol)symbol).IsAsyncEffectivelyReturningGenericTask(this.Compilation, builderOverride: out _);
         }
 
         protected bool IsIAsyncEnumerableOrIAsyncEnumeratorReturningAsyncMethod()
@@ -2768,7 +2756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // on a lambda expression of unknown return type.
             if ((object)retType != null)
             {
-                if (retType.IsVoidType() || IsTaskReturningAsyncMethod() || IsTaskReturningAsyncMethodViaOverride())
+                if (retType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     if (arg != null)
                     {
@@ -2808,7 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arg == null)
                     {
                         // Error case: non-void-returning or Task<T>-returning method or lambda but just have "return;"
-                        var requiredType = IsGenericTaskReturningAsyncMethod() || IsGenericTaskReturningAsyncMethodViaOverride()
+                        var requiredType = IsEffectivelyGenericTaskReturningAsyncMethod()
                             ? retType.GetMemberTypeArgumentsNoUseSiteDiagnostics().Single()
                             : retType;
 
@@ -2851,7 +2839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(returnRefKind == RefKind.None);
 
-                if (!IsGenericTaskReturningAsyncMethod() && !IsGenericTaskReturningAsyncMethodViaOverride())
+                if (!IsEffectivelyGenericTaskReturningAsyncMethod())
                 {
                     conversion = Conversion.NoConversion;
                     badAsyncReturnAlreadyReported = true;
@@ -2888,7 +2876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!badAsyncReturnAlreadyReported)
                     {
                         RefKind unusedRefKind;
-                        if ((IsGenericTaskReturningAsyncMethod() || IsGenericTaskReturningAsyncMethodViaOverride())
+                        if (IsEffectivelyGenericTaskReturningAsyncMethod()
                             && TypeSymbol.Equals(argument.Type, this.GetCurrentReturnType(out unusedRefKind), TypeCompareKind.ConsiderEverything2))
                         {
                             // Since this is an async method, the return expression must be of type '{0}' rather than 'Task<{0}>'
@@ -3178,7 +3166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression = BindToTypeForErrorRecovery(expression);
                     statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 }
-                else if (returnType.IsVoidType() || IsTaskReturningAsyncMethod() || IsTaskReturningAsyncMethodViaOverride())
+                else if (returnType.IsVoidType() || IsEffectivelyTaskReturningAsyncMethod())
                 {
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.

@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             object methodLevelBuilder = null;
-            if (method.IsAsyncReturningTaskViaOverride(out methodLevelBuilder) || method.IsAsyncReturningTask(F.Compilation))
+            if (method.IsAsyncEffectivelyReturningTask(F.Compilation, out methodLevelBuilder))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsAsyncReturningGenericTaskViaOverride(out methodLevelBuilder) || method.IsAsyncReturningGenericTask(F.Compilation))
+            if (method.IsAsyncEffectivelyReturningGenericTask(F.Compilation, out methodLevelBuilder))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
