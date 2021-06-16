@@ -89,15 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
         }
 
-        [JsonRpcMethod(Methods.CodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
-        public Task<VSCodeAction> ResolveCodeActionAsync(VSCodeAction vsCodeAction, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-
-            return RequestDispatcher.ExecuteRequestAsync<VSCodeAction, VSCodeAction>(Queue, Methods.CodeLensResolveName,
-                vsCodeAction, _clientCapabilities, ClientName, cancellationToken);
-        }
-
         [JsonRpcMethod(MSLSPMethods.DocumentPullDiagnosticName, UseSingleObjectParameterDeserialization = true)]
         public Task<DiagnosticReport[]?> GetDocumentPullDiagnosticsAsync(DocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
         {

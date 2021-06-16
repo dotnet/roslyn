@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             VSCodeAction unresolvedCodeAction,
             LSP.ClientCapabilities clientCapabilities = null)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.VSCodeAction, LSP.VSCodeAction>(
+            var result = (VSCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
                 LSP.Methods.CodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
             return result;
         }

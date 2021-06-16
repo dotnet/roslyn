@@ -199,6 +199,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return RequestDispatcher.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(Queue, Methods.TextDocumentCodeActionName, codeActionParams, _clientCapabilities, ClientName, cancellationToken);
         }
 
+        [JsonRpcMethod(Methods.CodeActionResolveName, UseSingleObjectParameterDeserialization = true)]
+        public Task<CodeAction> ResolveCodeActionAsync(CodeAction codeAction, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return RequestDispatcher.ExecuteRequestAsync<CodeAction, CodeAction>(Queue, Methods.CodeActionResolveName,
+                codeAction, _clientCapabilities, ClientName, cancellationToken);
+        }
+
         [JsonRpcMethod(Methods.TextDocumentCompletionName, UseSingleObjectParameterDeserialization = true)]
         public async Task<SumType<CompletionList, CompletionItem[]>> GetTextDocumentCompletionAsync(CompletionParams completionParams, CancellationToken cancellationToken)
         {
