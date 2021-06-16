@@ -155,6 +155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
+                ' PROTOTYPE(caller-expr): From feedback:
+                ' It is hard to confirm if this implementation is correct for existing
+                ' derived types and will be correct for future derived types.
+                ' I think we should let derived types to handle implementation. For C# as well.
                 Return Me._underlyingParameter.CallerArgumentExpressionParameterIndex
             End Get
         End Property

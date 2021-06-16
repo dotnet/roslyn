@@ -1581,8 +1581,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If IsComEventParameter Then
                             Return -1
                         End If
+                        ' PROTOTYPE(caller-expr): Throw for now until I get a test to hit it.
+                        ' Return _clonedFrom.CallerArgumentExpressionParameterIndex
 
-                        Return _clonedFrom.CallerArgumentExpressionParameterIndex
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 

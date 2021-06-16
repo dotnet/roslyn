@@ -151,7 +151,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                Return _originalParam.CallerArgumentExpressionParameterIndex
+                ' PROTOTYPE(caller-expr): From feedback:
+                ' This looks fragile And probably incorrect, at least For Delegate EndInvoke method.
+                ' This implementation assumes that the target parameter Is still going To be present And will
+                ' remain at the same position, which probably can be wrong. The more robust approach Is To
+                ' reinterpret the attribute In the New signature. But before we Do this, let's create some
+                ' tests and figure out if this code path is even reachable in interesting scenarios.
+                ' Perhaps simply returningh -1 is going to be good enough.
+
+                ' Throwing for now until I get a test to hit this.
+                Throw ExceptionUtilities.Unreachable
+                ' Return _originalParam.CallerArgumentExpressionParameterIndex
             End Get
         End Property
 
