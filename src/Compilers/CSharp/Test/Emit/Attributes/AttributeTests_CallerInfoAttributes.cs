@@ -47,7 +47,6 @@ class Program
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
@@ -71,9 +70,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput:
-@"123 /* comment */ +
-               5");
+            CompileAndVerify(compilation, expectedOutput: "123 + 5");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -453,7 +450,6 @@ public class Program
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Reflection;
@@ -483,9 +479,7 @@ public class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput:
-@"123 /* comment */ +
-               5");
+            CompileAndVerify(compilation, expectedOutput: "123 + 5");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

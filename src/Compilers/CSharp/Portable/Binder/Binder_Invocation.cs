@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(caller-expr): Do we need to support VB?
 
                     var argument = argumentsBuilder[argumentIndex];
-                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToStringWithoutTrivia()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
                 {

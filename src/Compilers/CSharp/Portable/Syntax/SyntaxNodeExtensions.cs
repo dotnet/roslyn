@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -279,6 +280,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal static string ToStringWithoutTrivia(this SyntaxNode node)
+        {
+            var builder = new StringBuilder();
+            foreach (var token in node.DescendantTokens())
+            {
+                if (token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia))
+                {
+                    builder.Append(' ');
+                }
+
+                builder.Append(token.WithoutTrivia().Text);
+
+                if (token.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
+                {
+                    builder.Append(' ');
+                }
+            }
+
+            // Don't include leading trivia from first node or trailing trivia from last node.
+            return builder.ToString().Trim();
         }
     }
 }

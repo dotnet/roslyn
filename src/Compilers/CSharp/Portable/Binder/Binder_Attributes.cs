@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckFeatureAvailability(syntax.ArgumentList, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                 parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
-                defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();
+                defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToStringWithoutTrivia();
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
