@@ -104,6 +104,16 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
+        public GeneratorDriver ReplaceAdditionalText(AdditionalText oldText, AdditionalText newText)
+        {
+            var newState = _state.With(additionalTexts: _state.AdditionalTexts.Replace(oldText, newText));
+            return FromState(newState);
+        }
+
+        public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => FromState(_state.With(parseOptions: newOptions));
+
+        public GeneratorDriver WithUpdatedAnalyzerConfigOptions(AnalyzerConfigOptionsProvider newOptions) => FromState(_state.With(optionsProvider: newOptions));
+
         public GeneratorDriverRunResult GetRunResult()
         {
             var results = _state.Generators.ZipAsArray(
