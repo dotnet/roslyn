@@ -9110,7 +9110,12 @@ class C : ITest
             await TestInRegularAndScriptAsync(@"
 interface ITest<T> where T : ITest<T>
 {
+    // Implicitly implementable
     static abstract int operator -(T x);
+    static abstract int operator -(T x, int y);
+
+    // Not implicitly implemenable
+    static abstract int operator -(int x, int y);
 }
 class C : [|ITest<C>|]
 {
@@ -9119,11 +9124,21 @@ class C : [|ITest<C>|]
 @"
 interface ITest<T> where T : ITest<T>
 {
+    // Implicitly implementable
     static abstract int operator -(T x);
+    static abstract int operator -(T x, int y);
+
+    // Not implicitly implemenable
+    static abstract int operator -(int x, int y);
 }
 class C : ITest<C>
 {
     public static int operator -(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public static int operator -(C x, int y)
     {
         throw new System.NotImplementedException();
     }
