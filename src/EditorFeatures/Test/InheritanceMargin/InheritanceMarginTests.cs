@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -33,6 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             string languageName,
             params TestInheritanceMemberItem[] memberItems)
         {
+            markup = @$"<![CDATA[
+{markup}]]>";
+
             var workspaceFile = $@"
 <Workspace>
    <Project Language=""{languageName}"" CommonReferences=""true"">
@@ -138,12 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     <Project Language=""{markup1.languageName}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <ProjectReference>Assembly2</ProjectReference>
         <Document>
-            {markup1.markupInProject1}
+            <![CDATA[
+                {markup1.markupInProject1}]]>
         </Document>
     </Project>
     <Project Language=""{markup2.languageName}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
         <Document>
-            {markup2.markupInProject2}
+            <![CDATA[
+                {markup2.markupInProject2}]]>
         </Document>
     </Project>
 </Workspace>";
@@ -933,18 +937,16 @@ public class {|target5:Bar2|} : Bar1, IBar
         [Fact]
         public Task TestCSharpFindGenericsBaseType()
         {
-            var lessThanToken = SecurityElement.Escape("<");
-            var greaterThanToken = SecurityElement.Escape(">");
-            var markup = $@"
-public interface {{|target2:IBar|}}{lessThanToken}T{greaterThanToken}
-{{
-    void {{|target4:Foo|}}();
-}}
+            var markup = @"
+public interface {|target2:IBar|}<T>
+{
+    void {|target4:Foo|}();
+}
 
-public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar{lessThanToken}string{greaterThanToken}
-{{
-    public void {{|target3:Foo|}}();
-}}";
+public class {|target1:Bar2|} : IBar<int>, IBar<string>
+{
+    public void {|target3:Foo|}();
+}";
 
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
@@ -987,6 +989,197 @@ public class {{|target1:Bar2|}} : IBar{lessThanToken}int{greaterThanToken}, IBar
                 itemForFooInIBar,
                 itemForBar2,
                 itemForFooInBar2);
+        }
+
+        [Fact]
+        public Task TestCSharpExplicitInterfaceImplementation()
+        {
+            var markup = @"
+interface {|target2:IBar|}<T>
+{
+    void {|target3:Foo|}(T t);
+}
+
+abstract class {|target1:AbsBar|} : IBar<int>
+{
+    void IBar<int>.{|target4:Foo|}(int t)
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface IBar<T>",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class AbsBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForFooInIBar = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void IBar<T>.Foo(T)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void AbsBar.IBar<int>.Foo(int)",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForAbsBar = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "class AbsBar",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar<T>",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForFooInAbsBar = new TestInheritanceMemberItem(
+                lineNumber: 9,
+                memberName: "void AbsBar.IBar<int>.Foo(int)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar<T>.Foo(T)",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForIBar,
+                itemForFooInIBar,
+                itemForAbsBar,
+                itemForFooInAbsBar);
+        }
+
+        [Fact]
+        public Task TestStaticAbstractMemberInterface()
+        {
+            var markup = @"
+interface {|target5:I1|}<T> where T : I1<T>
+{
+    static abstract void {|target4:M1|}();
+    static abstract int {|target7:P1|} { get; set; }
+    static abstract event EventHandler {|target9:e1|};
+    static abstract int operator {|target11:+|}(T i1);
+    static abstract implicit operator {|target12:int|}(T i1);
+}
+
+public class {|target1:Class1|} : I1<Class1>
+{
+    public static void {|target2:M1|}() {}
+    public static int {|target6:P1|} { get => 1; set { } }
+    public static event EventHandler {|target8:e1|};
+    public static int operator {|target10:+|}(Class1 i) => 1;
+    public static implicit operator {|target13:int|}(Class1 i) => 0;
+}";
+            var itemForI1 = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "interface I1<T>",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "class Class1",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForM1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void I1<T>.M1()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "static void Class1.M1()",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForAbsClass1 = new TestInheritanceMemberItem(
+                lineNumber: 11,
+                memberName: "class Class1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "interface I1<T>",
+                        locationTag: "target5",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForM1InClass1 = new TestInheritanceMemberItem(
+                lineNumber: 13,
+                memberName: "static void Class1.M1()",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "void I1<T>.M1()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForP1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "int I1<T>.P1 { get; set; }",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "static int Class1.P1 { get; set; }",
+                        locationTag: "target6",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForP1InClass1 = new TestInheritanceMemberItem(
+                lineNumber: 14,
+                memberName: "static int Class1.P1 { get; set; }",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "int I1<T>.P1 { get; set; }",
+                        locationTag: "target7",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForE1InI1 = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "event EventHandler I1<T>.e1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "static event EventHandler Class1.e1",
+                        locationTag: "target8",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForE1InClass1 = new TestInheritanceMemberItem(
+                lineNumber: 15,
+                memberName: "static event EventHandler Class1.e1",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "event EventHandler I1<T>.e1",
+                        locationTag: "target9",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForPlusOperatorInI1 = new TestInheritanceMemberItem(
+                lineNumber: 7,
+                memberName: "int I1<T>.operator +(T)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "static int Class1.operator +(Class1)",
+                        locationTag: "target10",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForPlusOperatorInClass1 = new TestInheritanceMemberItem(
+                lineNumber: 16,
+                memberName: "static int Class1.operator +(Class1)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "int I1<T>.operator +(T)",
+                        locationTag: "target11",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            var itemForIntOperatorInI1 = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "I1<T>.implicit operator int(T)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "static Class1.implicit operator int(Class1)",
+                        locationTag: "target13",
+                        relationship: InheritanceRelationship.Implemented)));
+
+            var itemForIntOperatorInClass1 = new TestInheritanceMemberItem(
+                lineNumber: 17,
+                memberName: "static Class1.implicit operator int(Class1)",
+                targets: ImmutableArray.Create(new TargetInfo(
+                        targetSymbolDisplayName: "I1<T>.implicit operator int(T)",
+                        locationTag: "target12",
+                        relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForI1,
+                itemForAbsClass1,
+                itemForM1InI1,
+                itemForM1InClass1,
+                itemForP1InI1,
+                itemForP1InClass1,
+                itemForE1InI1,
+                itemForE1InClass1,
+                itemForPlusOperatorInI1,
+                itemForPlusOperatorInClass1,
+                itemForIntOperatorInI1,
+                itemForIntOperatorInClass1);
         }
 
         #endregion

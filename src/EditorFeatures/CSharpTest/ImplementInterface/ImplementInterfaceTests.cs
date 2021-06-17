@@ -8985,14 +8985,14 @@ class Program : ITest
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterfaceOperator_OnlyExplicitlyImplementable()
+        public async Task TestStaticAbstractInterfaceMember()
         {
             await TestInRegularAndScriptAsync(@"
 interface ITest
 {
-    static abstract int operator -(ITest x);
+    static abstract void M1();
 }
 
 class C : [|ITest|]
@@ -9002,42 +9002,12 @@ class C : [|ITest|]
 @"
 interface ITest
 {
-    static abstract int operator -(ITest x);
+    static abstract void M1();
 }
 
 class C : ITest
 {
-    static int ITest.operator -(ITest x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_all_members_explicitly);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterfaceOperator_ImplementImplicitly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-class C : ITest<C>
-{
-    public static int operator -(C x)
+    public static void M1()
     {
         throw new System.NotImplementedException();
     }
@@ -9045,71 +9015,14 @@ class C : ITest<C>
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_interface);
         }
 
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterfaceOperator_ImplementExplicitly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-class C : ITest<C>
-{
-    static int ITest<C>.operator -(C x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_all_members_explicitly);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterfaceOperator_ImplementAbstractly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-abstract class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int operator -(T x);
-}
-
-abstract class C : ITest<C>
-{
-    public abstract static int operator -(C x);
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterface_Explicitly()
+        public async Task TestStaticAbstractInterfaceMemberExplicitly()
         {
             await TestInRegularAndScriptAsync(@"
 interface ITest
 {
-    static abstract int M(ITest x);
+    static abstract void M1();
 }
 
 class C : [|ITest|]
@@ -9119,12 +9032,12 @@ class C : [|ITest|]
 @"
 interface ITest
 {
-    static abstract int M(ITest x);
+    static abstract void M1();
 }
 
 class C : ITest
 {
-    static int ITest.M(ITest x)
+    void ITest.M1()
     {
         throw new System.NotImplementedException();
     }
@@ -9132,123 +9045,29 @@ class C : ITest
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_all_members_explicitly);
         }
 
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterface_Implicitly()
+        public async Task TestStaticAbstractInterfaceMember_ImplementAbstractly()
         {
             await TestInRegularAndScriptAsync(@"
 interface ITest
 {
-    static abstract int M(ITest x);
+    static abstract void M1();
 }
 
-class C : [|ITest|]
+abstract class C : [|ITest|]
 {
 }
 ",
 @"
 interface ITest
 {
-    static abstract int M(ITest x);
+    static abstract void M1();
 }
 
-class C : ITest
+abstract class C : ITest
 {
-    public static int M(ITest x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_interface);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterface_ImplementImplicitly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-class C : ITest<C>
-{
-    public static int M(C x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_interface);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterface_ImplementExplicitly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-class C : ITest<C>
-{
-    static int ITest<C>.M(C x)
-    {
-        throw new System.NotImplementedException();
-    }
-}
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_all_members_explicitly);
-        }
-
-        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestStaticAbstractInterface_ImplementAbstractly()
-        {
-            await TestInRegularAndScriptAsync(@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-abstract class C : [|ITest<C>|]
-{
-}
-",
-@"
-interface ITest<T> where T : ITest<T>
-{
-    static abstract int M(T x);
-}
-
-abstract class C : ITest<C>
-{
-    // TODO: Should generate the following? or just do nothing?
-    public static int M(C x)
-    {
-        throw new System.NotImplementedException();
-    }
+    public abstract static void M1();
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
         }

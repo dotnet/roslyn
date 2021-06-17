@@ -197,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ReportDiagnosticsIfObsolete(diagnostics, finalConversion, node, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, finalConversion, diagnostics);
             }
 
             if (finalConversion.IsExplicit &&
@@ -225,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion leftConversion = best.LeftConversion;
             ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, leftConversion, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftConversion, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -2173,6 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ReportDiagnosticsIfObsolete(diagnostics, resultConversion, node, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, resultConversion, diagnostics);
             }
 
             if (!hasErrors && operandType.IsVoidPointer())
@@ -2184,6 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion operandConversion = best.Conversion;
 
             ReportDiagnosticsIfObsolete(diagnostics, operandConversion, node, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, operandConversion, diagnostics);
 
             return new BoundIncrementOperator(
                 node,
@@ -3844,6 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
+                        CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, leftConversion, diagnostics);
                     }
 
                     diagnostics.Add(node, useSiteInfo);

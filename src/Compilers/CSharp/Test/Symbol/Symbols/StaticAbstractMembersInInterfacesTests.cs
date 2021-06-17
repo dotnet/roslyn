@@ -4547,7 +4547,7 @@ interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
                 );
@@ -4675,7 +4675,7 @@ interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator + (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 31 + type.Length)
                 );
@@ -4703,28 +4703,28 @@ interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static bool operator true (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(4, 35),
-                // (5,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (5,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static bool operator false (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(5, 35),
-                // (6,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator > (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">").WithLocation(6, 33),
-                // (7,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (7,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator < (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<").WithLocation(7, 33),
-                // (8,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (8,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator >= (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">=").WithLocation(8, 33),
-                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator <= (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33),
-                // (10,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (10,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator == (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "==").WithLocation(10, 33),
-                // (11,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (11,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator != (I1 x, I1 y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(11, 33)
                 );
@@ -4784,10 +4784,10 @@ interface I1<T> where T : I1<T>
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 39),
-                // (5,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (5,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator T(int x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T").WithLocation(5, 39)
                 );
@@ -4853,10 +4853,10 @@ interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
-                // (4,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
                 );
@@ -4922,7 +4922,7 @@ interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyDiagnostics(
-                // (4,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action E01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "E01").WithLocation(4, 41)
                 );
@@ -5027,34 +5027,34 @@ class C8
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             var expected = new[] {
-                // (4,22): error CS9101: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (4,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract members.
                 //     void Test(C1<I2> x)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C1<T1>", "I1", "T1", "I2").WithLocation(4, 22),
-                // (15,11): error CS9101: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (15,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C2.M<T2>()", "I1", "T2", "I2").WithLocation(15, 11),
-                // (21,22): error CS9101: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (21,22): error CS8920: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C3<T3>", "I2", "T3", "I2").WithLocation(21, 22),
-                // (21,32): error CS9101: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (21,32): error CS8920: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
                 //     void Test(C3<I2> x, C3<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C3<T3>", "I2", "T3", "I3").WithLocation(21, 32),
-                // (32,11): error CS9101: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (32,11): error CS8920: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
                 //         x.M<I2>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C4.M<T4>()", "I2", "T4", "I2").WithLocation(32, 11),
-                // (33,11): error CS9101: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                // (33,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C4.M<T4>()", "I2", "T4", "I3").WithLocation(33, 11),
-                // (39,22): error CS9101: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract members.
+                // (39,22): error CS8920: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract members.
                 //     void Test(C5<I3> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C5<T5>", "I3", "T5", "I3").WithLocation(39, 22),
-                // (50,11): error CS9101: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract members.
+                // (50,11): error CS8920: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract members.
                 //         x.M<I3>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C6.M<T6>()", "I3", "T6", "I3").WithLocation(50, 11),
-                // (56,22): error CS9101: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (56,22): error CS8920: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract members.
                 //     void Test(C7<I1> y)
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C7<T7>", "I1", "T7", "I1").WithLocation(56, 22),
-                // (67,11): error CS9101: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                // (67,11): error CS8920: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract members.
                 //         x.M<I1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("C8.M<T8>()", "I1", "T8", "I1").WithLocation(67, 11)
             };
@@ -5345,22 +5345,22 @@ interface I13
                 // (9,26): error CS0562: The parameter of a unary operator must be the containing type
                 //     static bool operator +(T2? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (26,39): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //         static abstract bool operator +(T5 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (32,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T71 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (37,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T8 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (44,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(44, 35),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator false(T11)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11)").WithLocation(47, 18),
-                // (51,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (51,35): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator false(int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(51, 35)
                 );
@@ -5441,22 +5441,22 @@ interface I13
                 // (9,25): error CS0559: The parameter type for ++ or -- operator must be the containing type
                 //     static T2? operator ++(T2? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(9, 25),
-                // (26,37): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                // (26,37): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //         static abstract T5 operator ++(T5 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(26, 37),
-                // (32,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                // (32,34): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract T71 operator ++(T71 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(32, 34),
-                // (37,33): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                // (37,33): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract T8 operator ++(T8 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(37, 33),
-                // (44,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                // (44,34): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract T10 operator ++(T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(44, 34),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator --(T11)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11)").WithLocation(47, 18),
-                // (51,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                // (51,34): error CS8922: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract int operator ++(int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(51, 34)
                 );
@@ -5548,34 +5548,34 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
                 // (9,25): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //     static T2? operator ++(I2<T2> x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(9, 25),
-                // (19,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (19,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T4? operator ++(I4<T4> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(19, 34),
-                // (26,37): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (26,37): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //         static abstract T5 operator ++(I6 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(26, 37),
-                // (32,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (32,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T71 operator ++(I7<T71, T72> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(32, 34),
-                // (37,33): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (37,33): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T8 operator ++(I8<T8> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(37, 33),
-                // (44,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (44,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T10 operator ++(I10<T10> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(44, 34),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator ++(I10<T11>)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(I10<T11>)").WithLocation(47, 18),
-                // (51,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (51,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract int operator ++(I12 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(51, 34),
-                // (56,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (56,35): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T13? operator ++(T13 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(56, 35),
-                // (61,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (61,34): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T14 operator ++(T14? x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(61, 34),
-                // (66,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                // (66,35): error CS8923: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T151 operator ++(T152 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(66, 35)
                 );
@@ -5655,22 +5655,22 @@ interface I13
                 // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(T2? x, bool y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (26,39): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //         static abstract bool operator +(T5 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (32,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T71 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (37,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T8 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (44,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(T10 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator /(T11, bool)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11, bool)").WithLocation(47, 18),
-                // (51,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (51,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(int x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
                 );
@@ -5750,22 +5750,22 @@ interface I13
                 // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static bool operator +(bool y, T2? x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (26,39): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //         static abstract bool operator +(bool y, T5 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (32,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, T71 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (37,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, T8 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (44,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, T10 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator <=(bool, T11)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(bool, T11)").WithLocation(47, 18),
-                // (51,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (51,35): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     static abstract bool operator +(bool y, int x);
                 Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
                 );
@@ -5851,25 +5851,25 @@ interface I14
                 // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     static bool operator <<(T2? x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(9, 26),
-                // (26,39): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (26,39): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //         static abstract bool operator <<(T5 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(26, 39),
-                // (32,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (32,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T71 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(32, 35),
-                // (37,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (37,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T8 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(37, 35),
-                // (44,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (44,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(T10 x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(44, 35),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.operator >>(T11, int)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>.operator " + op + "(T11, int)").WithLocation(47, 18),
-                // (51,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (51,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(int x, int y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35),
-                // (61,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                // (61,35): error CS8925: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
                 //     static abstract bool operator <<(I14 x, bool y);
                 Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(61, 35)
                 );
@@ -5972,22 +5972,22 @@ interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
                 // (9,39): error CS1964: 'I2<T2>.explicit operator dynamic(T2)': user-defined conversions to or from the dynamic type are not allowed
                 //     abstract static explicit operator dynamic(T2 y);
                 Diagnostic(ErrorCode.ERR_BadDynamicConversion, "dynamic").WithArguments("I2<T2>." + op + " operator dynamic(T2)").WithLocation(9, 39),
-                // (26,43): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (26,43): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //         static abstract explicit operator T5 (bool y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T5").WithLocation(26, 43),
-                // (32,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (32,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator T71 (bool y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T71").WithLocation(32, 39),
-                // (37,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (37,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator T8(bool y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T8").WithLocation(37, 39),
-                // (44,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (44,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator T10(bool y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "T10").WithLocation(44, 39),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.explicit operator T11(bool)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>." + op + " operator T11(bool)").WithLocation(47, 18),
-                // (51,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (51,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator int(bool y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "int").WithLocation(51, 39),
                 // (56,39): error CS0552: 'I13.explicit operator I13(bool)': user-defined conversions to or from an interface are not allowed
@@ -6093,22 +6093,22 @@ interface I19<T19_1, T19_2> where T19_1 : I19<T19_1, T19_2>, T19_2
                 // (9,39): error CS1964: 'I2<T2>.explicit operator T2(dynamic)': user-defined conversions to or from the dynamic type are not allowed
                 //     abstract static explicit operator T2(dynamic y);
                 Diagnostic(ErrorCode.ERR_BadDynamicConversion, "T2").WithArguments("I2<T2>." + op + " operator T2(dynamic)").WithLocation(9, 39),
-                // (26,43): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (26,43): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //         static abstract explicit operator bool(T5 y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(26, 43),
-                // (32,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (32,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator bool(T71 y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(32, 39),
-                // (37,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (37,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator bool(T8 y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(37, 39),
-                // (44,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (44,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator bool(T10 y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(44, 39),
                 // (47,18): error CS0535: 'C11<T11>' does not implement interface member 'I10<T11>.explicit operator bool(T11)'
                 // class C11<T11> : I10<T11> where T11 : C11<T11> {}
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I10<T11>").WithArguments("C11<T11>", "I10<T11>." + op + " operator bool(T11)").WithLocation(47, 18),
-                // (51,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (51,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     static abstract explicit operator bool(int y);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "bool").WithLocation(51, 39),
                 // (56,39): error CS0552: 'I13.explicit operator bool(I13)': user-defined conversions to or from an interface are not allowed
@@ -6169,7 +6169,7 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         M01();
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "M01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -6178,7 +6178,7 @@ class Test
                 // (15,9): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.M04();
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.M01();
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.M01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -6199,7 +6199,7 @@ class Test
                 // (38,11): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         T.M05();
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 11),
-                // (40,71): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.M01());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01()").WithLocation(40, 71)
                 );
@@ -6379,6 +6379,16 @@ IInvocationOperation (virtual void I1.M01()) (OperationKind.Invocation, Type: Sy
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("void I1.M01()", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Equal("void I1.M01()", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("void I1.M01()", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Equal("void I1.M01()", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "M01").Single().ToTestDisplayString());
+            Assert.Contains("void I1.M01()", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("M01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -6411,7 +6421,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.M01").WithLocation(6, 9)
                 );
@@ -6421,7 +6431,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
                 );
@@ -6455,7 +6465,7 @@ class Test
                 // (11,23): error CS0119: 'T' is a type parameter, which is not valid in the given context
                 //         _ = from t in T select t + 1;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type parameter").WithLocation(11, 23),
-                // (12,26): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (12,26): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = from t in I1 select t + 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "select t + 1").WithLocation(12, 26)
                 );
@@ -6556,17 +6566,17 @@ class Test<T> where T : I1<T>
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = -x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "x" + postfixOp).WithLocation(8, 13),
-                // (13,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = -y;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "y" + postfixOp).WithLocation(13, 13),
-                // (21,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = -a;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "a" + postfixOp).WithLocation(21, 13),
                 (prefixOp + postfixOp).Length == 1 ?
-                    // (26,78): error CS9108: An expression tree may not contain an access of static abstract interface member
+                    // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                     //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (-b).ToString());
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, prefixOp + "b" + postfixOp).WithLocation(26, 78)
                     :
@@ -6978,7 +6988,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = -x;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + "x" + postfixOp).WithLocation(6, 13)
                 );
@@ -6988,7 +6998,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator- (T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + postfixOp).WithLocation(12, 31)
                 );
@@ -7087,16 +7097,16 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (9,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = x ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x").WithLocation(9, 13),
-                // (14,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (14,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = y ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y").WithLocation(14, 13),
-                // (22,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (22,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = a ? true : false;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a").WithLocation(22, 13),
-                // (27,78): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (27,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b ? true : false).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b").WithLocation(27, 78)
                 );
@@ -7214,7 +7224,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = x ? true : false;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x").WithLocation(6, 13)
                 );
@@ -7224,10 +7234,10 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static bool operator true (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(12, 35),
-                // (13,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static bool operator false (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(13, 35)
                 );
@@ -7285,6 +7295,384 @@ class Test
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+
+    static void M02((int, C<I1>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, C<I1>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1((int, C<I1>) a)
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b " + op + @" b).ToString());
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (9,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(9, 13),
+                // (14,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(14, 13),
+                // (22,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(22, 13),
+                // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator true (T x);
+    abstract static bool operator false (T x);
+}
+
+class Test
+{
+    static void M02<T, U>((int, C<T>) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0034
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_False(T)""
+  IL_002f:  ldc.i4.0
+  IL_0030:  ceq
+  IL_0032:  br.s       IL_0035
+  IL_0034:  ldc.i4.0
+  IL_0035:  pop
+  IL_0036:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_True(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.1
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0033
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_False(T)""
+  IL_002e:  ldc.i4.0
+  IL_002f:  ceq
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldc.i4.0
+  IL_0034:  pop
+  IL_0035:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_True(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.1
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (21,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(21, 35),
+                // (22,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(22, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractTrueFalseOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (21,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "true").WithArguments("abstract", "9.0", "preview").WithLocation(21, 35),
+                // (22,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "false").WithArguments("abstract", "9.0", "preview").WithLocation(22, 35)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
@@ -7336,16 +7724,16 @@ public partial interface I1
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = x - 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " 1").WithLocation(8, 13),
-                // (13,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (13,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = y - 2;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " 2").WithLocation(13, 13),
-                // (21,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (21,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = a - 3;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " 3").WithLocation(21, 13),
-                // (26,78): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (26,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b - 4).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + " 4").WithLocation(26, 78)
                 );
@@ -7547,16 +7935,16 @@ class Test
                 var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
 
                 builder.AddRange(
-                    // (10,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                    // (10,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = x && x;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + op + " x").WithLocation(10, 13),
-                    // (15,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                    // (15,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = y && y;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + op + " y").WithLocation(15, 13),
-                    // (23,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                    // (23,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                     //         _ = a && a;
                     Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + op + " a").WithLocation(23, 13),
-                    // (28,78): error CS9108: An expression tree may not contain an access of static abstract interface member
+                    // (28,78): error CS8927: An expression tree may not contain an access of static abstract interface member
                     //         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b && b).ToString());
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "b " + op + op + " b").WithLocation(28, 78)
                     );
@@ -7564,7 +7952,7 @@ class Test
                 if (op == "&" ? falseIsAbstract : trueIsAbstract)
                 {
                     builder.Add(
-                        // (33,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                        // (33,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                         //         _ = b || c;
                         Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "b " + op + op + " c").WithLocation(33, 13)
                         );
@@ -7624,13 +8012,13 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x /= 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + "= 1").WithLocation(8, 9),
-                // (13,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (13,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         y /= 2;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + "= 2").WithLocation(13, 9),
-                // (26,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (26,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         a /= 3;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + "= 3").WithLocation(26, 9),
                 // (31,78): error CS0832: An expression tree may not contain an assignment operator
@@ -7694,6 +8082,64 @@ class Test
             }
 
             throw TestExceptionUtilities.UnexpectedValue(op);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+
+    abstract static bool operator == (I1<T> x, I1<T> y);
+    abstract static bool operator != (I1<T> x, I1<T> y);
+
+    static void M02((int, I1<T>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, I1<T>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1<T>((int, I1<T>) a) where T : I1<T>
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1<T>
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b " + op + @" b).ToString());
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (12,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + " x").WithLocation(12, 13),
+                // (17,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "y " + op + " y").WithLocation(17, 13),
+                // (25,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "a " + op + " a").WithLocation(25, 13),
+                // (30,92): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, T)>>)(((int, T) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(30, 92)
+                );
         }
 
         [Theory]
@@ -9193,6 +9639,183 @@ ICompoundAssignmentOperation (BinaryOperatorKind." + operatorKind + @") (Operato
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+
+class Test
+{
+    static void M02<T, U>((int, T) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0011:  bne.un.s   IL_002c
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001f:  constrained. ""T""
+  IL_0025:  call       ""bool I1<T>.op_Equality(T, T)""
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldc.i4.0
+  IL_002d:  pop
+  IL_002e:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0011:  bne.un.s   IL_002c
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001f:  constrained. ""T""
+  IL_0025:  call       ""bool I1<T>.op_Inequality(T, T)""
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldc.i4.1
+  IL_002d:  pop
+  IL_002e:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0010:  bne.un.s   IL_002b
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""bool I1<T>.op_Equality(T, T)""
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.0
+  IL_002c:  pop
+  IL_002d:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, T>)",
+@"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, T> V_0,
+                System.ValueTuple<int, T> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, T>.Item1""
+  IL_0010:  bne.un.s   IL_002b
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""T System.ValueTuple<int, T>.Item2""
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""bool I1<T>.op_Inequality(T, T)""
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.1
+  IL_002c:  pop
+  IL_002d:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, T)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, T)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
         {
             var source1 =
@@ -9222,7 +9845,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = x - y;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " y").WithLocation(6, 13)
                 );
@@ -9232,7 +9855,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
-                // (12,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator- (I1 x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
                 );
@@ -9284,7 +9907,7 @@ class Test
             else
             {
                 compilation2.VerifyDiagnostics(
-                    // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                    // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                     //         _ = x && y;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + op + " y").WithLocation(6, 13)
                     );
@@ -9299,7 +9922,7 @@ class Test
             if (binaryIsAbstract)
             {
                 builder.Add(
-                    // (12,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                    // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                     //     abstract static I1 operator& (I1 x, I1 y);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32)
                     );
@@ -9308,7 +9931,7 @@ class Test
             if (trueIsAbstract)
             {
                 builder.Add(
-                    // (13,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                    // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                     //     abstract static bool operator true (I1 x);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(13, 35)
                     );
@@ -9317,7 +9940,7 @@ class Test
             if (falseIsAbstract)
             {
                 builder.Add(
-                    // (14,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                    // (14,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                     //     abstract static bool operator false (I1 x);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(14, 35)
                     );
@@ -9366,7 +9989,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         x *= y;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + "= y").WithLocation(6, 9)
                 );
@@ -9376,9 +9999,60 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator* (T x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 31)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, T) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (12,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator == (T x, T y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "==").WithLocation(12, 35),
+                // (13,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator != (T x, T y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "!=").WithLocation(13, 35)
                 );
         }
 
@@ -9573,6 +10247,57 @@ class Test
                 );
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractBinaryOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static bool operator == (T x, T y);
+    abstract static bool operator != (T x, T y);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, T) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (12,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator == (T x, T y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "==").WithArguments("abstract", "9.0", "preview").WithLocation(12, 35),
+                // (13,35): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static bool operator != (T x, T y);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "!=").WithArguments("abstract", "9.0", "preview").WithLocation(13, 35)
+                );
+        }
+
         [Fact]
         public void ConsumeAbstractStaticPropertyGet_01()
         {
@@ -9625,7 +10350,7 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = P01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 13),
                 // (14,13): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9634,7 +10359,7 @@ class Test
                 // (15,13): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = this.P04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 13),
-                // (27,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = I1.P01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 13),
                 // (28,13): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9655,7 +10380,7 @@ class Test
                 // (38,15): error CS0122: 'I1.P05' is inaccessible due to its protection level
                 //         _ = T.P05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P05").WithArguments("I1.P05").WithLocation(38, 15),
-                // (40,71): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01.ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
@@ -9713,7 +10438,7 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 = 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9722,7 +10447,7 @@ class Test
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 = 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 = 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9746,7 +10471,7 @@ class Test
                 // (40,71): error CS0832: An expression tree may not contain an assignment operator
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 = 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "T.P01 = 1").WithLocation(40, 71),
-                // (40,71): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 = 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
@@ -9804,10 +10529,10 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9816,10 +10541,10 @@ class Test
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 += 1;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -9843,7 +10568,7 @@ class Test
                 // (40,71): error CS0832: An expression tree may not contain an assignment operator
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 += 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "T.P01 += 1").WithLocation(40, 71),
-                // (40,71): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,71): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => T.P01 += 1);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.P01").WithLocation(40, 71)
                 );
@@ -9999,6 +10724,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10075,6 +10810,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10187,6 +10932,16 @@ IPropertyReferenceOperation: System.Int32 I1.P01 { get; set; } (Static) (Operati
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "P01").Single().ToTestDisplayString());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("System.Int32 I1.P01 { get; set; }", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("P01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10219,7 +10974,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = T.P01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01").WithLocation(6, 13)
                 );
@@ -10229,10 +10984,10 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(12, 31),
-                // (12,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(12, 36)
                 );
@@ -10268,7 +11023,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.P01 = 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01").WithLocation(6, 9)
                 );
@@ -10278,10 +11033,10 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(12, 31),
-                // (12,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(12, 36)
                 );
@@ -10317,10 +11072,10 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.P01 += 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01").WithLocation(6, 9),
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.P01 += 1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01").WithLocation(6, 9)
                 );
@@ -10330,10 +11085,10 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(12, 31),
-                // (12,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int P01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(12, 36)
                 );
@@ -10538,25 +11293,25 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01 += null").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P01 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 9),
-                // (14,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (14,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         this.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "this.P01 += null").WithLocation(14, 9),
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01 += null").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P01 += null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 9),
-                // (28,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (28,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x.P01 += null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x.P01 += null").WithLocation(28, 9),
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -10632,25 +11387,25 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "P01 -= null").WithLocation(8, 9),
                 // (14,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P01 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P01").WithArguments("I1.P01").WithLocation(14, 9),
-                // (14,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (14,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         this.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "this.P01 -= null").WithLocation(14, 9),
                 // (15,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         this.P04 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.P04").WithArguments("I1.P04").WithLocation(15, 9),
-                // (27,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         I1.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.P01 -= null").WithLocation(27, 9),
                 // (28,9): error CS0176: Member 'I1.P01' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         x.P01 -= null;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "x.P01").WithArguments("I1.P01").WithLocation(28, 9),
-                // (28,9): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (28,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x.P01 -= null;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x.P01 -= null").WithLocation(28, 9),
                 // (30,9): error CS0176: Member 'I1.P04' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -10863,6 +11618,16 @@ IEventReferenceOperation: event System.Action I1.E01 (Static) (OperationKind.Eve
             var m02 = compilation1.GetMember<MethodSymbol>("Test.M02");
 
             Assert.Equal("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0], "E01").Single().ToTestDisplayString());
+            Assert.Equal("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0], "E01").Single().ToTestDisplayString());
+            Assert.Contains("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupSymbols(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+            Assert.Contains("event System.Action I1.E01", ((CSharpSemanticModel)model).LookupStaticMembers(node.SpanStart, m02.TypeParameters[0]).ToTestDisplayStrings());
+
+            Assert.Equal("event System.Action I1.E01", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "E01").Single().ToTestDisplayString());
+            Assert.Equal("event System.Action I1.E01", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol(), "E01").Single().ToTestDisplayString());
+            Assert.Contains("event System.Action I1.E01", model.LookupSymbols(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+            Assert.Contains("event System.Action I1.E01", model.LookupStaticMembers(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()).ToTestDisplayStrings());
+
+            Assert.Contains("E01", model.LookupNames(node.SpanStart, m02.TypeParameters[0].GetPublicSymbol()));
         }
 
         [Fact]
@@ -10895,7 +11660,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.P01 += null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01 += null").WithLocation(6, 9)
                 );
@@ -10905,7 +11670,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action P01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P01").WithLocation(12, 41)
                 );
@@ -10941,7 +11706,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,9): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,9): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         T.P01 -= null;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.P01 -= null").WithLocation(6, 9)
                 );
@@ -10951,7 +11716,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action P01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P01").WithLocation(12, 41)
                 );
@@ -11303,7 +12068,7 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (System.Action)M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)M01").WithLocation(8, 13),
                 // (14,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -11312,7 +12077,7 @@ class Test
                 // (15,28): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = (System.Action)this.M04;
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 28),
-                // (27,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (System.Action)I1.M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(System.Action)I1.M01").WithLocation(27, 13),
                 // (28,28): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -11333,7 +12098,7 @@ class Test
                 // (38,30): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = (System.Action)T.M05;
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 30),
-                // (40,87): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,87): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => ((System.Action)T.M01).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 87)
                 );
@@ -11446,7 +12211,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = (System.Action)T.M01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "(System.Action)T.M01").WithLocation(6, 13)
                 );
@@ -11456,7 +12221,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
                 );
@@ -11563,7 +12328,7 @@ class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,31): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,31): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = new System.Action(M01);
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "M01").WithLocation(8, 31),
                 // (14,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -11572,7 +12337,7 @@ class Test
                 // (15,31): error CS0176: Member 'I1.M04()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         _ = new System.Action(this.M04);
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M04").WithArguments("I1.M04()").WithLocation(15, 31),
-                // (27,31): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,31): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = new System.Action(I1.M01);
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "I1.M01").WithLocation(27, 31),
                 // (28,31): error CS0176: Member 'I1.M01()' cannot be accessed with an instance reference; qualify it with a type name instead
@@ -11593,7 +12358,7 @@ class Test
                 // (38,33): error CS0122: 'I1.M05()' is inaccessible due to its protection level
                 //         _ = new System.Action(T.M05);
                 Diagnostic(ErrorCode.ERR_BadAccess, "M05").WithArguments("I1.M05()").WithLocation(38, 33),
-                // (40,89): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (40,89): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Action>)(() => new System.Action(T.M01).ToString());
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "T.M01").WithLocation(40, 89)
                 );
@@ -11706,7 +12471,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = new System.Action(T.M01);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "T.M01").WithLocation(6, 31)
                 );
@@ -11716,7 +12481,7 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
                 );
@@ -11823,7 +12588,7 @@ unsafe class Test
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (delegate*<void>)&M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&M01").WithLocation(8, 13),
                 // (14,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
@@ -11832,7 +12597,7 @@ unsafe class Test
                 // (15,13): error CS8757: No overload for 'M04' matches function pointer 'delegate*<void>'
                 //         _ = (delegate*<void>)&this.M04;
                 Diagnostic(ErrorCode.ERR_MethFuncPtrMismatch, "(delegate*<void>)&this.M04").WithArguments("M04", "delegate*<void>").WithLocation(15, 13),
-                // (27,13): error CS9107: A static abstract interface member can be accessed only on a type parameter.
+                // (27,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = (delegate*<void>)&I1.M01;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "(delegate*<void>)&I1.M01").WithLocation(27, 13),
                 // (28,13): error CS8757: No overload for 'M01' matches function pointer 'delegate*<void>'
@@ -11965,7 +12730,7 @@ unsafe class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,13): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         _ = (delegate*<void>)&T.M01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "(delegate*<void>)&T.M01").WithLocation(6, 13)
                 );
@@ -11975,7 +12740,7 @@ unsafe class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (12,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(12, 26)
                 );
@@ -12086,7 +12851,7 @@ public interface I1
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01()'
                 //     C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01()").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1.M01()'. 'C2.M01()' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1.M01()'. 'C2.M01()' cannot implement the interface member because it is not static.
                 //     C2 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1").WithArguments("C2", "I1.M01()", "C2.M01()").WithLocation(12, 10),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01()'. 'C3.M01()' cannot implement an interface member because it is not public.
@@ -12360,7 +13125,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01()", "I1.M01()", "Test1").WithLocation(2, 12)
                 );
@@ -12370,10 +13135,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01()' cannot implement interface member 'I1.M01()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01()", "I1.M01()", "Test1").WithLocation(2, 12),
-                // (9,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 26)
                 );
@@ -12409,7 +13174,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,20): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,20): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 20)
                 );
@@ -12419,10 +13184,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (4,20): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,20): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static void I1.M01() {}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 20),
-                // (9,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 26)
                 );
@@ -13756,7 +14521,7 @@ public interface I2<T> where T : I2<T>
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2)", "C2.operator " + op + "(C2)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
@@ -13771,7 +14536,7 @@ public interface I2<T> where T : I2<T>
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4)").WithLocation(24, 10),
-                // (26,24): error CS9111: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
+                // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
                 //     C4 I1<C4>.operator +(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4)").WithLocation(26, 24),
                 // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -13894,7 +14659,7 @@ public interface I2<T> where T : I2<T>
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1<C2>.operator >>(C2, int)'. 'C2.operator >>(C2, int)' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator >>(C2, int)'. 'C2.operator >>(C2, int)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)", "C2.operator " + op + "(C2, int)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
@@ -13909,7 +14674,7 @@ public interface I2<T> where T : I2<T>
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator >>(C4, int)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4, int)").WithLocation(24, 10),
-                // (26,24): error CS9111: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
+                // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
                 //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4, int)").WithLocation(26, 24),
                 // (26,24): error CS0539: 'C4.operator >>(C4, int)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -14037,7 +14802,7 @@ interface I14 : I1
                 // (17,24): error CS0562: The parameter of a unary operator must be the containing type
                 //     static I1 operator +(I1 x) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24),
-                // (22,20): error CS9111: Explicit implementation of a user-defined operator 'I5.operator +(I1)' must be declared static
+                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator +(I1)' must be declared static
                 //     I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1)").WithLocation(22, 20),
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -14046,7 +14811,7 @@ interface I14 : I1
                 // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1)").WithLocation(27, 27),
-                // (32,33): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator +(I1 x);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
                 // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
@@ -14198,7 +14963,7 @@ interface I14 : I1
                 // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static I1 operator |(I1 x, int y) => default;
                 Diagnostic(badSignatureError, op).WithLocation(17, 24),
-                // (22,20): error CS9111: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
+                // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
                 //     I1 I1.operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
                 // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -14207,7 +14972,7 @@ interface I14 : I1
                 // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator |(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1, int)").WithLocation(27, 27),
-                // (32,33): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator |(I1 x, int y);
                 Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
                 // (42,16): error CS0563: One of the parameters of a binary operator must be the containing type
@@ -14455,7 +15220,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (2,12): error CS9110: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12)
                 );
@@ -14465,10 +15230,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (2,12): error CS9110: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12),
-                // (9,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator +(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
                 );
@@ -14504,7 +15269,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12)
                 );
@@ -14514,10 +15279,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (2,12): error CS9110: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12),
-                // (9,32): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator >>(T x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
                 );
@@ -14553,7 +15318,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
                 );
@@ -14563,10 +15328,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
-                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator +(I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
                 );
@@ -14602,7 +15367,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
                 );
@@ -14612,10 +15377,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
-                // (4,27): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
-                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator +(I1 x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
                 );
@@ -17383,7 +18148,7 @@ public interface I1
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
                 //     C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is not static.
                 //     C2 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1").WithArguments("C2", "I1.M01", "C2.M01").WithLocation(12, 10),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01'. 'C3.M01' cannot implement an interface member because it is not public.
@@ -17658,13 +18423,13 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12)
                 );
@@ -17674,19 +18439,19 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.set' cannot implement interface member 'I1.M01.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.set", "I1.M01.set", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.get' cannot implement interface member 'I1.M01.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.get", "I1.M01.get", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12),
-                // (9,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(9, 31),
-                // (9,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(9, 36)
                 );
@@ -17722,7 +18487,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,19): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static int I1.M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 19)
                 );
@@ -17732,13 +18497,13 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (4,19): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static int I1.M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 19),
-                // (9,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(9, 31),
-                // (9,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,36): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static int M01 { get; set; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(9, 36)
                 );
@@ -19937,7 +20702,7 @@ public interface I1
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1.M01'
                 //     C1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C1", "I1.M01").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1.M01'. 'C2.M01' cannot implement the interface member because it is not static.
                 //     C2 : I1
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1").WithArguments("C2", "I1.M01", "C2.M01").WithLocation(12, 10),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1.M01'. 'C3.M01' cannot implement an interface member because it is not public.
@@ -20218,13 +20983,13 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.remove", "I1.M01.remove", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.add", "I1.M01.add", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12)
                 );
@@ -20234,16 +20999,16 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.remove' cannot implement interface member 'I1.M01.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.remove", "I1.M01.remove", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01.add' cannot implement interface member 'I1.M01.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01.add", "I1.M01.add", "Test1").WithLocation(2, 12),
-                // (2,12): error CS9110: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.M01' cannot implement interface member 'I1.M01' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("Test1.M01", "I1.M01", "Test1").WithLocation(2, 12),
-                // (9,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action M01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 41)
                 );
@@ -20279,7 +21044,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static event System.Action I1.M01 { add => throw null; remove => throw null; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 35)
                 );
@@ -20289,10 +21054,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (4,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static event System.Action I1.M01 { add => throw null; remove => throw null; }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 35),
-                // (9,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static event System.Action M01;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(9, 41)
                 );
@@ -22477,7 +23242,7 @@ public interface I2<T> where T : I2<T>
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>." + op + " operator int(C1)").WithLocation(8, 10),
-                // (12,10): error CS9109: 'C2' does not implement static interface member 'I1<C2>.explicit operator int(C2)'. 'C2.explicit operator int(C2)' cannot implement the interface member because it is not static.
+                // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.explicit operator int(C2)'. 'C2.explicit operator int(C2)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>." + op + " operator int(C2)", "C2." + op + " operator int(C2)").WithLocation(12, 10),
                 // (14,30): error CS0558: User-defined operator 'C2.explicit operator int(C2)' must be declared static and public
@@ -22492,7 +23257,7 @@ public interface I2<T> where T : I2<T>
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.explicit operator int(C4)'
                 //     C4 : I1<C4>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>." + op + " operator int(C4)").WithLocation(24, 10),
-                // (26,30): error CS9111: Explicit implementation of a user-defined operator 'C4.explicit operator int(C4)' must be declared static
+                // (26,30): error CS8930: Explicit implementation of a user-defined operator 'C4.explicit operator int(C4)' must be declared static
                 //     explicit I1<C4>.operator int(C4 x) => throw null;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("C4." + op + " operator int(C4)").WithLocation(26, 30),
                 // (26,30): error CS0539: 'C4.explicit operator int(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -22620,7 +23385,7 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (17,30): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                 //     static implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(17, 30),
-                // (22,29): error CS9111: Explicit implementation of a user-defined operator 'I5<T>.implicit operator int(T)' must be declared static
+                // (22,29): error CS8930: Explicit implementation of a user-defined operator 'I5<T>.implicit operator int(T)' must be declared static
                 //     implicit I1<T>.operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, "int").WithArguments("I5<T>." + op + " operator int(T)").WithLocation(22, 29),
                 // (22,29): error CS0539: 'I5<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
@@ -22629,7 +23394,7 @@ interface I14<T> : I1<T> where T : I1<T>
                 // (27,36): error CS0539: 'I6<T>.implicit operator int(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static implicit I1<T>.operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I6<T>." + op + " operator int(T)").WithLocation(27, 36),
-                // (32,39): error CS9112: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
+                // (32,39): error CS8931: User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_AbstractConversionNotInvolvingContainedType, "int").WithLocation(32, 39),
                 // (42,23): error CS0556: User-defined conversion must convert to or from the enclosing type
@@ -22778,7 +23543,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator int(Test1)", "I1<Test1>." + op + " operator int(Test1)", "Test1").WithLocation(2, 12)
                 );
@@ -22788,10 +23553,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (2,12): error CS9110: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator int(Test1)", "I1<Test1>." + op + " operator int(Test1)", "Test1").WithLocation(2, 12),
-                // (9,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(9, 39)
                 );
@@ -22827,7 +23592,7 @@ typeKeyword + @"
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (4,40): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40)
                 );
@@ -22837,10 +23602,10 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.VerifyDiagnostics(
-                // (4,40): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40),
-                // (9,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (9,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(9, 39)
                 );
@@ -24038,9 +24803,76 @@ class Test<T> where T : I1<T>
                 // (21,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
                 //         return (int)a;
                 Diagnostic(error, cast + "a").WithArguments("I1<T>", "int").WithLocation(21, 16),
-                // (26,80): error CS9108: An expression tree may not contain an access of static abstract interface member
+                // (26,80): error CS8927: An expression tree may not contain an access of static abstract interface member
                 //         _ = (System.Linq.Expressions.Expression<System.Func<T, int>>)((T b) => (int)b);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, cast + "b").WithLocation(26, 80)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_01([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static implicit operator bool(I1 x);
+
+
+    static void M02((int, C<I1>) x)
+    {
+        _ = x " + op + @" x;
+    }
+
+    void M03((int, C<I1>) y)
+    {
+        _ = y " + op + @" y;
+    }
+}
+
+class Test
+{
+    static void MT1((int, C<I1>) a)
+    {
+        _ = a " + op + @" a;
+    }
+
+    static void MT2<T>() where T : I1
+    {
+        _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b " + op + @" b).ToString());
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS0552: 'I1.implicit operator bool(I1)': user-defined conversions to or from an interface are not allowed
+                //     abstract static implicit operator bool(I1 x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "bool").WithArguments("I1.implicit operator bool(I1)").WithLocation(4, 39),
+                // (9,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x " + op + " x").WithArguments("I1", "bool").WithLocation(9, 13),
+                // (14,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = y == y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "y " + op + " y").WithArguments("I1", "bool").WithLocation(14, 13),
+                // (22,13): error CS0029: Cannot implicitly convert type 'I1' to 'bool'
+                //         _ = a == a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a " + op + " a").WithArguments("I1", "bool").WithLocation(22, 13),
+                // (27,98): error CS8382: An expression tree may not contain a tuple == or != operator
+                //         _ = (System.Linq.Expressions.Expression<System.Action<(int, C<T>)>>)(((int, C<T>) b) => (b == b).ToString());
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "b " + op + " b").WithLocation(27, 98)
                 );
         }
 
@@ -24255,6 +25087,195 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return " + (needCa
 
         [Theory]
         [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_03([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool (T x);
+}
+
+class Test
+{
+    static void M02<T, U>((int, C<T>) x) where T : U where U : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.0
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000b:  ldloc.1
+  IL_000c:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0011:  bne.un.s   IL_0031
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001f:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0024:  constrained. ""T""
+  IL_002a:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.1
+  IL_0032:  pop
+  IL_0033:  ret
+}
+");
+            }
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+                                             parseOptions: TestOptions.RegularPreview,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            verifier = CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+
+            if (op == "==")
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Equality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.0
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+            else
+            {
+                verifier.VerifyIL("Test.M02<T, U>(System.ValueTuple<int, C<T>>)",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, C<T>> V_0,
+                System.ValueTuple<int, C<T>> V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.0
+  IL_0003:  stloc.1
+  IL_0004:  ldloc.0
+  IL_0005:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_000a:  ldloc.1
+  IL_000b:  ldfld      ""int System.ValueTuple<int, C<T>>.Item1""
+  IL_0010:  bne.un.s   IL_0030
+  IL_0012:  ldloc.0
+  IL_0013:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_0018:  ldloc.1
+  IL_0019:  ldfld      ""C<T> System.ValueTuple<int, C<T>>.Item2""
+  IL_001e:  call       ""T C<T>.op_Inequality(C<T>, C<T>)""
+  IL_0023:  constrained. ""T""
+  IL_0029:  call       ""bool I1<T>.op_Implicit(T)""
+  IL_002e:  br.s       IL_0031
+  IL_0030:  ldc.i4.1
+  IL_0031:  pop
+  IL_0032:  ret
+}
+");
+            }
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            Assert.Equal("x " + op + " x", node.ToString());
+            VerifyOperationTreeForNode(compilation1, model, node,
+// Information about user-defined operators isn't exposed today.
+@"
+ITupleBinaryOperation (BinaryOperatorKind." + (op == "==" ? "Equals" : "NotEquals") + @") (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 'x " + op + @" x')
+  Left: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+  Right: 
+    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, C<T>)) (Syntax: 'x')
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void ConsumeAbstractConversionOperator_04([CombinatorialValues("implicit", "explicit")] string op)
         {
             bool needCast = op == "explicit";
@@ -24286,7 +25307,7 @@ class Test
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
-                // (6,16): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (6,16): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //         return (int)x;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, (needCast ? "(int)" : "") + "x").WithLocation(6, 16)
                 );
@@ -24296,9 +25317,65 @@ class Test
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
-                // (12,39): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                // (12,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(12, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_04([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "x " + op + " x").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation3.VerifyDiagnostics(
+                // (21,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static implicit operator bool(T x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "bool").WithLocation(21, 39)
                 );
         }
 
@@ -24348,6 +25425,62 @@ class Test
                 // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static implicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 39)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConsumeAbstractConversionOperatorForTupleEquality_06([CombinatorialValues("==", "!=")] string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static implicit operator bool(T x);
+}
+";
+            var source2 =
+@"
+class Test
+{
+    static void M02<T>((int, C<T>) x) where T : I1<T>
+    {
+        _ = x " + op + @" x;
+    }
+}
+
+#pragma warning disable CS0660 // 'C<T>' defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // 'C<T>' defines operator == or operator != but does not override Object.GetHashCode()
+
+class C<T>
+{
+    public static T operator == (C<T> x, C<T> y) => default;
+    public static T operator != (C<T> x, C<T> y) => default;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyDiagnostics(
+                // (6,13): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = x == x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("static abstract members in interfaces").WithLocation(6, 13)
+                );
+
+            var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation3.VerifyDiagnostics(
+                // (21,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                //     abstract static implicit operator bool(T x);
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "bool").WithArguments("abstract", "9.0", "preview").WithLocation(21, 39)
                 );
         }
 
@@ -25086,6 +26219,524 @@ class Test
                 // (15,16): error CS0030: Cannot convert type 'int' to 'T'
                 //         return (T)x;
                 Diagnostic((op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv), (needCast ? "(T)" : "") + "x").WithArguments("int", "T").WithLocation(15, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_01()
+        {
+            var source1 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+
+class YetAnother : Interface<int, int>
+{
+    public static void Method(int i) { }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var b = module.GlobalNamespace.GetTypeMember("Base");
+                var bI = b.Interfaces().Single();
+                var biMethods = bI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", biMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", biMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", biMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var bM1 = b.FindImplementationForInterfaceMember(biMethods[0]);
+
+                Assert.Equal("void Base<T>.Method(System.Int32 i)", bM1.ToTestDisplayString());
+
+                var bM2 = b.FindImplementationForInterfaceMember(biMethods[1]);
+
+                Assert.Equal("void Base<T>.Method(T i)", bM2.ToTestDisplayString());
+                Assert.Same(bM2, b.FindImplementationForInterfaceMember(biMethods[2]));
+
+                var bM1Impl = ((MethodSymbol)bM1).ExplicitInterfaceImplementations;
+                var bM2Impl = ((MethodSymbol)bM2).ExplicitInterfaceImplementations;
+
+                if (module is PEModuleSymbol)
+                {
+                    Assert.Equal(biMethods[0], bM1Impl.Single());
+
+                    Assert.Equal(2, bM2Impl.Length);
+                    Assert.Equal(biMethods[1], bM2Impl[0]);
+                    Assert.Equal(biMethods[2], bM2Impl[1]);
+                }
+                else
+                {
+                    Assert.Empty(bM1Impl);
+                    Assert.Empty(bM2Impl);
+                }
+
+                var d = module.GlobalNamespace.GetTypeMember("Derived");
+                var dB = d.BaseTypeNoUseSiteDiagnostics;
+                var dI = d.Interfaces().Single();
+                var diMethods = dI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+                Assert.Same(bM1, dM1.OriginalDefinition);
+
+                var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+                Assert.Same(bM2, dM2.OriginalDefinition);
+                Assert.Same(bM2, d.FindImplementationForInterfaceMember(diMethods[2]).OriginalDefinition);
+            }
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_02()
+        {
+            var source0 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation0.VerifyDiagnostics();
+
+            var source1 = @"
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation0.EmitToImageReference() });
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var d = module.GlobalNamespace.GetTypeMember("Derived");
+                var dB = d.BaseTypeNoUseSiteDiagnostics;
+                var dI = d.Interfaces().Single();
+                var diMethods = dI.GetMembers();
+
+                Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+                Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+                var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+                Assert.Equal("void Base<T>.Method(System.Int32 i)", dM1.OriginalDefinition.ToTestDisplayString());
+
+                var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+                Assert.Equal("void Base<T>.Method(T i)", dM2.OriginalDefinition.ToTestDisplayString());
+                Assert.Same(dM2, d.FindImplementationForInterfaceMember(diMethods[2]));
+
+                var dM1Impl = ((MethodSymbol)dM1).ExplicitInterfaceImplementations;
+                var dM2Impl = ((MethodSymbol)dM2).ExplicitInterfaceImplementations;
+
+                Assert.Equal(diMethods[0], dM1Impl.Single());
+
+                Assert.Equal(2, dM2Impl.Length);
+                Assert.Equal(diMethods[1], dM2Impl[0]);
+                Assert.Equal(diMethods[2], dM2Impl[1]);
+            }
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_03()
+        {
+            var source0 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+public class Base<T> : Interface<T, T>
+{
+    public static void Method(int i) { }
+    public static void Method(T i) { }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { CreateEmptyCompilation("").ToMetadataReference() });
+
+            compilation0.VerifyDiagnostics();
+
+            var source1 = @"
+public class Derived : Base<int>, Interface<int, int>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation0.ToMetadataReference() });
+
+            var d = compilation1.GlobalNamespace.GetTypeMember("Derived");
+            var dB = d.BaseTypeNoUseSiteDiagnostics;
+            var dI = d.Interfaces().Single();
+            var diMethods = dI.GetMembers();
+
+            Assert.IsType<RetargetingNamedTypeSymbol>(dB.OriginalDefinition);
+
+            Assert.Equal("void Interface<T, U>.Method(System.Int32 i)", diMethods[0].OriginalDefinition.ToTestDisplayString());
+            Assert.Equal("void Interface<T, U>.Method(T i)", diMethods[1].OriginalDefinition.ToTestDisplayString());
+            Assert.Equal("void Interface<T, U>.Method(U i)", diMethods[2].OriginalDefinition.ToTestDisplayString());
+
+            var dM1 = d.FindImplementationForInterfaceMember(diMethods[0]);
+
+            Assert.Equal("void Base<T>.Method(System.Int32 i)", dM1.OriginalDefinition.ToTestDisplayString());
+
+            var dM2 = d.FindImplementationForInterfaceMember(diMethods[1]);
+
+            Assert.Equal("void Base<T>.Method(T i)", dM2.OriginalDefinition.ToTestDisplayString());
+            Assert.Equal(dM2, d.FindImplementationForInterfaceMember(diMethods[2]));
+
+            var dM1Impl = ((MethodSymbol)dM1).ExplicitInterfaceImplementations;
+            var dM2Impl = ((MethodSymbol)dM2).ExplicitInterfaceImplementations;
+
+            Assert.Empty(dM1Impl);
+            Assert.Empty(dM2Impl);
+        }
+
+        [Fact]
+        [WorkItem(53802, "https://github.com/dotnet/roslyn/issues/53802")]
+        public void TestAmbiguousImplementationMethod_04()
+        {
+            var source2 = @"
+public interface Interface<T, U>
+{
+    abstract static void Method(int i);
+    abstract static void Method(T i);
+    abstract static void Method(U i);
+}
+
+class Other : Interface<int, int>
+{
+    static void Interface<int, int>.Method(int i) { }
+}
+";
+
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (9,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(9, 15),
+                // (9,15): error CS0535: 'Other' does not implement interface member 'Interface<int, int>.Method(int)'
+                // class Other : Interface<int, int>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface<int, int>").WithArguments("Other", "Interface<int, int>.Method(int)").WithLocation(9, 15),
+                // (11,37): warning CS0473: Explicit interface implementation 'Other.Interface<int, int>.Method(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     static void Interface<int, int>.Method(int i) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Other.Interface<int, int>.Method(int)").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly_01()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1
+{
+    [UnmanagedCallersOnly] abstract static void M1();
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x);
+    [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
+}
+
+public interface I2<T> where T : I2<T>
+{
+    [UnmanagedCallersOnly] abstract static implicit operator int(T i);
+    [UnmanagedCallersOnly] abstract static explicit operator T(int i);
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static void M1();
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
+                // (7,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static int operator +(I1 x);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 6),
+                // (8,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static int operator +(I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 6),
+                // (13,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static implicit operator int(T i);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(13, 6),
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] abstract static explicit operator T(int i);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
+                );
+        }
+
+        [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnly_02()
+        {
+            var ilSource = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 40 00 00 00 01 00 54 02 09 49 6e 68 65 72
+        69 74 65 64 00
+    )
+    .field public class [mscorlib]System.Type[] CallConvs
+    .field public string EntryPoint
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+
+.class interface public auto ansi abstract I1
+{
+    .method public hidebysig abstract virtual static 
+        void M1 () cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_UnaryPlus (
+            class I1 x
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_Addition (
+            class I1 x,
+            class I1 y
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+}
+
+.class interface public auto ansi abstract I2`1<(class I2`1<!T>) T>
+{
+    .method public hidebysig specialname abstract virtual static 
+        int32 op_Implicit (
+            !T i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+
+    .method public hidebysig specialname abstract virtual static 
+        !T op_Explicit (
+            int32 i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+    }
+}
+";
+
+            var source1 =
+@"
+class Test
+{
+    static void M02<T>(T x, T y) where T : I1
+    {
+        T.M1();
+        _ = +x;
+        _ = x + y;
+    }
+
+    static int M03<T>(T x) where T : I2<T>
+    {
+        _ = (T)x;
+        return x;
+    }
+}
+";
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            // Conversions aren't flagged due to https://github.com/dotnet/roslyn/issues/54113.
+            compilation1.VerifyDiagnostics(
+                // (6,11): error CS0570: 'I1.M1()' is not supported by the language
+                //         T.M1();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M1").WithArguments("I1.M1()").WithLocation(6, 11),
+                // (7,13): error CS0570: 'I1.operator +(I1)' is not supported by the language
+                //         _ = +x;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "+x").WithArguments("I1.operator +(I1)").WithLocation(7, 13),
+                // (8,13): error CS0570: 'I1.operator +(I1, I1)' is not supported by the language
+                //         _ = x + y;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly_03()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1<T> where T : I1<T>
+{
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
+    abstract static implicit operator int(T i);
+    abstract static explicit operator T(int i);
+}
+
+class C : I1<C>
+{
+    [UnmanagedCallersOnly] public static void M1() {}
+    [UnmanagedCallersOnly] public static int operator +(C x) => 0;
+    [UnmanagedCallersOnly] public static int operator +(C x, C y) => 0;
+    [UnmanagedCallersOnly] public static implicit operator int(C i) => 0;
+    [UnmanagedCallersOnly] public static explicit operator C(int i) => null;
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (15,47): error CS8932: 'UnmanagedCallersOnly' method 'C.M1()' cannot implement interface member 'I1<C>.M1()' in type 'C'
+                //     [UnmanagedCallersOnly] public static void M1() {}
+                Diagnostic(ErrorCode.ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod, "M1").WithArguments("C.M1()", "I1<C>.M1()", "C").WithLocation(15, 47),
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static int operator +(C x) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static int operator +(C x, C y) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static implicit operator int(C i) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] public static explicit operator C(int i) => null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedCallersOnly_04()
+        {
+            var source2 = @"
+using System.Runtime.InteropServices;
+
+public interface I1<T> where T : I1<T>
+{
+    abstract static void M1();
+    abstract static int operator +(T x);
+    abstract static int operator +(T x, T y);
+    abstract static implicit operator int(T i);
+    abstract static explicit operator T(int i);
+}
+
+class C : I1<C>
+{
+    [UnmanagedCallersOnly] static void I1<C>.M1() {}
+    [UnmanagedCallersOnly] static int I1<C>.operator +(C x) => 0;
+    [UnmanagedCallersOnly] static int I1<C>.operator +(C x, C y) => 0;
+    [UnmanagedCallersOnly] static implicit I1<C>.operator int(C i) => 0;
+    [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
+}
+";
+
+            var compilation2 = CreateCompilation(new[] { source2, UnmanagedCallersOnlyAttributeDefinition }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            compilation2.VerifyDiagnostics(
+                // (15,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static void I1<C>.M1() {}
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(15, 6),
+                // (16,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(16, 6),
+                // (17,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static int I1<C>.operator +(C x, C y) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(17, 6),
+                // (18,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static implicit I1<C>.operator int(C i) => 0;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(18, 6),
+                // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
+                //     [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
                 );
         }
     }

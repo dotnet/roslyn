@@ -447,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ReportDiagnosticsIfObsolete(diagnostics, elementConversion, _syntax.ForEachKeyword, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(_syntax.ForEachKeyword, elementConversion, diagnostics);
             }
 
             // Spec (§8.8.4):

@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
@@ -212,6 +213,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: destination,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
+        {
+            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
+            {
+                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
+
+                if (Compilation.SourceModule != method.ContainingModule)
+                {
+                    Debug.Assert(syntax.SyntaxTree is object);
+                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
+                }
+            }
         }
 
         private BoundExpression ConvertObjectCreationExpression(SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, bool isCast, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -364,21 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: destination,
                     hasErrors: true)
                 { WasCompilerGenerated = source.WasCompilerGenerated };
-            }
-
-            if (conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
-            {
-                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
-
-                if (Compilation.SourceModule != method.ContainingModule)
-                {
-                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
-
-                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
-                    }
-                }
             }
 
             // Due to an oddity in the way we create a non-lifted user-defined conversion from A to D? 
