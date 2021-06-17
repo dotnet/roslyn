@@ -9110,12 +9110,8 @@ class C : ITest
             await TestInRegularAndScriptAsync(@"
 interface ITest<T> where T : ITest<T>
 {
-    // Implicitly implementable
     static abstract int operator -(T x);
     static abstract int operator -(T x, int y);
-
-    // Not implicitly implemenable
-    static abstract int operator -(int x, int y);
 }
 class C : [|ITest<C>|]
 {
@@ -9124,12 +9120,8 @@ class C : [|ITest<C>|]
 @"
 interface ITest<T> where T : ITest<T>
 {
-    // Implicitly implementable
     static abstract int operator -(T x);
     static abstract int operator -(T x, int y);
-
-    // Not implicitly implemenable
-    static abstract int operator -(int x, int y);
 }
 class C : ITest<C>
 {
