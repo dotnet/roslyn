@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -25,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IWaitIndicator _waitIndicator;
         private readonly Workspace _workspace;
+        private readonly IWpfTextView _textView;
 
         public InheritanceMargin(
             IThreadingContext threadingContext,
@@ -33,14 +35,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IClassificationFormatMap classificationFormatMap,
             IWaitIndicator waitIndicator,
             InheritanceMarginTag tag,
-            double scaleFactor)
+            IWpfTextView textView)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = tag.Workspace;
             _waitIndicator = waitIndicator;
+            _textView = textView;
             InitializeComponent();
 
+            // ZoomLevel of textView is percentage based. (e.g. 20 -> 400 means 20% -> 400%)
+            // and the scaleFactor of CrispImage is 1 based. (e.g 1 means 100%)
+            var scaleFactor = textView.ZoomLevel;
             var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, scaleFactor);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
@@ -99,6 +105,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
             ResetBorderToInitialColor();
+            // Move the focus back to textView when the context menu is closed.
+            // It ensures the focus won't be left at the margin
+            ResetFocus();
         }
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -130,6 +139,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             this.Background = Brushes.Transparent;
             this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void ResetFocus()
+        {
+            if (!_textView.HasAggregateFocus)
+            {
+                var visualElement = _textView.VisualElement;
+                if (visualElement.Focusable)
+                {
+                    Keyboard.Focus(visualElement);
+                }
+            }
         }
     }
 }
