@@ -243,15 +243,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerMemberNameAttribute) Then
                 arguments.GetOrCreateData(Of ParameterEarlyWellKnownAttributeData).HasCallerMemberNameAttribute = True
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute) Then
-                Dim hasDiagnostics As Boolean = False
                 Dim index = -1
-                Dim attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasDiagnostics)
+                Dim attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, False)
                 If Not attribute.HasErrors Then
                     Dim parameterName As String = Nothing
                     If attribute.ConstructorArguments.Single().TryDecodeValue(SpecialType.System_String, parameterName) Then
                         Dim parameters = containingSymbol.GetParameters()
                         For i = 0 To parameters.Length - 1
-                            If parameters(i).Name = parameterName Then
+                            If parameters(i).Name.Equals(parameterName, StringComparison.OrdinalIgnoreCase) Then
                                 index = i
                                 Exit For
                             End If
