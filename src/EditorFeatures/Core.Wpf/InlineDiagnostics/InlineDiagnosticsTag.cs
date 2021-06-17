@@ -16,16 +16,16 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineErrors
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal class InlineErrorTag : GraphicsTag
+    internal class InlineDiagnosticsTag : GraphicsTag
     {
-        public const string TagID = "inline error - ";
+        public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;
+        public readonly InlineDiagnosticsLocations Location;
         private readonly DiagnosticData _diagnostic;
-        public readonly InlineErrorsLocations Location;
 
-        public InlineErrorTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineErrorsLocations location)
+        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
@@ -98,12 +98,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
-            return new GraphicsResult(border,
-                    () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
+            return new GraphicsResult(border, dispose:
+                    () =>
+                    {
+                        link.RequestNavigate -= HandleRequestNavigate;
+                        view.ViewportWidthChanged -= ViewportWidthChangedHandler;
+                    });
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {
-                if (Location is InlineErrorsLocations.HookedToWindow)
+                if (Location is InlineDiagnosticsLocations.HookedToWindow)
                 {
                     Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
                 }

@@ -4,7 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.InlineErrors;
+using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -13,12 +14,12 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class InlineErrorAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineErrorTag>
+    internal class InlineDiagnosticsAdornmentManagerProvider : AbstractAdornmentManagerProvider<InlineDiagnosticsTag>
     {
         private const string LayerName = "RoslynInlineErrors";
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public InlineErrorAdornmentManagerProvider(
+        public InlineDiagnosticsAdornmentManagerProvider(
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         protected override void CreateAdornmentManager(IWpfTextView textView)
         {
             // the manager keeps itself alive by listening to text view events.
-            _ = new InlineErrorAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
+            _ = new InlineDiagnosticsAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
         }
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
-using Microsoft.CodeAnalysis.Editor.InlineErrors;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -115,9 +115,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 
-            BindToOption(DisplayInlineDiagnostics, InlineErrorsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
-            BindToOption(hook_to_end_of_text, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToCode, LanguageNames.CSharp);
-            BindToOption(hook_to_end_of_window, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToWindow, LanguageNames.CSharp);
+            BindToOption(DisplayInlineDiagnostics, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
+            BindToOption(hook_to_end_of_text, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp);
+            BindToOption(hook_to_end_of_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp);
 
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.CSharp);

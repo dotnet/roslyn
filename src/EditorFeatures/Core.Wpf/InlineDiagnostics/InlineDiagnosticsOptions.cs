@@ -9,34 +9,34 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineErrors
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal static class InlineErrorsOptions
+    internal static class InlineDiagnosticsOptions
     {
         public static readonly PerLanguageOption2<bool> EnableInlineDiagnostics =
-            new(nameof(InlineErrorsOptions),
+            new(nameof(InlineDiagnosticsOptions),
                 nameof(EnableInlineDiagnostics),
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
 
-        public static readonly PerLanguageOption2<InlineErrorsLocations> LocationOption =
-            new(nameof(InlineErrorsOptions),
+        public static readonly PerLanguageOption2<InlineDiagnosticsLocations> LocationOption =
+            new(nameof(InlineDiagnosticsOptions),
                 nameof(LocationOption),
-                defaultValue: InlineErrorsLocations.Default,
+                defaultValue: InlineDiagnosticsLocations.Default,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
     }
 
     [ExportOptionProvider, Shared]
-    internal sealed class InlineErrorsOptionsProvider : IOptionProvider
+    internal sealed class InlineDiagnosticsOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineErrorsOptionsProvider()
+        public InlineDiagnosticsOptionsProvider()
         {
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InlineErrorsOptions.EnableInlineDiagnostics,
-            InlineErrorsOptions.LocationOption);
+            InlineDiagnosticsOptions.EnableInlineDiagnostics,
+            InlineDiagnosticsOptions.LocationOption);
     }
 }

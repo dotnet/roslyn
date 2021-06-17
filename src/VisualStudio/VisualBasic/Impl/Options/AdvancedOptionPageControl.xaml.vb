@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
-Imports Microsoft.CodeAnalysis.Editor.InlineErrors
+Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
@@ -144,9 +144,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
 
-            BindToOption(DisplayInlineDiagnostics, InlineErrorsOptions.EnableInlineDiagnostics, LanguageNames.CSharp)
-            BindToOption(hook_to_end_of_text, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToCode, LanguageNames.CSharp)
-            BindToOption(hook_to_end_of_window, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToWindow, LanguageNames.CSharp)
+            BindToOption(DisplayInlineDiagnostics, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp)
+            BindToOption(hook_to_end_of_text, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp)
+            BindToOption(hook_to_end_of_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp)
 
             ' Inline hints
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1)

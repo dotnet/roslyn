@@ -14,24 +14,24 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineErrors
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     internal sealed class ClassificationTypeDefinitions
     {
         [Export]
-        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsErrorTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
+        [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.SyntaxError)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class InlineErrorsErrorFormatDefinition : EditorFormatDefinition
+        private class InlineDiagnosticsErrorFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public InlineErrorsErrorFormatDefinition()
+            public InlineDiagnosticsErrorFormatDefinition()
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Error;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(252, 62, 54));
@@ -40,19 +40,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         }
 
         [Export]
-        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsWarningTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorTag.TagID + PredefinedErrorTypeNames.Warning)]
+        [Name(InlineDiagnosticsTag.TagID + PredefinedErrorTypeNames.Warning)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class InlineErrorsWarningFormatDefinition : EditorFormatDefinition
+        private class InlineDiagnosticsWarningFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public InlineErrorsWarningFormatDefinition()
+            public InlineDiagnosticsWarningFormatDefinition()
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Warning;
                 BackgroundBrush = new SolidColorBrush(Color.FromRgb(149, 219, 125));
@@ -61,19 +61,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         }
 
         [Export]
-        [Name(InlineErrorTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition InlineErrorsRudeEditTypeDefinition;
 
         [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineErrorTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
+        [Name(InlineDiagnosticsTag.TagID + EditAndContinueErrorTypeDefinition.Name)]
         [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
         [UserVisible(true)]
-        private class InlineErrorsRudeEditFormatDefinition : EditorFormatDefinition
+        private class InlineDiagnosticsRudeEditFormatDefinition : EditorFormatDefinition
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public InlineErrorsRudeEditFormatDefinition()
+            public InlineDiagnosticsRudeEditFormatDefinition()
             {
                 DisplayName = EditorFeaturesResources.Inline_Diagnostics_Rude_Edit;
                 BackgroundBrush = Brushes.Purple;

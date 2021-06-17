@@ -75,15 +75,15 @@
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
-            <Color Name="inline error - syntax error">
+            <Color Name="inline diagnostics - syntax error">
                 <Background Type="CT_RAW" Source="FFFC3E36" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - compiler warning">
+            <Color Name="inline diagnostics - compiler warning">
                 <Background Type="CT_RAW" Source="FF95BD7D" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - Edit and Continue">
+            <Color Name="inline diagnostics - Edit and Continue">
                 <Background Type="CT_RAW" Source="FF800080" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
@@ -250,15 +250,15 @@
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF686868" />
             </Color>
-            <Color Name="inline error - syntax error">
+            <Color Name="inline diagnostics - syntax error">
                 <Background Type="CT_RAW" Source="FFFC3E36" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - compiler warning">
+            <Color Name="inline diagnostics - compiler warning">
                 <Background Type="CT_RAW" Source="FF95BD7D" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - Edit and Continue">
+            <Color Name="inline diagnostics - Edit and Continue">
                 <Background Type="CT_RAW" Source="FF800080" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
@@ -425,15 +425,15 @@
                 <Background Type="CT_RAW" Source="FFE6E6FA" />
                 <Foreground Type="CT_RAW" Source="FF504848" />
             </Color>
-            <Color Name="inline error - syntax error">
+            <Color Name="inline diagnostics - syntax error">
                 <Background Type="CT_RAW" Source="FFFC3E36" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - compiler warning">
+            <Color Name="inline diagnostics - compiler warning">
                 <Background Type="CT_RAW" Source="FF95BD7D" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
-            <Color Name="inline error - Edit and Continue">
+            <Color Name="inline diagnostics - Edit and Continue">
                 <Background Type="CT_RAW" Source="FF800080" />
                 <Foreground Type="CT_RAW" Source="FF000000" />
             </Color>
@@ -600,15 +600,15 @@
                 <Background Type="CT_RAW" Source="FF3E3E3E" />
                 <Foreground Type="CT_RAW" Source="FFA9A8A7" />
             </Color>
-            <Color Name="inline error - syntax error">
+            <Color Name="inline diagnostics - syntax error">
                 <Background Type="CT_RAW" Source="FFFC3E36" />
                 <Foreground Type="CT_RAW" Source="FFDCDCDC" />
             </Color>
-            <Color Name="inline error - compiler warning">
+            <Color Name="inline diagnostics - compiler warning">
                 <Background Type="CT_RAW" Source="FF95BD7D" />
                 <Foreground Type="CT_RAW" Source="FFDCDCDC" />
             </Color>
-            <Color Name="inline error - Edit and Continue">
+            <Color Name="inline diagnostics - Edit and Continue">
                 <Background Type="CT_RAW" Source="FF800080" />
                 <Foreground Type="CT_RAW" Source="FFDCDCDC" />
             </Color>

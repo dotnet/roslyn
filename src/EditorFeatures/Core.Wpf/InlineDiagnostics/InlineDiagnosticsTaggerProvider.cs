@@ -9,7 +9,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -25,22 +24,22 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineErrors
+namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
-    [TagType(typeof(InlineErrorTag))]
-    internal class InlineErrorTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineErrorTag>
+    [TagType(typeof(InlineDiagnosticsTag))]
+    internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
         private readonly IEditorFormatMap _editorFormatMap;
-        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineErrorsOptions.EnableInlineDiagnostics);
+        protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
 
         protected internal override bool IsEnabled => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InlineErrorTaggerProvider(
+        public InlineDiagnosticsTaggerProvider(
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
             IDiagnosticService diagnosticService,
@@ -56,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
                 TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineErrorsOptions.EnableInlineDiagnostics),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineErrorsOptions.LocationOption));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.EnableInlineDiagnostics),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.LocationOption));
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
         /// <summary>
         /// Creates the InlineErrorTag with the error distinction
         /// </summary>
-        protected override InlineErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
+        protected override InlineDiagnosticsTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -81,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
 
             RoslynDebug.AssertNotNull(diagnostic.DocumentId);
             var document = workspace.CurrentSolution.GetRequiredDocument(diagnostic.DocumentId);
-            var locationOption = workspace.Options.GetOption(InlineErrorsOptions.LocationOption, document.Project.Language);
-            return new InlineErrorTag(errorType, diagnostic, _editorFormatMap, locationOption);
+            var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.LocationOption, document.Project.Language);
+            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
