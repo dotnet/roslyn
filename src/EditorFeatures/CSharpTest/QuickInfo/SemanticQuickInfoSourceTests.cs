@@ -6888,7 +6888,7 @@ public interface ICloneable<T>
 
             await TestInClassAsync(markup,
                 MainDescription("Test<int> Test<int>.Clone()"),
-                Documentation("Clones a Test<T>"));
+                Documentation("Clones a Test<T>."));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
