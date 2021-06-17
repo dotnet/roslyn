@@ -119,9 +119,8 @@ stages:
                    /p:DotNetSignType=$(SignType)
                    /p:DotNetPublishToBlobFeed=false
                    /p:PublishToSymbolServer=false
-                   /p:DryRun=true
-                   /p:DotNetSymbolServerTokenMsdl=DryRunPTA
-                   /p:DotNetSymbolServerTokenSymWeb=DryRunPTA
+                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=false
       condition: succeeded()
