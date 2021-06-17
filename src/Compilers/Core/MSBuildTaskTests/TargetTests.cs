@@ -718,23 +718,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [WorkItem(1337109, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1337109")]
         public void TestImplicitlySkipAnalyzers(
             [CombinatorialValues(true, false, null)] bool? runAnalyzers,
-            [CombinatorialValues(true, false, null)] bool? indirectBuild,
+            [CombinatorialValues(true, false, null)] bool? implicitBuild,
             [CombinatorialValues(true, false, null)] bool? treatWarningsAsErrors,
-            [CombinatorialValues(true, false, null)] bool? optimizeIndirectBuild)
+            [CombinatorialValues(true, false, null)] bool? optimizeImplicitBuild)
         {
             var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
-            var indirectBuildPropertyGroupString = getPropertyGroup("IsIndirectlyTriggeredBuildInsideVisualStudio", indirectBuild);
+            var implicitBuildPropertyGroupString = getPropertyGroup("IsImplicitlyTriggeredBuild", implicitBuild);
             var treatWarningsAsErrorsPropertyGroupString = getPropertyGroup("TreatWarningsAsErrors", treatWarningsAsErrors);
-            var optimizeIndirectBuildPropertyGroupString = getPropertyGroup("OptimizeIndirectlyTriggeredBuildInsideVisualStudio", optimizeIndirectBuild);
+            var optimizeImplicitBuildPropertyGroupString = getPropertyGroup("OptimizeImplicitlyTriggeredBuild", optimizeImplicitBuild);
 
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
 
 {runAnalyzersPropertyGroupString}
-{indirectBuildPropertyGroupString}
+{implicitBuildPropertyGroupString}
 {treatWarningsAsErrorsPropertyGroupString}
-{optimizeIndirectBuildPropertyGroupString}
+{optimizeImplicitBuildPropertyGroupString}
 
 </Project>
 "));
@@ -746,8 +746,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var analyzersEnabled = runAnalyzers ?? true;
             var expectedImplicitlySkippedAnalyzers = analyzersEnabled &&
-                indirectBuild == true &&
-                (treatWarningsAsErrors != true || optimizeIndirectBuild == true);
+                implicitBuild == true &&
+                (treatWarningsAsErrors != true || optimizeImplicitBuild == true);
             var expectedImplicitlySkippedAnalyzersValue = expectedImplicitlySkippedAnalyzers ? "true" : "";
             var actualImplicitlySkippedAnalyzersValue = instance.GetPropertyValue("_ImplicitlySkipAnalyzers");
             Assert.Equal(expectedImplicitlySkippedAnalyzersValue, actualImplicitlySkippedAnalyzersValue);
@@ -780,6 +780,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
             var intermediatePathDir = Temp.CreateDirectory();
             var intermediatePath = intermediatePathDir + Path.DirectorySeparatorChar.ToString();
+
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
     <Import Project=""Microsoft.Managed.Core.targets"" />
@@ -805,7 +806,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             bool runSuccess = instance.Build(target: "_ComputeSkipAnalyzers", GetTestLoggers());
             Assert.True(runSuccess);
 
-            var actualLastBuildWithSkipAnalyzers = instance.GetPropertyValue("LastBuildWithSkipAnalyzers");
+            var actualLastBuildWithSkipAnalyzers = instance.GetPropertyValue("_LastBuildWithSkipAnalyzers");
             Assert.Equal(expectedLastBuildWithSkipAnalyzers, actualLastBuildWithSkipAnalyzers);
 
             var skipAnalyzers = !(runAnalyzers ?? true);
@@ -827,7 +828,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 var item = items.Single();
                 Assert.Equal(expectedLastBuildWithSkipAnalyzers, item.EvaluatedInclude);
-                Assert.Equal("IndirectBuild", item.GetMetadataValue("Kind"));
+                Assert.Equal("ImplicitBuild", item.GetMetadataValue("Kind"));
             }
 
             return;

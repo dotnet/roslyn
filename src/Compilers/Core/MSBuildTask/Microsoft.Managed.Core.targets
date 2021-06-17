@@ -82,11 +82,11 @@
                such as from 'Run Tests' or 'Start Debugging', we implicitly skip analyzers to speed up the build.
                We only do so by default when 'TreatWarningsAsErrors' is not 'true'. For the scenario where
 			         'TreatWarningsAsErrors' is 'true', users can explicitly enable this functionality by setting
-			         'OptimizeIndirectlyTriggeredBuildInsideVisualStudio' to 'true'.
+			         'OptimizeImplicitlyTriggeredBuild' to 'true'.
     -->
     <PropertyGroup Condition="'$(_SkipAnalyzers)' == '' and
-                              '$(IsIndirectlyTriggeredBuildInsideVisualStudio)' == 'true' and
-                              ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeIndirectlyTriggeredBuildInsideVisualStudio)' == 'true')">
+                              '$(IsImplicitlyTriggeredBuild)' == 'true' and
+                              ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
       <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
       <_SkipAnalyzers>true</_SkipAnalyzers>
     </PropertyGroup>
@@ -97,22 +97,22 @@
 
     <!-- Semaphore file to indicate the time stamp for last build with skipAnalyzers flag. -->
     <PropertyGroup>
-      <LastBuildWithSkipAnalyzers>$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers</LastBuildWithSkipAnalyzers>
+      <_LastBuildWithSkipAnalyzers>$(IntermediateOutputPath)$(MSBuildProjectFile).BuildWithSkipAnalyzers</_LastBuildWithSkipAnalyzers>
     </PropertyGroup>
 
-    <!-- 'LastBuildWithSkipAnalyzers' semaphore file, if exists, is passed as custom additional file input to builds without skipAnalyzers flag to ensure correct incremental builds. 
-	       Additionally, we need to pass this file as an 'UpToDateCheckInput' item with 'Kind = IndirectBuild' for project system's fast-upto-date check to work correctly.
+    <!-- '_LastBuildWithSkipAnalyzers' semaphore file, if exists, is passed as custom additional file input to builds without skipAnalyzers flag to ensure correct incremental builds. 
+	       Additionally, we need to pass this file as an 'UpToDateCheckInput' item with 'Kind = ImplicitBuild' for project system's fast-upto-date check to work correctly.
 		     See https://github.com/dotnet/project-system/issues/7290 for details.
 	  -->
-    <ItemGroup Condition="Exists('$(LastBuildWithSkipAnalyzers)')">
-      <CustomAdditionalCompileInputs Include="$(LastBuildWithSkipAnalyzers)" Condition="'$(_SkipAnalyzers)' != 'true'"/>
-      <UpToDateCheckInput Include="$(LastBuildWithSkipAnalyzers)" Kind="IndirectBuild"/>
+    <ItemGroup Condition="Exists('$(_LastBuildWithSkipAnalyzers)')">
+      <CustomAdditionalCompileInputs Include="$(_LastBuildWithSkipAnalyzers)" Condition="'$(_SkipAnalyzers)' != 'true'"/>
+      <UpToDateCheckInput Include="$(_LastBuildWithSkipAnalyzers)" Kind="ImplicitBuild"/>
     </ItemGroup>
   </Target>
 
   <!-- We touch and create a semaphore file after build to indicate the time stamp for last build with skipAnalyzers flag. -->
   <Target Name="_TouchLastBuildWithSkipAnalyzers" Condition="'$(_SkipAnalyzers)' == 'true'" AfterTargets="CoreCompile">
-    <Touch AlwaysCreate="true" Files="$(LastBuildWithSkipAnalyzers)"/>
+    <Touch AlwaysCreate="true" Files="$(_LastBuildWithSkipAnalyzers)"/>
   </Target>
 
   <!--
