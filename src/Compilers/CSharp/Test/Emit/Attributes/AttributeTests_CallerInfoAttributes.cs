@@ -402,6 +402,49 @@ value").VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
                 );
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsSelfReferential_Metadata()
+        {
+            string il = @".class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi abstract sealed beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M (
+            [opt] string p
+        ) cil managed 
+    {
+        .param [1] = ""<default>""
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 70 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0007: nop
+        IL_0008: ret
+    } // end of method C::M
+
+} // end of class C
+";
+            string source = @"
+C.M();
+C.M(""value"");
+";
+
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: @"<default>
+value").VerifyDiagnostics();
+        }
         #endregion
 
         #region CallerArgumentExpression - Attribute constructor
