@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private static readonly Func<Project, DocumentMap> s_createDocumentMap = _ => new DocumentMap();
 
-        private async Task<ProjectToDocumentMap> CreateProjectToDocumentMapAsync(ProjectMap projectMap)
+        private async Task<ProjectToDocumentMap> CreateProjectToDocumentMapAsync(ProjectMap projectMap, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, cancellationToken))
             {
                 using var _ = ArrayBuilder<Task<(ImmutableArray<Document>, SymbolGroup, ISymbol, IReferenceFinder)>>.GetInstance(out var tasks);
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (group, symbol, finder) in projectQueue)
                     {
                         tasks.Add(Task.Factory.StartNew(() =>
-                            DetermineDocumentsToSearchAsync(project, group, symbol, finder), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                            DetermineDocumentsToSearchAsync(project, group, symbol, finder, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
                 }
 
@@ -63,18 +64,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task<(ImmutableArray<Document>, SymbolGroup, ISymbol, IReferenceFinder)> DetermineDocumentsToSearchAsync(
-            Project project, SymbolGroup group, ISymbol symbol, IReferenceFinder finder)
+            Project project, SymbolGroup group, ISymbol symbol, IReferenceFinder finder, CancellationToken cancellationToken)
         {
             var documents = await finder.DetermineDocumentsToSearchAsync(
-                symbol, project, _documents, _options, _cancellationToken).ConfigureAwait(false);
+                symbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
             var finalDocs = documents.WhereNotNull().Distinct().Where(
                 d => _documents == null || _documents.Contains(d)).ToImmutableArray();
             return (finalDocs, group, symbol, finder);
         }
 
-        private async Task<ProjectMap> CreateProjectMapAsync(ConcurrentSet<SymbolGroup> symbolGroups)
+        private async Task<ProjectMap> CreateProjectMapAsync(ConcurrentSet<SymbolGroup> symbolGroups, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_CreateProjectMapAsync, cancellationToken))
             {
                 var projectMap = new ProjectMap();
 
@@ -85,9 +86,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var finder in _finders)
                         {
-                            _cancellationToken.ThrowIfCancellationRequested();
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                            var projects = await finder.DetermineProjectsToSearchAsync(symbol, _solution, scope, _cancellationToken).ConfigureAwait(false);
+                            var projects = await finder.DetermineProjectsToSearchAsync(symbol, _solution, scope, cancellationToken).ConfigureAwait(false);
                             foreach (var project in projects.Distinct().WhereNotNull())
                             {
                                 if (scope == null || scope.Contains(project))
@@ -103,39 +104,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task<ConcurrentSet<SymbolGroup>> DetermineAllSymbolsAsync(
-            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)
+            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, _cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, cancellationToken))
             {
                 var result = new ConcurrentSet<SymbolGroup>();
-                await DetermineAllSymbolsCoreAsync(symbol, cascadeDirection, result).ConfigureAwait(false);
+                await DetermineAllSymbolsCoreAsync(symbol, cascadeDirection, result, cancellationToken).ConfigureAwait(false);
                 return result;
             }
         }
 
         private async Task DetermineAllSymbolsCoreAsync(
-            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection, ConcurrentSet<SymbolGroup> result)
+            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection,
+            ConcurrentSet<SymbolGroup> result, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             var searchSymbol = MapToAppropriateSymbol(symbol);
 
             // 2) Try to map this back to source symbol if this was a metadata symbol.
-            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, _cancellationToken).ConfigureAwait(false);
+            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false);
             if (sourceSymbol != null)
                 searchSymbol = sourceSymbol;
 
             Contract.ThrowIfNull(searchSymbol);
 
-            var group = await DetermineSymbolGroupAsync(searchSymbol).ConfigureAwait(false);
+            var group = await DetermineSymbolGroupAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
             if (result.Add(group))
             {
-                await _progress.OnDefinitionFoundAsync(group).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
 
                 // get project to search
                 var projects = GetProjectScope();
 
-                _cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 using var _ = ArrayBuilder<Task>.GetInstance(out var finderTasks);
                 foreach (var f in _finders)
@@ -145,48 +147,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         using var _ = ArrayBuilder<Task>.GetInstance(out var symbolTasks);
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
-                            searchSymbol, _solution, projects, _options, cascadeDirection, _cancellationToken).ConfigureAwait(false);
-                        AddSymbolTasks(result, symbols, symbolTasks);
+                            searchSymbol, _solution, projects, _options, cascadeDirection, cancellationToken).ConfigureAwait(false);
+                        AddSymbolTasks(result, symbols, symbolTasks, cancellationToken);
 
                         // Defer to the language to see if it wants to cascade here in some special way.
                         var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
                         if (symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>() is { } service)
                         {
                             symbols = await service.DetermineCascadedSymbolsAsync(
-                                searchSymbol, symbolProject, cascadeDirection, _cancellationToken).ConfigureAwait(false);
-                            AddSymbolTasks(result, symbols, symbolTasks);
+                                searchSymbol, symbolProject, cascadeDirection, cancellationToken).ConfigureAwait(false);
+                            AddSymbolTasks(result, symbols, symbolTasks, cancellationToken);
                         }
 
-                        _cancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken.ThrowIfCancellationRequested();
 
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);
-                    }, _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                    }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
 
                 await Task.WhenAll(finderTasks).ConfigureAwait(false);
             }
         }
 
-        private async Task<SymbolGroup> DetermineSymbolGroupAsync(ISymbol searchSymbol)
+        private async Task<SymbolGroup> DetermineSymbolGroupAsync(ISymbol searchSymbol, CancellationToken cancellationToken)
         {
             if (!_options.Cascade)
                 return new SymbolGroup(ImmutableArray.Create(searchSymbol));
 
             return new SymbolGroup(
-                await SymbolFinder.FindLinkedSymbolsAsync(searchSymbol, _solution, _cancellationToken).ConfigureAwait(false));
+                await SymbolFinder.FindLinkedSymbolsAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false));
         }
 
         private void AddSymbolTasks(
             ConcurrentSet<SymbolGroup> result,
             ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)> symbols,
-            ArrayBuilder<Task> symbolTasks)
+            ArrayBuilder<Task> symbolTasks,
+            CancellationToken cancellationToken)
         {
             if (!symbols.IsDefault)
             {
                 foreach (var (symbol, cascadeDirection) in symbols)
                 {
                     Contract.ThrowIfNull(symbol);
-                    _cancellationToken.ThrowIfCancellationRequested();
 
                     // If we're cascading unidirectionally, then keep going in the direction this symbol was found in.
                     // Otherwise, if we're not unidirectional, then continue to cascade in both directions with this
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         ? cascadeDirection
                         : FindReferencesCascadeDirection.UpAndDown;
                     symbolTasks.Add(Task.Factory.StartNew(
-                        () => DetermineAllSymbolsCoreAsync(symbol, finalDirection, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                        () => DetermineAllSymbolsCoreAsync(symbol, finalDirection, result, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
             }
         }

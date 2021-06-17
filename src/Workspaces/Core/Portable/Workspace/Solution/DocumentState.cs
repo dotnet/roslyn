@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
                 : "";
         }
 
-        private static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
+        protected static ValueSource<TreeAndVersion> CreateLazyFullyParsedTree(
             ValueSource<TextAndVersion> newTextSource,
             ProjectId cacheKey,
             string? filePath,

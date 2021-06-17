@@ -4,7 +4,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -78,6 +80,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             pguidCmdUI = SettingsEditorFactoryGuid;
             pgrfCDW = 0;
             pbstrEditorCaption = null;
+
+            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic))
+            {
+                // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
+                // editorfactory to present the file instead of use showing ours
+                return VSConstants.VS_E_UNSUPPORTEDFORMAT;
+            }
 
             // Validate inputs
             if ((grfCreateDoc & (VSConstants.CEF_OPENFILE | VSConstants.CEF_SILENT)) == 0)

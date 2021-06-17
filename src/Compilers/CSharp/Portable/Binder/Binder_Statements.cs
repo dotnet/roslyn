@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -1864,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.ExpressionTreeFromAnonymousMethod)
             {
-                Debug.Assert(targetType.IsExpressionTree());
+                Debug.Assert(targetType.IsGenericOrNonGenericExpressionType(out _));
                 Error(diagnostics, ErrorCode.ERR_AnonymousMethodToExpressionTree, syntax);
                 return;
             }
@@ -2261,7 +2260,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
-                            errorCode = fromAddressOf ? ErrorCode.ERR_AddressOfToNonFunctionPointer : ErrorCode.ERR_MethGrpToNonDel;
+                            if (fromAddressOf)
+                            {
+                                errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
+                            }
+                            else if (targetType.SpecialType == SpecialType.System_Delegate)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
+                                return;
+                            }
+                            else
+                            {
+                                errorCode = ErrorCode.ERR_MethGrpToNonDel;
+                            }
                             break;
                     }
 
@@ -2364,7 +2375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnaryOperatorKind.DynamicTrue,
                     BindToNaturalType(expr, diagnostics),
                     ConstantValue.NotAvailable,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
                     boolean)
                 {
@@ -2430,10 +2442,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+
             // Consider op_true to be compiler-generated so that it doesn't appear in the semantic model.
             // UNDONE: If we decide to expose the operator in the semantic model, we'll have to remove the
             // WasCompilerGenerated flag (and possibly suppress the symbol in specific APIs).
-            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, resultKind, originalUserDefinedOperators, signature.ReturnType)
+            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, signature.ConstrainedToTypeOpt, resultKind, originalUserDefinedOperators, signature.ReturnType)
             {
                 WasCompilerGenerated = true
             };
@@ -3338,12 +3352,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindRecordConstructorBody(RecordDeclarationSyntax recordDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(recordDecl.ParameterList is object);
+            Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
 
             Binder bodyBinder = this.GetBinder(recordDecl);
             Debug.Assert(bodyBinder != null);
 
             BoundExpressionStatement initializer = null;
-            if (recordDecl.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (recordDecl.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 initializer = bodyBinder.BindConstructorInitializer(baseWithArguments, diagnostics);
             }
@@ -3443,6 +3458,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return ImmutableArray<LabelSymbol>.Empty;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndExternAliasDirective> ExternAliases
+        {
+            get
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// Note, only aliases syntactically declared within the enclosing declaration are included. For example, global aliases
+        /// declared in a different compilation units are not included.
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases
+        {
+            get
+            {
+                return default;
             }
         }
 

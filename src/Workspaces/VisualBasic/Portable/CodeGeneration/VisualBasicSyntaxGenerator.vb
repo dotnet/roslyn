@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(
-                ParenthesizeLeft(expression),
+                If(expression IsNot Nothing, ParenthesizeLeft(expression), Nothing),
                 SyntaxFactory.Token(SyntaxKind.DotToken),
                 DirectCast(simpleName, SimpleNameSyntax))
         End Function

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(AnalyzersFolderItemSourceProvider))]
     [Order(Before = HierarchyItemsProviderNames.Contains)]
-    [AppliesToProject("(CSharp | VisualBasic) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
+    [AppliesToProject("(CSharp | VB) & !CPS")] // in the CPS case, the Analyzers folder is created by the project system
     internal class AnalyzersFolderItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
         private readonly IAnalyzersCommandHandler _commandHandler;

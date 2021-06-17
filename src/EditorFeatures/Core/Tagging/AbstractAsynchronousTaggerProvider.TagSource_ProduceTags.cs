@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         private partial class TagSource
         {
-            private void OnEventSourceChanged(object sender, TaggerEventArgs _)
-                => _eventWorkQueue.AddWork(/*initialTags*/ false);
-
-            private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            private void OnCaretPositionChanged(object? _, CaretPositionChangedEventArgs e)
             {
                 this.AssertIsForeground();
 
@@ -66,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseTagsChanged(snapshot.TextBuffer, new DiffResult(added: null, removed: new(oldTagTree.GetSpans(snapshot).Select(s => s.Span))));
             }
 
-            private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
+            private void OnSubjectBufferChanged(object? _, TextContentChangedEventArgs e)
             {
                 this.AssertIsForeground();
                 UpdateTagsForTextChange(e);
@@ -166,13 +163,32 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     : new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _dataSource.SpanTrackingMode);
             }
 
-            private async Task ProcessEventsAsync(ImmutableArray<bool> events, CancellationToken cancellationToken)
+            private void OnEventSourceChanged(object? _1, TaggerEventArgs _2)
             {
-                // Can only have at most a single `true` and `false` value in this as we are deduping these notification values.
-                Contract.ThrowIfTrue(events.Length > 2);
-                var initialTags = events.Contains(true);
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                EnqueueWork(initialTags: false);
+            }
+
+            private void EnqueueWork(bool initialTags)
+            {
+                using var stateRef = _tagSourceState.TryAddReference();
+
+                // No point proceeding if we've been disposed.
+                if (stateRef is null)
+                    return;
+
+                var state = stateRef.Target;
+
+                var cancellationToken = state.GetCancellationToken(initialTags);
+
+                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
+                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
+                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
+                // is completely done.
+                state.EnqueueWork(async () =>
+                {
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                }, _dataSource.EventChangeDelay, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
             }
 
             /// <summary>
@@ -187,6 +203,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
+                if (cancellationToken.IsCancellationRequested)
+                    return;
 
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
@@ -210,6 +228,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                     await ProduceTagsAsync(context).ConfigureAwait(false);
 
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // Process the result to determine what changed.
                     var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
                     var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
@@ -217,8 +237,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
                     await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+                    // Once we assign our state, we're uncancellable.  We must report the changed information
+                    // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
+                    cancellationToken = CancellationToken.None;
+
                     this.CachedTagTrees = newTagTrees;
                     this.State = context.State;
+
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
                 }
             }
@@ -229,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // TODO: Update to tag spans from all related documents.
 
-                var snapshotToDocumentMap = new Dictionary<ITextSnapshot, Document>();
+                using var _ = PooledDictionary<ITextSnapshot, Document?>.GetInstance(out var snapshotToDocumentMap);
                 var spansToTag = _dataSource.GetSpansToTag(_textViewOpt, _subjectBuffer);
 
                 var spansAndDocumentsToTag = spansToTag.SelectAsArray(span =>
@@ -292,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 return newTagTrees;
             }
 
-            private TagSpanIntervalTree<TTag> ComputeNewTagTree(
+            private TagSpanIntervalTree<TTag>? ComputeNewTagTree(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ITextBuffer textBuffer,
                 IEnumerable<ITagSpan<TTag>> newTags,
@@ -473,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 return new DiffResult(new(added), new(removed));
 
-                static ITagSpan<TTag> NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
+                static ITagSpan<TTag>? NextOrNull(IEnumerator<ITagSpan<TTag>> enumerator)
                     => enumerator.MoveNext() ? enumerator.Current : null;
             }
 
@@ -481,7 +506,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            private TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            private TagSpanIntervalTree<TTag>? TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 this.AssertIsForeground();
 
@@ -494,8 +519,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                    using var stateRef = _tagSourceState.TryAddReference();
+                    if (stateRef != null)
+                    {
+                        var disposalToken = stateRef.Target.DisposalToken;
+
+                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
+                    }
                 }
 
                 _firstTagsRequest = false;

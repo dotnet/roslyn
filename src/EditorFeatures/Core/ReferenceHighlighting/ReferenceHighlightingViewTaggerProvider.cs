@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         {
         }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.Medium;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
                         {
                             foreach (var documentHighlights in documentHighlightsList)
                             {
-                                await AddTagSpansAsync(context, documentHighlights).ConfigureAwait(false);
+                                AddTagSpans(context, documentHighlights);
                             }
                         }
                     }
@@ -166,15 +166,14 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
         }
 
-        private static async Task AddTagSpansAsync(
+        private static void AddTagSpans(
             TaggerContext<NavigableHighlightTag> context,
             DocumentHighlights documentHighlights)
         {
             var cancellationToken = context.CancellationToken;
             var document = documentHighlights.Document;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = context.SpansToTag.FirstOrDefault(s => s.Document == document).SnapshotSpan.Snapshot;
             if (textSnapshot == null)
             {
                 // There is no longer an editor snapshot for this document, so we can't care about the

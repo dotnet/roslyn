@@ -3,23 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         private bool _disconnected = false;
@@ -57,13 +55,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
             presenter.CaretMoved += OnCaretMoved;
@@ -301,19 +299,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
-                {
-                    TrackingSpans = oldRight.TrackingSpans
-                };
+                newRight = new NavigationBarPresentedItem(
+                    oldRight.Text, oldRight.Glyph, oldRight.TrackingSpans, oldRight.NavigationTrackingSpan, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
-                {
-                    TrackingSpans = oldLeft.TrackingSpans
-                };
+                newLeft = new NavigationBarPresentedItem(
+                    oldLeft.Text, oldLeft.Glyph, oldLeft.TrackingSpans, oldLeft.NavigationTrackingSpan, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
                 listOfLeft.Add(newLeft);
             }
 
@@ -338,15 +332,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async Task OnItemSelectedAsync(NavigationBarItem item)
         {
             AssertIsForeground();
-            using var waitContext = _waitIndicator.StartWait(
+            using var waitContext = _uiThreadOperationExecutor.BeginExecute(
                 EditorFeaturesResources.Navigation_Bars,
                 EditorFeaturesResources.Refreshing_navigation_bars,
-                allowCancel: true,
+                allowCancellation: true,
                 showProgress: false);
 
             try
             {
-                await ProcessItemSelectionAsync(item, waitContext.CancellationToken).ConfigureAwait(false);
+                await ProcessItemSelectionAsync(item, waitContext.UserCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -383,13 +377,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
-                    var navBarService = GetNavBarService(document);
+                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
-                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task
+                    // below. Note that we only want to refresh if selecting the item had an effect (either navigating
+                    // or generating).  If nothing happened to don't want to refresh.  This is important as some items
+                    // exist in the type list that are only there to show a set a particular set of items in the member
+                    // list.  So selecting such an item should only update the member list, and we do not want a refresh
+                    // to wipe that out.
+                    if (!await navBarService.TryNavigateToItemAsync(document, item, view, snapshot, cancellationToken).ConfigureAwait(true))
+                        return;
                 }
             }
 
@@ -397,17 +396,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
             StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-        }
-
-        private static INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess GetNavBarService(Document document)
-        {
-            // Defer to the legacy service if the language is still using it.  Otherwise use the current ea API.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<INavigationBarItemService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            return legacyService == null
-                ? document.GetRequiredLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>()
-                : new NavigationBarItemServiceWrapper(legacyService);
         }
     }
 }
