@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
@@ -44,38 +42,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private readonly MenuCommand _startMenuCmd;
         private readonly MenuCommand _stopMenuCmd;
 
-        private IntegrationService _service;
-        private IpcServerChannel _serviceChannel;
+        private IntegrationService? _service;
+        private IpcServerChannel? _serviceChannel;
 
 #pragma warning disable IDE0052 // Remove unread private members - used to hold the marshalled integration test service
-        private ObjRef _marshalledService;
+        private ObjRef? _marshalledService;
 #pragma warning restore IDE0052 // Remove unread private members
 
         private IntegrationTestServiceCommands(Package package)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
 
+            var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
+            _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
+            {
+                Enabled = true,
+                Visible = true
+            };
+
+            var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
+            _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
+            {
+                Enabled = false,
+                Visible = false
+            };
+
             if (ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService menuCommandService)
             {
-                var startMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStartIntegrationTestService);
-                _startMenuCmd = new MenuCommand(StartServiceCallback, startMenuCmdId)
-                {
-                    Enabled = true,
-                    Visible = true
-                };
                 menuCommandService.AddCommand(_startMenuCmd);
-
-                var stopMenuCmdId = new CommandID(guidTestWindowCmdSet, cmdidStopIntegrationTestService);
-                _stopMenuCmd = new MenuCommand(StopServiceCallback, stopMenuCmdId)
-                {
-                    Enabled = false,
-                    Visible = false
-                };
                 menuCommandService.AddCommand(_stopMenuCmd);
             }
         }
 
-        public static IntegrationTestServiceCommands Instance { get; private set; }
+        public static IntegrationTestServiceCommands? Instance { get; private set; }
 
         private IServiceProvider ServiceProvider => _package;
 

@@ -7256,6 +7256,19 @@ public class Student : Person { public Student() : $$base(0) { } }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoReadOnlyRecordStruct()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"readonly record struct Person(string First, string Last)
+{
+    void M($$Person p)
+    {
+    }
+}", MainDescription("readonly record struct Person"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {
@@ -7290,6 +7303,145 @@ public class Student : Person { public Student() : $$base(0) { } }
     }
 }",
                 MainDescription($"({FeaturesResources.local_variable}) string? x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ImplicitImplementation_FromReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    public static void M1() { }
+}
+
+class R
+{
+    public static void M() { C1_1.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_FromTypeParameterReference()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class R
+{
+    public static void M<T>() where T : I1 { T.$$M1(); }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void I1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    public static void $$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
+        {
+            var code = @"
+interface I1
+{
+    /// <summary>Summary text</summary>
+    static abstract void M1();
+}
+
+class C1_1 : I1
+{
+    /// <inheritdoc/>
+    static void I1.$$M1() { }
+}
+";
+
+            await TestAsync(
+                code,
+                MainDescription("void C1_1.M1()"),
+                Documentation("Summary text"));
         }
     }
 }

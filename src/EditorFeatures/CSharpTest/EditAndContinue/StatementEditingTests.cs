@@ -236,7 +236,7 @@ var (a1, a3) = (1, () => { return 8; });
 
         #endregion
 
-        #region Switch
+        #region Switch Statement
 
         [Fact]
         public void Switch1()
@@ -305,6 +305,70 @@ switch(shape)
                 "Delete [case Point p:]@26",
                 "Delete [p]@37",
                 "Delete [return 0;]@40");
+        }
+
+        #endregion
+
+        #region Switch Expression
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression1()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression2()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 1 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 1 => 0, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression3()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };]@18");
+
+            edits.VerifyRudeDiagnostics();
         }
 
         #endregion
@@ -7137,12 +7201,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@2",
-                "Insert [A]@3");
+                "Update [void L() { }]@2 -> [[A]void L() { }]@2");
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7154,12 +7217,11 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[A]]@2",
-                "Delete [A]@3");
+                "Update [[A]void L() { }]@2 -> [void L() { }]@2");
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7170,7 +7232,7 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Reorder [B]@6 -> @3");
+            edits.VerifyEdits("Update [[A, B]void L() { }]@2 -> [[B, A]void L() { }]@2");
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics();
@@ -7185,15 +7247,9 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A]]@2 -> [[A, B]]@2",
-                "Insert [B]@6",
-                "Delete [[B]]@5",
-                "Delete [B]@6");
+                "Update [[A][B]void L() { }]@2 -> [[A, B]void L() { }]@2");
 
-            // Get top edits so we can validate rude edits
-            GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7205,13 +7261,9 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [[A, B]]@2 -> [[A]]@2",
-                "Insert [[B]]@5",
-                "Insert [B]@6",
-                "Delete [B]@6");
+                "Update [[A, B]void L() { }]@2 -> [[A][B]void L() { }]@2");
 
-            GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[B]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7222,10 +7274,11 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[return: A]]@2 -> [[A]]@2");
+            edits.VerifyEdits("Update [[return: A]void L() { }]@2 -> [[A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7236,10 +7289,11 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Update [[A]]@2 -> [[return: A]]@2");
+            edits.VerifyEdits("Update [[A]void L() { }]@2 -> [[return: A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7251,11 +7305,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[return: A]]@2",
-                "Insert [A]@11");
+                "Update [int L() { return 1; }]@2 -> [[return: A]int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[return: A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7267,11 +7320,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[return: A]]@2",
-                "Delete [A]@11");
+                "Update [[return: A]int L() { return 1; }]@2 -> [int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7282,7 +7334,7 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Reorder [B]@14 -> @11");
+            edits.VerifyEdits("Update [[return: A, B]int L() { return 1; }]@2 -> [[return: B, A]int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics();
         }
@@ -7296,11 +7348,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@9",
-                "Insert [A]@10");
+                "Update [int i]@9 -> [[A]int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int i", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -7312,11 +7363,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[A]]@9",
-                "Delete [A]@10");
+                "Update [[A]int i]@9 -> [int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int i", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int i", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -7327,7 +7377,7 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Reorder [B]@13 -> @10");
+            edits.VerifyEdits("Update [[A, B]int i]@9 -> [[B, A]int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics();
         }
@@ -7341,11 +7391,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [[A]]@9",
-                "Insert [A]@10");
+                "Update [T]@9 -> [[A] T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7357,11 +7406,10 @@ interface I
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [[A]]@9",
-                "Delete [A]@10");
+                "Update [[A] T]@9 -> [T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7372,7 +7420,7 @@ interface I
 
             var edits = GetMethodEdits(src1, src2);
 
-            edits.VerifyEdits("Reorder [B]@13 -> @10");
+            edits.VerifyEdits("Update [[A, B] T]@9 -> [[B, A] T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics();
         }

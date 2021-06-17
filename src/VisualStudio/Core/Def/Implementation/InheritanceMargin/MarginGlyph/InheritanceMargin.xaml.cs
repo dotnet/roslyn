@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Workspace _workspace;
 
         public InheritanceMargin(
@@ -31,14 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor operationExecutor,
             InheritanceMarginTag tag,
             double scaleFactor)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _workspace = tag.Workspace;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
             InitializeComponent();
 
             var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, scaleFactor);
@@ -61,17 +62,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-                _waitIndicator.Wait(
-                    title: EditorFeaturesResources.Navigating,
-                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                    allowCancel: true,
+                _operationExecutor.Execute(
+                    new UIThreadOperationExecutionOptions(
+                        title: EditorFeaturesResources.Navigating,
+                        defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+                        allowCancellation: true,
+                        showProgress: false),
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
-                        context.CancellationToken));
+                        context.UserCancellationToken));
             }
         }
 
@@ -107,13 +110,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
-                // 1. [margin] -> Target1
+                // 1. [margin] -> Header
+                //                Target1
                 //                Target2
                 //                Target3
                 //
-                // 2. [margin] -> method Bar -> Target1
+                // 2. [margin] -> method Bar -> Header
+                //                           -> Target1
                 //                           -> Target2
-                //             -> method Foo -> Target3
+                //             -> method Foo -> Header
+                //                           -> Target3
                 //                           -> Target4
                 // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
                 // user is viewing the targets menu.

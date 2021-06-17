@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
-        public const string UnboundConstructorId = "IDE1008";
 
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
 

@@ -784,17 +784,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.OperatorDeclaration:
-                    anyNonTypeMembers = true;
-                    var opDecl = (Syntax.InternalSyntax.OperatorDeclarationSyntax)member;
-                    var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                    set.Add(name);
+                    {
+                        anyNonTypeMembers = true;
+
+                        // Handle in the same way as explicit method implementations
+                        var opDecl = (Syntax.InternalSyntax.OperatorDeclarationSyntax)member;
+
+                        if (opDecl.ExplicitInterfaceSpecifier == null)
+                        {
+                            var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
+                            set.Add(name);
+                        }
+                    }
                     break;
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    anyNonTypeMembers = true;
-                    set.Add(((Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)member).ImplicitOrExplicitKeyword.Kind == SyntaxKind.ImplicitKeyword
-                        ? WellKnownMemberNames.ImplicitConversionName
-                        : WellKnownMemberNames.ExplicitConversionName);
+                    {
+                        anyNonTypeMembers = true;
+
+                        // Handle in the same way as explicit method implementations
+                        var opDecl = (Syntax.InternalSyntax.ConversionOperatorDeclarationSyntax)member;
+
+                        if (opDecl.ExplicitInterfaceSpecifier == null)
+                        {
+                            var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
+                            set.Add(name);
+                        }
+                    }
                     break;
 
                 case SyntaxKind.GlobalStatement:

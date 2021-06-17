@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.NavigationBar
         public readonly bool Grayed;
         public readonly int Indent;
         public readonly ImmutableArray<RoslynNavigationBarItem> ChildItems;
-        public readonly ImmutableArray<TextSpan> Spans;
 
         protected RoslynNavigationBarItem(
             RoslynNavigationBarItemKind kind,
@@ -30,13 +29,11 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             bool bolded,
             bool grayed,
             int indent,
-            ImmutableArray<RoslynNavigationBarItem> childItems,
-            ImmutableArray<TextSpan> spans)
+            ImmutableArray<RoslynNavigationBarItem> childItems)
         {
             Kind = kind;
             Text = text;
             Glyph = glyph;
-            Spans = spans.NullToEmpty();
             ChildItems = childItems.NullToEmpty();
             Indent = indent;
             Bolded = bolded;

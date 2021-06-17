@@ -1837,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1938,8 +1939,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
+
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces = 8919,
+        ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers = 8920,
+        ERR_BadAbstractUnaryOperatorSignature = 8921,
+        ERR_BadAbstractIncDecSignature = 8922,
+        ERR_BadAbstractIncDecRetType = 8923,
+        ERR_BadAbstractBinaryOperatorSignature = 8924,
+        ERR_BadAbstractShiftOperatorSignature = 8925,
+        ERR_BadAbstractStaticMemberAccess = 8926,
+        ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 8927,
+        ERR_CloseUnimplementedInterfaceMemberNotStatic = 8928,
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 8929,
+        ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
+        ERR_AbstractConversionNotInvolvingContainedType = 8931,
+        ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
 
         #endregion
+
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

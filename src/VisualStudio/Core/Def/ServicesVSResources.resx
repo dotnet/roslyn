@@ -1719,6 +1719,9 @@ I agree to all of the foregoing:</value>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
   </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1743,5 +1746,25 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Overridden_members" xml:space="preserve">
     <value>Overridden members</value>
+  </data>
+  <data name="Value_Tracking" xml:space="preserve">
+    <value>Value Tracking</value>
+    <comment>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</comment>
+  </data>
+  <data name="Calculating" xml:space="preserve">
+    <value>Calculating...</value>
+    <comment>Used in UI to represent progress in the context of loading items. </comment>
+  </data>
+  <data name="Derived_types" xml:space="preserve">
+    <value>Derived types</value>
+  </data>
+  <data name="Implemented_interfaces" xml:space="preserve">
+    <value>Implemented interfaces</value>
+  </data>
+  <data name="Implementing_types" xml:space="preserve">
+    <value>Implementing types</value>
+  </data>
+  <data name="Inherited_interfaces" xml:space="preserve">
+    <value>Inherited interfaces</value>
   </data>
 </root>
