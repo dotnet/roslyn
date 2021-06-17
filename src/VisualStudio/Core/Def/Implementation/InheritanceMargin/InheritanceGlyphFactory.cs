@@ -44,9 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var membersOnLine = inheritanceMarginTag.MembersOnLine;
                 Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-                // ZoomLevel of textView is percentage based. (e.g. 20 -> 400 means 20% -> 400%)
-                // and the scaleFactor of CrispImage is 1 based. (e.g 1 means 100%)
-                var scaleFactor = _textView.ZoomLevel / 100;
                 return new MarginGlyph.InheritanceMargin(
                     _threadingContext,
                     _streamingFindUsagesPresenter,
@@ -54,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                     _classificationFormatMap,
                     _waitIndicator,
                     inheritanceMarginTag,
-                    scaleFactor);
+                    _textView);
             }
 
             return null;
