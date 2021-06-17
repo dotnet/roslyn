@@ -40,14 +40,12 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "123");
+            CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
@@ -70,10 +68,9 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
-               5");
+               5").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -98,8 +95,7 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "124, 123, 124");
+            CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -130,8 +126,7 @@ public static class Program
 ";
 
             var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "2 + 2");
+            CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -157,8 +152,7 @@ public static class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression");
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -184,8 +178,7 @@ public static class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2");
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -210,12 +203,11 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
+            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
                 // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
                 );
-            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -240,12 +232,11 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
+            CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
                 // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
                 );
-            CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -273,12 +264,11 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -309,7 +299,6 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -320,7 +309,7 @@ callerTargetExp
 target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -350,14 +339,13 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value");
+param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -382,9 +370,8 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<Main>$
-<default-arg-expression>");
+<default-arg-expression>").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -408,14 +395,12 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics(
-                 // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
-                 //         [CallerArgumentExpression("p")] string p = "<default>")
-                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
-                );
-
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value");
+value").VerifyDiagnostics(
+                // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                //         [CallerArgumentExpression("p")] string p = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
+                );
         }
         #endregion
 
@@ -449,14 +434,12 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "123");
+            CompileAndVerify(compilation, expectedOutput: "123").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Reflection;
@@ -485,10 +468,9 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
-               5");
+               5").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -519,8 +501,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "124, 123, 124");
+            CompileAndVerify(compilation, expectedOutput: "124, 123, 124").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -557,8 +538,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "2 + 2");
+            CompileAndVerify(compilation, expectedOutput: "2 + 2").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -589,12 +569,11 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
+            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
                 // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 25)
                 );
-            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -625,12 +604,11 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
+            CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
                 // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32)
                 );
-            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -666,12 +644,11 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -709,7 +686,6 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
 arg default value
@@ -720,7 +696,7 @@ callerTargetExp
 target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -756,14 +732,13 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value");
+param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -796,9 +771,8 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default-caller-name>
-<default-arg-expression>");
+<default-arg-expression>").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -831,14 +805,72 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics(
+            CompileAndVerify(compilation, expectedOutput: @"<default>
+value").VerifyDiagnostics(
                 // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
                 //         [CallerArgumentExpression("p")] string p = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
                 );
+        }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsReferingToItself_AttributeConstructor_Metadata()
+        {
+            string il = @"
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi beforefieldinit MyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 04 00 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            [opt] string p
+        ) cil managed 
+    {
+        .param [1] = ""<default>""
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 70 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 16 (0x10)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.1
+        IL_0009: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000e: nop
+        IL_000f: ret
+    } // end of method MyAttribute::.ctor
+
+} // end of class MyAttribute
+";
+            string source = @"
+using System.Reflection;
+
+[My]
+[My(""value"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttributes(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value");
+value").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -865,8 +897,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
+            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
             Assert.Equal(2, attributeArguments.Length);
@@ -898,8 +929,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'");
+            CompileAndVerify(compilation, expectedOutput: "'Hello', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
             Assert.Equal(2, attributeArguments.Length);
@@ -931,8 +961,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
+            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
             Assert.Equal(3, attributeArguments.Length);
@@ -965,8 +994,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'");
+            CompileAndVerify(compilation, expectedOutput: "'Hello', 'World', '\"Hello\"'").VerifyDiagnostics();
             var namedType = compilation.GetTypeByMetadataName("Program").GetPublicSymbol();
             var attributeArguments = namedType.GetAttributes().Single().ConstructorArguments;
             Assert.Equal(3, attributeArguments.Length);
@@ -1005,7 +1033,6 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
 param1: param1_default, param2: param2_default
@@ -1013,7 +1040,7 @@ param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value");
+param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1050,9 +1077,8 @@ class Program
     }
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"'0', '2', '2', '0+0', '', '1+1'
-'0', '2', '2', '0+0', '', '1+1'");
+'0', '2', '2', '0+0', '', '1+1'").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1083,8 +1109,7 @@ class Program
     }
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'");
+            CompileAndVerify(compilation, expectedOutput: "'<default1>', '<default0>'").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1143,8 +1168,7 @@ class Program
     }
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'");
+            CompileAndVerify(compilation, expectedOutput: @"'3', '1+2'").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1232,8 +1256,7 @@ class Program
     }
 }";
             var compilation = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "'3', '0'");
+            CompileAndVerify(compilation, expectedOutput: "'3', '0'").VerifyDiagnostics();
             var arguments = compilation.GetTypeByMetadataName("Program").GetAttributes().Single().CommonConstructorArguments;
             Assert.Equal(2, arguments.Length);
             Assert.Equal(3, arguments[0].Value);

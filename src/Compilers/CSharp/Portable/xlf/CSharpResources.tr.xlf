@@ -1083,8 +1083,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
-        <source>The CallerArgumentExpressionAttribute is applied with a self-referential parameter.</source>
-        <target state="new">The CallerArgumentExpressionAttribute is applied with a self-referential parameter.</target>
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-refential.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation">
