@@ -770,7 +770,6 @@ partial class three
             var pdbReader = GetMetadataReaderfromTwoSource(source, sourceB);
             Guid TypeDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
             EntityHandle[] hand = new[] { MetadataTokens.EntityHandle(2) };
-            // here - use pdbReader to read CDI for the type definitions
             var list = new System.Collections.Generic.List<int>();
             BlobReader reader = new BlobReader();
             int i = 0;
@@ -848,14 +847,10 @@ public class Program
 
             var typeC = c2.GetTypeByMetadataName("C");
             Symbol symbol = typeC.GetMethod("F2");
-            //symbol = (PEMethodSymbol)symbol;
             using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
             var pdbReader = provider.GetMetadataReader();
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000002, MetadataTokens.GetToken(docList[0]));
-
-            // go through all methods and collect documents.
-
         }
 
         [Fact]
@@ -904,14 +899,10 @@ public class Program
 
             var typeC = c2.GetTypeByMetadataName("C");
             Symbol symbol = typeC.GetMethod("F2");
-            //symbol = (PEMethodSymbol)symbol;
             using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
             var pdbReader = provider.GetMetadataReader();
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000002, MetadataTokens.GetToken(docList[0]));
-
-            // go through all methods and collect documents.
-
         }
 
         [Fact]
@@ -961,13 +952,11 @@ public class Program
 
             var typeC = c2.GetTypeByMetadataName("C");
             Symbol symbol = typeC.GetMethod("F2");
-            //symbol = (PEMethodSymbol)symbol;
             using var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
             var pdbReader = provider.GetMetadataReader();
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
         }
-
 
         [Fact]
         public void TestTypetoDocumentNavigationField()
@@ -1080,6 +1069,7 @@ public class Program
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
         }
+
         [Fact]
         public void TestTypetoDocumentNavigationEvent()
         {
@@ -1134,7 +1124,7 @@ public class Program
             var docList = SymbolSourceFileFinder.FindSourceDocuments(symbol, pdbReader);
             Assert.Equal(0x30000001, MetadataTokens.GetToken(docList[0]));
         }
-        // two more test cases one for default and implicilty events
+
         [Fact]
         public void TestTypetoDocumentNavigationType()
         {

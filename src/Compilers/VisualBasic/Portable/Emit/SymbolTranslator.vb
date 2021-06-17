@@ -522,8 +522,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return DirectCast(GetCciAdapter(symbol), Microsoft.Cci.IArrayTypeReference)
         End Function
 
-        Public Overrides Function GetTypeDocument(context As CodeAnalysis.Emit.EmitContext) As List(Of (definition As Cci.IDefinition, document As List(Of Cci.DebugSourceDocument)))
-            Return New List(Of (definition As Cci.IDefinition, document As List(Of Cci.DebugSourceDocument)))
+        Public Overrides Function GetTypeDefinitionDocuments(context As CodeAnalysis.Emit.EmitContext) As List(Of (definition As Cci.ITypeDefinition, document As List(Of Cci.DebugSourceDocument)))
+            Return New List(Of (definition As Cci.ITypeDefinition, document As List(Of Cci.DebugSourceDocument)))
         End Function
     End Class
 End Namespace

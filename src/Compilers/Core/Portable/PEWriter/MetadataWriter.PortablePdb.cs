@@ -992,27 +992,24 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
 
-        private void TypeDocumentInformation(CommonPEModuleBuilder module)
+        private void TypeDocumentsInformation(CommonPEModuleBuilder module)
         {
-            DocumentHandle rowid;
-            var document = module.GetTypeDocument(Context);
-            if (document.Count > 0)
+            var document = module.GetTypeDefinitionDocuments(Context);
+
+            foreach (var (def, doc) in document)
             {
-                foreach (var pair in document)
+                var builder = new BlobBuilder();
+                foreach (var docNumber in doc)
                 {
-                    var builder = new BlobBuilder();
-                    var def = (ITypeDefinition)pair.definition;
-                    foreach (var val in pair.document)
-                    {
-                        rowid = GetOrAddDocument(val, _documentIndex);
-                        builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
-                    }
-                    _debugMetadataOpt.AddCustomDebugInformation(
+                    var handle = GetOrAddDocument(docNumber, _documentIndex);
+                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(handle));
+                }
+                _debugMetadataOpt.AddCustomDebugInformation(
                     parent: GetTypeDefinitionHandle(def),
                     kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocuments),
                     value: _debugMetadataOpt.GetOrAddBlob(builder));
-                }
             }
+
         }
     }
 }

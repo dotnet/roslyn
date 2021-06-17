@@ -209,9 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public sealed override List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> GetTypeDocument(EmitContext context)
+        public sealed override List<(Cci.ITypeDefinition definition, List<Cci.DebugSourceDocument> document)> GetTypeDefinitionDocuments(EmitContext context)
         {
-            var result = new List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)>();
+            var result = new List<(Cci.ITypeDefinition definition, List<Cci.DebugSourceDocument> document)>();
 
             var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var docList = new HashSet<Cci.DebugSourceDocument>();
                             if (!TypeHasIL(symbol, context, docList))
                             {
-                                AddDefinitionAndDocument(result, locations, (Cci.IDefinition)symbol.GetCciAdapter(), docList);
+                                AddDefinitionAndDocument(result, locations, (Cci.ITypeDefinition)symbol.GetCciAdapter(), docList);
                             }
                         }
                         break;
@@ -255,11 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        // Method checks if all methods contained in the type have IL, methods with IL documents will be added to a document list.
-        // The method will return true if all methods in the type have IL, otherwise will return false.
+        // Method checks if all methods contained in the type have IL,the methods that have IL the documents will be added to a document list.
+        // The method will return true if all methods in the type have IL, otherwise will return false if a single method does not have IL.
+        // In cases where an empty default constructor is presennt and type has other methods the constructor will be excluded in the process.
+
         private static bool TypeHasIL(NamespaceOrTypeSymbol typeSymbol, EmitContext context, HashSet<Cci.DebugSourceDocument> docList)
         {
-            if ((typeSymbol == null) || context.Equals(null))
+            if (typeSymbol == null)
             {
                 return false;
             }
@@ -287,8 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
 
                 // Checks to see if method is a default constructor. Emptiness is checked in the if statement, method
-                // only works if constructor is last method checked in the enumeration. Need to improve to find a better
-                // way to find default constructor. 
+                // only works if constructor is last method checked in the enumeration. 
                 else if (method.IsConstructor && !atLeastOneMethodhasIL)
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
@@ -433,8 +434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // Method first checks the list of documents in the type, against the list of documents passed from the type containing methods
         // if both list contain the same document, then it will not add any definitions and documents to the list result, if the documents from
         // the methods is missing a document or documents that the type list has then it will add definitions and documents to the list results.
-        private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> result,
-                                                    Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
+        private void AddDefinitionAndDocument(List<(Cci.ITypeDefinition definition, List<Cci.DebugSourceDocument> document)> result,
+                                                    Location[] location, Cci.ITypeDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
         {
             var sourceDoc = new List<Cci.DebugSourceDocument>();
             foreach (var loc in location)
