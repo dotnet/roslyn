@@ -32,25 +32,6 @@ variables:
     value: $(dn-bot-devdiv-drop-rw-code-rw)
 
 stages:
-- stage: setup
-  displayName: Build Setup
-
-  jobs:
-  - job: SetBuildNumber
-    pool:
-      vmImage: vs2017-win2016
-    steps:
-    # Make sure our two pipelines generate builds with distinct build numbers to avoid confliction.
-    # i.e. DevDiv builds will have even rev# whereas dnceng builds will be odd.
-    - task: PowerShell@2
-      displayName: Update BuildNumber
-      inputs:
-        filePath: 'eng\update-build-number.ps1'
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven even'
-        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-buildNumber $(Build.BuildNumber) -oddOrEven odd'
-      condition: eq(variables['System.JobAttempt'], '1')
 
 - stage: build
   displayName: Build and Test
