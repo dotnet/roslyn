@@ -605,8 +605,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!attribute.HasErrors)
                     {
                         var constructorArguments = attribute.CommonConstructorArguments;
-                        var parameterName = constructorArguments.Length == 1 && constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string value) ? value : null;
-                        if (parameterName is string)
+                        Debug.Assert(constructorArguments.Length == 1);
+                        if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName))
                         {
                             var parameters = ContainingSymbol.GetParameters();
                             for (int i = 0; i < parameters.Length; i++)
