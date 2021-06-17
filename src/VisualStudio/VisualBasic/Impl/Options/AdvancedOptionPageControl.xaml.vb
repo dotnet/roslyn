@@ -135,7 +135,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
             BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
 
-<<<<<<< HEAD
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
 
             BindToOption(Colorize_regular_expressions, RegularExpressionsOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
@@ -149,9 +148,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(hook_to_end_of_text, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToCode, LanguageNames.CSharp)
             BindToOption(hook_to_end_of_window, InlineErrorsOptions.LocationOption, InlineErrorsLocations.HookedToWindow, LanguageNames.CSharp)
 
-=======
             ' Inline hints
->>>>>>> adornment_manager_rework
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1)
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.VisualBasic)
 
