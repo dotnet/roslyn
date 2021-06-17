@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Kind = GetItemKind(xamlCompletion.Kind),
                 Description = xamlCompletion.Description,
                 Icon = xamlCompletion.Icon,
-                InsertTextFormat = xamlCompletion.InsertSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
+                InsertTextFormat = xamlCompletion.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
 
