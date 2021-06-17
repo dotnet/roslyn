@@ -280,14 +280,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                     }
                 }
+                // Checks to see if method is not an empty constructor, emptiness is checked in the if statement above.
                 else if (!method.IsConstructor)
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
                 }
-                // This statement will only work if constructor is the last on the list, if the list changes
-                // then the whole method will break. Note to find a better way to check if constructor has no body and 
-                // any other method does not have body.
 
+                // Checks to see if method is a default constructor. Emptiness is checked in the if statement, method
+                // only works if constructor is last method checked in the enumeration. Need to improve to find a better
+                // way to find default constructor. 
                 else if (method.IsConstructor && !atLeastOneMethodhasIL)
                 {
                     atLeastOneMethodDoesNotHaveIL = true;
@@ -429,17 +430,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        // Method first checks the list of documents in the type, against the list of documents passed from the type containing methods
+        // if both list contain the same document, then it will not add any definitions and documents to the list result, if the documents from
+        // the methods is missing a document or documents that the type list has then it will add definitions and documents to the list results.
         private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, List<Cci.DebugSourceDocument> document)> result,
                                                     Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
         {
-            //make sure source doc has order, using order set. 
-            var sourceDoc = new SortedSet<Cci.DebugSourceDocument>();
+            var sourceDoc = new List<Cci.DebugSourceDocument>();
             foreach (var loc in location)
             {
                 FileLinePositionSpan span = loc.GetLineSpan();
                 Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
 
-                if (doc != null)
+                if (doc != null && !sourceDoc.Contains(doc))
                 {
                     sourceDoc.Add(doc);
                 }
