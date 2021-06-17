@@ -7824,9 +7824,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (9,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (9,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(9, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation1, "Test1");
@@ -7844,9 +7844,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation3, "Test1");
@@ -7856,9 +7856,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation4, "Test1");
@@ -13498,9 +13498,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -16698,9 +16698,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -17312,9 +17312,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -20789,9 +20789,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -23166,9 +23166,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -23780,9 +23780,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -25951,7 +25951,7 @@ set_P1",
 
                 ValidateEventNotImplemented_11(compilation5, "Test2");
             }
-       }
+        }
 
         private static void ValidateEventNotImplemented_11(CSharpCompilation compilation, string className)
         {
@@ -26603,9 +26603,9 @@ class Test1 : I1
 ";
 
             ValidateEventModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'Action'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "System.Action").WithLocation(2, 15)
                 );
         }
 
@@ -61131,6 +61131,146 @@ class Test
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test",
                 verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        public void PartialPropertyImplementation_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int P1 {get; set;}
+    int P2 {get => throw null; internal set{}}
+    int P3 {get => throw null; set{}}
+}
+
+class C0 : I1
+{
+    int I1.P1 {get; set;}
+}
+
+class C1 : C0, I1
+{
+    public int P1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P1"");
+            return 0;
+        }
+    }
+    public int P2 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P2"");
+            return 0;
+        }
+    }
+    public int P3 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P3"");
+            return 0;
+        }
+    }
+
+    static void Main()
+    {
+        I1 x = new C1();
+        _ = x.P1;
+        _ = x.P2;
+        _ = x.P3;
+    }
+}
+";
+            foreach (var parseOptions in new[] { TestOptions.Regular8, TestOptions.Regular9, TestOptions.RegularPreview })
+            {
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                CompileAndVerify(compilation1,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"C1.get_P1
+C1.get_P2
+C1.get_P3
+",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var c1 = compilation1.GetTypeByMetadataName("C1");
+
+                foreach (var p in c1.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(p.GetMethod.IsMetadataVirtual());
+                    Assert.True(p.GetMethod.IsMetadataFinal);
+                }
+            }
+        }
+
+        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        public void PartialPropertyImplementation_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    internal int P1 {get; set;}
+    internal int P2 {get => throw null; set{}}
+}
+
+class C0 : I1
+{
+    int I1.P1 {get; set;}
+}
+
+class C1 : C0, I1
+{
+    public int P1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P1"");
+            return 0;
+        }
+    }
+    public int P2 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P2"");
+            return 0;
+        }
+    }
+
+    static void Main()
+    {
+        I1 x = new C1();
+        _ = x.P1;
+        _ = x.P2;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"C1.get_P1
+C1.get_P2
+",
+                verify: VerifyOnMonoOrCoreClr);
+
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            foreach (var p in c1.GetMembers().OfType<PropertySymbol>())
+            {
+                Assert.True(p.GetMethod.IsMetadataVirtual());
+                Assert.True(p.GetMethod.IsMetadataFinal);
+            }
         }
     }
 }

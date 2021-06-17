@@ -1022,8 +1022,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if ((object)closestMismatch != null)
                 {
-                    Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
-                    Debug.Assert(!interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor());
                     ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
                 }
             }
@@ -2067,11 +2065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     // If we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type.
-                    // But do this only if interface member is public because language doesn't allow implicit implementations for
-                    // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
-                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
-                             interfaceMember.DeclaredAccessibility == Accessibility.Public &&
-                             !interfaceMember.IsEventOrPropertyWithImplementableNonPublicAccessor())
+                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation)
                     {
                         // We can ignore custom modifiers here, because our goal is to improve the helpfulness
                         // of an error we're already giving, rather than to generate a new error.
