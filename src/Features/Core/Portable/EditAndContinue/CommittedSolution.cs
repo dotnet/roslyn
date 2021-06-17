@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (null, DocumentState.None);
             }
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(document.DocumentState))
+            if (!document.DocumentState.SupportsEditAndContinue())
             {
                 return (null, DocumentState.DesignTimeOnly);
             }
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // Skip projects that do not support Roslyn EnC (e.g. F#, etc).
                 // Source files of these do not even need to be captured in the solution snapshot.
-                if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
+                if (!project.SupportsEditAndContinue())
                 {
                     return Array.Empty<DocumentId?>();
                 }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (EditAndContinueWorkspaceService.SupportsEditAndContinue(documentState))
+                    if (documentState.SupportsEditAndContinue())
                     {
                         var sourceFilePath = documentState.FilePath;
                         Contract.ThrowIfNull(sourceFilePath);

@@ -44,5 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MethodKind.ExplicitInterfaceImplementation;
             }
         }
+
+        public override bool IsStatic => _implementingMethod.IsStatic;
+
+        internal override bool HasSpecialName => false;
+
+        internal sealed override bool HasRuntimeSpecialName => false;
     }
 }

@@ -3267,5 +3267,51 @@ class C
             Test(workspace)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub ExtendedPropertyPattern_FirstPart()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C [|CProperty|] { get; set; }
+    int IntProperty { get; set; }
+
+    void M()
+    {
+        _ = this is { CProper$$ty.IntProperty: 1 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub ExtendedPropertyPattern_SecondPart()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    C CProperty { get; set; }
+    int [|IntProperty|] { get; set; }
+
+    void M()
+    {
+        _ = this is { CProperty.IntProp$$erty: 1 };
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
     End Class
 End Namespace

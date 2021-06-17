@@ -81,7 +81,8 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
+Editor Color Scheme;
+Inheritance Margin;</source>
         <target state="needs-review-translation">Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz; 

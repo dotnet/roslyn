@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
         // tasks we need to do.
-        public Task<bool> PerformWriteAsync<TArg>(Func<TArg, bool> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
+        public Task<TResult> PerformWriteAsync<TArg, TResult>(Func<TArg, TResult> func, TArg arg, CancellationToken cancellationToken) where TArg : struct
         {
             // Suppress ExecutionContext flow for asynchronous operations that write to the database. In addition to
             // avoiding ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone
