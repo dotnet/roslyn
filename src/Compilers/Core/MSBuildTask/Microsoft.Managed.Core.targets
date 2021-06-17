@@ -56,6 +56,8 @@
     ========================
     
     -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
+
   <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
     <!-- First, force clear non-user facing properties '_SkipAnalyzers' and '_ImplicitlySkipAnalyzers'. -->
     <PropertyGroup>
@@ -92,8 +94,7 @@
     </PropertyGroup>
 
     <!-- Display a message to inform the users about us implicitly skipping analyzers for speeding up indirect builds. -->
-    <Message Condition="'$(_ImplicitlySkipAnalyzers)' == 'true'"
-             Text="Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers." Importance="High" />
+    <ShowMessageForImplicitlySkipAnalyzers Condition="'$(_ImplicitlySkipAnalyzers)' == 'true'"/>
 
     <!-- Semaphore file to indicate the time stamp for last build with skipAnalyzers flag. -->
     <PropertyGroup>
