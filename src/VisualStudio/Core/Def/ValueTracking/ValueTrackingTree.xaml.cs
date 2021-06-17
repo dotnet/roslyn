@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 => TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
         }
 
-        private void ValueTrackingTreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void ValueTrackingTreeView_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
         {
             if (sender is TreeViewItemBase viewModel)
             {

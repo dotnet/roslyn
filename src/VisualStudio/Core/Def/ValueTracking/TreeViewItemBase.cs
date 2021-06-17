@@ -42,30 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         public TreeViewItemBase()
         {
-            ChildItems.CollectionChanged += (s, a) =>
-            {
-
-                if (a.Action is not NotifyCollectionChangedAction.Add and not NotifyCollectionChangedAction.Remove)
-                {
-                    return;
-                }
-
-                SetParents(a.OldItems, null);
-                SetParents(a.NewItems, this);
-
-                static void SetParents(IList? items, TreeViewItemBase? parent)
-                {
-                    if (items is null)
-                    {
-                        return;
-                    }
-
-                    foreach (var item in items.Cast<TreeViewItemBase>())
-                    {
-                        item.Parent = parent;
-                    }
-                }
-            };
+            ChildItems.CollectionChanged += ChildItems_CollectionChanged;
         }
 
         /// <summary>
@@ -128,6 +105,30 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             return Parent.ChildItems[siblingIndex];
+        }
+
+        private void ChildItems_CollectionChanged(object _, NotifyCollectionChangedEventArgs args)
+        {
+            if (args.Action is not NotifyCollectionChangedAction.Add and not NotifyCollectionChangedAction.Remove)
+            {
+                return;
+            }
+
+            SetParents(args.OldItems, null);
+            SetParents(args.NewItems, this);
+
+            static void SetParents(IList? items, TreeViewItemBase? parent)
+            {
+                if (items is null)
+                {
+                    return;
+                }
+
+                foreach (var item in items.Cast<TreeViewItemBase>())
+                {
+                    item.Parent = parent;
+                }
+            }
         }
 
 
