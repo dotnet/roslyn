@@ -172,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             else
             {
-                ParameterSymbol[] parameters = new ParameterSymbol[count];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    parameters[i] = new RetargetingMethodParameterSymbol(this, list[i]);
+                    parameters.Add(new RetargetingMethodParameterSymbol(this, list[i]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 
