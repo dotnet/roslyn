@@ -70,7 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             Workspace = workspace;
             DocumentId = documentId;
 
-
             if (!children.IsDefaultOrEmpty)
             {
                 foreach (var child in children)
