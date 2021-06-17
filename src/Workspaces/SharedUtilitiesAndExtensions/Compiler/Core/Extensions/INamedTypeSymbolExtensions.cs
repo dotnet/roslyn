@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // interface I { static abstract int operator -(I x); }
                     // But the following is implementable:
                     // interface I<T> where T : I<T> { static abstract int operator -(T x); }
+
+                    // See https://github.com/dotnet/csharplang/blob/main/spec/classes.md#unary-operators.
                     return method.Parameters.Any(p => p.Type.Equals(within, SymbolEqualityComparer.Default));
                 }
 
