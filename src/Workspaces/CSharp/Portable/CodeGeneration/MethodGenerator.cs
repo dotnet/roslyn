@@ -220,9 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
-            // Only "unsafe" modifier allowed if we're an explicit impl.
+            // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
             if (method.ExplicitInterfaceImplementations.Any())
             {
+                if (method.IsStatic)
+                {
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                }
+
                 if (CodeGenerationMethodInfo.GetIsUnsafe(method))
                 {
                     tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));

@@ -110,12 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
             }
 
+            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
             if (method.IsAbstract)
             {
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
             }
 
-            tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
             return tokens.ToSyntaxTokenListAndFree();
         }
     }

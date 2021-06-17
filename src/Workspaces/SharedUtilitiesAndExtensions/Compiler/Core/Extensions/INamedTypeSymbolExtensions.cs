@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             static bool IsImplicitlyImplementable(ISymbol member, ISymbol within)
             {
-                if (member is IMethodSymbol { IsStatic: true, IsAbstract: true } method)
+                if (member is IMethodSymbol { IsStatic: true, IsAbstract: true, MethodKind: MethodKind.UserDefinedOperator } method)
                 {
                     // For example, the following is not implementable implicitly.
                     // interface I { static abstract int operator -(I x); }
