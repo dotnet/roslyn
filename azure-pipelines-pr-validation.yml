@@ -6,11 +6,13 @@ resources:
 # Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
 #variables:
 #  SignType: test
-#  SkipTests: true
-#  SkipApplyOptimizationData: false
 #  IbcDrop: 'default'
-#  PRNumber: 'REQUIRED'
-#  CommitSHA: 'REQUIRED'
+
+parameters:
+- name: PRNumber
+  type: number
+- name: CommitSHA
+  type: string
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -33,8 +35,8 @@ stages:
 
   jobs:
 
-  - job: OfficialTestBuild
-    displayName: Official Test Build
+  - job: PRValidationBuild
+    displayName: PR Validation Build
     timeoutInMinutes: 360
     # Conditionally set build pool so we can share this YAML when building with different pipeline
     pool:
@@ -55,15 +57,15 @@ stages:
         type: 'Build'
         tags: |
           PRValidationBuild
-          PRNumber:$(PRNumber)
-          CommitSHA:$(CommitSHA)
+          PRNumber:${{ parameters.PRNumber }}
+          CommitSHA:${{ parameters.CommitSHA }}
       condition: succeeded()
 
     - task: PowerShell@2
       displayName: Setup branch for insertion validation
       inputs:
         filePath: 'eng\setup-pr-validation.ps1'
-        arguments: '-sourceBranchName $(SourceBranchName) -prNumber $(PRNumber) -commitSHA $(CommitSHA)'
+        arguments: '-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }}'
       condition: succeeded()
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
@@ -117,6 +119,8 @@ stages:
                    /p:DotNetSignType=$(SignType)
                    /p:DotNetPublishToBlobFeed=false
                    /p:PublishToSymbolServer=false
+                   /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
+                   /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=false
       condition: succeeded()
