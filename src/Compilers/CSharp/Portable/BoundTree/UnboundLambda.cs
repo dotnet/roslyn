@@ -556,21 +556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invokeMethod.ReturnTypeWithAnnotations;
         }
 
-        private bool DelegateNeedsReturn(MethodSymbol? invokeMethod)
-        {
-            if (invokeMethod is null || invokeMethod.ReturnsVoid)
-            {
-                return false;
-            }
-
-            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.Binder.Compilation)) // TODO2
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         internal NamedTypeSymbol? InferDelegateType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(Binder.ContainingMemberOrLambda is { });
@@ -692,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics.DiagnosticBag);
             if (reachableEndpoint)
             {
-                if (DelegateNeedsReturn(invokeMethod))
+                if (Binder.MethodOrLambdaRequiresValue(lambdaSymbol, this.Binder.Compilation))
                 {
                     // Not all code paths return a value in {0} of type '{1}'
                     diagnostics.Add(ErrorCode.ERR_AnonymousReturnExpected, lambdaSymbol.DiagnosticLocation, this.MessageID.Localize(), delegateType);
@@ -707,8 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !returnType.Type.IsNonGenericTaskType(compilation) && // TODO2
-                    !returnType.Type.IsGenericTaskType(compilation))
+                    !lambdaSymbol.IsAsyncEffectivelyReturningTask(compilation, builderOverride: out _) &&
+                    !lambdaSymbol.IsAsyncEffectivelyReturningGenericTask(compilation, builderOverride: out _))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);

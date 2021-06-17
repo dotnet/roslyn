@@ -919,14 +919,8 @@ return;
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                // (6,91): error CS1643: Not all code paths return a value in lambda expression of type 'Func<MyTask>'
-                // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<MyTask>").WithLocation(6, 91),
-                // (8,91): error CS4010: Cannot convert async lambda expression to delegate type 'Func<MyTask<int>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<MyTask<int>>'.
-                // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] async () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<MyTask<int>>").WithLocation(8, 91)
-                );
+            var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]

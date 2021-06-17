@@ -8553,15 +8553,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case SyntaxKind.SimpleLambdaExpression:
-                            resultIsUsed = (((SimpleLambdaExpressionSyntax)parent).Body != node) || ContainingMethodOrLambdaRequiresValue();
+                            resultIsUsed = (((SimpleLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
                             break;
 
                         case SyntaxKind.ParenthesizedLambdaExpression:
-                            resultIsUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body != node) || ContainingMethodOrLambdaRequiresValue();
+                            resultIsUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
                             break;
 
                         case SyntaxKind.ArrowExpressionClause:
-                            resultIsUsed = (((ArrowExpressionClauseSyntax)parent).Expression != node) || ContainingMethodOrLambdaRequiresValue();
+                            resultIsUsed = (((ArrowExpressionClauseSyntax)parent).Expression != node) || MethodOrLambdaRequiresValue(ContainingMemberOrLambda, Compilation);
                             break;
 
                         case SyntaxKind.ForStatement:
@@ -8591,13 +8591,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConditionalAccess(node, receiver, access, accessType);
         }
 
-        private bool ContainingMethodOrLambdaRequiresValue()
+        internal static bool MethodOrLambdaRequiresValue(Symbol symbol, CSharpCompilation compilation)
         {
-            var containingMethod = ContainingMemberOrLambda as MethodSymbol;
-            return
-                (object)containingMethod == null ||
-                    !containingMethod.ReturnsVoid &&
-                    !containingMethod.IsAsyncEffectivelyReturningTask(this.Compilation, builderOverride: out _);
+            return symbol is MethodSymbol method &&
+                !method.ReturnsVoid &&
+                !method.IsAsyncEffectivelyReturningTask(compilation, builderOverride: out _);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)
