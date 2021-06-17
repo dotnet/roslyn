@@ -1096,6 +1096,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS9005: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
                 diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
+            else if (GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex == Ordinal)
+            {
+                // CS9006: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
 
             diagnostics.Add(node.Name.Location, useSiteInfo);
         }

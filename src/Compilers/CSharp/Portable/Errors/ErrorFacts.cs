@@ -477,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                     return 1;
                 default:
                     return 0;
