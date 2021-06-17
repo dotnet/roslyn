@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// </summary>
     internal abstract class AdornmentManager<T> where T : GraphicsTag
     {
-        protected readonly object _invalidatedSpansLock = new object();
+        private readonly object _invalidatedSpansLock = new object();
 
-        protected IThreadingContext ThreadingContext { get; }
+        private readonly IThreadingContext _threadingContext;
 
         /// <summary>Notification system about operations we do</summary>
-        protected IAsynchronousOperationListener AsyncListener { get; }
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         /// <summary>Spans that are invalidated, and need to be removed from the layer..</summary>
         private List<IMappingSpan> _invalidatedSpans;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             TextView = textView;
             AdornmentLayer = textView.GetAdornmentLayer(adornmentLayerName);
             textView.LayoutChanged += OnLayoutChanged;
-            AsyncListener = asyncListener;
+            _asyncListener = asyncListener;
 
             // If we are not on the UI thread, we are at race with Close, but we should be on UI thread
             Contract.ThrowIfFalse(textView.VisualElement.Dispatcher.CheckAccess());
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
             using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_OnLayoutChanged, CancellationToken.None))
-            using (AsyncListener.BeginAsyncOperation(GetType() + ".OnLayoutChanged"))
+            using (_asyncListener.BeginAsyncOperation(GetType() + ".OnLayoutChanged"))
             {
                 // Make sure we're on the UI thread.
                 Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>
         private void OnTagsChanged(object sender, TagsChangedEventArgs e)
         {
-            using (AsyncListener.BeginAsyncOperation(GetType().Name + ".OnTagsChanged.1"))
+            using (_asyncListener.BeginAsyncOperation(GetType().Name + ".OnTagsChanged.1"))
             {
                 var changedSpan = e.Span;
 
@@ -178,9 +178,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     // schedule an update
                     _threadingContext.JoinableTaskFactory.WithPriority(TextView.VisualElement.Dispatcher, DispatcherPriority.Render).RunAsync(async () =>
                     {
-                        using (AsyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2"))
+                        using (_asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2"))
                         {
-                            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
                             UpdateInvalidSpans();
                         }
                     });
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>
         private void UpdateInvalidSpans()
         {
-            using (AsyncListener.BeginAsyncOperation(GetType().Name + ".UpdateInvalidSpans.1"))
+            using (_asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateInvalidSpans.1"))
             using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_UpdateInvalidSpans, CancellationToken.None))
             {
                 // this method should only run on UI thread as we do WPF here.

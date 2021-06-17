@@ -5,8 +5,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.InlineErrors;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -52,20 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         protected override string AdornmentLayerName => LayerName;
 
-        public override void TextViewCreated(IWpfTextView textView)
+        protected override void CreateAdornmentManager(IWpfTextView textView)
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!textView.TextBuffer.GetFeatureOnOffOption(EditorComponentOnOffOptions.Adornment))
-            {
-                return;
-            }
-
             // the manager keeps itself alive by listening to text view events.
-            _ = new InlineErrorAdornmentManager(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
+            _ = new InlineErrorAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName, _classificationFormatMapService, _classificationTypeRegistryService);
         }
     }
 }
