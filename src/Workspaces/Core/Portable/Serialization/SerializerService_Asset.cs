@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WriteTo(reference, writer, cancellationToken);
+            WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)

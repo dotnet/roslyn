@@ -5,12 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
@@ -27,6 +26,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
+
+            // TODO: get capabilities from the runtime: https://github.com/dotnet/aspnetcore/issues/33402
+            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -48,10 +51,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             }
         }
 
-        private static readonly SolutionActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _) => ValueTaskFactory.FromResult(ImmutableArray<TextSpan>.Empty);
+        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly IEditAndContinueWorkspaceService _encService;
+        private DebuggingSessionId _sessionId;
 
         public WatchHotReloadService(HostWorkspaceServices services)
             => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
@@ -62,7 +66,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-            => await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
+        {
+            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(_sessionId == default, "Session already started");
+            _sessionId = newSessionId;
+        }
 
         /// <summary>
         /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or 
@@ -75,11 +83,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// </returns>
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var sessionId = _sessionId;
+            Contract.ThrowIfFalse(sessionId != default, "Session has not started");
+
+            var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate(out _);
+                _encService.CommitSolutionUpdate(sessionId, out _);
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
@@ -91,6 +102,23 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         }
 
         public void EndSession()
-            => _encService.EndDebuggingSession(out _);
+        {
+            Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
+            _encService.EndDebuggingSession(_sessionId, out _);
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly WatchHotReloadService _instance;
+
+            internal TestAccessor(WatchHotReloadService instance)
+                => _instance = instance;
+
+            public DebuggingSessionId SessionId
+                => _instance._sessionId;
+        }
     }
 }

@@ -973,7 +973,6 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
 
-
         /// <summary>
         /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
         /// Compilation.
@@ -2467,14 +2466,13 @@ namespace Microsoft.CodeAnalysis
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
-                useRawWin32Resources: false,
                 manifestResources,
                 options,
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
                 metadataPEStream,
-                pdbOptionsBlobReader: null,
+                rebuildData: null,
                 cancellationToken);
         }
 
@@ -2483,14 +2481,13 @@ namespace Microsoft.CodeAnalysis
             Stream? pdbStream,
             Stream? xmlDocumentationStream,
             Stream? win32Resources,
-            bool useRawWin32Resources,
             IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions? options,
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
             Stream? metadataPEStream,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             CancellationToken cancellationToken)
         {
             if (peStream == null)
@@ -2582,13 +2579,12 @@ namespace Microsoft.CodeAnalysis
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
-                useRawWin32Resources,
                 manifestResources,
                 options,
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
-                pdbOptionsBlobReader,
+                rebuildData,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -2603,13 +2599,12 @@ namespace Microsoft.CodeAnalysis
             Stream? pdbStream,
             Stream? xmlDocumentationStream,
             Stream? win32Resources,
-            bool useRawWin32Resources,
             IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions? options,
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -2654,7 +2649,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             xmlDocumentationStream,
                             win32Resources,
-                            useRawWin32Resources,
+                            useRawWin32Resources: rebuildData is object,
                             options.OutputNameOverride,
                             diagnostics,
                             cancellationToken))
@@ -2691,7 +2686,7 @@ namespace Microsoft.CodeAnalysis
                         new SimpleEmitStreamProvider(peStream),
                         (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
-                        pdbOptionsBlobReader,
+                        rebuildData,
                         testData?.SymWriterFactory,
                         diagnostics,
                         emitOptions: options,
@@ -2703,6 +2698,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Emit the differences between the compilation and the previous generation
         /// for Edit and Continue. The differences are expressed as added and changed
@@ -2710,6 +2706,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2729,6 +2726,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2737,6 +2735,32 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var diff = EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, cancellationToken);
+
+            foreach (var token in diff.UpdatedMethods)
+            {
+                updatedMethods.Add(token);
+            }
+
+            return diff;
+        }
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
@@ -2772,8 +2796,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, testData: null, cancellationToken);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
@@ -2782,7 +2807,6 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -2853,7 +2877,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider? metadataPEStreamProvider,
             EmitStreamProvider? pdbStreamProvider,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             EmitOptions emitOptions,
@@ -2927,7 +2951,7 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
-                        pdbOptionsBlobReader,
+                        rebuildData,
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
@@ -3009,7 +3033,7 @@ namespace Microsoft.CodeAnalysis
             Func<Stream?>? getPortablePdbStreamOpt,
             Cci.PdbWriter? nativePdbWriterOpt,
             string? pdbPathOpt,
-            BlobReader? pdbOptionsBlobReader,
+            RebuildData? rebuildData,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -3022,12 +3046,11 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
+                new EmitContext(moduleBeingBuilt, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput, rebuildData: rebuildData),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
                 nativePdbWriterOpt,
-                pdbOptionsBlobReader,
                 pdbPathOpt,
                 metadataOnly,
                 deterministicPrimaryOutput,
@@ -3045,12 +3068,11 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
+                    new EmitContext(moduleBeingBuilt, syntaxNode: null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
-                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
                     isDeterministic: true,
@@ -3073,7 +3095,8 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<TypeDefinitionHandle> updatedTypes,
             DiagnosticBag diagnostics,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             string? pdbFilePath,
@@ -3087,7 +3110,7 @@ namespace Microsoft.CodeAnalysis
 
             using (nativePdbWriter)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3106,10 +3129,11 @@ namespace Microsoft.CodeAnalysis
                         metadataStream,
                         ilStream,
                         (nativePdbWriter == null) ? pdbStream : null,
-                        pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
-                    writer.GetMethodTokens(updatedMethods);
+                    writer.GetUpdatedMethodTokens(updatedMethods);
+
+                    writer.GetUpdatedTypeTokens(updatedTypes);
 
                     nativePdbWriter?.WriteTo(pdbStream);
 

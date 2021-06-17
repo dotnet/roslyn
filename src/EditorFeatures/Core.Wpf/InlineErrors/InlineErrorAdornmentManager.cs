@@ -151,43 +151,40 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             foreach (var (lineNum, tagMappingSpanList) in map)
             {
                 var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
-                if (tagMappingSpan != null)
+                TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
+                var geometry = viewLines.GetMarkerGeometry(span);
+                if (geometry != null)
                 {
-                    TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
-                    var geometry = viewLines.GetMarkerGeometry(span);
-                    if (geometry != null)
+                    var tag = tagMappingSpan.Tag;
+                    var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
+                    var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
+                    if (!tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
                     {
-                        var tag = tagMappingSpan.Tag;
-                        var classificationType = _classificationRegistryService.GetClassificationType(InlineErrorTag.TagID + tag.ErrorType);
-                        var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-                        if (!tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
+                    var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
 
-                        var visualElement = graphicsResult.VisualElement;
-                        if (tag.Location is InlineErrorsLocations.HookedToCode)
-                        {
-                            Canvas.SetLeft(visualElement, lineView.Right);
-                        }
-                        else if (tag.Location is InlineErrorsLocations.HookedToWindow)
-                        {
-                            Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
-                        }
+                    var visualElement = graphicsResult.VisualElement;
+                    if (tag.Location is InlineErrorsLocations.HookedToCode)
+                    {
+                        Canvas.SetLeft(visualElement, lineView.Right);
+                    }
+                    else if (tag.Location is InlineErrorsLocations.HookedToWindow)
+                    {
+                        Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
+                    }
 
-                        Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
+                    Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
 
-                        if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
-                        {
-                            AdornmentLayer.AddAdornment(
-                                behavior: AdornmentPositioningBehavior.TextRelative,
-                                visualSpan: span,
-                                tag: tag,
-                                adornment: visualElement,
-                                removedCallback: delegate { graphicsResult.Dispose(); });
-                        }
+                    if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
+                    {
+                        AdornmentLayer.AddAdornment(
+                            behavior: AdornmentPositioningBehavior.TextRelative,
+                            visualSpan: span,
+                            tag: tag,
+                            adornment: visualElement,
+                            removedCallback: delegate { graphicsResult.Dispose(); });
                     }
                 }
             }
@@ -214,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineErrors
             return tagSpanToPointMap;
         }
 
-        private static IMappingTagSpan<InlineErrorTag>? GetHighestOrderTag(List<IMappingTagSpan<InlineErrorTag>> list)
+        private static IMappingTagSpan<InlineErrorTag> GetHighestOrderTag(List<IMappingTagSpan<InlineErrorTag>> list)
         {
             return list.Where(s => s.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError).FirstOrDefault() ?? list.First();
         }

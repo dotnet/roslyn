@@ -135,6 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
+        // C# does not have unknown visibility state
+        protected override LineVisibility GetUnknownStateVisibility(int index)
+            => throw ExceptionUtilities.Unreachable;
+
         internal override FileLinePositionSpan TranslateSpanAndVisibility(SourceText sourceText, string treeFilePath, TextSpan span, out bool isHiddenPosition)
         {
             var lines = sourceText.Lines;

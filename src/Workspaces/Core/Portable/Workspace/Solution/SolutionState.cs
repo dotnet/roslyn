@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // [Conditional("DEBUG")]
+        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+        [Conditional("DEBUG")]
         private void CheckInvariants()
         {
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);

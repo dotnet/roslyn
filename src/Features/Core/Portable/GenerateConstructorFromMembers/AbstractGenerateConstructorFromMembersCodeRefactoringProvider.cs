@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -182,7 +181,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken: cancellationToken) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return null;
             }
@@ -198,6 +197,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             // don't offer to generate anything.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
+            {
+                return null;
+            }
+
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
             {
                 return null;
             }

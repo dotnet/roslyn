@@ -177,12 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         document, selection, addOperationScope, cancellationToken);
 
                     var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
-                    if (!filteredSets.HasValue)
-                    {
-                        return null;
-                    }
-
-                    return filteredSets.Value.SelectAsArray((s, arg) => ConvertToSuggestedActionSet(s, arg.Owner, arg.SubjectBuffer), (state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
+                    return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
                 }
             }
 
@@ -259,13 +254,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
                 }
 
-                // Make sure we include the suppression fixes even when the light bulb is only asking for only code fixes.
-                // See https://github.com/dotnet/roslyn/issues/29589
-                const bool includeSuppressionFixes = true;
-
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    includeSuppressionFixes, isBlocking: true, addOperationScope, cancellationToken).WaitAndGetResult(cancellationToken);
+                    isBlocking: true, addOperationScope, cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
