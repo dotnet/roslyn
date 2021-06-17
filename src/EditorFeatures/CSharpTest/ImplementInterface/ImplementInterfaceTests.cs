@@ -9037,7 +9037,7 @@ interface ITest
 
 class C : ITest
 {
-    void ITest.M1()
+    static void ITest.M1()
     {
         throw new System.NotImplementedException();
     }
@@ -9068,6 +9068,115 @@ interface ITest
 abstract class C : ITest
 {
     public abstract static void M1();
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
+        }
+
+        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceOperator_OnlyExplicitlyImplementable()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract int operator -(ITest x);
+}
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract int operator -(ITest x);
+}
+class C : ITest
+{
+    static int ITest.operator -(ITest x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_all_members_explicitly);
+        }
+
+        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceOperator_ImplementImplicitly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+class C : [|ITest<C>|]
+{
+}
+",
+@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+class C : ITest<C>
+{
+    public static int operator -(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_interface);
+        }
+
+        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceOperator_ImplementExplicitly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+class C : [|ITest<C>|]
+{
+}
+",
+@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+class C : ITest<C>
+{
+    static int ITest<C>.operator -(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_all_members_explicitly);
+        }
+
+        [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceOperator_ImplementAbstractly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+abstract class C : [|ITest<C>|]
+{
+}
+",
+@"
+interface ITest<T> where T : ITest<T>
+{
+    static abstract int operator -(T x);
+}
+abstract class C : ITest<C>
+{
+    public abstract static int operator -(C x);
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
         }
