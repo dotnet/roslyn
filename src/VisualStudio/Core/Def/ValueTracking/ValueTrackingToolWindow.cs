@@ -4,8 +4,8 @@
 
 using System;
 using System.Linq;
-using System.Windows.Controls;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 

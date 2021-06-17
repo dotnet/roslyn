@@ -4,13 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.IO;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.Cci;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

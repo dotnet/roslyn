@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using Roslyn.Utilities;
 using System.Reflection.Metadata;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {

@@ -5,8 +5,8 @@
 #nullable disable
 
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LiveShare.LanguageServices;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Protocol
 {

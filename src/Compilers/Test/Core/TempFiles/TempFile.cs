@@ -6,13 +6,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using System.Text;
-using System.Diagnostics;
 using Roslyn.Utilities;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

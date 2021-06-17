@@ -6,11 +6,11 @@ Imports System.Globalization
 Imports System.IO
 Imports System.Text
 Imports System.Threading
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Public Class VisualBasicCompilation

@@ -8,8 +8,8 @@ Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Globalization
 Imports System.IO
-Imports System.Text
 Imports System.Runtime.InteropServices
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects

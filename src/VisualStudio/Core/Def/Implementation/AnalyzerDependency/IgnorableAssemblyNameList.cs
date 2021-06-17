@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation

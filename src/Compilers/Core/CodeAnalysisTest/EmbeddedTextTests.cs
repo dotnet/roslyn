@@ -7,13 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Text;
-using System.IO.Compression;
-using Roslyn.Test.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

@@ -8,8 +8,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.MetadataReferences
 {

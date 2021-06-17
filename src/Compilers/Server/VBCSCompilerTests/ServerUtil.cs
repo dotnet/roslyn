@@ -6,18 +6,17 @@
 
 extern alias csc;
 extern alias vbc;
-
-using Microsoft.CodeAnalysis.CommandLine;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 using Xunit;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

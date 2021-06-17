@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.SignatureHelp;

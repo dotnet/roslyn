@@ -6,11 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {

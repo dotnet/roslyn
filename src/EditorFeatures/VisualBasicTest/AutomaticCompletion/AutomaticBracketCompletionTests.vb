@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
+Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
-Imports Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticCompletion
     Public Class AutomaticBracketCompletionTests

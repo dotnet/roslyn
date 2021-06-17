@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser.Mocks
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
     Friend Module Helpers

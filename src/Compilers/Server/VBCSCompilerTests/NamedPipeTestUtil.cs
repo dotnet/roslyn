@@ -7,8 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipes;
-using System.Reflection;
 using System.Net.Sockets;
+using System.Reflection;
 using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
-using Roslyn.Utilities;
 using System.Globalization;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {

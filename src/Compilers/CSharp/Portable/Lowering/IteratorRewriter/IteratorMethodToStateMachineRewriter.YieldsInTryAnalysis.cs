@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

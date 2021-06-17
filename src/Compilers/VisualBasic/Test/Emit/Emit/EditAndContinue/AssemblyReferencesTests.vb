@@ -8,10 +8,10 @@ Imports System.IO
 Imports System.Linq
 Imports System.Reflection.Metadata
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.MetadataUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit

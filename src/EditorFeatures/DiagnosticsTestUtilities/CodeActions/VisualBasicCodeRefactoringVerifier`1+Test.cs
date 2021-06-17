@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Net;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 
 #if !CODE_STYLE
 using System;

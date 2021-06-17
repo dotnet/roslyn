@@ -4,8 +4,8 @@
 
 using System;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.Cci
 {

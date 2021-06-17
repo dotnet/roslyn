@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.Emit;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 {

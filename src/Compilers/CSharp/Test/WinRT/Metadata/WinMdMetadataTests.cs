@@ -9,20 +9,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-
+using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-
-
 using Xunit;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

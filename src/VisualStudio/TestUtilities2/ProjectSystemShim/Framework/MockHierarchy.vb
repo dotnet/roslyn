@@ -2,14 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.OLE.Interop
-Imports System.Runtime.InteropServices
-Imports Microsoft.VisualStudio.Shell
-Imports Roslyn.Utilities
 Imports System.IO
-Imports Moq
+Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem
+Imports Microsoft.VisualStudio.OLE.Interop
+Imports Microsoft.VisualStudio.Shell
+Imports Microsoft.VisualStudio.Shell.Interop
+Imports Moq
+Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Public NotInheritable Class MockHierarchy

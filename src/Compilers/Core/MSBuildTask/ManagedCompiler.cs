@@ -12,10 +12,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.Build.Tasks;
+using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

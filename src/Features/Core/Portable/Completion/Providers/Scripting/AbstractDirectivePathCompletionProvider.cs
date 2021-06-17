@@ -4,17 +4,17 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Scripting;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {

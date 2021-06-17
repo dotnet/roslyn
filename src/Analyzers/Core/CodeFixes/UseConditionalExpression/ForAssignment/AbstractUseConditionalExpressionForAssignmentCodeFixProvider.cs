@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +16,8 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
-using System.Diagnostics.CodeAnalysis;
+using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {

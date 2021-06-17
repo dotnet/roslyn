@@ -5,9 +5,9 @@
 #nullable disable
 
 using System;
-using System.Runtime.InteropServices;
-using System.Reflection;
 using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader
 {

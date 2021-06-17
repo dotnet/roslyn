@@ -7,13 +7,13 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Utilities
-Imports System.Runtime.InteropServices
 
 ' NOTE: VB does not support constant expressions in flow analysis during command-line compilation, but supports them when 
 '       analysis is being called via public API. This distinction is governed by 'suppressConstantExpressions' flag

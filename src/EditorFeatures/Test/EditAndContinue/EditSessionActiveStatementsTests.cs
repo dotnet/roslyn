@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
@@ -16,13 +18,11 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Xunit;
-using System.Text;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {

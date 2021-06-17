@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {

@@ -4,12 +4,12 @@
 
 #nullable disable
 
-using System.Composition;
-using Microsoft.CodeAnalysis.Interactive;
-using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using System;
+using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.InteractiveWindow.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {

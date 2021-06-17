@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols

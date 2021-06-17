@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 using static Roslyn.Test.Utilities.TestMetadata;
+using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {

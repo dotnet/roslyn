@@ -4,17 +4,17 @@
 
 #nullable disable
 
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.VisualStudio.Services.Interactive;
 using System;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.ComponentModel.Design;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.CodeAnalysis.Editor;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.VisualStudio.Services.Interactive;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive

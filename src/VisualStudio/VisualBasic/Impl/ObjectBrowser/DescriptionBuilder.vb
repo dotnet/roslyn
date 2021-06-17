@@ -4,8 +4,8 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
     Friend Class DescriptionBuilder

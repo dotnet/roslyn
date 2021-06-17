@@ -12,8 +12,8 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Emit.NoPia;
+using Roslyn.Utilities;
 
 #if !DEBUG
 using SymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbol;

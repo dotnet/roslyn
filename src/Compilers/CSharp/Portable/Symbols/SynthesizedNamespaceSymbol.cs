@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
-using Roslyn.Utilities;
-using System.Diagnostics;
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

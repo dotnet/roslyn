@@ -6,8 +6,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets.SnippetFunctions
+Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
     Friend NotInheritable Class SnippetFunctionSimpleTypeName

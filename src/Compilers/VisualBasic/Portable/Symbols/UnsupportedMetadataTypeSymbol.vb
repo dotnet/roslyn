@@ -4,10 +4,10 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.ObjectModel
+Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 

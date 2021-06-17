@@ -7,14 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using System.Reflection;
-using System.Diagnostics;
 using SystemMetadataReader = System.Reflection.Metadata.MetadataReader;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation

@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Text
+Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports System.Xml.Linq
-Imports System.Text
-Imports System.IO
-Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class DocCommentTests

@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
-using System;
 using Xunit;
 using Xunit.Abstractions;
 

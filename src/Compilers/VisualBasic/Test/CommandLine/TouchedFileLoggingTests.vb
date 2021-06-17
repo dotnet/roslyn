@@ -7,8 +7,8 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests

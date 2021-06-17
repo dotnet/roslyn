@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
+Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
     Friend NotInheritable Class SnippetFunctionClassName

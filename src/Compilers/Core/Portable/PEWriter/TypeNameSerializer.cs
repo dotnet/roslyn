@@ -4,12 +4,12 @@
 
 #nullable disable
 
+using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Text;
-using System.Diagnostics;
 
 namespace Microsoft.Cci
 {
