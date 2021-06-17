@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return childrenBuilder.ToImmutableAndFree();
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableHashSet<string> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static SingleNamespaceOrTypeDeclaration CreateImplicitClass(ImmutableSegmentedDictionary<string, VoidResult> memberNames, SyntaxReference container, SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.ImplicitClass,
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None),
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
-                memberNames: ImmutableHashSet<string>.Empty,
+                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SingleNamespaceOrTypeDeclaration CreateScriptClass(
             CompilationUnitSyntax parent,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableHashSet<string> memberNames,
+            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
@@ -510,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
-                memberNames: ImmutableHashSet<string>.Empty,
+                memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
             }
 
-            ImmutableHashSet<string> memberNames = GetEnumMemberNames(members, ref declFlags);
+            ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
@@ -546,10 +547,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
-        private static readonly ObjectPool<ImmutableHashSet<string>.Builder> s_memberNameBuilderPool =
-            new ObjectPool<ImmutableHashSet<string>.Builder>(() => ImmutableHashSet.CreateBuilder<string>());
+        private static readonly ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder> s_memberNameBuilderPool =
+            new ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder>(() => ImmutableSegmentedDictionary.CreateBuilder<string, VoidResult>());
 
-        private static ImmutableHashSet<string> ToImmutableAndFree(ImmutableHashSet<string>.Builder builder)
+        private static ImmutableSegmentedDictionary<string, VoidResult> ToImmutableAndFree(ImmutableSegmentedDictionary<string, VoidResult>.Builder builder)
         {
             var result = builder.ToImmutable();
             builder.Clear();
@@ -557,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static ImmutableHashSet<string> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
+        private static ImmutableSegmentedDictionary<string, VoidResult> GetEnumMemberNames(SeparatedSyntaxList<EnumMemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
             var cnt = members.Count;
 
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
             {
-                memberNamesBuilder.Add(member.Identifier.ValueText);
+                memberNamesBuilder.TryAdd(member.Identifier.ValueText);
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
                 {
                     anyMemberHasAttributes = true;
@@ -585,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToImmutableAndFree(memberNamesBuilder);
         }
 
-        private static ImmutableHashSet<string> GetNonTypeMemberNames(
+        private static ImmutableSegmentedDictionary<string, VoidResult> GetNonTypeMemberNames(
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> members, ref SingleTypeDeclaration.TypeDeclarationFlags declFlags, bool skipGlobalStatements = false)
         {
             bool anyMethodHadExtensionSyntax = false;
@@ -707,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddNonTypeMemberNames(
-            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableHashSet<string>.Builder set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
+            Syntax.InternalSyntax.CSharpSyntaxNode member, ImmutableSegmentedDictionary<string, VoidResult>.Builder set, ref bool anyNonTypeMembers, bool skipGlobalStatements)
         {
             switch (member.Kind)
             {
@@ -718,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
                     {
-                        set.Add(fieldDeclarators[i].Identifier.ValueText);
+                        set.TryAdd(fieldDeclarators[i].Identifier.ValueText);
                     }
                     break;
 
@@ -729,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)
                     {
-                        set.Add(eventDeclarators[i].Identifier.ValueText);
+                        set.TryAdd(eventDeclarators[i].Identifier.ValueText);
                     }
                     break;
 
@@ -742,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
                     if (methodDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.Add(methodDecl.Identifier.ValueText);
+                        set.TryAdd(methodDecl.Identifier.ValueText);
                     }
                     break;
 
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var propertyDecl = (Syntax.InternalSyntax.PropertyDeclarationSyntax)member;
                     if (propertyDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.Add(propertyDecl.Identifier.ValueText);
+                        set.TryAdd(propertyDecl.Identifier.ValueText);
                     }
                     break;
 
@@ -762,25 +763,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var eventDecl = (Syntax.InternalSyntax.EventDeclarationSyntax)member;
                     if (eventDecl.ExplicitInterfaceSpecifier == null)
                     {
-                        set.Add(eventDecl.Identifier.ValueText);
+                        set.TryAdd(eventDecl.Identifier.ValueText);
                     }
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
                     anyNonTypeMembers = true;
-                    set.Add(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
+                    set.TryAdd(((Syntax.InternalSyntax.ConstructorDeclarationSyntax)member).Modifiers.Any((int)SyntaxKind.StaticKeyword)
                         ? WellKnownMemberNames.StaticConstructorName
                         : WellKnownMemberNames.InstanceConstructorName);
                     break;
 
                 case SyntaxKind.DestructorDeclaration:
                     anyNonTypeMembers = true;
-                    set.Add(WellKnownMemberNames.DestructorName);
+                    set.TryAdd(WellKnownMemberNames.DestructorName);
                     break;
 
                 case SyntaxKind.IndexerDeclaration:
                     anyNonTypeMembers = true;
-                    set.Add(WellKnownMemberNames.Indexer);
+                    set.TryAdd(WellKnownMemberNames.Indexer);
                     break;
 
                 case SyntaxKind.OperatorDeclaration:
@@ -793,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (opDecl.ExplicitInterfaceSpecifier == null)
                         {
                             var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                            set.Add(name);
+                            set.TryAdd(name);
                         }
                     }
                     break;
@@ -808,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (opDecl.ExplicitInterfaceSpecifier == null)
                         {
                             var name = OperatorFacts.OperatorNameFromDeclaration(opDecl);
-                            set.Add(name);
+                            set.TryAdd(name);
                         }
                     }
                     break;
