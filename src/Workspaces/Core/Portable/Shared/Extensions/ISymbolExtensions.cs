@@ -441,6 +441,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         public T Clone();
                     }
                 */
+                // Note: there is no way to cref an instantiated generic type. See https://github.com/dotnet/csharplang/issues/401
                 var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
                 foreach (var typeParameterRef in typeParameterRefs)
                 {
