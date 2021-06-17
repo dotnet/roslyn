@@ -177,7 +177,11 @@ arrow_expression_clause
   ;
 
 conversion_operator_declaration
-  : attribute_list* modifier* ('implicit' | 'explicit') 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* ('implicit' | 'explicit') explicit_interface_specifier? 'operator' type parameter_list (block | (arrow_expression_clause ';'))
+  ;
+
+explicit_interface_specifier
+  : name '.'
   ;
 
 destructor_declaration
@@ -186,10 +190,6 @@ destructor_declaration
 
 method_declaration
   : attribute_list* modifier* type explicit_interface_specifier? identifier_token type_parameter_list? parameter_list type_parameter_constraint_clause* (block | (arrow_expression_clause ';'))
-  ;
-
-explicit_interface_specifier
-  : name '.'
   ;
 
 type_parameter_list
@@ -229,7 +229,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_property_declaration
@@ -601,7 +601,16 @@ positional_pattern_clause
   ;
 
 subpattern
-  : name_colon? pattern
+  : base_expression_colon? pattern
+  ;
+
+base_expression_colon
+  : expression_colon
+  | name_colon
+  ;
+
+expression_colon
+  : expression ':'
   ;
 
 property_pattern_clause

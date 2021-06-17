@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28503.202
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31319.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynDeployment", "src\Deployment\RoslynDeployment.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -486,8 +486,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{B7D29559-4360-434A-B9B9-2C0612287999}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "src\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{21B49277-E55A-45EF-8818-744BCD6CB732}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch", "src\Tools\ExternalAccess\DotNetWatch\Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch.csproj", "{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests", "src\Tools\ExternalAccess\RazorTest\Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests.csproj", "{BB987FFC-B758-4F73-96A3-923DE8DCFF1A}"
 EndProject
@@ -1276,10 +1274,6 @@ Global
 		{21B49277-E55A-45EF-8818-744BCD6CB732}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21B49277-E55A-45EF-8818-744BCD6CB732}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21B49277-E55A-45EF-8818-744BCD6CB732}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BB987FFC-B758-4F73-96A3-923DE8DCFF1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BB987FFC-B758-4F73-96A3-923DE8DCFF1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB987FFC-B758-4F73-96A3-923DE8DCFF1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1518,7 +1512,6 @@ Global
 		{0C2E1633-1462-4712-88F4-A0C945BAD3A8} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{B7D29559-4360-434A-B9B9-2C0612287999} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{21B49277-E55A-45EF-8818-744BCD6CB732} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{9DF89AA1-142B-4D83-A9E7-F57BD1DDA333} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{BB987FFC-B758-4F73-96A3-923DE8DCFF1A} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{1B73FB08-9A17-497E-97C5-FA312867D51B} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{AE976DE9-811D-4C86-AEBB-DCDC1226D754} = {8977A560-45C2-4EC2-A849-97335B382C74}

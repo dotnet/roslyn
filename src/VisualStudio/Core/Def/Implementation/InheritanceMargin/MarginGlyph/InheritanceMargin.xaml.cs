@@ -33,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             IUIThreadOperationExecutor operationExecutor,
-            InheritanceMarginTag tag)
+            InheritanceMarginTag tag,
+            double scaleFactor)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             InitializeComponent();
 
-            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag);
+            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, scaleFactor);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
@@ -109,13 +110,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.
-                // 1. [margin] -> Target1
+                // 1. [margin] -> Header
+                //                Target1
                 //                Target2
                 //                Target3
                 //
-                // 2. [margin] -> method Bar -> Target1
+                // 2. [margin] -> method Bar -> Header
+                //                           -> Target1
                 //                           -> Target2
-                //             -> method Foo -> Target3
+                //             -> method Foo -> Header
+                //                           -> Target3
                 //                           -> Target4
                 // If the first level of the context menu contains a TargetMenuItemViewModel, it means here it is case 1,
                 // user is viewing the targets menu.

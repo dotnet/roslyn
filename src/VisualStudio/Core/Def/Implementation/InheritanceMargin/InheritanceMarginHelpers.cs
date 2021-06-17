@@ -16,100 +16,78 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal static class InheritanceMarginHelpers
     {
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Up_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.ImplementedInterface)
+            .Add(InheritanceRelationship.InheritedInterface)
+            .Add(InheritanceRelationship.ImplementedMember);
+
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_I_Down_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.ImplementingType)
+            .Add(InheritanceRelationship.ImplementingMember);
+
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Up_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.BaseType)
+            .Add(InheritanceRelationship.OverriddenMember);
+
+        private static readonly ImmutableArray<InheritanceRelationship> s_relationships_Shown_As_O_Down_Arrow
+            = ImmutableArray<InheritanceRelationship>.Empty
+            .Add(InheritanceRelationship.DerivedType)
+            .Add(InheritanceRelationship.OverridingMember);
+
         /// <summary>
         /// Decide which moniker should be shown.
         /// </summary>
         public static ImageMoniker GetMoniker(InheritanceRelationship inheritanceRelationship)
         {
             //  If there are multiple targets and we have the corresponding compound image, use it
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
-            {
-                return KnownMonikers.ImplementingOverriding;
-            }
-
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
+                && s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
                 return KnownMonikers.ImplementingOverridden;
             }
 
-            // Otherwise, show the image based on this preference
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implemented))
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag))
+                && s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
-                return KnownMonikers.Implemented;
+                return KnownMonikers.ImplementingOverriding;
             }
 
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implementing))
+            // Otherwise, show the image based on this preference
+            if (s_relationships_Shown_As_I_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
                 return KnownMonikers.Implementing;
             }
 
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overridden))
+            if (s_relationships_Shown_As_I_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
-                return KnownMonikers.Overridden;
+                return KnownMonikers.Implemented;
             }
 
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overriding))
+            if (s_relationships_Shown_As_O_Up_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
             {
                 return KnownMonikers.Overriding;
+            }
+
+            if (s_relationships_Shown_As_O_Down_Arrow.Any(flag => inheritanceRelationship.HasFlag(flag)))
+            {
+                return KnownMonikers.Overridden;
             }
 
             // The relationship is None. Don't know what image should be shown, throws
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        /// <summary>
-        /// Create the view models for the inheritance targets of a single member.
-        /// There are two cases:
-        /// 1. If all the targets have the same inheritance relationship. It would be an array of TargetViewModel
-        /// e.g.
-        /// Target1ViewModel
-        /// Target2ViewModel
-        /// Target3ViewModel
-        ///
-        /// 2. If targets belongs to different inheritance group. It would be grouped.
-        /// e.g.
-        /// Header1ViewModel
-        /// Target1ViewModel
-        /// Target2ViewModel
-        /// Header2ViewModel
-        /// Target1ViewModel
-        /// Target2ViewModel
-        /// </summary>
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
-        {
-            var targetsByRelationship = targets.OrderBy(target => target.DisplayName).GroupBy(target => target.RelationToMember)
-                .ToImmutableDictionary(
-                    keySelector: grouping => grouping.Key,
-                    elementSelector: grouping => grouping);
-            if (targetsByRelationship.Count == 1)
-            {
-                // If all targets have one relationship.
-                // e.g. interface IBar { void Bar(); }
-                // class A : IBar { void Bar() {} }
-                // class B : IBar { void Bar() {} }
-                // for 'IBar', the margin would be I↓. So header is not needed.
-                var (_, targetItems) = targetsByRelationship.Single();
-                return targetItems.SelectAsArray(target => TargetMenuItemViewModel.Create(target, indent: false)).CastArray<InheritanceMenuItemViewModel>();
-            }
-            else
-            {
-                // Otherwise, it means these targets has different relationship,
-                // these targets would be shown in group, and a header should be shown as the first item to indicate the relationship to user.
-                return targetsByRelationship.SelectMany(kvp => CreateMenuItemsWithHeader(kvp.Key, kvp.Value)).ToImmutableArray();
-            }
-        }
+            => targets.OrderBy(target => target.DisplayName)
+                .GroupBy(target => target.RelationToMember)
+                .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping))
+                .ToImmutableArray();
 
         /// <summary>
         /// Create the view models for the inheritance targets of multiple members
-        /// There are two cases:
-        /// 1. If all the targets have the same inheritance relationship. It would have this structure:
-        /// e.g.
-        /// MemberViewModel1 -> Target1ViewModel
-        ///                     Target2ViewModel
-        /// MemberViewModel2 -> Target4ViewModel
-        ///                     Target5ViewModel
-        ///
-        /// 2. If targets belongs to different inheritance group. It would be grouped.
         /// e.g.
         /// MemberViewModel1 -> HeaderViewModel
         ///                     Target1ViewModel
@@ -126,17 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For multiple members, check if all the targets have the same inheritance relationship.
             // If so, then don't add the header, because it is already indicated by the margin.
             // Otherwise, add the Header.
-            var set = members
-                .SelectMany(member => member.TargetItems.Select(item => item.RelationToMember))
-                .ToImmutableHashSet();
-            if (set.Count == 1)
-            {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithNoHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
-            }
-            else
-            {
-                return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
-            }
+            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
         }
 
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemsWithHeader(
@@ -146,10 +114,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
             {
-                InheritanceRelationship.Implemented => ServicesVSResources.Implemented_members,
-                InheritanceRelationship.Implementing => ServicesVSResources.Implementing_members,
-                InheritanceRelationship.Overriding => ServicesVSResources.Overriding_members,
-                InheritanceRelationship.Overridden => ServicesVSResources.Overridden_members,
+                InheritanceRelationship.ImplementedInterface => ServicesVSResources.Implemented_interfaces,
+                InheritanceRelationship.BaseType => ServicesVSResources.Base_Types,
+                InheritanceRelationship.DerivedType => ServicesVSResources.Derived_types,
+                InheritanceRelationship.InheritedInterface => ServicesVSResources.Inherited_interfaces,
+                InheritanceRelationship.ImplementingType => ServicesVSResources.Implementing_types,
+                InheritanceRelationship.ImplementedMember => ServicesVSResources.Implemented_members,
+                InheritanceRelationship.OverriddenMember => ServicesVSResources.Overridden_members,
+                InheritanceRelationship.OverridingMember => ServicesVSResources.Overriding_members,
+                InheritanceRelationship.ImplementingMember => ServicesVSResources.Implementing_members,
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 
@@ -157,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             builder.Add(headerViewModel);
             foreach (var targetItem in targets)
             {
-                builder.Add(TargetMenuItemViewModel.Create(targetItem, indent: true));
+                builder.Add(TargetMenuItemViewModel.Create(targetItem));
             }
 
             return builder.ToImmutable();

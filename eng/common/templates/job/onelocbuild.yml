@@ -60,10 +60,7 @@ jobs:
         isCreatePrSelected: ${{ parameters.CreatePr }}
         ${{ if eq(parameters.CreatePr, true) }}:
           isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
-<<<<<<< HEAD
           isUseLfLineEndingsSelected: ${{ parameters.UseLfLineEndings }}
-=======
->>>>>>> upstream/release/dev16.11
         packageSourceAuth: patAuth
         patVariable: ${{ parameters.CeapexPat }}
         ${{ if eq(parameters.RepoType, 'gitHub') }}:

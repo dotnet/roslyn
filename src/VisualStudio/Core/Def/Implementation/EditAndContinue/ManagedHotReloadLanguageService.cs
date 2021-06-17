@@ -46,15 +46,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 => Task.CompletedTask;
         }
 
-        private static readonly SolutionActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
-            (_, _) => ValueTaskFactory.FromResult(ImmutableArray<TextSpan>.Empty);
+        private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
+            (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
         private readonly RemoteEditAndContinueServiceProxy _proxy;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly DebuggerService _debuggerService;
 
-        private IDisposable? _debuggingSessionConnection;
+        private RemoteDebuggingSessionProxy? _debuggingSession;
+        private bool _disabled;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -70,24 +71,44 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
 
+        private RemoteDebuggingSessionProxy GetDebuggingSession()
+        {
+            var debuggingSession = _debuggingSession;
+            Contract.ThrowIfNull(debuggingSession);
+            return debuggingSession;
+        }
+
         public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                _debuggingSessionConnection = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
             }
+
+            // the service failed, error has been reported - disable further operations
+            _disabled = _debuggingSession == null;
         }
 
         public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            }
+
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                var (moduleUpdates, diagnosticData, rudeEdits) = await _proxy.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
                 var updates = moduleUpdates.Updates.SelectAsArray(
                     update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
@@ -114,38 +135,52 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
         public async ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
-                await _proxy.CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                _disabled = true;
             }
         }
 
         public async ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
-                await _proxy.DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
+                _disabled = true;
             }
         }
 
         public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
-                await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
-
-                Contract.ThrowIfNull(_debuggingSessionConnection);
-                _debuggingSessionConnection.Dispose();
-                _debuggingSessionConnection = null;
+                await GetDebuggingSession().EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
+                _disabled = true;
             }
         }
     }
