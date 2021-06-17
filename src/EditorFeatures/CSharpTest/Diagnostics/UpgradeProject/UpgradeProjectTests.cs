@@ -1030,5 +1030,24 @@ public record Base
                 expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
+
+        [Fact]
+        public async Task UpgradeProjectForImplicitImplementationOfNonPublicMemebers_CS8704()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+public interface I1
+{
+    protected void M01();
+}
+
+class C1 : [|I1|]
+{
+    public void M01() {}
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp9));
+        }
     }
 }
