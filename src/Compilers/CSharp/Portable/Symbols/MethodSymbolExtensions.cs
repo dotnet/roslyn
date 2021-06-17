@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable enable
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
@@ -157,25 +156,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
+        /// Returns whether this method is async and returns a task.
         /// </summary>
-        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
+        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType is NamedTypeSymbol { Arity: 0 }
-                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
+                && method.ReturnType.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
+        /// Returns whether this method is async and returns a generic task.
         /// </summary>
-        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
+        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType is NamedTypeSymbol { Arity: 1 }
-                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
+                && method.ReturnType.IsGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -196,11 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.IsIAsyncEnumeratorType(compilation);
         }
 
+#nullable enable
         /// <summary>
         /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns the "B".
         /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
         /// </summary>
-        internal static bool HasMethodLevelBuilder(this MethodSymbol method, [NotNullWhen(true)] out object? builderOverride)
+        internal static bool HasMethodLevelBuilder(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
         {
             Debug.Assert(method is not null);
 
@@ -211,12 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     && attr.CommonConstructorArguments.Length == 1
                     && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
                 {
-                    builderOverride = attr.CommonConstructorArguments[0].ValueInternal!;
+                    builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
                     return true;
                 }
             }
 
-            builderOverride = null;
+            builderArgument = null;
             return false;
         }
 #nullable disable

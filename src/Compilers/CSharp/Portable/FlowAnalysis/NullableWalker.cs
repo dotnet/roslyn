@@ -2542,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (method.IsAsyncEffectivelyReturningGenericTask(compilation, builderOverride: out _))
+            if (returnType.Type.IsGenericTaskType(compilation))
             {
                 type = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
                 annotations = FlowAnalysisAnnotations.None;

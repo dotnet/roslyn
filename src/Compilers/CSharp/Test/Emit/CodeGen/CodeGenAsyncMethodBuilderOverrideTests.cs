@@ -156,10 +156,10 @@ class C
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
             verifier.VerifyIL("C.F()", @"
 {
   // Code size       45 (0x2d)
@@ -241,7 +241,20 @@ class C
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
+            compilation.VerifyEmitDiagnostics(
+                // (11,25): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F").WithLocation(11, 25),
+                // (11,25): error CS0161: 'C.F()': not all code paths return a value
+                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F()").WithLocation(11, 25),
+                // (14,28): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "G").WithLocation(14, 28),
+                // (17,37): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     public static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(17, 37)
+                );
         }
 
         [Fact]
@@ -284,14 +297,18 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
+            // Async methods must return task-like types
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                // (14,16): warning CS8603: Possible null reference return.
-                //         return default(T); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(14, 16),
-                // (20,16): warning CS8603: Possible null reference return.
-                //         return await G((string?)null); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "await G((string?)null)").WithLocation(20, 16),
+                // (11,28): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask<T> G<T>(T t)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "G").WithLocation(11, 28),
+                // (18,40): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     public static async MyTask<string> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(18, 40),
+                // (24,41): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     public static async MyTask<string?> M2() { return await G((string?)null); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M2").WithLocation(24, 41),
                 // (44,16): warning CS8618: Non-nullable field '_result' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     internal T _result;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "_result").WithArguments("field", "_result").WithLocation(44, 16)
@@ -337,21 +354,24 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
-                // (9,51): error CS1997: Since 'C.F()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                // (9,25): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask F() { await Task.Yield(); return 1; } // 1
-                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F()").WithLocation(9, 51),
-                // (12,60): error CS0126: An object of a type convertible to 'T' is required
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "F").WithLocation(9, 25),
+                // (12,28): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask<T> G<T>(T t) { await Task.Yield(); return; } // 2
-                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("T").WithLocation(12, 60),
-                // (15,63): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "G").WithLocation(12, 28),
+                // (12,60): error CS0126: An object of a type convertible to 'MyTask<T>' is required
+                //     static async MyTask<T> G<T>(T t) { await Task.Yield(); return; } // 2
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("MyTask<T>").WithLocation(12, 60),
+                // (15,30): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask<int> M() { await Task.Yield(); return null; } // 3
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(15, 63),
-                // (18,78): error CS4016: Since this is an async method, the return expression must be of type 'int' rather than 'Task<int>'
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(15, 30),
+                // (18,30): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask<int> M2(MyTask<int> mt) { await Task.Yield(); return mt; } // 4
-                Diagnostic(ErrorCode.ERR_BadAsyncReturnExpression, "mt").WithArguments("int").WithLocation(18, 78),
-                // (21,39): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M2").WithLocation(18, 30),
+                // (21,25): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
                 //     static async MyTask M2(bool b) => b ? await Task.Yield() : await Task.Yield(); // 5
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "b ? await Task.Yield() : await Task.Yield()").WithLocation(21, 39)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M2").WithLocation(21, 25)
                 );
         }
 
@@ -576,10 +596,10 @@ class C
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncReturningTask(compilation));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncReturningGenericTask(compilation));
 
             // The initial builder type is used for Create() invocation
             verifier.VerifyIL("C.F()", @"
@@ -894,9 +914,65 @@ return;
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
+            // Async methods must return task-like types
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
-            verifier.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics(
+                // (6,91): error CS1643: Not all code paths return a value in lambda expression of type 'Func<MyTask>'
+                // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<MyTask>").WithLocation(6, 91),
+                // (8,91): error CS4010: Cannot convert async lambda expression to delegate type 'Func<MyTask<int>>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<MyTask<int>>'.
+                // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] async () => { System.Console.Write("M "); await f(); return 3; };
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<MyTask<int>>").WithLocation(8, 91)
+                );
+        }
+
+        [Fact]
+        public void BuilderFactoryOnMethod_OnLambda_NotTaskLikeTypes_InferReturnType()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+C.F(
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => {{ System.Console.Write(""Lambda1 ""); await Task.Delay(0); }}
+);
+
+C.F(
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] static async () => {{ System.Console.Write(""Lambda2 ""); await Task.Delay(0); return 3; }}
+);
+
+await Task.Delay(0);
+return;
+
+public class C
+{{
+    public static void F(Func<MyTask> f) {{ System.Console.Write(""Overload1 ""); f().GetAwaiter().GetResult(); }}
+    public static void F<T>(Func<MyTask<T>> f) {{ System.Console.Write(""Overload2 ""); f().GetAwaiter().GetResult(); }}
+    public static void F(Func<MyTask<string>> f) {{ System.Console.Write(""Overload3 ""); f().GetAwaiter().GetResult(); }}
+}}
+
+// no attribute
+{AwaitableTypeCode("MyTask", isStruct: true)}
+
+// no attribute
+{AwaitableTypeCode("MyTask", "T", isStruct: true)}
+
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", isStruct: true)}
+{AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
+{AsyncMethodBuilderAttribute}
+";
+            // Even if we allowed async lambdas to return non-task-like types, there would be an issue to be worked out
+            // with type inference
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyEmitDiagnostics(
+                // (7,78): error CS1643: Not all code paths return a value in lambda expression of type 'Func<MyTask>'
+                //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory))] static async () => { System.Console.Write("Lambda1 "); await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<MyTask>").WithLocation(7, 78),
+                // (11,80): error CS4010: Cannot convert async lambda expression to delegate type 'Func<MyTask>'. An async lambda expression may return void, Task or Task<T>, none of which are convertible to 'Func<MyTask>'.
+                //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))] static async () => { System.Console.Write("Lambda2 "); await Task.Delay(0); return 3; }
+                Diagnostic(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, "=>").WithArguments("lambda expression", "System.Func<MyTask>").WithLocation(11, 80)
+                );
         }
 
         [Fact]
