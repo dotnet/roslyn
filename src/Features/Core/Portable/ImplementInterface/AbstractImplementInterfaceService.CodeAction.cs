@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
-                var generateAbstractly = !generateInvisibleMember && Abstractly;
+                var generateAbstractly = !member.IsStatic && !generateInvisibleMember && Abstractly;
 
                 // Check if we need to add 'new' to the signature we're adding.  We only need to do this
                 // if we're not generating something explicit and we have a naming conflict with

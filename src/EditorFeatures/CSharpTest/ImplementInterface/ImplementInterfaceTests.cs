@@ -9067,7 +9067,10 @@ interface ITest
 
 abstract class C : ITest
 {
-    public abstract static void M1();
+    public static void M1()
+    {
+        throw new System.NotImplementedException();
+    }
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
         }
@@ -9176,8 +9179,10 @@ interface ITest<T> where T : ITest<T>
 }
 abstract class C : ITest<C>
 {
-    // TODO: Should generate the following? or just do nothing?
-    public static int operator -(C x);
+    public static int operator -(C x)
+    {
+        throw new System.NotImplementedException();
+    }
 }
 ", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
         }
@@ -9314,7 +9319,6 @@ interface ITest<T> where T : ITest<T>
 }
 abstract class C : ITest<C>
 {
-    // TODO: Should generate the following? or just do nothing?
     public static int M(C x)
     {
         throw new System.NotImplementedException();
