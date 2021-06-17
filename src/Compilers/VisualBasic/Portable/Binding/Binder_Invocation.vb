@@ -2907,7 +2907,6 @@ ProduceBoundNode:
 
                 If propertyAccess IsNot Nothing AndAlso propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso
                    propertyAccess.PropertySymbol.SetMethod?.IsInitOnly Then
-
                     Debug.Assert(Not propertyAccess.IsWriteable) ' Used to be writable prior to VB 16.9, which caused a use-site error while binding an assignment above.
                     InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
                                                                    argument.Syntax.Location,
@@ -3166,21 +3165,22 @@ ProduceBoundNode:
                         Else
                             Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse reducedExtensionReceiverOpt IsNot Nothing)
 
-                            Dim argumentSyntax As SyntaxNode
+                            Dim argumentSyntax As SyntaxNode = Nothing
                             If callerArgumentExpressionParameterIndex = -1 Then
                                 argumentSyntax = reducedExtensionReceiverOpt.Syntax
                             Else
                                 Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
-
-                                ' PROTOTYPE(caller-expr): It's unlikely this assumption is correct. Keep for now until a test hits it.
-                                Debug.Assert(argumentIndex > -1 AndAlso argumentIndex < arguments.Length)
-                                argumentSyntax = arguments(argumentIndex).Syntax
+                                Debug.Assert(argumentIndex < arguments.Length)
+                                If argumentIndex > -1 Then
+                                    argumentSyntax = arguments(argumentIndex).Syntax
+                                End If
                             End If
 
-                            ' PROTOTYPE(caller-expr): ToStringWithoutTrivia
                             ' PROTOTYPE(caller-expr): Check feature availability
                             ' PROTOTYPE(caller-expr): Tests
-                            callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
+                            If argumentSyntax IsNot Nothing Then
+                                callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
+                            End If
                         End If
 
                         If callerInfoValue IsNot Nothing Then
