@@ -1719,7 +1719,6 @@ I agree to all of the foregoing:</value>
   <data name="Error_updating_suppressions_0" xml:space="preserve">
     <value>Error updating suppressions: {0}</value>
   </data>
-<<<<<<< HEAD
   <data name="Inline_Diagnostics_experimental" xml:space="preserve">
     <value>Inline Diagnostics (experimental)</value>
   </data>
@@ -1731,7 +1730,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Hook_to_end_of_window" xml:space="preserve">
     <value>Hook to end of window</value>
-=======
+  </data>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
   </data>
@@ -1759,6 +1758,5 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Overridden_members" xml:space="preserve">
     <value>Overridden members</value>
->>>>>>> adornment_manager_rework
   </data>
 </root>
