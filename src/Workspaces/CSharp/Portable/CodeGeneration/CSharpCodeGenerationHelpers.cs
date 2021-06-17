@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return destination.Kind() switch
                 {
-                    SyntaxKind.ClassDeclaration => CodeGenerationDestination.ClassType,
                     SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
                     SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
                     SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
