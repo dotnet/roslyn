@@ -195,6 +195,17 @@
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
     <NerdbankStreamsVersion>2.6.81</NerdbankStreamsVersion>
+    <!--
+      The package "Microsoft.CodeAnalysis.Analyzer.Testing" brings in an earlier version of these NuGet dependencies than
+      is expected by the NET SDK used in the Workspace.MSBuild UnitTests. In order to test against the same verion of NuGet
+      as our configured SDK, we must set the version to be the same.
+     -->
+    <NuGetCommonVersion>5.10.0</NuGetCommonVersion>
+    <NuGetConfigurationVersion>5.10.0</NuGetConfigurationVersion>
+    <NuGetFrameworkVersion>5.10.0</NuGetFrameworkVersion>
+    <NuGetPackagingVersion>5.10.0</NuGetPackagingVersion>
+    <NuGetProtocolVersion>5.10.0</NuGetProtocolVersion>
+    <NuGetVersioningVersion>5.10.0</NuGetVersioningVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
