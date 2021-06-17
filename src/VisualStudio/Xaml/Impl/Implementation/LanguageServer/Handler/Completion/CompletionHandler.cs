@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 // Retriger completion after commit
                 item.Command = s_retriggerCompletionCommand;
             }
- 
+
             return item;
         }
 
