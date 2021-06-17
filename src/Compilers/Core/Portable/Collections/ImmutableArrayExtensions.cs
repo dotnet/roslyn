@@ -238,6 +238,33 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            if (source.Length == 0)
+            {
+                return new ValueTask<ImmutableArray<TResult>>(ImmutableArray<TResult>.Empty);
+            }
+
+            if (source.Length == 1)
+            {
+                return selector(source[0], arg, cancellationToken);
+            }
+
+            return CreateTask();
+
+            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            {
+                var builder = ArrayBuilder<TResult>.GetInstance();
+
+                foreach (var item in source)
+                {
+                    builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
         /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>

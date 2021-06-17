@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 13000, // PROTOTYPE(interp-string): condense
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
+        IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -343,6 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGlobalUsing:
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                 case MessageID.IDS_FeatureLambdaAttributes: // semantic check
+                case MessageID.IDS_FeatureExtendedPropertyPatterns:
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.

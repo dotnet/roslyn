@@ -161,8 +161,7 @@ End Enum
 <span>Delegate Function D2</span> As C(Of T)
 <span>Delegate Sub D2</span> As C(Of T)
 
-<<span>Attrib</span>>
-<span><Attrib></span>
+<Attrib>
 <span>Public MustInherit Class Z</span>
     <span>Dim f0 As Integer</span>
     <span>Dim WithEvents EClass As New EventClass</span>

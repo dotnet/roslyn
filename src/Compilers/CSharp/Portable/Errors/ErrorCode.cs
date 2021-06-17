@@ -1837,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1938,6 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GlobalUsingOutOfOrder = 8915,
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
 
         ERR_InterpolatedStringHandlerMethodReturnMalformed = 9001,
         ERR_InterpolatedStringHandlerMethodReturnInconsistent = 9002,

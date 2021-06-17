@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 {
@@ -43,11 +44,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var workspace = document.Project.Solution.Workspace;
 
             var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
-            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             // Ensure we're back on the UI thread before either navigating or showing a failure message.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
+        }
 
+        protected void NavigateToPosition(Workspace workspace, DocumentId? documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+        {
+            this.AssertIsForeground();
+            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
             {
                 navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
@@ -77,30 +83,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 // Otherwise, the item pointed to a location in another document.  Just return the position we
                 // computed and stored for it.
                 Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
-                var otherLocation = symbolItem.Location.OtherDocumentInfo.Value;
-                return Task.FromResult((otherLocation.documentId, otherLocation.navigationSpan.Start, 0));
+                var (documentId, navigationSpan) = symbolItem.Location.OtherDocumentInfo.Value;
+                return Task.FromResult((documentId, navigationSpan.Start, 0));
             }
         }
 
-        protected void NavigateToVirtualTreePoint(Solution solution, VirtualTreePoint navigationPoint, CancellationToken cancellationToken)
+        public bool ShowItemGrayedIfNear(NavigationBarItem item)
         {
-            this.AssertIsForeground();
-            var documentToNavigate = solution.GetRequiredDocument(navigationPoint.Tree);
-            var workspace = solution.Workspace;
-            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-            if (navigationService.CanNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken))
-            {
-                navigationService.TryNavigateToPosition(workspace, documentToNavigate.Id, navigationPoint.Position, navigationPoint.VirtualSpaces, options: null, cancellationToken);
-            }
-            else
-            {
-                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
-            }
+            // We only show items in gray when near that actually exist (i.e. are not meant for codegen).
+            // This will be all C# items, and only VB non-codegen items.
+            return ((WrappedNavigationBarItem)item).UnderlyingItem is SymbolItem;
         }
-
-        public virtual bool ShowItemGrayedIfNear(NavigationBarItem item)
-            => true;
     }
 }
