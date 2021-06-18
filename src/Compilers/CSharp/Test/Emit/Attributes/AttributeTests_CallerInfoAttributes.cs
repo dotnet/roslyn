@@ -46,7 +46,6 @@ class Program
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
@@ -349,7 +348,6 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
-        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember()
         {
@@ -376,9 +374,8 @@ public static class C
 <default-arg-expression>").VerifyDiagnostics();
         }
 
-        // PROTOTYPE(caller-expr): Should this have a warning?
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferingToItself()
+        public void TestArgumentExpressionIsSelfReferential()
         {
             string source = @"
 using System;
@@ -398,6 +395,49 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: @"<default>
+value");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsSelfReferential_Metadata()
+        {
+            string il = @".class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi abstract sealed beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M (
+            [opt] string p
+        ) cil managed 
+    {
+        .param [1] = ""<default>""
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 70 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0007: nop
+        IL_0008: ret
+    } // end of method C::M
+
+} // end of class C
+";
+            string source = @"
+C.M();
+C.M(""value"");
+";
+
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
         }
@@ -439,7 +479,6 @@ public class Program
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
         {
-            // PROTOTYPE(caller-expr): What should the expected output be?
             string source = @"
 using System;
 using System.Reflection;
@@ -741,7 +780,6 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics();
         }
 
-        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember_AttributeConstructor()
         {
@@ -776,7 +814,6 @@ public class Program
 <default-arg-expression>").VerifyDiagnostics();
         }
 
-        // PROTOTYPE(caller-expr): Should this have a warning?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferingToItself_AttributeConstructor()
         {
@@ -807,6 +844,7 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics();
         }

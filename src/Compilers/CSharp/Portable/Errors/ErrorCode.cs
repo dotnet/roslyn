@@ -1942,11 +1942,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE: Compact these before merge
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 9000,
         ERR_NoConversionForCallerArgumentExpressionParam = 9001,
-        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 9006,
         WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 9002,
         WRN_CallerFilePathPreferredOverCallerArgumentExpression = 9003,
         WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 9004,
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 9005,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 9006,
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 9007,
 
         #endregion
 
