@@ -1,18 +1,20 @@
 # Branches that trigger a build on commit
-trigger:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+
+# Temporarily disabling integration tests in CI in dev17 until we have a public preview to run them on
+trigger: none
+# - main
+# - main-vs-deps
+# - release/*
+# - features/*
+# - demos/*
 
 # Branches that trigger builds on PR
-pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+pr: none
+# - main
+# - main-vs-deps
+# - release/*
+# - features/*
+# - demos/*
 
 jobs:
 - job: VS_Integration
