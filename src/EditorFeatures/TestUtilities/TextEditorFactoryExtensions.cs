@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Immutable;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {

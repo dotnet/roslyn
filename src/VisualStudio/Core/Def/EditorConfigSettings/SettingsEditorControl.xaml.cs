@@ -6,12 +6,12 @@ using System;
 using System.Linq;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {

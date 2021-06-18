@@ -19,9 +19,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
+Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
 Imports Roslyn.Test.Utilities.TestMetadata
-Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests

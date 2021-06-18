@@ -11,10 +11,10 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit
 {

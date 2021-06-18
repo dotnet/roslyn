@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-using Roslyn.Utilities;
+using System.Security.AccessControl;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class NamedPipeClientConnection : IClientConnection

@@ -4,13 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Structure;
+using System;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Structure
 {

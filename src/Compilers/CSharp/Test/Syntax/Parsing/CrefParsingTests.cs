@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Test.Utilities;
+using System;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 

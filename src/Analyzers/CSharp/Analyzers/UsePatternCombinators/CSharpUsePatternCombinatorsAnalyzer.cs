@@ -8,8 +8,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
-    using static AnalyzedPattern;
     using static BinaryOperatorKind;
+    using static AnalyzedPattern;
 
     internal static class CSharpUsePatternCombinatorsAnalyzer
     {

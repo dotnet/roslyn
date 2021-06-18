@@ -5,8 +5,8 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;

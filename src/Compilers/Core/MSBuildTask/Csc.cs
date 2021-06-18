@@ -6,11 +6,11 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {

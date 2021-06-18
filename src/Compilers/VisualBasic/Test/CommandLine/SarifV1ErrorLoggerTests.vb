@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
-Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
-Imports Microsoft.CodeAnalysis.DiagnosticExtensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Xunit
+Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
+Imports Microsoft.CodeAnalysis.DiagnosticExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 

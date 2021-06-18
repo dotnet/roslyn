@@ -5,10 +5,11 @@
 #nullable disable
 
 extern alias Scripting;
-using System.Collections.Immutable;
+
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive

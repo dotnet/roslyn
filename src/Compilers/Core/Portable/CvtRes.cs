@@ -4,17 +4,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System.Diagnostics;
 using BYTE = System.Byte;
 using DWORD = System.UInt32;
 using WCHAR = System.Char;
 using WORD = System.UInt16;
+using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {

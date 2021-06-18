@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module ParameterSyntaxExtensions

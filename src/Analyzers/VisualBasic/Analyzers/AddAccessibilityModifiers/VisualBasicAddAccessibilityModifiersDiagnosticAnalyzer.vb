@@ -6,8 +6,8 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.AddAccessibilityModifiers
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

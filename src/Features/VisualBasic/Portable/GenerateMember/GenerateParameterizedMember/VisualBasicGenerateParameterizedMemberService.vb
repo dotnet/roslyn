@@ -2,16 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
-Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+Imports Microsoft.CodeAnalysis.Utilities
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend MustInherit Class VisualBasicGenerateParameterizedMemberService(Of TService As AbstractGenerateParameterizedMemberService(Of TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax))

@@ -7,15 +7,15 @@
 ' code-generated into SyntaxNodes.vb, but some are easier to hand-write.
 '-----------------------------------------------------------------------------------------------------------
 
-Imports System.Collections.Immutable
-Imports System.ComponentModel
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Syntax
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports InternalSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.Syntax
+Imports System.Collections.Immutable
+Imports System.ComponentModel
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 

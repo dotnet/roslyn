@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

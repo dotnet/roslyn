@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis
 {

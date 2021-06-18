@@ -4,14 +4,14 @@
 
 #nullable disable
 
-using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {

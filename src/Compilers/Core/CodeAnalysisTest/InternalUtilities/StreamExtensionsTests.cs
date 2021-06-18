@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
+using System;
+using System.IO;
 using Xunit;
 
 namespace Roslyn.Utilities.UnitTests.InternalUtilities

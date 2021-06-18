@@ -4,9 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,6 +11,9 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
+using System;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests

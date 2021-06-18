@@ -5,9 +5,9 @@
 Imports System
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 

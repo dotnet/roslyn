@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace OverflowSensitivity
 {

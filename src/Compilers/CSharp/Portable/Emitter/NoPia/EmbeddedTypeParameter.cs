@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Cci = Microsoft.Cci;
 
 #if !DEBUG

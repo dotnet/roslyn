@@ -10,9 +10,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
-using IVsAsyncFileChangeEx = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {

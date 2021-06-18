@@ -24,8 +24,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 {
-    using static AnalyzedPattern;
     using static SyntaxFactory;
+    using static AnalyzedPattern;
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternCombinators), Shared]
     internal class CSharpUsePatternCombinatorsCodeFixProvider : SyntaxEditorBasedCodeFixProvider

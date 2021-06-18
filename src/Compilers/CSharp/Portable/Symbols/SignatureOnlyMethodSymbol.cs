@@ -6,9 +6,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Reflection.Metadata;
 using Roslyn.Utilities;
+using System.Reflection.Metadata;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

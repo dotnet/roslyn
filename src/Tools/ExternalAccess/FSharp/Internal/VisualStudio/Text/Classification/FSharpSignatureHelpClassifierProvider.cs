@@ -6,13 +6,13 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
+using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio.Text.Classification
 {

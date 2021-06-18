@@ -6,10 +6,10 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Linq.Enumerable
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 

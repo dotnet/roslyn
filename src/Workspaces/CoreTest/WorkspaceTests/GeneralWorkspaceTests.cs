@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using System;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

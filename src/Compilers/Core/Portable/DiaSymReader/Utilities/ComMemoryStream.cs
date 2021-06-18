@@ -5,10 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices;
 using STATSTG = System.Runtime.InteropServices.ComTypes.STATSTG;
 
 namespace Microsoft.DiaSymReader

@@ -4,8 +4,8 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Roslyn.Test.Utilities
 Imports Xunit
 

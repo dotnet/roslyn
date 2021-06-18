@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using Microsoft.Cci;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Emit
 {

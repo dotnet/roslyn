@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {

@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.VisualStudio.ComponentModelHost
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+Imports Microsoft.VisualStudio.ComponentModelHost
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
     Friend Class ObjectBrowserLibraryManager

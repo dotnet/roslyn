@@ -4,15 +4,15 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection.Metadata;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {

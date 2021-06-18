@@ -12,12 +12,12 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using static Roslyn.Test.Utilities.TestMetadata;
 using static TestReferences.NetFx;
+using static Roslyn.Test.Utilities.TestMetadata;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 
 namespace Roslyn.Test.Utilities
 {

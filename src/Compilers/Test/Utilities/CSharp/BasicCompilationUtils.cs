@@ -6,9 +6,9 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CodeGen.CompilationTestData;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests

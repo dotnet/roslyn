@@ -5,12 +5,12 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Options
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Microsoft.CodeAnalysis.[Shared].Extensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>

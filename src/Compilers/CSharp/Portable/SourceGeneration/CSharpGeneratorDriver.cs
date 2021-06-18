@@ -4,9 +4,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

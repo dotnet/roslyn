@@ -7,8 +7,8 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {

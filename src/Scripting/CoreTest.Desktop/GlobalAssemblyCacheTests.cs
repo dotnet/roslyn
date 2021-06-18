@@ -5,12 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Immutable;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

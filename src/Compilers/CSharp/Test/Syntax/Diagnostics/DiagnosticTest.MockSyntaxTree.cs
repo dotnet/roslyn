@@ -5,12 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using System.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

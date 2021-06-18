@@ -4,9 +4,9 @@
 
 #nullable disable
 
-using System.Threading;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {

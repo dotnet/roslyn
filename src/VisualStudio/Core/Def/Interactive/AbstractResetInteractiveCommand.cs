@@ -4,12 +4,12 @@
 
 #nullable disable
 
-using System;
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell.Interop;
+using System;
 
 namespace Roslyn.VisualStudio.Services.Interactive
 {

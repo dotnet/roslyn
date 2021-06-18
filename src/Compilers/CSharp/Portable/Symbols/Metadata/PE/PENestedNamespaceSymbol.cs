@@ -5,11 +5,11 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {

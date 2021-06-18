@@ -4,13 +4,13 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {

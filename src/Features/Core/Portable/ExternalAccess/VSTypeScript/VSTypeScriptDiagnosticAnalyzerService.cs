@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {

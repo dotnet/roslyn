@@ -4,13 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.RemoveUnusedMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers
 {

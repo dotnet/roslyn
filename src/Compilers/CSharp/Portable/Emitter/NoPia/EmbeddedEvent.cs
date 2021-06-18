@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Collections.Generic;
 
 #if !DEBUG
 using EventSymbolAdapter = Microsoft.CodeAnalysis.CSharp.Symbols.EventSymbol;

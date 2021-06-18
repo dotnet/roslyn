@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Tasks.Hosting;
 using Microsoft.Build.Utilities;
+using Microsoft.Build.Tasks.Hosting;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 

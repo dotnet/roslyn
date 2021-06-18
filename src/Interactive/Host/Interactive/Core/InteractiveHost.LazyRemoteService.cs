@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 extern alias Scripting;
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -14,8 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
-using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;
 using StreamJsonRpc;
+using Scripting::Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {

@@ -12,12 +12,12 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
-using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Text.Differencing;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {

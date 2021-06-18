@@ -9,14 +9,14 @@
 
 #endregion
 
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.CodeAnalysis.ExpressionEvaluator;
-using Microsoft.VisualStudio.Debugger.Symbols;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {

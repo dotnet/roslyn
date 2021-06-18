@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 #if CODE_STYLE
 using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;

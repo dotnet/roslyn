@@ -4,11 +4,11 @@
 
 #nullable disable
 
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests

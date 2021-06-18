@@ -8,9 +8,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Utilities;
 using System.Threading;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {

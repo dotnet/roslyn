@@ -5,16 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.CSharp;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>

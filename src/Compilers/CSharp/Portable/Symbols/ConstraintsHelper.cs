@@ -9,10 +9,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

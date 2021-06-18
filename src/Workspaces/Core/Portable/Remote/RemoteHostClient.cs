@@ -8,8 +8,8 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Remote
 {

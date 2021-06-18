@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {

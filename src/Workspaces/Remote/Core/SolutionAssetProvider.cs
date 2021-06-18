@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
-using Nerdbank.Streams;
 using Roslyn.Utilities;
+using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {

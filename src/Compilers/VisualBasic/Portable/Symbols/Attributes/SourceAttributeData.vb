@@ -5,14 +5,14 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Reflection.Metadata
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 

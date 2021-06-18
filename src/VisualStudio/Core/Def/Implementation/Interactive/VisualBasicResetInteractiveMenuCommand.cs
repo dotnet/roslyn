@@ -4,11 +4,11 @@
 
 #nullable disable
 
-using System.ComponentModel.Design;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.ComponentModel.Design;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
 {

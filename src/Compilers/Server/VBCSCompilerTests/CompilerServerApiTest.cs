@@ -7,19 +7,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Pipes;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.IO;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {

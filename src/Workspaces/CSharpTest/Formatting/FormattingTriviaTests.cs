@@ -5,11 +5,11 @@
 #nullable disable
 
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {

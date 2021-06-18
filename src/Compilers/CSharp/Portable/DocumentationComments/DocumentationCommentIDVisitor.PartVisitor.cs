@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

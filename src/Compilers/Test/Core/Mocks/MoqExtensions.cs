@@ -4,8 +4,8 @@
 
 #nullable disable
 
-using System.Linq;
 using Moq;
+using System.Linq;
 
 namespace Roslyn.Test.Utilities
 {

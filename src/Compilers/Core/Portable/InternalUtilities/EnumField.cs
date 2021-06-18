@@ -4,8 +4,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {

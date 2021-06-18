@@ -3,9 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System
+Imports System.[Text]
 Imports System.Collections.Generic
 Imports System.Linq
-Imports System.[Text]
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

@@ -11,8 +11,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 

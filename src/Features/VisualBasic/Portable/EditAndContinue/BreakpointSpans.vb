@@ -3,10 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Text
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     Friend Module BreakpointSpans

@@ -7,17 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.Metadata.Tools;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using Microsoft.CodeAnalysis.Symbols;
+using System.Diagnostics;
 
 namespace Roslyn.Test.Utilities
 {

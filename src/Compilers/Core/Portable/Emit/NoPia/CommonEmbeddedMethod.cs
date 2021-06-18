@@ -6,10 +6,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {

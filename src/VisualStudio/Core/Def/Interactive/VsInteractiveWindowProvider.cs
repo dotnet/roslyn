@@ -5,24 +5,25 @@
 #nullable disable
 
 extern alias InteractiveHost;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Editor.Interactive;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.InteractiveWindow;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {

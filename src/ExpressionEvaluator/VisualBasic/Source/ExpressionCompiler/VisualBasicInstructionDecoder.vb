@@ -5,12 +5,12 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
-Imports System.Text
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.VisualStudio.Debugger
 Imports Microsoft.VisualStudio.Debugger.Clr
+Imports System.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 

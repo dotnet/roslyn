@@ -5,14 +5,14 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
+using System.Text;
+using System.IO;
+using Roslyn.Test.Utilities;
+using System.Security.Cryptography;
+using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

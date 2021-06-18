@@ -7,8 +7,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {

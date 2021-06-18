@@ -9,8 +9,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

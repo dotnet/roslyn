@@ -32,8 +32,8 @@ using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using CS = Microsoft.CodeAnalysis.CSharp;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

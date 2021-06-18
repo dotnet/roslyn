@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks;
-using Microsoft.CodeAnalysis.CSharp;
+using Xunit;
 using Moq;
 using Roslyn.Test.Utilities;
-using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

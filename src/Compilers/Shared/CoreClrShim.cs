@@ -4,9 +4,9 @@
 
 #nullable disable
 
+using Roslyn.Utilities;
 using System;
 using System.Reflection;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
