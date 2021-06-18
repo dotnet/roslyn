@@ -2424,6 +2424,7 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
+                        ' PROTOTYPE(caller-expr): Confirm if passing null here is okay.
                         argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, Nothing)
 
                         If argument Is Nothing Then
