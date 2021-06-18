@@ -417,7 +417,8 @@ function TestUsingRunTests() {
     $args += " --tfm net472"
     $args += " --retry"
     $args += " --sequential"
-    $args += " --include '\.IntegrationTests'"
+    # Skip VS integration tests prior to having a build of dev17 available for testing
+    # $args += " --include '\.IntegrationTests'"
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {

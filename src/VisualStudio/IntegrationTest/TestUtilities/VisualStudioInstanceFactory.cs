@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
-            if (int.Parse(majorVsProductVersion) < 16)
+            if (int.Parse(majorVsProductVersion) < 17)
             {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 17.0 and later.");
             }
         }
 
@@ -316,7 +316,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (_firstLaunch)
             {
-                if (majorVersion == 16)
+                if (majorVersion >= 16)
                 {
                     // Make sure the start window doesn't show on launch
                     Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU General OnEnvironmentStartup dword 10")).WaitForExit();

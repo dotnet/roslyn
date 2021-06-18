@@ -1172,11 +1172,6 @@
         <target state="translated">Actualizando la gravedad</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">Usar el proceso de 64 bits para el análisis de código (requiere reiniciar)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">Usar cuerpo de expresión para lambdas</target>

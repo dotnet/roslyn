@@ -1516,9 +1516,6 @@ I agree to all of the foregoing:</value>
   <data name="Bitness64" xml:space="preserve">
     <value>64-bit</value>
   </data>
-  <data name="Use_64_bit_process_for_code_analysis_requires_restart" xml:space="preserve">
-    <value>Use 64-bit process for code analysis (requires restart)</value>
-  </data>
   <data name="Extract_Base_Class" xml:space="preserve">
     <value>Extract Base Class</value>
   </data>
@@ -1716,12 +1713,6 @@ I agree to all of the foregoing:</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
-  <data name="Error_updating_suppressions_0" xml:space="preserve">
-    <value>Error updating suppressions: {0}</value>
-  </data>
-  <data name="Underline_reassigned_variables" xml:space="preserve">
-    <value>Underline reassigned variables</value>
-  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1766,5 +1757,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
   </data>
 </root>
