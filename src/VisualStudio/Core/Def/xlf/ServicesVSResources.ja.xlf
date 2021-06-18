@@ -1172,11 +1172,6 @@
         <target state="translated">重要度を更新しています</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">コード分析に 64 ビット プロセスを使用する (再起動が必要)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">ラムダに式本体を使用します</target>
