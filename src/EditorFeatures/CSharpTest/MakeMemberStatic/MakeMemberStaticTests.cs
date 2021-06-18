@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.MakeMemberStatic;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
@@ -30,6 +31,25 @@ public static class Foo
 public static class Foo
 {
     static int i;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        [WorkItem(54202, "https://github.com/dotnet/roslyn/issues/54202")]
+        public async Task TestTrivia()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+public static class Foo
+{
+    // comment
+    readonly int {|CS0708:i|};
+}",
+@"
+public static class Foo
+{
+    // comment
+    readonly static int i;
 }");
         }
 

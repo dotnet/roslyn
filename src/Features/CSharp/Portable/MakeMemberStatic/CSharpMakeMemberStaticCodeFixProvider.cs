@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,8 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
                 "CS0708" // 'MyMethod': cannot declare instance members in a static class
             );
 
-        protected override bool IsValidMemberNode(SyntaxNode node) =>
-            node is MemberDeclarationSyntax ||
-            (node.IsKind(SyntaxKind.VariableDeclarator) && node.Ancestors().Any(a => a.IsKind(SyntaxKind.FieldDeclaration) || a.IsKind(SyntaxKind.EventFieldDeclaration)));
+        protected override bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration)
+        {
+            if (node is MemberDeclarationSyntax)
+            {
+                memberDeclaration = node;
+                return true;
+            }
+
+            if (node.IsKind(SyntaxKind.VariableDeclarator))
+            {
+                memberDeclaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>(a => a.IsKind(SyntaxKind.FieldDeclaration) || a.IsKind(SyntaxKind.EventFieldDeclaration));
+                return memberDeclaration is not null;
+            }
+
+            memberDeclaration = null;
+            return false;
+        }
     }
 }
