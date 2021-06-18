@@ -1956,6 +1956,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractConversionNotInvolvingContainedType = 8931,
         ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
 
+        HDN_DuplicateWithGlobalUsing = 8933,
+
         #endregion
 
 
