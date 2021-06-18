@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override TypeParameterKind TypeParameterKind
         {
-            get { return TypeParameterKind.Type; }
+            get { return ContainingSymbol is MethodSymbol ? TypeParameterKind.Method : TypeParameterKind.Type; }
         }
 
         public override bool HasConstructorConstraint

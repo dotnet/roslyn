@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Public Overrides ReadOnly Property TypeParameterKind As TypeParameterKind
             Get
-                Return TypeParameterKind.Type
+                Return If(TypeOf Me.ContainingSymbol Is MethodSymbol, TypeParameterKind.Method, TypeParameterKind.Type)
             End Get
         End Property
 
