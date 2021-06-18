@@ -2,37 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.CSharp.MakeMemberStatic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.MakeMemberStatic;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
 {
-    public class MakeMemberStaticTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpMakeMemberStaticCodeFixProvider>;
+
+    public class MakeMemberStaticTests
     {
-        public MakeMemberStaticTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpMakeMemberStaticCodeFixProvider());
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
         public async Task TestField()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 public static class Foo
 {
-    int [||]i;
+    int {|CS0708:i|};
 }",
 @"
 public static class Foo
@@ -44,11 +36,11 @@ public static class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
         public async Task TestMethod()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 public static class Foo
 {
-    void [||]M() { }
+    void {|CS0708:M|}() { }
 }",
 @"
 public static class Foo
@@ -60,11 +52,11 @@ public static class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
         public async Task TestProperty()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 public static class Foo
 {
-    object [||]P { get; set; }
+    object {|CS0708:P|} { get; set; }
 }",
 @"
 public static class Foo
@@ -76,11 +68,11 @@ public static class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
         public async Task TestEventField()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyCodeFixAsync(
 @"
 public static class Foo
 {
-    event System.Action [||]E;
+    event System.Action {|CS0708:E|};
 }",
 @"
 public static class Foo
@@ -92,15 +84,15 @@ public static class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
         public async Task FixAll()
         {
-            await TestInRegularAndScript1Async(
+            await VerifyCS.VerifyCodeFixAsync(
 @"namespace NS
 {
     public static class Foo
     {
-        int {|FixAllInDocument:|}i;
-        void M() { }
-        object P { get; set; }
-        event System.Action E;
+        int {|CS0708:i|};
+        void {|CS0708:M|}() { }
+        object {|CS0708:P|} { get; set; }
+        event System.Action {|CS0708:E|};
     }
 }",
 @"namespace NS

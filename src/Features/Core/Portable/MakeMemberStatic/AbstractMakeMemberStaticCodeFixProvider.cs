@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,12 +17,12 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.Compile;
 
-        protected abstract bool IsValidMemberNode([NotNullWhen(true)] SyntaxNode? node);
+        protected abstract bool IsValidMemberNode(SyntaxNode node);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             if (context.Diagnostics.Length == 1 &&
-                IsValidMemberNode(context.Diagnostics[0].Location?.FindNode(context.CancellationToken)))
+                IsValidMemberNode(context.Diagnostics[0].Location.FindNode(context.CancellationToken)))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(context.Document, context.Diagnostics[0], c)),
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
         {
             for (var i = 0; i < diagnostics.Length; i++)
             {
-                var declaration = diagnostics[i].Location?.FindNode(cancellationToken);
+                var declaration = diagnostics[i].Location.FindNode(cancellationToken);
 
                 if (IsValidMemberNode(declaration))
                 {
