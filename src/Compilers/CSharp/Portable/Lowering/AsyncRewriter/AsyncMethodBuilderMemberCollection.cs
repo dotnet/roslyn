@@ -200,6 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)builderType != null)
                             {
                                 taskProperty = GetCustomTaskProperty(F, builderType, returnType);
+                                validateIgnoredBuilderType(F, returnType, builderArgument, isGeneric: false);
                             }
                         }
                         else
@@ -280,8 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (method.HasMethodLevelBuilder(out var methodLevelBuilder))
                     {
-                        builderArgument = methodLevelBuilder;
-                        var initialBuilderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true, forOverride: true);
+                        var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: true, forOverride: true);
                         if ((object)initialBuilderType != null)
                         {
                             // We only get the Create method from the initial builder type, then we'll use its return type as builder type
@@ -291,6 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)builderType != null)
                             {
                                 taskProperty = GetCustomTaskProperty(F, builderType, returnType);
+                                validateIgnoredBuilderType(F, returnType, builderArgument, isGeneric: true);
                             }
                         }
                         else
@@ -351,6 +352,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(method);
+
+            void validateIgnoredBuilderType(SyntheticBoundNodeFactory F, NamedTypeSymbol returnType, object builderArgument, bool isGeneric)
+            {
+                var ignoredBuilderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric);
+
+                if ((object)ignoredBuilderType != null)
+                {
+                    if (isGeneric)
+                    {
+                        var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
+                        ignoredBuilderType = ignoredBuilderType.ConstructedFrom.Construct(resultType);
+                    }
+
+                    GetCustomCreateMethod(F, ignoredBuilderType, forOverride: false);
+                    GetCustomTaskProperty(F, ignoredBuilderType, returnType);
+
+                    _ = TryGetBuilderMember(F,
+                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
+                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
+                        TryGetBuilderMember(F,
+                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
+                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
+                        TryGetBuilderMember(F,
+                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
+                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
+                        TryGetBuilderMember(F,
+                           isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitUnsafeOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitUnsafeOnCompleted,
+                           ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
+                        TryGetBuilderMember(F,
+                           isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
+                           ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
+                        TryGetBuilderMember(F,
+                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
+                            ignoredBuilderType, customBuilder: true, out MethodSymbol _);
+                }
+            }
         }
 
         private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forOverride = false)
