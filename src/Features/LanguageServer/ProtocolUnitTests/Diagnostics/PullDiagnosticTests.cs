@@ -211,61 +211,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var sourceText = await document.GetTextAsync();
             var lineInfo = sourceText.Lines.GetLinePositionSpan(new TextSpan(position, 0));
 
-            await testLspServer.ExecuteRequestAsync<DidChangeTextDocumentParams, object>(
-                Methods.TextDocumentDidChangeName,
-                new DidChangeTextDocumentParams
-                {
-                    TextDocument = ProtocolConversions.DocumentToVersionedTextDocumentIdentifier(document),
-                    ContentChanges = new TextDocumentContentChangeEvent[]
-                    {
-                        new TextDocumentContentChangeEvent
-                        {
-                            Range = new LSP.Range
-                            {
-                                Start = ProtocolConversions.LinePositionToPosition(lineInfo.Start),
-                                End  =ProtocolConversions.LinePositionToPosition(lineInfo.End),
-                            },
-                            Text = text,
-                        },
-                    },
-                },
-                new LSP.ClientCapabilities(),
-                clientName: null,
-                CancellationToken.None);
+            await testLspServer.InsertTextAsync(document.GetURI(), (lineInfo.Start.Line, lineInfo.Start.Character, text));
         }
 
-        private static async Task OpenDocumentAsync(TestLspServer testLspServer, Document document)
-        {
-            await testLspServer.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(
-                Methods.TextDocumentDidOpenName,
-                new DidOpenTextDocumentParams
-                {
-                    TextDocument = new TextDocumentItem
-                    {
-                        Uri = document.GetURI(),
-                        Text = document.GetTextSynchronously(CancellationToken.None).ToString(),
-                    }
-                },
-                new LSP.ClientCapabilities(),
-                clientName: null,
-                CancellationToken.None);
-        }
+        private static Task OpenDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.OpenDocumentAsync(document.GetURI());
 
-        private static async Task CloseDocumentAsync(TestLspServer testLspServer, Document document)
-        {
-            await testLspServer.ExecuteRequestAsync<DidCloseTextDocumentParams, object>(
-                Methods.TextDocumentDidCloseName,
-                new DidCloseTextDocumentParams
-                {
-                    TextDocument = new TextDocumentIdentifier
-                    {
-                        Uri = document.GetURI(),
-                    }
-                },
-                new LSP.ClientCapabilities(),
-                clientName: null,
-                CancellationToken.None);
-        }
+        private static Task CloseDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.CloseDocumentAsync(document.GetURI());
 
         [Fact]
         public async Task TestStreamingDocumentDiagnostics()
