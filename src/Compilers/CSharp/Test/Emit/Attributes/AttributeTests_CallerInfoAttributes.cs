@@ -850,6 +850,62 @@ value").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestArgumentExpressionIsReferingToItself_AttributeConstructor_Metadata()
+        {
+            string il = @"
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+.class public auto ansi beforefieldinit MyAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 04 00 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+        4d 75 6c 74 69 70 6c 65 01
+    )
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            [opt] string p
+        ) cil managed 
+    {
+        .param [1] = ""<default>""
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 70 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 16 (0x10)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ldarg.1
+        IL_0009: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000e: nop
+        IL_000f: ret
+    } // end of method MyAttribute::.ctor
+} // end of class MyAttribute
+";
+            string source = @"
+using System.Reflection;
+[My]
+[My(""value"")]
+public class Program
+{
+    static void Main()
+    {
+        typeof(Program).GetCustomAttributes(typeof(MyAttribute));
+    }
+}
+";
+
+            var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            CompileAndVerify(compilation, expectedOutput: @"<default>
+value").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionInAttributeConstructor()
         {
             string source = @"
