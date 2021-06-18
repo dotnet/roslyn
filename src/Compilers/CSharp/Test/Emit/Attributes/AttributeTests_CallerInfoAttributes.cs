@@ -396,7 +396,11 @@ public static class C
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value");
+value").VerifyDiagnostics(
+                // (11,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                //         [CallerArgumentExpression("p")] string p = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(11, 10)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -439,7 +443,11 @@ C.M(""value"");
 
             var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value").VerifyDiagnostics();
+value").VerifyDiagnostics(
+                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                //         [CallerArgumentExpression("p")] string p = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
+                );
         }
         #endregion
 
@@ -856,6 +864,7 @@ value").VerifyDiagnostics();
 .class private auto ansi '<Module>'
 {
 } // end of class <Module>
+
 .class public auto ansi beforefieldinit MyAttribute
     extends [mscorlib]System.Attribute
 {
@@ -876,6 +885,7 @@ value").VerifyDiagnostics();
         // Method begins at RVA 0x2050
         // Code size 16 (0x10)
         .maxstack 8
+
         IL_0000: ldarg.0
         IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
         IL_0006: nop
@@ -885,10 +895,12 @@ value").VerifyDiagnostics();
         IL_000e: nop
         IL_000f: ret
     } // end of method MyAttribute::.ctor
+
 } // end of class MyAttribute
 ";
             string source = @"
 using System.Reflection;
+
 [My]
 [My(""value"")]
 public class Program
