@@ -365,27 +365,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ignoredBuilderType = ignoredBuilderType.ConstructedFrom.Construct(resultType);
                     }
 
-                    GetCustomCreateMethod(F, ignoredBuilderType, forOverride: false);
-                    GetCustomTaskProperty(F, ignoredBuilderType, returnType);
+                    var createMethod = GetCustomCreateMethod(F, ignoredBuilderType, forOverride: false);
+                    var taskProperty = GetCustomTaskProperty(F, ignoredBuilderType, returnType);
 
-                    _ = TryGetBuilderMember(F,
-                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
-                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
-                        TryGetBuilderMember(F,
-                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
-                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
-                        TryGetBuilderMember(F,
-                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
-                            ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
-                        TryGetBuilderMember(F,
-                           isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitUnsafeOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitUnsafeOnCompleted,
-                           ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
-                        TryGetBuilderMember(F,
-                           isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
-                           ignoredBuilderType, customBuilder: true, out MethodSymbol _) &&
-                        TryGetBuilderMember(F,
-                            isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
-                            ignoredBuilderType, customBuilder: true, out MethodSymbol _);
+                    _ = TryCreate(
+                        F,
+                        customBuilder: true,
+                        builderType: ignoredBuilderType,
+                        resultType: null, // unused
+                        createBuilderMethod: createMethod,
+                        taskProperty: taskProperty,
+                        setException: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
+                        setResult: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
+                        awaitOnCompleted: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
+                        awaitUnsafeOnCompleted: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitUnsafeOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitUnsafeOnCompleted,
+                        start: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
+                        setStateMachine: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
+                        collection: out _);
                 }
             }
         }
