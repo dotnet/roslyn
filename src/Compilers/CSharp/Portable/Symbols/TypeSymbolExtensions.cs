@@ -1031,6 +1031,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_containsTypeParametersPredicate =
             (type, parameters, unused) => type.TypeKind == TypeKind.TypeParameter && parameters.Contains((TypeParameterSymbol)type);
 
+        public static bool ContainsMethodTypeParameter(this TypeSymbol type)
+        {
+            var result = type.VisitType(s_containsMethodTypeParameterPredicate, null);
+            return result is object;
+        }
+
+        private static readonly Func<TypeSymbol, object?, bool, bool> s_containsMethodTypeParameterPredicate =
+            (type, _, _) => type.TypeKind == TypeKind.TypeParameter && type.ContainingSymbol is MethodSymbol;
+
         /// <summary>
         /// Return true if the type contains any dynamic type reference.
         /// </summary>
