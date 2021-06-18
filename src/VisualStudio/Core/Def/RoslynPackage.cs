@@ -112,23 +112,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            foreach (var provider in await GetOptionPersistersAsync(_componentModel, cancellationToken).ConfigureAwait(true))
+            foreach (var provider in await GetOptionPersistersAsync(_componentModel).ConfigureAwait(true))
             {
                 _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
             }
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
-
-            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
-            // the background thread then we will experience hangs like we see in this bug:
-            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
-            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
-            var telemetryService = (VisualStudioWorkspaceTelemetryService)_workspace.Services.GetRequiredService<IWorkspaceTelemetryService>();
-            telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession);
-
-            Logger.Log(FunctionId.Run_Environment,
-                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
             InitializeColors();
 
@@ -142,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
 
-            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel)
             {
                 // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
                 // InitializeAsync.
