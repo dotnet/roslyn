@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         ///  
         /// This function is used to update invalidates spans.
         /// </summary>
-        private void UpdateInvalidSpans()
+        protected void UpdateInvalidSpans()
         {
             using (_asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateInvalidSpans.1"))
             using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_UpdateInvalidSpans, CancellationToken.None))

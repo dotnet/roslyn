@@ -99,11 +99,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
             return new GraphicsResult(border, dispose:
-                    () =>
-                    {
-                        link.RequestNavigate -= HandleRequestNavigate;
-                        view.ViewportWidthChanged -= ViewportWidthChangedHandler;
-                    });
+                () =>
+                {
+                    link.RequestNavigate -= HandleRequestNavigate;
+                    view.ViewportWidthChanged -= ViewportWidthChangedHandler;
+                });
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {

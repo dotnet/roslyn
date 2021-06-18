@@ -34,6 +34,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationRegistryService = classificationTypeRegistryService;
             _formatMap = classificationFormatMapService.GetClassificationFormatMap(textView);
             _formatMap.ClassificationFormatMappingChanged += OnClassificationFormatMappingChanged;
+            TextView.ViewportWidthChanged += TextView_ViewportWidthChanged;
+        }
+
+        private void TextView_ViewportWidthChanged(object sender, EventArgs e)
+        {
+            if (AdornmentLayer is not null)
+            {
+                var elements = AdornmentLayer.Elements;
+                foreach (var element in elements)
+                {
+                    var tag = (InlineDiagnosticsTag)element.Tag;
+                    if (tag.TagIntersectsWindow(element.Adornment))
+                    {
+                        AdornmentLayer.RemoveAdornment(element.Adornment);
+                    }
+                }
+            }
         }
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -144,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var map = GetSpansOnEachLine(changedSpanCollection);
-            var tagSpanToPointMap = GetTagSpansToSnapshotPointMap(map); // new Dictionary<IMappingTagSpan<InlineErrorTag>, SnapshotPoint>();
-            // <.Add(tagMappingSpan, point.Value);
+            var tagSpanToPointMap = GetTagSpansToSnapshotPointMap(map);
             foreach (var (lineNum, tagMappingSpanList) in map)
             {
                 var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
