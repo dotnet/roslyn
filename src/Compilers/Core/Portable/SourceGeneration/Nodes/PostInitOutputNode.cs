@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class PostInitOutputNode : IIncrementalGeneratorOutputNode
+    internal sealed class PostInitOutputNode : IIncrementalGeneratorOutputNode
     {
         private readonly Action<IncrementalGeneratorPostInitializationContext> _callback;
 

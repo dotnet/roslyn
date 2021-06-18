@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal interface IIncrementalGeneratorOutputNode
     {
-        void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken);
-
         IncrementalGeneratorOutputKind Kind { get; }
+
+        void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken);
     }
 
     internal enum IncrementalGeneratorOutputKind
