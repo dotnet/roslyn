@@ -5,13 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-
     Partial Friend Class SourceNamedTypeSymbol
 
         ''' <summary>
@@ -1340,7 +1336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return attributes.ToImmutableAndFree()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then
@@ -1634,7 +1630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If IsComEventParameter Then
@@ -1854,7 +1850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return _clonedFrom.GetAttributes()
                 End Function
 
-                Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+                Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
                     MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                     If _synthesizedDispId = ReservedDispId.None Then

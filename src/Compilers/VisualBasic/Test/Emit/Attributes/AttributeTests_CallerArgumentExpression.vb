@@ -30,8 +30,7 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="123")
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
 
         End Sub
 
@@ -56,9 +55,8 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="123  + _
-               5")
+               5").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -79,8 +77,7 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="124, 123, 124")
+            CompileAndVerify(compilation, expectedOutput:="124, 123, 124").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -108,8 +105,7 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="myIntegerExpression")
+            CompileAndVerify(compilation, expectedOutput:="myIntegerExpression").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -132,8 +128,7 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="myIntegerExpression * 2")
+            CompileAndVerify(compilation, expectedOutput:="myIntegerExpression * 2").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -155,8 +150,7 @@ End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
             ' PROTOTYPE(caller-expr): This should have diagnostics.
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="<default>")
+            CompileAndVerify(compilation, expectedOutput:="<default>").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -177,8 +171,7 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="Main")
+            CompileAndVerify(compilation, expectedOutput:="Main").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -202,11 +195,10 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="target default value
 arg default value
 caller target value
-callerTargetExp")
+callerTargetExp").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -233,7 +225,6 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="target default value
 arg default value
 caller target value
@@ -243,7 +234,7 @@ callerTargetExp
 target default value
 arg default value
 caller target value
-callerTargetExp")
+callerTargetExp").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -267,13 +258,12 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="param1: param1_default, param2: param2_default
 param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value")
+param1: param1_value, param2: param2_value").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -293,9 +283,8 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="Main
-<default-arg-expression>")
+<default-arg-expression>").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -316,9 +305,8 @@ End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             ' PROTOTYPE(caller-expr): Warning for self-referential
-            compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="<default>
-value")
+value").VerifyDiagnostics()
         End Sub
 #End Region
 
@@ -344,11 +332,81 @@ Public Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics()
-            CompileAndVerify(compilation, expectedOutput:="123")
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
         ' PROTOTYPE(caller-expr): TODO - More tests.
+#End Region
+
+#Region "CallerArgumentExpression - Test various symbols"
+        <Fact>
+        Public Sub TestIndexers()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Const i As String = NameOf(i)
+
+    Default Public Property Item(i As Integer, <CallerArgumentExpression(i)> Optional s As String = ""<default-arg>"") As Integer
+        Get
+            Return i
+        End Get
+        Set(value As Integer)
+            Console.WriteLine($""{i}, {s}"")
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim p As New Program()
+        p(1+  1) = 5
+        p(2+  2, ""explicit-value"") = 5
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="2, 1+  1
+4, explicit-value").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ComClass()
+            Dim source As String = "
+Imports Microsoft.VisualBasic
+
+<ComClass(ComClass1.ClassId, ComClass1.InterfaceId, ComClass1.EventsId)>
+Public Class ComClass1
+    ' Use the Region directive to define a section named COM Guids.
+#Region ""COM GUIDs""
+    ' These  GUIDs provide the COM identity for this class
+    ' and its COM interfaces. You can generate
+    ' these guids using guidgen.exe
+    Public Const ClassId As String = ""7666AC25-855F-4534-BC55-27BF09D49D46""
+    Public Const InterfaceId As String = ""54388137-8A76-491e-AA3A-853E23AC1217""
+    Public Const EventsId As String = ""EA329A13-16A0-478d-B41F-47583A761FF2""
+#End Region
+
+    Public Sub New()
+        MyBase.New()
+    End Sub
+
+    Public Sub M(x As Integer, Optional y As String = """")
+    End Sub
+End Class
+
+Module Program
+    Sub Main()
+        Dim comObj As New ComClass1()
+        comObj.M(1+  0)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="").VerifyDiagnostics() ' PROTOTYPE(caller-expr): Figure out how to fix these:
+            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.GuidAttribute..ctor' is not defined.
+            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.ClassInterfaceAttribute..ctor' is not defined.
+            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.DispIdAttribute..ctor' is not defined.
+        End Sub
 #End Region
     End Class
 End Namespace
