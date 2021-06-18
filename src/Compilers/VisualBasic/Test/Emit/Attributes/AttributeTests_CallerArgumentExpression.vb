@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
 
@@ -82,7 +83,31 @@ End Module
 
         <Fact>
         Public Sub TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
 
+Public Module FromFirstAssembly
+    Private Const p As String = NameOf(p)
+    Public Sub Log(p As Integer, q As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, parseOptions:=TestOptions.Regular16_9)
+            comp1.VerifyDiagnostics()
+            Dim ref1 = comp1.EmitToImageReference()
+
+            Dim source2 = "
+Module Program
+    Public Sub Main()
+        FromFirstAssembly.Log(2 + 2, 3 + 1)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -308,6 +333,57 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default>
 value").VerifyDiagnostics()
         End Sub
+
+        <Fact>
+        Public Sub TestArgumentExpressionIsSelfReferential_Metadata()
+            Dim il = ".class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi abstract sealed beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M (
+            [opt] string p
+        ) cil managed 
+    {
+        .param [1] = ""<default>""
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 70 00 00
+            )
+        // Method begins at RVA 0x2050
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: call void [mscorlib]System.Console::WriteLine(string)
+        IL_0007: nop
+        IL_0008: ret
+    } // end of method C::M
+
+} // end of class C"
+
+            Dim source =
+    <compilation>
+        <file name="c.vb"><![CDATA[
+Module Program
+    Sub Main()
+        C.M()
+        C.M("value")
+    End Sub
+End Module
+]]>
+        </file>
+    </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            ' PROTOTYPE(caller-expr): Warning for self-referential
+            CompileAndVerify(compilation, expectedOutput:="<default>
+value").VerifyDiagnostics()
+        End Sub
 #End Region
 
 #Region "CallerArgumentExpression - Attributes"
@@ -333,6 +409,120 @@ End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
+            Dim source = "
+Imports System
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+Public Class MyAttribute : Inherits Attribute
+    Private Const p As String = ""p""
+    Sub New(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+
+<My(123 _ ' comment
+    + 5 ' comment
+    )>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttribute(GetType(MyAttribute))
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="123 _ ' comment
+    + 5").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_DifferentAssembly_AttributeConstructor()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Public Class MyAttribute : Inherits Attribute
+    Private Const p As String = ""p""
+    Sub New(p As Integer, q As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+"
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp)
+            comp1.VerifyDiagnostics()
+            Dim ref1 = comp1.EmitToImageReference()
+
+            Dim source2 = "
+Imports System.Reflection
+
+<My(2 + 2, 3 + 1)>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttribute(GetType(MyAttribute))
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(Compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestIncorrectParameterNameInCallerArgumentExpressionAttribute_AttributeConstructor()
+            Dim source = "
+Imports System
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+Public Class MyAttribute : Inherits Attribute
+    Private Const p As String = ""p""
+    Sub New(<CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+
+<My>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttribute(GetType(MyAttribute))
+    End Sub
+End Module
+"
+            ' PROTOTYPE(caller-expr): Warning.
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub TestCallerArgumentExpressionWithOptionalTargetParameter_AttributeConstructor()
+            Dim source = "
+Imports System
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+
+<AttributeUsage(AttributeTargets.Class, AllowMultiple:=True)>
+Public Class MyAttribute : Inherits Attribute
+    Private Const target As String = NameOf(target)
+    Sub New(p As Integer, Optional target As String = ""target default value"", <CallerArgumentExpression(target)> Optional arg As String = ""arg default value"")
+        Console.WriteLine(target)
+        Console.WriteLine(arg)
+    End Sub
+End Class
+
+<My(0)>
+<My(0, ""caller target value"")>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttributes(GetType(MyAttribute))
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="target default value
+arg default value
+caller target value
+""caller target value""").VerifyDiagnostics()
         End Sub
 
         ' PROTOTYPE(caller-expr): TODO - More tests.
