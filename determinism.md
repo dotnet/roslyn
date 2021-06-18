@@ -54,21 +54,70 @@ namespace Microsoft.CodeAnalysis
 }
 ```
 
-The return of `GetDeterministicKey` is an opaque string that represents a hash of the 
-contents of the containing `Compilation`. Two `Compilation` which produce different 
-output will have different strings returned for this function. 
+The return of `GetDeterministicKey` is an opaque string that represents a markle 
+tree of the `Compilation` contents.  Two `Compilation` which produce different 
+output, diagnostics or binaries, will have different strings returned for this
+function. 
 
 The return of `GetDeterministicKey` can, and by default will, change between versions
 of the compiler. That is true of both the content of the string as well as the 
 underlying format. Consumers should not take any dependency on the content of this string
 other than it being an effective hash of the `Compilation` it came from.
 
-The hash returned here is not a minimal hash. The content can be compressed further
-by running through a hashing function such as SHA-256. 
+The merkle tree returned here is not a minimal tree, or specified to any depth
+(it's opaque). The content can be compressed further by running through a hashing 
+function such as SHA-256 to get a minimal hash. 
 
-Note: I'm unsure if "hash" is the best term here. It's a string that effectively 
-describes the content of the `Compilation`. In many ways it resembles a tree file 
-in `git`. Very much open to better terminology here.
+For example here is the proposed return for the following `net5.0` program:
+
+```c#
+System.Console.WriteLine("Hello World");
+```
+
+```json
+{
+  "options": {
+    "outputKind": "ConsoleApplication",
+    "scriptClassName": "Script",
+    "publicSign": false,
+    "checkOverflow": false,
+    "platform": "AnyCpu",
+    "optimizationLevel": "Release",
+    "generalDiagnosticOption": "Default",
+    "warningLevel": 9999,
+    "deterministic": false,
+    "debugPlusMode": false,
+    "referencesSupersedeLowerVersions": false,
+    "reportSuppressedDiagnostics": false,
+    "nullableContextOptions": "Disable",
+    "unsafe": false,
+    "topLevelBinderFlags": "None"
+  },
+  "syntaxTrees": [
+    {
+      "fileName": "",
+      "text": {
+        "checksum": "1b565cf6f2d814a4dc37ce578eda05fe0614f3d",
+        "checksumAlgorithm": "Sha1",
+        "encoding": "Unicode (UTF-8)"
+      },
+      "parseOptions": {
+        "languageVersion": "CSharp9",
+        "specifiedLanguageVersion": "Default"
+      }
+    }
+  ],
+  "references": [ 
+      // omitted for brevity 
+  ]
+}
+```
+
+The full output can be seen [here](https://gist.github.com/jaredpar/654d84f64de2d728685a7d4ccde944e7)
+
+Note: I'm unsure if "merkle tree" is the best term here. It's not a precise merkle
+tree because it does have non-hash leafs. But this term is used for other formats
+like a git tree that also don't have pure hash values in the leafs.
 
 ## Usage Examples
 
@@ -110,4 +159,8 @@ How does this compare to analogous APIs in other ecosystems and libraries?
 ## Risks
 
 Determinism is hard
+
+## Work Remaining
+ - Need to consider `EmitOptions` in the output of `GetDeterministicKey`
+
 

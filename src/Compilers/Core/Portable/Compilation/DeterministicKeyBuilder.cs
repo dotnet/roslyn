@@ -95,6 +95,14 @@ namespace Microsoft.CodeAnalysis
         {
             if (!value.IsDefault)
             {
+                WriteByteArray(name, value.AsSpan());
+            }
+        }
+
+        protected void WriteByteArray(string name, ReadOnlySpan<byte> value)
+        {
+            if (value.Length > 0)
+            {
                 var builder = new StringBuilder();
                 foreach (var b in value)
                 {
@@ -247,14 +255,14 @@ namespace Microsoft.CodeAnalysis
             Writer.WriteObjectStart();
             if (reference is PortableExecutableReference peReference)
             {
-                Guid mvid;
+                ModuleMetadata moduleMetadata;
                 switch (peReference.GetMetadata())
                 {
                     case AssemblyMetadata assemblyMetadata:
                         {
                             if (assemblyMetadata.GetModules() is { Length: 1 } modules)
                             {
-                                mvid = modules[0].GetModuleVersionId();
+                                moduleMetadata = modules[0];
                             }
                             else
                             {
@@ -262,22 +270,25 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                         break;
-                    case ModuleMetadata moduleMetadata:
-                        mvid = moduleMetadata.GetModuleVersionId();
+                    case ModuleMetadata m:
+                        moduleMetadata = m;
                         break;
                     default:
                         throw new InvalidOperationException();
                 }
 
-                if (peReference.FilePath is null)
-                {
-                    throw new InvalidOperationException();
-                }
-
                 // The path of a reference, unlike the path of a file, does not contribute to the output
                 // of the copmilation. Only the MVID, name and version contribute here hence the file path
                 // is deliberately omitted here.
-                WriteString("name", peReference.Display);
+                if (moduleMetadata.GetMetadataReader() is { IsAssembly: true } peReader)
+                {
+                    var assemblyDef = peReader.GetAssemblyDefinition();
+                    WriteString("name", peReader.GetString(assemblyDef.Name));
+                    WriteString("version", assemblyDef.Version.ToString());
+                    WriteByteArray("publicKey", peReader.GetBlobBytes(assemblyDef.PublicKey).AsSpan());
+                }
+
+                WriteString("mvid", moduleMetadata.GetModuleVersionId().ToString());
                 Writer.WriteKey("properties");
                 WriteMetadataReferenceProperties(reference.Properties);
             }
