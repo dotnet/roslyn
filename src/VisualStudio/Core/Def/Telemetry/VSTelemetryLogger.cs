@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void Log(FunctionId functionId, LogMessage logMessage)
         {
-            if (logMessage.LogLevel < LogLevel.Information)
+            if (IgnoreMessage(logMessage))
             {
                 return;
             }
@@ -53,6 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int blockId, CancellationToken cancellationToken)
         {
+            if (IgnoreMessage(logMessage))
+            {
+                return;
+            }
+
             try
             {
                 // guard us from exception thrown by telemetry
@@ -67,6 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int blockId, int delta, CancellationToken cancellationToken)
         {
+            if (IgnoreMessage(logMessage))
+            {
+                return;
+            }
+
             try
             {
                 // guard us from exception thrown by telemetry
@@ -88,6 +98,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             {
             }
         }
+
+        private static bool IgnoreMessage(LogMessage logMessage)
+            => logMessage.LogLevel < LogLevel.Information;
 
         private static LogType GetKind(LogMessage logMessage)
             => logMessage is KeyValueLogMessage kvLogMessage
