@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
 
         public static string GetGeneratorTypeName(ISourceGenerator generator)
         {
-            return GeneratorDriver.GetGeneratorType(generator).FullName!;
+            return generator.GetGeneratorType().FullName!;
         }
 
         public static string GetGeneratorAssemblyName(ISourceGenerator generator)
