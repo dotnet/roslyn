@@ -3,17 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    [Shared]
     [Export(typeof(IDocumentOptionsProviderFactory))]
+    [Order(Before = PredefinedDocumentOptionsProviderNames.EditorConfig)]
     internal sealed class RazorDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly Lazy<IRazorDocumentOptionsService> _innerRazorDocumentOptionsService;
