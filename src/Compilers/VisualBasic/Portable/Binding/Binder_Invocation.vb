@@ -2907,7 +2907,8 @@ ProduceBoundNode:
                 Dim propertyAccess = TryCast(argument, BoundPropertyAccess)
 
                 If propertyAccess IsNot Nothing AndAlso propertyAccess.AccessKind <> PropertyAccessKind.Get AndAlso
-                   propertyAccess.PropertySymbol.SetMethod?.IsInitOnly Then
+
+                    propertyAccess.PropertySymbol.SetMethod?.IsInitOnly Then
                     Debug.Assert(Not propertyAccess.IsWriteable) ' Used to be writable prior to VB 16.9, which caused a use-site error while binding an assignment above.
                     InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
                                                                    argument.Syntax.Location,
