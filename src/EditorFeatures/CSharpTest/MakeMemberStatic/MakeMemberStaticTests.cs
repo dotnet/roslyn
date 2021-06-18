@@ -49,7 +49,7 @@ public static class Foo
 public static class Foo
 {
     // comment
-    readonly static int i;
+    static readonly int i;
 }");
         }
 
