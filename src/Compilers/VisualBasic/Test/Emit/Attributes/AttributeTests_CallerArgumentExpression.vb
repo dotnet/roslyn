@@ -560,9 +560,81 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestDelegate1()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Delegate Sub M(s1 As String, <CallerArgumentExpression(""s1"")> ByRef s2 as String)
+
+    Shared Sub MImpl(s1 As String, ByRef s2 As String)
+        Console.WriteLine(s1)
+        Console.WriteLine(s2)
+    End Sub
+
+    Public Shared Sub Main()
+        Dim x As M = AddressOf MImpl
+        x.EndInvoke("""", Nothing)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="2, 1+  1
+4, explicit-value").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub ComClass()
             Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic
+
+Namespace System.Runtime.InteropServices
+    <AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.[Interface] Or AttributeTargets.[Class] Or AttributeTargets.[Enum] Or AttributeTargets.Struct Or AttributeTargets.[Delegate], Inherited:=False)>
+    Public NotInheritable Class GuidAttribute
+        Inherits Attribute
+
+        Public Sub New(guid As String)
+            Value = guid
+        End Sub
+
+        Public ReadOnly Property Value As String
+    End Class
+
+    <AttributeUsage(AttributeTargets.Assembly Or AttributeTargets.[Class], Inherited:=False)>
+    Public NotInheritable Class ClassInterfaceAttribute
+        Inherits Attribute
+
+        Public Sub New(classInterfaceType As ClassInterfaceType)
+            Value = classInterfaceType
+        End Sub
+
+        Public Sub New(classInterfaceType As Short)
+            Value = CType(classInterfaceType, ClassInterfaceType)
+        End Sub
+
+        Public ReadOnly Property Value As ClassInterfaceType
+    End Class
+
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Field Or AttributeTargets.[Property] Or AttributeTargets.[Event], Inherited:=False)>
+    Public NotInheritable Class DispIdAttribute
+        Inherits Attribute
+
+        Public Sub New(dispId As Integer)
+            Value = dispId
+        End Sub
+
+        Public ReadOnly Property Value As Integer
+    End Class
+
+    Public Enum ClassInterfaceType
+        None = 0
+        AutoDispatch = 1
+        AutoDual = 2
+    End Enum
+End Namespace
 
 <ComClass(ComClass1.ClassId, ComClass1.InterfaceId, ComClass1.EventsId)>
 Public Class ComClass1
@@ -580,22 +652,26 @@ Public Class ComClass1
         MyBase.New()
     End Sub
 
-    Public Sub M(x As Integer, Optional y As String = """")
+    Public Sub M(x As Integer, <CallerArgumentExpression(""x"")> Optional y As String = ""<default>"")
+        Console.WriteLine(y)
     End Sub
 End Class
+"
+            Dim comp1 = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.RegularLatest)
+            comp1.VerifyDiagnostics()
+
+            Dim source2 = "
+Imports System
 
 Module Program
     Sub Main()
-        Dim comObj As New ComClass1()
-        comObj.M(1+  0)
+        Dim x As ComClass1._ComClass1 = New ComClass1()
+        x.M(1 + 2)
     End Sub
 End Module
 "
-            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="").VerifyDiagnostics() ' PROTOTYPE(caller-expr): Figure out how to fix these:
-            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.GuidAttribute..ctor' is not defined.
-            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.ClassInterfaceAttribute..ctor' is not defined.
-            ' (5) : error BC35000: Requested operation is not available because the runtime library function 'System.Runtime.InteropServices.DispIdAttribute..ctor' is not defined.
+            Dim comp2 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, TestOptions.ReleaseExe, TestOptions.RegularLatest)
+            CompileAndVerify(comp2, expectedOutput:="1 + 2").VerifyDiagnostics()
         End Sub
 #End Region
     End Class
