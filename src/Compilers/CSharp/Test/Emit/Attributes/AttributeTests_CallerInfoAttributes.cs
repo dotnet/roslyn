@@ -443,11 +443,7 @@ C.M(""value"");
 
             var compilation = CreateCompilationWithIL(source, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value").VerifyDiagnostics(
-                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
-                //         [CallerArgumentExpression("p")] string p = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
-                );
+value").VerifyDiagnostics();
         }
         #endregion
 
@@ -854,7 +850,11 @@ public class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default>
-value").VerifyDiagnostics();
+value").VerifyDiagnostics(
+            // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+            //         [CallerArgumentExpression("p")] string p = "<default>")
+            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
+            );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1411,7 +1411,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
-s4: ""_""").VerifyDiagnostics(); // PROTOTYPE(caller-arg): Should 'out' keyword be included?
+s4: _").VerifyDiagnostics(); // PROTOTYPE(caller-arg): Should 'out' keyword be included?
         }
         #endregion
 
