@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return ImmutableArray.Create(sizes);
         }
 
-        internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
+        internal EmitBaseline GetDelta(Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
             var addedOrChangedMethodsByIndex = new Dictionary<int, AddedOrChangedMethodInfo>();
             foreach (var pair in _addedOrChangedMethods)
@@ -172,22 +172,35 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // If the previous generation is 0 (metadata) get the synthesized members from the current compilation's builder,
             // otherwise members from the current compilation have already been merged into the baseline.
-            var synthesizedMembers = (baseline.Ordinal == 0) ? module.GetAllSynthesizedMembers() : baseline.SynthesizedMembers;
+            var synthesizedMembers = (_previousGeneration.Ordinal == 0) ? module.GetAllSynthesizedMembers() : _previousGeneration.SynthesizedMembers;
 
-            return baseline.With(
+            var currentGenerationOrdinal = _previousGeneration.Ordinal + 1;
+
+            var addedTypes = _typeDefs.GetAdded();
+            var generationOrdinals = CreateDictionary(_previousGeneration.GenerationOrdinals, SymbolEquivalentEqualityComparer.Instance);
+            foreach (var (addedType, _) in addedTypes)
+            {
+                if (_changes.HasInsertExistingEmitSemantics(addedType))
+                {
+                    generationOrdinals[addedType] = currentGenerationOrdinal;
+                }
+            }
+
+            return _previousGeneration.With(
                 compilation,
                 module,
-                baseline.Ordinal + 1,
+                currentGenerationOrdinal,
                 encId,
-                typesAdded: AddRange(_previousGeneration.TypesAdded, _typeDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
-                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: Cci.SymbolEquivalentEqualityComparer.Instance),
+                generationOrdinals,
+                typesAdded: AddRange(_previousGeneration.TypesAdded, addedTypes, comparer: SymbolEquivalentEqualityComparer.Instance),
+                eventsAdded: AddRange(_previousGeneration.EventsAdded, _eventDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                fieldsAdded: AddRange(_previousGeneration.FieldsAdded, _fieldDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                methodsAdded: AddRange(_previousGeneration.MethodsAdded, _methodDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
+                propertiesAdded: AddRange(_previousGeneration.PropertiesAdded, _propertyDefs.GetAdded(), comparer: SymbolEquivalentEqualityComparer.Instance),
                 eventMapAdded: AddRange(_previousGeneration.EventMapAdded, _eventMap.GetAdded()),
                 propertyMapAdded: AddRange(_previousGeneration.PropertyMapAdded, _propertyMap.GetAdded()),
                 methodImplsAdded: AddRange(_previousGeneration.MethodImplsAdded, _methodImpls.GetAdded()),
-                customAttributesAdded: AddRange(_previousGeneration.CustomAttributesAdded, _customAttributesAdded, replace: true),
+                customAttributesAdded: AddRange(_previousGeneration.CustomAttributesAdded, _customAttributesAdded),
                 tableEntriesAdded: ImmutableArray.Create(tableSizes),
                 // Blob stream is concatenated aligned.
                 blobStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.Blob) + _previousGeneration.BlobStreamLengthAdded,
@@ -199,12 +212,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
-                addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex, replace: true),
-                debugInformationProvider: baseline.DebugInformationProvider,
-                localSignatureProvider: baseline.LocalSignatureProvider);
+                addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
+                debugInformationProvider: _previousGeneration.DebugInformationProvider,
+                localSignatureProvider: _previousGeneration.LocalSignatureProvider);
         }
 
-        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false, IEqualityComparer<K>? comparer = null)
+        private static Dictionary<K, V> CreateDictionary<K, V>(IReadOnlyDictionary<K, V> dictionary, IEqualityComparer<K>? comparer)
+            where K : notnull
+        {
+            var result = new Dictionary<K, V>(comparer);
+            foreach (var pair in dictionary)
+            {
+                result.Add(pair.Key, pair.Value);
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, IEqualityComparer<K>? comparer = null)
             where K : notnull
         {
             if (previous.Count == 0)
@@ -217,15 +242,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return previous;
             }
 
-            var result = new Dictionary<K, V>(comparer);
-            foreach (var pair in previous)
-            {
-                result.Add(pair.Key, pair.Value);
-            }
-
+            var result = CreateDictionary(previous, comparer);
             foreach (var pair in current)
             {
-                Debug.Assert(replace || !previous.ContainsKey(pair.Key));
+                // Use the latest symbol.
                 result[pair.Key] = pair.Value;
             }
 

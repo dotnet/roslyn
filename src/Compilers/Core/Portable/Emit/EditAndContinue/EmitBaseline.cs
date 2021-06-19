@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal: 0,
                 encId: default,
                 hasPortablePdb: hasPortableDebugInformation,
+                generationOrdinals: new Dictionary<Cci.IDefinition, int>(),
                 typesAdded: new Dictionary<Cci.ITypeDefinition, int>(),
                 eventsAdded: new Dictionary<Cci.IEventDefinition, int>(),
                 fieldsAdded: new Dictionary<Cci.IFieldDefinition, int>(),
@@ -254,6 +255,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// if full metadata.
         /// </summary>
         internal readonly Guid EncId;
+
+        /// <summary>
+        /// The latest generation number of each symbol that added via <see cref="SemanticEditKind.InsertExisting"/> edit.
+        /// </summary>
+        internal readonly IReadOnlyDictionary<Cci.IDefinition, int> GenerationOrdinals;
 
         internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, int> TypesAdded;
         internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
@@ -311,6 +317,7 @@ namespace Microsoft.CodeAnalysis.Emit
             int ordinal,
             Guid encId,
             bool hasPortablePdb,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
@@ -372,6 +379,7 @@ namespace Microsoft.CodeAnalysis.Emit
             EncId = encId;
             HasPortablePdb = hasPortablePdb;
 
+            GenerationOrdinals = generationOrdinals;
             TypesAdded = typesAdded;
             EventsAdded = eventsAdded;
             FieldsAdded = fieldsAdded;
@@ -403,6 +411,7 @@ namespace Microsoft.CodeAnalysis.Emit
             CommonPEModuleBuilder moduleBuilder,
             int ordinal,
             Guid encId,
+            IReadOnlyDictionary<Cci.IDefinition, int> generationOrdinals,
             IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded,
             IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded,
             IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded,
@@ -435,6 +444,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 ordinal,
                 encId,
                 HasPortablePdb,
+                generationOrdinals,
                 typesAdded,
                 eventsAdded,
                 fieldsAdded,

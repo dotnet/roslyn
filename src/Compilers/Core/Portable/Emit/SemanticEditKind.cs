@@ -25,5 +25,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Node was deleted.
         /// </summary>
         Delete = 3,
+
+        InsertExisting = 4
     }
 }

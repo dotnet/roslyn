@@ -24,13 +24,27 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
 
+        /// <summary>
+        /// A set of symbols whose name emitted to metadata must include a "#{generation}" suffix to avoid naming collisions with existing types.
+        /// Populated based on semantic edits with <see cref="SemanticEditKind.InsertExisting"/>.
+        /// </summary>
+        private readonly ISet<ISymbol> _symbolsWithInsertExistingSemantics;
+
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
             _definitionMap = definitionMap;
             _isAddedSymbol = isAddedSymbol;
-            _changes = CalculateChanges(edits);
+            CalculateChanges(edits, out _changes, out _symbolsWithInsertExistingSemantics);
+        }
+
+        public DefinitionMap DefinitionMap => _definitionMap;
+
+        public bool HasInsertExistingEmitSemantics(IDefinition definition)
+        {
+            var symbol = definition.GetInternalSymbol();
+            return symbol is not null && _symbolsWithInsertExistingSemantics.Contains(symbol.GetISymbol());
         }
 
         /// <summary>
@@ -221,9 +235,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be 
         /// generated during lowering of the changed user-defined symbols.
         /// </summary>
-        private static IReadOnlyDictionary<ISymbol, SymbolChange> CalculateChanges(IEnumerable<SemanticEdit> edits)
+        private static void CalculateChanges(IEnumerable<SemanticEdit> edits, out IReadOnlyDictionary<ISymbol, SymbolChange> changes, out ISet<ISymbol> insertNewSymbols)
         {
-            var changes = new Dictionary<ISymbol, SymbolChange>();
+            var changesBuilder = new Dictionary<ISymbol, SymbolChange>();
+            HashSet<ISymbol>? lazyInsertNewSymbolsBuilder = null;
 
             foreach (var edit in edits)
             {
@@ -236,6 +251,12 @@ namespace Microsoft.CodeAnalysis.Emit
                         break;
 
                     case SemanticEditKind.Insert:
+                        change = SymbolChange.Added;
+                        break;
+
+                    case SemanticEditKind.InsertExisting:
+                        Debug.Assert(edit.NewSymbol != null);
+                        (lazyInsertNewSymbolsBuilder ??= new HashSet<ISymbol>()).Add(edit.NewSymbol);
                         change = SymbolChange.Added;
                         break;
 
@@ -267,11 +288,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                AddContainingTypesAndNamespaces(changes, member);
-                changes.Add(member, change);
+                AddContainingTypesAndNamespaces(changesBuilder, member);
+                changesBuilder.Add(member, change);
             }
 
-            return changes;
+            changes = changesBuilder;
+            insertNewSymbols = lazyInsertNewSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbol>();
         }
 
         private static void AddContainingTypesAndNamespaces(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)

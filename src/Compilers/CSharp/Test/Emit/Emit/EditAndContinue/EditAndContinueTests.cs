@@ -2087,6 +2087,227 @@ class C
         }
 
         [Fact]
+        public void UpdateType_AddAttributes()
+        {
+            var source0 = @"
+class C
+{
+}";
+            var source1 = @"
+[System.ComponentModel.Description(""C"")]
+class C
+{
+}";
+            var source2 = @"
+[System.ComponentModel.Description(""C"")]
+[System.ObsoleteAttribute]
+class C
+{
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+
+            Assert.Equal(3, reader0.CustomAttributes.Count);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c0, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "C");
+
+            Assert.Equal(1, reader1.CustomAttributes.Count);
+
+            CheckEncLogDefinitions(reader1,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute));
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, c1, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames(), "C");
+
+            Assert.Equal(2, reader2.CustomAttributes.Count);
+
+            CheckEncLogDefinitions(reader2,
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader2,
+                Handle(2, TableIndex.TypeDef),
+                Handle(4, TableIndex.CustomAttribute),
+                Handle(5, TableIndex.CustomAttribute));
+        }
+
+        [Fact]
+        public void UpdateType_InsertExisting()
+        {
+            var source0 = @"
+class C 
+{
+    void F(int x) {}
+}
+";
+            var source1 = @"
+class C
+{
+    void F(int x, int y) { }
+}";
+            var source2 = @"
+class C
+{
+    void F(int x, int y) { System.Console.WriteLine(1); }
+}";
+            var source3 = @"
+[System.Obsolete]
+class C
+{
+    void F(int x, int y) { System.Console.WriteLine(2); }
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+            var compilation3 = compilation2.WithSource(source3);
+
+            var c0 = compilation0.GetMember<NamedTypeSymbol>("C");
+            var c1 = compilation1.GetMember<NamedTypeSymbol>("C");
+            var c2 = compilation2.GetMember<NamedTypeSymbol>("C");
+            var c3 = compilation3.GetMember<NamedTypeSymbol>("C");
+            var f2 = c2.GetMember<MethodSymbol>("F");
+            var f3 = c3.GetMember<MethodSymbol>("F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray();
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.InsertExisting, null, c1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "C#1");
+
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader1,
+                Handle(3, TableIndex.TypeDef),
+                Handle(3, TableIndex.MethodDef),
+                Handle(4, TableIndex.MethodDef),
+                Handle(2, TableIndex.Param),
+                Handle(3, TableIndex.Param));
+
+            // This update emulates "Reloadable" type behavior - a new type is generated instead of updating the existing one.
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.InsertExisting, null, c2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames(), "C#2");
+
+            CheckEncLogDefinitions(reader2,
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader2,
+                Handle(4, TableIndex.TypeDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(6, TableIndex.MethodDef),
+                Handle(4, TableIndex.Param),
+                Handle(5, TableIndex.Param));
+
+            // This update is an EnC update - even reloadable types are update in-place
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, c2, c3),
+                    SemanticEdit.Create(SemanticEditKind.Update, f2, f3)));
+
+            // Verify delta metadata contains expected rows.
+            using var md3 = diff3.GetMetadata();
+            var reader3 = md3.Reader;
+            readers = new[] { reader0, reader1, reader2, reader3 };
+
+            CheckNames(readers, reader3.GetTypeDefNames(), "C#2");
+
+            CheckEncLogDefinitions(reader3,
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+
+            CheckEncMapDefinitions(reader3,
+                Handle(4, TableIndex.TypeDef),
+                Handle(5, TableIndex.MethodDef),
+                Handle(4, TableIndex.CustomAttribute));
+        }
+
+        [Fact]
         public void AddNestedTypeAndMembers()
         {
             var source0 =

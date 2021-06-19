@@ -1,4 +1,5 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -579,6 +580,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), hasChanges);
                 }
 
+                // We are in break state when there are no active statements.
+                var inBreakState = !oldActiveStatementMap.IsEmpty;
+
                 // We do calculate diffs even if there are semantic errors for the following reasons: 
                 // 1) We need to be able to find active spans in the new document. 
                 //    If we didn't calculate them we would only rely on tracking spans (might be ok).
@@ -594,7 +598,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var editMap = BuildEditMap(syntacticEdits);
                 var hasRudeEdits = false;
 
-                ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+                // TODO: Edits in reloadable types should not be reported here.
+                // ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
                 if (diagnostics.Count > 0 && !hasRudeEdits)
                 {
@@ -652,6 +657,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatements,
                     newExceptionRegions,
                     capabilities,
+                    inBreakState,
                     cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -2479,8 +2485,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<ActiveStatement>.Builder newActiveStatements,
             ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
             EditAndContinueCapabilities capabilities,
+            bool inBreakState,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(inBreakState || newActiveStatementSpans.IsEmpty);
+
             if (editScript.Edits.Length == 0 && triviaEdits.Count == 0)
             {
                 return ImmutableArray<SemanticEditInfo>.Empty;
@@ -2546,6 +2555,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Ignore ambiguous resolution result - it may happen if there are semantic errors in the compilation.
                         oldSymbol ??= symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
                         newSymbol ??= symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+
+                        if (!inBreakState)
+                        {
+                            // TODO: reloadable <-> non-reloadable type
+                            if (oldSymbol != null && IsReloadable(oldSymbol.ContainingType) ||
+                                newSymbol != null && IsReloadable(newSymbol.ContainingType))
+                            {
+                                INamedTypeSymbol? newType;
+                                SymbolKey typeSymbolKey;
+                                if (newSymbol != null)
+                                {
+                                    newType = newSymbol.ContainingType;
+                                    typeSymbolKey = SymbolKey.Create(newType, cancellationToken);
+                                }
+                                else
+                                {
+                                    Debug.Assert(oldSymbol != null);
+
+                                    typeSymbolKey = SymbolKey.Create(oldSymbol.ContainingType, cancellationToken);
+                                    newType = (INamedTypeSymbol?)typeSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                }
+
+                                // If the new type is not deleted issue a InsertExisting edit, otherwise continue with regular semantics.
+                                if (newType != null)
+                                {
+                                    if (processedSymbols.Add(newType))
+                                    {
+                                        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.InsertExisting, typeSymbolKey, syntaxMap: null, syntaxMapTree: null, partialType: null));
+                                    }
+
+                                    continue;
+                                }
+                            }
+                        }
 
                         var (oldDeclaration, newDeclaration) = GetSymbolDeclarationNodes(oldSymbol, newSymbol, edit.OldNode, edit.NewNode);
 
@@ -3179,6 +3222,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
             }
+        }
+
+        private static bool IsReloadable(INamedTypeSymbol type)
+        {
+            foreach (var attributeData in type.GetAttributes())
+            {
+                // We assume that the attributes, if exist, are well formed.
+                // If not an error will be reported during EnC delta emit.
+                if (attributeData.AttributeClass is { Name: "ReloadableAttribute", ContainingNamespace: { Name: "CompilerServices", ContainingNamespace: { Name: "Runtime", ContainingNamespace: { Name: "System" } } } })
+                {
+                    return true;
+                }
+            }
+
+            // TODO: workaround
+#pragma warning disable format
+            return type.AllInterfaces.Any(iface => iface is
+                { Name: "IComponent", ContainingNamespace: { Name: "Components", ContainingNamespace: { Name: "AspNetCore", ContainingNamespace: { Name: "Microsoft" } } } } or
+                { Name: "IRazorPage", ContainingNamespace: { Name: "Razor", ContainingNamespace: { Name: "Mvc", ContainingNamespace: { Name: "AspNetCore", ContainingNamespace: { Name: "Microsoft" } } } } });
+#pragma warning restore format
         }
 
         private sealed class SemanticEditInfoComparer : IEqualityComparer<SemanticEditInfo>

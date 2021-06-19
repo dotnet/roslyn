@@ -139,59 +139,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
+        private static bool IsDefinition(HandleKind kind)
+            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference);
+
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
             AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
         }
 
+        /// <summary>
+        /// Checks that the EncLog contains specified definition rows. References are ignored as they are usually not interesting to validate. They are emitted as needed.
+        /// </summary>
         internal static void CheckEncLogDefinitions(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(IsDefinition), itemInspector: EncLogRowToString);
-        }
-
-        private static bool IsDefinition(EditAndContinueLogEntry entry)
-        {
-            TableIndex index;
-            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.Kind, out index));
-
-            switch (index)
-            {
-                case TableIndex.MethodDef:
-                case TableIndex.Field:
-                case TableIndex.Constant:
-                case TableIndex.GenericParam:
-                case TableIndex.GenericParamConstraint:
-                case TableIndex.Event:
-                case TableIndex.CustomAttribute:
-                case TableIndex.DeclSecurity:
-                case TableIndex.Assembly:
-                case TableIndex.MethodImpl:
-                case TableIndex.Param:
-                case TableIndex.Property:
-                case TableIndex.TypeDef:
-                case TableIndex.ExportedType:
-                case TableIndex.StandAloneSig:
-                case TableIndex.ClassLayout:
-                case TableIndex.FieldLayout:
-                case TableIndex.FieldMarshal:
-                case TableIndex.File:
-                case TableIndex.ImplMap:
-                case TableIndex.InterfaceImpl:
-                case TableIndex.ManifestResource:
-                case TableIndex.MethodSemantics:
-                case TableIndex.Module:
-                case TableIndex.NestedClass:
-                case TableIndex.EventMap:
-                case TableIndex.PropertyMap:
-                    return true;
-            }
-
-            return false;
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString);
         }
 
         internal static void CheckEncMap(MetadataReader reader, params EntityHandle[] handles)
         {
             AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
+        }
+
+        internal static void CheckEncMapDefinitions(MetadataReader reader, params EntityHandle[] handles)
+        {
+            AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString);
         }
 
         internal static void CheckAttributes(MetadataReader reader, params CustomAttributeRow[] rows)

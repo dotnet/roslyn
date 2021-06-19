@@ -931,9 +931,9 @@ namespace Microsoft.Cci
             return (uint)result;
         }
 
-        public static string GetMangledName(INamedTypeReference namedType)
+        public static string GetMangledName(INamedTypeReference namedType, int generation = 0)
         {
-            string unmangledName = namedType.Name;
+            string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
 
             return namedType.MangleName
                 ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
@@ -2715,7 +2715,31 @@ namespace Microsoft.Cci
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
                 INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
-                string mangledTypeName = GetMangledName(typeDef);
+
+                var moduleBuilder = Context.Module;
+                int generation = 0;
+
+                if (moduleBuilder.PreviousGeneration != null)
+                {
+                    var symbolChanges = moduleBuilder.EncSymbolChanges!;
+
+                    if (symbolChanges.HasInsertExistingEmitSemantics(typeDef))
+                    {
+                        // Type emitted with InsertExisting semantics in this delta, it's name should have the current generation ordinal suffix.
+                        generation = moduleBuilder.CurrentGenerationOrdinal;
+                    }
+                    else
+                    {
+                        var previousTypeDef = symbolChanges.DefinitionMap.MapDefinition(typeDef);
+                        if (previousTypeDef != null && moduleBuilder.PreviousGeneration.GenerationOrdinals.TryGetValue(previousTypeDef, out int lastEmittedOrdinal))
+                        {
+                            // Type previously emitted with InsertExisting semantics is now updated in-place. Use the ordinal used to emit the last version of the type.
+                            generation = lastEmittedOrdinal;
+                        }
+                    }
+                }
+
+                string mangledTypeName = GetMangledName(typeDef, generation);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
 
                 metadata.AddTypeDefinition(
