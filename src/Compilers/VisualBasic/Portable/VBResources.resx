@@ -5629,4 +5629,7 @@
   <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
     <value>'UnmanagedCallersOnly' attribute is not supported.</value>
   </data>
+  <data name="FEATURE_CallerArgumentExpression" xml:space="preserve">
+    <value>caller argument expression</value>
+  </data>
 </root>

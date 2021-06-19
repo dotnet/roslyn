@@ -3178,8 +3178,11 @@ ProduceBoundNode:
                                 End If
                             End If
 
-                            ' PROTOTYPE(caller-expr): Check feature availability
                             If argumentSyntax IsNot Nothing Then
+                                InternalSyntax.Parser.CheckFeatureAvailability(diagnostics,
+                                                                   argumentSyntax.Location,
+                                                                   DirectCast(argumentSyntax.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                                                   InternalSyntax.Feature.CallerArgumentExpression)
                                 callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
                             End If
                         End If

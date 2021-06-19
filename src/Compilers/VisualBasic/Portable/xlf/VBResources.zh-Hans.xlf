@@ -62,6 +62,11 @@
         <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行继续符之后的注释</target>

@@ -62,6 +62,11 @@
         <target state="translated">'UnmanagedCallersOnly' 특성은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">줄 연속 뒤 주석</target>

@@ -62,6 +62,11 @@
         <target state="translated">No se admite el atributo "UnmanagedCallersOnly".</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">comentarios después de la continuación de línea</target>

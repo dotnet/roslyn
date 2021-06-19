@@ -32,7 +32,28 @@ End Module
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+        End Sub
 
+        <Fact>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(123)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            compilation.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_LanguageVersion, "123").WithArguments("16.9", "caller argument expression", "17").WithLocation(6, 13))
         End Sub
 
         <Fact>
@@ -587,7 +608,6 @@ End Class
         <Fact>
         Public Sub ComClass()
             Dim source As String = "
-Imports System
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic
 
