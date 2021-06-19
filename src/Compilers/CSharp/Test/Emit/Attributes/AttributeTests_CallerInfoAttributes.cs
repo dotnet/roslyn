@@ -848,7 +848,6 @@ public class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
             // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
