@@ -628,7 +628,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return Binder.GetMethodGroupOrLambdaDelegateType(returnRefKind, returnType, parameterRefKinds, parameterTypes, ref useSiteInfo);
+            return Binder.GetMethodGroupOrLambdaDelegateType(
+                returnRefKind,
+                returnType.Type?.IsVoidType() == true ? default : returnType,
+                parameterRefKinds,
+                parameterTypes,
+                ref useSiteInfo);
         }
 
         private BoundLambda ReallyBind(NamedTypeSymbol delegateType)
