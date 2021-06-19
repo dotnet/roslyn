@@ -253,10 +253,7 @@ Display this help message.");
 #pragma warning restore CA1031 // Do not catch general exception types
                 finally
                 {
-                    if (metricFile != null)
-                    {
-                        metricFile.Close();
-                    }
+                    metricFile?.Close();
                 }
             }
         }
