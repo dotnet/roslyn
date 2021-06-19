@@ -3179,7 +3179,6 @@ ProduceBoundNode:
                             End If
 
                             ' PROTOTYPE(caller-expr): Check feature availability
-                            ' PROTOTYPE(caller-expr): Tests
                             If argumentSyntax IsNot Nothing Then
                                 callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
                             End If
