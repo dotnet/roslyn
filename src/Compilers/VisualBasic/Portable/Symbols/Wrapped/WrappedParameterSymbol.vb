@@ -135,34 +135,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerLineNumber
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerMemberName
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
-            Get
-                ' PROTOTYPE(caller-expr): From feedback:
-                ' It is hard to confirm if this implementation is correct for existing
-                ' derived types and will be correct for future derived types.
-                ' I think we should let derived types to handle implementation. For C# as well.
-                Return Me._underlyingParameter.CallerArgumentExpressionParameterIndex
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property IsExplicitByRef As Boolean
             Get
                 Return Me._underlyingParameter.IsExplicitByRef

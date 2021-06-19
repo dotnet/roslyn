@@ -465,7 +465,7 @@ Public Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source2, references:={ref1, Net451.MicrosoftVisualBasic}, targetFramework:=TargetFramework.NetCoreApp, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(Compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -672,6 +672,60 @@ End Module
 "
             Dim comp2 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, TestOptions.ReleaseExe, TestOptions.RegularLatest)
             CompileAndVerify(comp2, expectedOutput:="1 + 2").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Tuple()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+
+Namespace System.Runtime.CompilerServices
+    Public Interface ITuple
+        ReadOnly Property Length As Integer
+        Default ReadOnly Property Item(index As Integer) As Object
+    End Interface
+End Namespace
+
+Namespace System
+    Public Structure ValueTuple(Of T1, T2) : Implements ITuple
+        Public Item1 As T1
+        Public Item2 As T2
+
+        Public Sub New(item1 As T1, item2 As T2)
+            item1 = item1
+            item2 = item2
+        End Sub
+
+        Default Public ReadOnly Property Item(index As Integer) As Object Implements ITuple.Item
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
+        Public ReadOnly Property Length As Integer Implements ITuple.Length
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
+        Public Sub M(s1 As String, <CallerArgumentExpression(""s1"")> Optional s2 As String = ""<default>"")
+            Console.WriteLine(s2)
+        End Sub
+    End Structure
+End Namespace
+
+
+Module Program
+    Sub Main()
+        Dim x = New ValueTuple(Of Integer, Integer)(0, 0)
+        x.M(1 + 2)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="1 + 2").VerifyDiagnostics()
         End Sub
 #End Region
     End Class
