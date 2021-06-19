@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
 #Region "CallerArgumentExpression - Invocations"
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute()
             Dim source As String = "
 Imports System
@@ -34,7 +34,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9()
             Dim source As String = "
 Imports System
@@ -56,7 +56,7 @@ End Module
                 Diagnostic(ERRID.ERR_LanguageVersion, "123").WithArguments("16.9", "caller argument expression", "17").WithLocation(6, 13))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
             Dim source = "
 Imports System
@@ -81,7 +81,7 @@ End Module
                5").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_SwapArguments()
             Dim source = "
 Imports System
@@ -102,7 +102,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="124, 123, 124").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
             Dim source = "
 Imports System
@@ -131,7 +131,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
             Dim source = "
 Imports System
@@ -154,7 +154,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="myIntegerExpression").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
             Dim source = "
 Imports System
@@ -177,7 +177,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="myIntegerExpression * 2").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_IncorrectParameter()
             Dim source = "
 Imports System
@@ -200,7 +200,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
             Dim source = "
 Imports System
@@ -222,7 +222,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default>").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentWithMemberNameAttributes()
             Dim source = "
 Imports System
@@ -243,7 +243,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="Main").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpressionWithOptionalTargetParameter()
             Dim source = "
 Imports System
@@ -270,7 +270,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpressionWithMultipleOptionalAttribute()
             Dim source = "
 Imports System
@@ -306,7 +306,7 @@ caller target value
 callerTargetExp").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
             Dim source = "
 Imports System
@@ -335,7 +335,7 @@ param1: param1_value, param2: param2_value
 param1: param1_value, param2: param2_value").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestArgumentExpressionIsCallerMember()
             Dim source = "
 Imports System
@@ -356,7 +356,7 @@ End Module
 <default-arg-expression>").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestArgumentExpressionIsSelfReferential()
             Dim source = "
 Imports System
@@ -378,7 +378,7 @@ End Module
 value").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestArgumentExpressionIsSelfReferential_Metadata()
             Dim il = ".class private auto ansi '<Module>'
 {
@@ -431,7 +431,7 @@ value").VerifyDiagnostics()
 #End Region
 
 #Region "CallerArgumentExpression - Attributes"
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_Attribute()
             Dim source = "
 Imports System
@@ -455,7 +455,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia_Attribute()
             Dim source = "
 Imports System
@@ -482,7 +482,7 @@ End Module
     + 5").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_DifferentAssembly_AttributeConstructor()
             Dim source = "
 Imports System
@@ -512,7 +512,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="2 + 2").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestIncorrectParameterNameInCallerArgumentExpressionAttribute_AttributeConstructor()
             Dim source = "
 Imports System
@@ -537,7 +537,7 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestCallerArgumentExpressionWithOptionalTargetParameter_AttributeConstructor()
             Dim source = "
 Imports System
@@ -573,7 +573,7 @@ caller target value
 #End Region
 
 #Region "CallerArgumentExpression - Test various symbols"
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestIndexers()
             Dim source As String = "
 Imports System
@@ -603,7 +603,7 @@ End Class
 4, explicit-value").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestDelegate1()
             Dim source As String = "
 Imports System
@@ -628,7 +628,7 @@ End Class
 4, explicit-value").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub ComClass()
             Dim source As String = "
 Imports System.Runtime.CompilerServices
@@ -717,7 +717,7 @@ End Module
             CompileAndVerify(comp2, expectedOutput:="1 + 2").VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub Tuple()
             Dim source As String = "
 Imports System
