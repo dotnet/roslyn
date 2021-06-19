@@ -5,26 +5,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
-using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Completion
 {
-    internal readonly struct MatchResult
+    internal readonly struct MatchResult<TEditorCompletionItem>
     {
         public readonly RoslynCompletionItem RoslynCompletionItem;
         public readonly bool MatchedFilterText;
-        public readonly ImmutableArray<Span> HighlightedSpans;
 
         // In certain cases, there'd be no match but we'd still set `MatchedFilterText` to true,
         // e.g. when the item is in MRU list. Therefore making this nullable.
         public readonly PatternMatch? PatternMatch;
 
-        public readonly VSCompletionItem VSCompletionItem;
+        /// <summary>
+        /// The actual editor completion item associated with this <see cref="RoslynCompletionItem"/>
+        /// In VS for example, this is the associated VS async completion item.
+        /// </summary>
+        public readonly TEditorCompletionItem EditorCompletionItem;
 
         // We want to preserve the original alphabetical order for items with same pattern match score,
         // but `ArrayBuilder.Sort` we currently use isn't stable. So we have to add a monotonically increasing 
@@ -32,26 +32,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly int _indexInOriginalSortedOrder;
 
         public MatchResult(
-            RoslynCompletionItem roslynCompletionItem, VSCompletionItem vsCompletionItem,
-            bool matchedFilterText, PatternMatch? patternMatch, int index,
-            ImmutableArray<Span> highlightedSpans)
+            RoslynCompletionItem roslynCompletionItem,
+            TEditorCompletionItem editorCompletionItem,
+            bool matchedFilterText,
+            PatternMatch? patternMatch,
+            int index)
         {
             RoslynCompletionItem = roslynCompletionItem;
+            EditorCompletionItem = editorCompletionItem;
             MatchedFilterText = matchedFilterText;
             PatternMatch = patternMatch;
-            VSCompletionItem = vsCompletionItem;
             _indexInOriginalSortedOrder = index;
-            HighlightedSpans = highlightedSpans;
         }
 
-        public static IComparer<MatchResult> SortingComparer => FilterResultSortingComparer.Instance;
+        public static IComparer<MatchResult<TEditorCompletionItem>> SortingComparer => FilterResultSortingComparer.Instance;
 
-        private class FilterResultSortingComparer : IComparer<MatchResult>
+        private class FilterResultSortingComparer : IComparer<MatchResult<TEditorCompletionItem>>
         {
             public static FilterResultSortingComparer Instance { get; } = new FilterResultSortingComparer();
 
             // This comparison is used for sorting items in the completion list for the original sorting.
-            public int Compare(MatchResult x, MatchResult y)
+            public int Compare(MatchResult<TEditorCompletionItem> x, MatchResult<TEditorCompletionItem> y)
             {
                 var matchX = x.PatternMatch;
                 var matchY = y.PatternMatch;
@@ -80,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         // This comparison is used in the deletion/backspace scenario for selecting best elements.
-        public int CompareTo(MatchResult other, string filterText)
+        public int CompareTo(MatchResult<TEditorCompletionItem> other, string filterText)
             => ComparerWithState.CompareTo(this, other, filterText, s_comparers);
 
-        private static readonly ImmutableArray<Func<MatchResult, string, IComparable>> s_comparers =
-            ImmutableArray.Create<Func<MatchResult, string, IComparable>>(
+        private static readonly ImmutableArray<Func<MatchResult<TEditorCompletionItem>, string, IComparable>> s_comparers =
+            ImmutableArray.Create<Func<MatchResult<TEditorCompletionItem>, string, IComparable>>(
                 // Prefer the item that matches a longer prefix of the filter text.
                 (f, s) => f.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(s),
                 // If there are "Abc" vs "abc", we should prefer the case typed by user.

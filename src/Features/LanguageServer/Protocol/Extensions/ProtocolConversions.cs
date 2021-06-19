@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             int position,
             CancellationToken cancellationToken)
         {
-            if (context == null)
+            if (context is null)
             {
                 // Some LSP clients don't support sending extra context, so all we can do is invoke
                 return Completion.CompletionTrigger.Invoke;
             }
-            else if (context.TriggerKind == LSP.CompletionTriggerKind.Invoked)
+            else if (context.TriggerKind is LSP.CompletionTriggerKind.Invoked or LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
             {
                 if (context is not LSP.VSCompletionContext vsCompletionContext)
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         return Completion.CompletionTrigger.Invoke;
                 }
             }
-            else if (context.TriggerKind == LSP.CompletionTriggerKind.TriggerCharacter)
+            else if (context.TriggerKind is LSP.CompletionTriggerKind.TriggerCharacter)
             {
                 Contract.ThrowIfNull(context.TriggerCharacter);
                 Contract.ThrowIfFalse(char.TryParse(context.TriggerCharacter, out var triggerChar));

@@ -456,7 +456,7 @@ class C { }
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(source-generators): the addition happens later so the execeptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the execeptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
         public void Generator_HintName_MustBe_Unique()
         {
             var source = @"
