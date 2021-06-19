@@ -850,10 +850,10 @@ public class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: @"<default>
 value").VerifyDiagnostics(
-            // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
-            //         [CallerArgumentExpression("p")] string p = "<default>")
-            Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
-            );
+                // (10,10): warning CS9007: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+                //         [CallerArgumentExpression("p")] string p = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression").WithArguments("p").WithLocation(10, 10)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
