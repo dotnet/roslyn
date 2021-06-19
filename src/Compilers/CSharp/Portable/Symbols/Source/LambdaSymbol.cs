@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool HasExplicitReturnType => (Syntax as ParenthesizedLambdaExpressionSyntax)?.ReturnType is not null;
+        private bool HasExplicitReturnType => Syntax is ParenthesizedLambdaExpressionSyntax { ReturnType: not null };
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {

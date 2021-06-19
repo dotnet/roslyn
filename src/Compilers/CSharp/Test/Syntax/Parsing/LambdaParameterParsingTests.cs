@@ -577,5 +577,91 @@ class C {
             EOF();
         }
 
+        [Fact]
+        public void Arglist_01()
+        {
+            string source = "(__arglist) => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (__arglist) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(__arglist)").WithArguments("=>").WithLocation(1, 1));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ArgListExpression);
+                {
+                    N(SyntaxKind.ArgListKeyword);
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Arglist_02()
+        {
+            string source = "(int x, __arglist) => { }";
+            UsingExpression(source,
+                // (1,1): error CS1073: Unexpected token '=>'
+                // (int x, __arglist) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(int x, __arglist)").WithArguments("=>").WithLocation(1, 1));
+
+            N(SyntaxKind.TupleExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.DeclarationExpression);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CommaToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.ArgListExpression);
+                    {
+                        N(SyntaxKind.ArgListKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Arglist_03()
+        {
+            string source = "static (__arglist) => { }";
+            UsingExpression(source,
+                // (1,9): error CS1041: Identifier expected; '__arglist' is a keyword
+                // static (__arglist) => { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "__arglist").WithArguments("", "__arglist").WithLocation(1, 9));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.StaticKeyword);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
     }
 }

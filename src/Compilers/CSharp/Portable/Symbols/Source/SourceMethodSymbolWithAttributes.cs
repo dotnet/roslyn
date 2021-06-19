@@ -1063,7 +1063,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
-                // is used in an attribute argument - see  https://github.com/dotnet/roslyn/issues/54074.
+                // is used in an attribute argument - see https://github.com/dotnet/roslyn/issues/54074.
+                // (ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct was never reported
+                // for lambda expressions and is not a .NET Core scenario so it's not necessary to handle.)
                 if (this.MethodKind != MethodKind.LambdaMethod)
                 {
                     for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
