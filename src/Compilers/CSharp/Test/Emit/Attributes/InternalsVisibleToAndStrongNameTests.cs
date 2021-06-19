@@ -1058,6 +1058,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
+        // TODO2
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailSignMismatch(CSharpParseOptions parseOptions)
@@ -1088,6 +1089,7 @@ public class A
                 Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
+        // TODO2 add a test for optimistic granting that still repro'es
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatch(CSharpParseOptions parseOptions)
@@ -1105,24 +1107,21 @@ public class A
 
             var requestor = CreateCompilation(
     @"
-[assembly: C()]  //causes optimistic granting
+[assembly: C()]
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class A
 {
 }",
-            new MetadataReference[] { new CSharpCompilationReference(other) },
-            assemblyName: "John",
-             options: TestOptions.SigningReleaseDll,
-             parseOptions: parseOptions);
+                new MetadataReference[] { new CSharpCompilationReference(other) },
+                assemblyName: "John",
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
             requestor.VerifyDiagnostics(
-                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
-                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
-                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
-                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
-                .WithLocation(1, 1)
+                // (2,12): error CS0122: 'CAttribute' is inaccessible due to its protection level
+                // [assembly: C()]
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("CAttribute").WithLocation(2, 12)
                 );
         }
 
@@ -1156,6 +1155,7 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
+        // TODO2 add a test for optimistic granting that still repro'es
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatchIAssembly(CSharpParseOptions parseOptions)
@@ -1174,7 +1174,7 @@ public class A
             var requestor = CreateCompilation(
     @"
 
-[assembly: C()]  //causes optimistic granting
+[assembly: C()]
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class A
 {
@@ -1186,12 +1186,9 @@ public class A
 
             Assert.False(other.Assembly.GivesAccessTo(requestor.Assembly));
             requestor.VerifyDiagnostics(
-                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
-                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
-                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
-                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
-                .WithLocation(1, 1)
+                // (3,12): error CS0122: 'CAttribute' is inaccessible due to its protection level
+                // [assembly: C()]
+                Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("CAttribute").WithLocation(3, 12)
                 );
         }
 
@@ -2697,8 +2694,10 @@ public class C
         }
         #endregion
 
-        [Fact, WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
-        public void IVT_Circularity()
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
+        [WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
+        public void IVT_Circularity(CSharpParseOptions parseOptions)
         {
             string lib_cs = @"
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
@@ -2708,7 +2707,7 @@ public abstract class TestBaseClass
     protected internal virtual bool SupportSvgImages { get; }
 }
 ";
-            var libRef = CreateCompilation(lib_cs, options: TestOptions.SigningReleaseDll).EmitToImageReference();
+            var libRef = CreateCompilation(lib_cs, options: TestOptions.SigningReleaseDll, parseOptions: parseOptions).EmitToImageReference();
 
             string source1 = @"
 [assembly: Class1]
@@ -2720,17 +2719,47 @@ public class Class1 : TestBaseClass
     protected internal override bool SupportSvgImages { get { return true; } }
 }
 ";
-            // To find what the property overrides, we need to bind assembly-level attributes
-            var c2 = CreateCompilation(new[] { source1, source2 }, new[] { libRef }, assemblyName: "WantsIVTAccess", options: TestOptions.SigningReleaseDll);
+            // To find what the property overrides, an IVT check is involved so we need to bind assembly-level attributes
+            var c2 = CreateCompilation(new[] { source1, source2 }, new[] { libRef }, assemblyName: "WantsIVTAccess",
+                options: TestOptions.SigningReleaseDll, parseOptions: parseOptions);
             c2.VerifyEmitDiagnostics(
                 // (2,12): error CS0616: 'Class1' is not an attribute class
                 // [assembly: Class1]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Class1").WithArguments("Class1").WithLocation(2, 12)
                 );
         }
-        // TODO2 add test where attribute pulls on a member explicitly (such as a constant)
-        // TODO2 add test where attribute pulls on the property explicitly
-        // TODO2 add and skip test for the irreduceable case with special attribute type
-        // TODO2 add similar tests (and fix?) in VB
+
+        [Fact, WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")]
+        public void IVT_Circularity_AttributeReferencesProperty()
+        {
+            string lib_cs = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
+
+public abstract class TestBaseClass
+{
+    protected internal virtual bool SupportSvgImages { get; }
+}
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+";
+            var libRef = CreateCompilation(lib_cs, options: TestOptions.SigningReleaseDll).EmitToImageReference();
+
+            string source1 = @"
+[assembly: MyAttribute(Class1.Constant)]
+";
+
+            string source2 = @"
+public class Class1 : TestBaseClass
+{
+    internal const string Constant = ""text"";
+    protected internal override bool SupportSvgImages { get { return true; } }
+}
+";
+            // To find what the property overrides, an IVT check is involved so we need to bind assembly-level attributes
+            var c2 = CreateCompilation(new[] { source1, source2 }, new[] { libRef }, assemblyName: "WantsIVTAccess", options: TestOptions.SigningReleaseDll);
+            c2.VerifyEmitDiagnostics();
+        }
     }
 }

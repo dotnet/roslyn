@@ -2309,4 +2309,47 @@ BC37254: Public sign was specified and requires a public key, but no public key 
 </errors>)
     End Sub
 
+    <Theory>
+    <MemberData(NameOf(AllProviderParseOptions))>
+    <WorkItem(1341051, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1341051")>
+    Public Sub IVT_Circularity(parseOptions As VisualBasicParseOptions)
+        Dim other As VisualBasicCompilation = CreateCompilation(
+<compilation name="HasIVTToCompilation">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("WantsIVTAccess")>
+Public MustInherit Class TestBaseClass
+    Friend Overridable ReadOnly Property SupportSvgImages
+        Get
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        other.VerifyDiagnostics()
+
+        Dim c2 As VisualBasicCompilation = CreateCompilation(
+<compilation name="WantsIVTAccess">
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Inherits TestBaseClass
+
+    Friend Overrides ReadOnly Property SupportSvgImages As Object
+        Get
+            Return True
+        End Get
+    End Property
+End Class
+]]>
+    </file>
+    <file name="b.vb"><![CDATA[
+<assembly: Class1>
+]]>
+    </file>
+</compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.SigningReleaseDll, parseOptions:=parseOptions)
+
+        c2.VerifyDiagnostics()
+    End Sub
+
 End Class
