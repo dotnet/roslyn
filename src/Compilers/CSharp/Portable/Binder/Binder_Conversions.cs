@@ -340,10 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldCase = source.SwitchArms[i];
                 var oldValue = oldCase.Value;
+                var binder = GetBinder(oldCase.Syntax);
                 var newValue =
                     targetTyped
-                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);
