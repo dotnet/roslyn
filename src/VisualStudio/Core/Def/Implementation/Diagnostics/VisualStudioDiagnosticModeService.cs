@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -63,6 +64,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 // for diagnostics to make it through from the  server to the client is through the codespaces LSP
                 // channel, which is only pull based.
                 if (inCodeSpacesServer)
+                    return DiagnosticMode.Pull;
+
+                if (_workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag))
                     return DiagnosticMode.Pull;
 
                 // Otherwise, defer to the workspace+option to determine what mode we're in.
