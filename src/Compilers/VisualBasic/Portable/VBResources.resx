@@ -5638,4 +5638,10 @@
   <data name="WRN_CallerArgumentExpressionAttributeSelfReferential_Title" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</value>
   </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</value>
+  </data>
 </root>

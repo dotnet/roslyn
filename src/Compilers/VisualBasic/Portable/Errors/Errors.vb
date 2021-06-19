@@ -1986,9 +1986,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_AnalyzerReferencesFramework = 42503
 
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42600
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42601
 
-        ' // AVAILABLE                             42601 - 49998
-        ERRWRN_NextAvailable = 42601
+        ' // AVAILABLE                             42602 - 49998
+        ERRWRN_NextAvailable = 42602
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

@@ -178,7 +178,7 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
-        Public Sub TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_IncorrectParameter()
+        Public Sub TestCallerArgumentExpressionAttribute_ExtensionMethod_IncorrectParameter()
             Dim source = "
 Imports System
 Imports System.Runtime.CompilerServices
@@ -197,7 +197,8 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(qq)").WithArguments("arg").WithLocation(13, 47))
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -218,8 +219,8 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            ' PROTOTYPE(caller-expr): This should have diagnostics.
-            CompileAndVerify(compilation, expectedOutput:="<default>").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="<default>").VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(pp)").WithArguments("arg").WithLocation(11, 14))
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -532,9 +533,9 @@ Public Module Program
     End Sub
 End Module
 "
-            ' PROTOTYPE(caller-expr): Warning.
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(p)").WithArguments("arg").WithLocation(7, 14))
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
