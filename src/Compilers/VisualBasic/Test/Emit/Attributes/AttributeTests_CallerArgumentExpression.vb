@@ -373,9 +373,10 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            ' PROTOTYPE(caller-expr): Warning for self-referential
             CompileAndVerify(compilation, expectedOutput:="<default>
-value").VerifyDiagnostics()
+value").VerifyDiagnostics(
+    Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression(""p"")").WithArguments("p").WithLocation(10, 12)
+    )
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -424,7 +425,6 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
-            ' PROTOTYPE(caller-expr): Warning for self-referential
             CompileAndVerify(compilation, expectedOutput:="<default>
 value").VerifyDiagnostics()
         End Sub

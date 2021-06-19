@@ -296,8 +296,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.SymbolPart = AttributeLocation.None)
             Debug.Assert(TypeOf arguments.Diagnostics Is BindingDiagnosticBag)
 
-            ' PROTOTYPE(caller-expr): Warn for self-referential and invalid parameter name to CallerArgumentExpressionAttribute.
-
             ' Differences from C#:
             '
             '   DefaultParameterValueAttribute
@@ -334,6 +332,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
+                If GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex = Ordinal Then
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)
+                End If
             End If
 
             MyBase.DecodeWellKnownAttribute(arguments)
