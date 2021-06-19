@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var oldCase = source.SwitchArms[i];
                 var oldValue = oldCase.Value;
-                var binder = GetBinder(oldCase.Syntax);
+                var binder = GetRequiredBinder(oldCase.Syntax);
                 var newValue =
                     targetTyped
                     ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
