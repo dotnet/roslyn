@@ -3123,10 +3123,7 @@ ProduceBoundNode:
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
                     Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    ' The index can be -1 when it's pointing to the receiver of a reduced extension.
-                    ' PROTOTYPE(caller-expr): Can we be setting this variable to true when it shouldn't.
-                    ' The assumption to use the extension receiver here whenever the index is -1 doesn't feel correct.
-                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse reducedExtensionReceiverOpt IsNot Nothing
+                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
 
                     If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing

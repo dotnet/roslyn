@@ -178,6 +178,29 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_IncorrectParameter()
+            Dim source = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Dim myIntegerExpression As Integer = 5
+        myIntegerExpression.M(myIntegerExpression * 2)
+    End Sub
+
+    Private Const qq As String = NameOf(qq)
+
+    <Extension>
+    Public Sub M(p As Integer, q As Integer, <CallerArgumentExpression(qq)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
             Dim source = "
 Imports System
