@@ -22,6 +22,11 @@
         <target state="translated">Impossible de créer un type générique construit à partir d'un type non générique.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
         <source>'{0}': abstract event cannot use event accessor syntax</source>
         <target state="translated">'{0}' : un événement abstrait ne peut pas utiliser une syntaxe d'accesseur d'événement</target>
@@ -100,6 +105,36 @@
       <trans-unit id="ERR_AwaitForEachMissingMemberWrongAsync">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'foreach' rather than 'await foreach'?</source>
         <target state="translated">L'instruction foreach asynchrone ne peut pas fonctionner sur des variables de type '{0}', car '{0}' ne contient pas de définition d'extension ou d'instance publique pour '{1}'. Vouliez-vous dire 'foreach' plutôt que 'await foreach' ?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractIncDecRetType">
+        <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
+        <target state="new">The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A static abstract interface member can be accessed only on a type parameter.</source>
+        <target state="new">A static abstract interface member can be accessed only on a type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
@@ -215,6 +250,11 @@
       <trans-unit id="ERR_CloneDisallowedInRecord">
         <source>Members named 'Clone' are disallowed in records.</source>
         <target state="translated">Les membres nommés 'Clone' ne sont pas autorisés dans les enregistrements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
+        <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
+        <target state="new">'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -337,6 +377,11 @@
         <target state="translated">La propriété de contrat d'égalité d'enregistrement '{0}' doit avoir un accesseur get.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
+        <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
+        <target state="new">Explicit implementation of a user-defined operator '{0}' must be declared static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">L'application explicite de 'System.Runtime.CompilerServices.NullableAttribute' n'est pas autorisée.</target>
@@ -360,6 +405,11 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="translated">Une arborescence de l'expression ne peut pas contenir de valeur de struct par référence ou de type restreint '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
+        <source>An expression tree may not contain an access of static abstract interface member</source>
+        <target state="new">An expression tree may not contain an access of static abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -452,6 +502,11 @@
         <target state="translated">Impossible d'appeler un pointeur de fonction avec des arguments nommés.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
+        <target state="new">The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
         <target state="new">A global using directive cannot be used in a namespace declaration.</target>
@@ -526,6 +581,11 @@
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">Les propriétés d'instance dans les interfaces ne peuvent pas avoir d'initialiseurs.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
+        <source>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</source>
+        <target state="new">'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
@@ -857,6 +917,16 @@
         <target state="translated">Le runtime cible ne prend pas en charge l'accessibilité 'protected', 'protected internal' ou 'private protected' d'un membre d'interface.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
+        <source>Target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">Target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">Le runtime cible ne prend pas en charge les conventions d'appel par défaut des environnements extensibles ou d'exécution.</target>
@@ -1047,6 +1117,11 @@
         <target state="new">with on anonymous types</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
@@ -1095,6 +1170,16 @@
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
         <target state="translated">Mélange de déclarations et d'expressions dans la déconstruction</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -1163,8 +1248,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
-        <target state="translated">'UnmanagedCallersOnly' peut uniquement être appliqué aux méthodes statiques ordinaires ou aux fonctions locales statiques.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
+        <target state="needs-review-translation">'UnmanagedCallersOnly' peut uniquement être appliqué aux méthodes statiques ordinaires ou aux fonctions locales statiques.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -3532,8 +3617,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">Un membre statique '{0}' ne peut pas être marqué comme override, virtual ou abstract</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">Un membre statique '{0}' ne peut pas être marqué comme override, virtual ou abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
@@ -5076,8 +5161,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">L'opérateur défini par l'utilisateur ne peut pas prendre un objet du type englobant et le convertir en un objet du type englobant</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">L'opérateur défini par l'utilisateur ne peut pas prendre un objet du type englobant et le convertir en un objet du type englobant</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">
@@ -5846,8 +5931,8 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter un membre d'interface, car il est static.</target>
+        <source>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</source>
+        <target state="needs-review-translation">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter un membre d'interface, car il est static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
@@ -10888,8 +10973,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="translated">Les interfaces ne peuvent pas contenir d'opérateurs de conversion, d'égalité ou d'inégalité</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
+        <target state="needs-review-translation">Les interfaces ne peuvent pas contenir d'opérateurs de conversion, d'égalité ou d'inégalité</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">

@@ -81,7 +81,8 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
+Editor Color Scheme;
+Inheritance Margin;</source>
         <target state="needs-review-translation">Afficher les indicateurs inline ;
 Afficher les diagnostics pour les fichiers fermés ;
 Mettre en couleurs l'expression régulière ; 
