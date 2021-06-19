@@ -2424,8 +2424,9 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        ' PROTOTYPE(caller-expr): Confirm if passing null here is okay.
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, Nothing)
+                        ' reducedExtensionReceiverOpt is used to determine the default value of a CallerArgumentExpression when it refers to the first parameter of an extension method.
+                        ' Don't bother with correctly determining the correct value for this case since we're in an error case anyway.
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, reducedExtensionReceiverOpt:=Nothing)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then

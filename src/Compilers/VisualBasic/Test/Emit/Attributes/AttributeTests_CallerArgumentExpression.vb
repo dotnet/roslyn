@@ -631,6 +631,7 @@ End Class
         <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub ComClass()
             Dim source As String = "
+Imports System
 Imports System.Runtime.CompilerServices
 Imports Microsoft.VisualBasic
 
@@ -704,8 +705,6 @@ End Class
             comp1.VerifyDiagnostics()
 
             Dim source2 = "
-Imports System
-
 Module Program
     Sub Main()
         Dim x As ComClass1._ComClass1 = New ComClass1()
