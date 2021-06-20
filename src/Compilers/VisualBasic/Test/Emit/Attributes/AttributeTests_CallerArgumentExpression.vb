@@ -570,7 +570,64 @@ caller target value
 ""caller target value""").VerifyDiagnostics()
         End Sub
 
-        ' PROTOTYPE(caller-expr): TODO - More tests.
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestArgumentExpressionIsReferingToItself_AttributeConstructor()
+            Dim source = "
+Imports System
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+
+<AttributeUsage(AttributeTargets.Class, AllowMultiple:=True)>
+Public Class MyAttribute : Inherits Attribute
+    Private Const p As String = NameOf(p)
+    Sub New(<CallerArgumentExpression(p)> Optional p As String = ""default"")
+        Console.WriteLine(p)
+    End Sub
+End Class
+
+<My>
+<My(""value"")>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttributes(GetType(MyAttribute))
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="default
+value").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestArgumentExpressionInAttributeConstructor_OptionalAndFieldInitializer()
+            Dim source = "
+Imports System
+Imports System.Reflection
+Imports System.Runtime.CompilerServices
+
+Public Class MyAttribute : Inherits Attribute
+    Private Const a As String = NameOf(a)
+    Sub New(<CallerArgumentExpression(a)> Optional expr_a As String = ""<default0>"", Optional a As String = ""<default1>"")
+        Console.WriteLine($""'{a}', '{expr_a}'"")
+    End Sub
+
+    Public I1 As Integer
+    Public I2 As Integer
+    Public I3 As Integer
+End Class
+
+<My(I1:=0, I2:=1, I3:=2)>
+Public Module Program
+    Sub Main()
+        GetType(Program).GetCustomAttribute(GetType(MyAttribute))
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="'<default1>', '<default0>'").VerifyDiagnostics()
+        End Sub
 #End Region
 
 #Region "CallerArgumentExpression - Test various symbols"
