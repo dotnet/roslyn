@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             // Make sure that the syntax that we're looking at is actually a typeof expression and that
             // the parent syntax is a member access expression otherwise the syntax is not the kind of
             // expression that we want to analyze
-            return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
+            return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax } &&
+                // nameof(System.Void) isn't allowed in C#.
+                ((ITypeOfOperation)context.Operation).TypeOperand.SpecialType != SpecialType.System_Void;
         }
     }
 }
