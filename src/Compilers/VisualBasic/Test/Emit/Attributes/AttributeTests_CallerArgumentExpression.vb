@@ -596,7 +596,8 @@ End Module
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="default
-value").VerifyDiagnostics()
+value").VerifyDiagnostics(
+                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression(p)").WithArguments("p").WithLocation(9, 14))
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
