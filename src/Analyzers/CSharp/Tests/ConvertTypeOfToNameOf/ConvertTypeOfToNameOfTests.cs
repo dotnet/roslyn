@@ -2,29 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
-    public partial class ConvertTypeOfToNameOfTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnalyzer,
+        CSharpConvertTypeOfToNameOfCodeFixProvider>;
+
+    public partial class ConvertTypeOfToNameOfTests
     {
-        public ConvertTypeOfToNameOfTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpConvertTypeOfToNameOfDiagnosticAnalyzer(), new CSharpConvertTypeOfToNameOfCodeFixProvider());
-
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task BasicType()
         {
@@ -33,7 +23,7 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]typeof(Test).Name;
+        var typeName = [|typeof(Test).Name|];
     }
 }
 ";
@@ -42,11 +32,11 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]nameof(Test);
+        var typeName = nameof(Test);
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -57,7 +47,7 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]typeof(System.String).Name;
+        var typeName = [|typeof(System.String).Name|];
     }
 }
 ";
@@ -66,11 +56,11 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]nameof(System.String);
+        var typeName = nameof(System.String);
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -83,7 +73,7 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]typeof(String).Name;
+        var typeName = [|typeof(String).Name|];
     }
 }
 ";
@@ -94,43 +84,47 @@ class Test
 {
     void Method()
     {
-        var typeName = [||]nameof(String);
+        var typeName = nameof(String);
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
         public async Task NestedCall()
         {
             var text = @"
+using System;
+
 class Test
 {
     void Method()
     {
-        var typeName = Foo([||]typeof(System.String).Name);
+        var typeName = Foo([|typeof(System.String).Name|]);
     }
 
-    void Foo(String typeName) {
-        return;
+    int Foo(String typeName) {
+        return 0;
     }
 }
 ";
             var expected = @"
+using System;
+
 class Test
 {
     void Method()
     {
-        var typeName = Foo([||]nameof(System.String));
+        var typeName = Foo(nameof(String));
     }
 
-    void Foo(String typeName) {
-        return;
+    int Foo(String typeName) {
+        return 0;
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -142,12 +136,12 @@ class Test
 {
     void Method()
     {
-        var typeVar = typeof(String);[||]
+        var typeVar = typeof(String);
         var typeName = typeVar.Name;
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -157,7 +151,7 @@ class Test
 {
     void Method()
     {
-            var typeName = [||]typeof(int).Name;
+            var typeName = [|typeof(int).Name|];
     }
 }
 ";
@@ -165,11 +159,11 @@ class Test
 {
     void Method()
     {
-            var typeName = [||]nameof(System.Int32);
+            var typeName = nameof(System.Int32);
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -181,7 +175,7 @@ class Test
 {
     void Method()
     {
-            var typeName = [||]typeof(int).Name;
+            var typeName = [|typeof(int).Name|];
     }
 }
 ";
@@ -191,11 +185,11 @@ class Test
 {
     void Method()
     {
-            var typeName = [||]nameof(Int32);
+            var typeName = nameof(Int32);
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected);
+            await VerifyCS.VerifyCodeFixAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -203,13 +197,13 @@ class Test
         {
             var text = @"class Test<T>
 {
-    void Method()[||]
+    void Method()
     {
         var typeName = typeof(T).Name;
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -217,15 +211,15 @@ class Test
         {
             var text = @"class Test
 {
-    void Method()[||]
+    void Method()
     {
         var typeName1 = typeof(Test);
-        var typeName2 = typeof(Test).toString();
+        var typeName2 = typeof(Test).ToString();
         var typeName3 = typeof(Test).FullName;
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            await VerifyCS.VerifyCodeFixAsync(text, text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
@@ -239,13 +233,13 @@ class Test
         { 
             void M() 
             {
-                _ = [||]typeof(Bar).Name;
+                _ = typeof(Bar).Name;
             }
         }
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            await VerifyCS.VerifyCodeFixAsync(text, text);
         }
     }
 }
