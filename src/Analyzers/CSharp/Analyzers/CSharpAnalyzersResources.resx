@@ -215,6 +215,9 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="Use_is_not_null_check" xml:space="preserve">
+    <value>Use 'is not null' check</value>
+  </data>
   <data name="Use_simple_using_statement" xml:space="preserve">
     <value>Use simple 'using' statement</value>
   </data>

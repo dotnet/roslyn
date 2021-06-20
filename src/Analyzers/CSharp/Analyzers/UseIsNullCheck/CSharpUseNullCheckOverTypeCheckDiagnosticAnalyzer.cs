@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -16,12 +17,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
+        private static readonly DiagnosticDescriptor s_useIsNullDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
+            EnforceOnBuildValues.UseNullCheckOverTypeCheck,
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_is_null_check), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)));
+
+        private static readonly DiagnosticDescriptor s_useIsNotNullDescriptor = CreateDescriptorWithId(
+            IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
+            EnforceOnBuildValues.UseNullCheckOverTypeCheck,
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_is_not_null_check), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+            new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)));
+
+        private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors = ImmutableArray.Create(s_useIsNullDescriptor, s_useIsNotNullDescriptor);
+
         public CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
-                   EnforceOnBuildValues.UseNullCheckOverTypeCheck,
-                   CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
-                   CSharpAnalyzersResources.Use_is_null_check,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            : base(s_descriptors)
         {
         }
 
@@ -51,23 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            if (ShouldReportDiagnostic(context.Operation) &&
+            if (ShouldReportDiagnostic(context.Operation, out var descriptor) &&
                 context.Operation.Syntax is BinaryExpressionSyntax or UnaryPatternSyntax)
             {
                 var severity = option.Notification.Severity;
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
-                        Descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
+                        descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
             }
         }
 
-        private static bool ShouldReportDiagnostic(IOperation operation)
+        private static bool ShouldReportDiagnostic(IOperation operation, out DiagnosticDescriptor descriptor)
         {
             if (operation is IIsTypeOperation isTypeOperation)
             {
                 // Matches 'x is MyType'
                 // isTypeOperation.TypeOperand is 'MyType'
                 // isTypeOperation.ValueOperand.Type is the type of 'x'.
+                descriptor = s_useIsNotNullDescriptor;
                 return isTypeOperation.ValueOperand.Type is not null &&
                     isTypeOperation.ValueOperand.Type.InheritsFromOrEquals(isTypeOperation.TypeOperand);
             }
@@ -76,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 // Matches 'x is not MyType'
                 // InputType is the type of 'x'
                 // MatchedType is 'MyType'
+                descriptor = s_useIsNullDescriptor;
                 return negatedPattern.Pattern is ITypePatternOperation typePatternOperation &&
                     typePatternOperation.InputType.InheritsFromOrEquals(typePatternOperation.MatchedType);
             }
