@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxNodeExtensions
     {
+        public static void Deconstruct(this SyntaxNode node, out SyntaxKind kind)
+        {
+            kind = node.Kind();
+        }
+
         public static bool IsKind<TNode>([NotNullWhen(returnValue: true)] this SyntaxNode? node, SyntaxKind kind, [NotNullWhen(returnValue: true)] out TNode? result)
             where TNode : SyntaxNode
         {

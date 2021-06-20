@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -85,6 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private static async Task<NavigationBarModel> ComputeModelAsync(
             NavigationBarModel lastCompletedModel, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
+            // that any IO that performs is not potentially on the UI thread.
+            await TaskScheduler.Default;
+
             // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
             // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
             // event the other files aren't available, then partial-type information won't be correct.  That's ok though
@@ -95,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (document == null)
                 return null;
 
-            // TODO: remove .FirstOrDefault()
-            var languageService = GetNavBarService(document);
+            var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
@@ -113,14 +116,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await languageService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-                    if (items != null)
-                    {
-                        items.Do(i => i.InitializeTrackingSpans(snapshot));
-                        var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-
-                        return new NavigationBarModel(items.ToImmutableArray(), version, languageService);
-                    }
+                    var items = await languageService.GetItemsAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
+                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+                    return new NavigationBarModel(items, version, languageService);
                 }
             }
 
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
             var exactItemStart = 0;
@@ -206,10 +204,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             foreach (var item in items)
             {
-                foreach (var span in item.TrackingSpans.Select(s => s.GetSpan(point.Snapshot)))
+                foreach (var trackingSpan in item.TrackingSpans)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var span = trackingSpan.GetSpan(point.Snapshot);
                     if (span.Contains(point) || span.End == point)
                     {
                         // This is the item we should show normally. We'll continue looking at other
@@ -259,35 +258,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // price soon or later to figure out selected item.
             foreach (var type in model.Types)
             {
-                if (!SpanStillValid(type.TrackingSpans, snapshot))
-                {
+                if (!SpansStillValid(type, snapshot))
                     return false;
-                }
 
                 foreach (var member in type.ChildItems)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (!SpanStillValid(member.TrackingSpans, snapshot))
-                    {
+                    if (!SpansStillValid(member, snapshot))
                         return false;
-                    }
                 }
             }
 
             return true;
         }
 
-        private static bool SpanStillValid(IList<ITrackingSpan> spans, ITextSnapshot snapshot)
+        private static bool SpansStillValid(NavigationBarItem item, ITextSnapshot snapshot)
         {
-            for (var i = 0; i < spans.Count; i++)
+            if (item.NavigationTrackingSpan != null)
             {
-                var span = spans[i];
+                var currentSpan = item.NavigationTrackingSpan.GetSpan(snapshot);
+                if (currentSpan.IsEmpty)
+                    return false;
+            }
+
+            foreach (var span in item.TrackingSpans)
+            {
                 var currentSpan = span.GetSpan(snapshot);
                 if (currentSpan.IsEmpty)
-                {
                     return false;
-                }
+            }
+
+            foreach (var childItem in item.ChildItems)
+            {
+                if (!SpansStillValid(childItem, snapshot))
+                    return false;
             }
 
             return true;

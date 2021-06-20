@@ -127,10 +127,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
+        int FieldDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
         int ParameterList { get; }
+
+        #endregion
+
+        #region clauses
+
+        int EqualsValueClause { get; }
+
         #endregion
 
         #region other

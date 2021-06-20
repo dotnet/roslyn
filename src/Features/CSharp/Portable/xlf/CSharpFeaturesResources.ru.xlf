@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../CSharpFeaturesResources.resx">
     <body>
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">внешний псевдоним</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -419,7 +419,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">запись</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

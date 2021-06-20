@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
-        SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
+        SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node);
         SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
@@ -324,8 +324,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
-        bool IsElementAccessExpression(SyntaxNode node);
-        bool IsIndexerMemberCRef(SyntaxNode node);
+        bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsIndexerMemberCRef([NotNullWhen(true)] SyntaxNode? node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);

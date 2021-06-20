@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.PickMembers
 
         public PickMembersResult PickMembers(string title, ImmutableArray<ISymbol> members, ImmutableArray<PickMembersOption> options = default, bool selectAll = true)
         {
-            var result = _omniSharpPickMembersService.PickMembers(title, members, options.SelectAsArray(o => new OmniSharpPickMembersOption(o)), selectAll);
+            var result = _omniSharpPickMembersService.PickMembers(title, members, options.IsDefault ? default : options.SelectAsArray(o => new OmniSharpPickMembersOption(o)), selectAll: true);
             return new(result.Members, result.Options.SelectAsArray(o => o.PickMembersOptionInternal), result.SelectedAll);
         }
     }

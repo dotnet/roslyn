@@ -3174,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
+                    size = ConvertToArrayIndex(size, diagnostics, allowIndexAndRange: false);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
@@ -6059,8 +6059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
-                bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
+                var typeArguments = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeWithAnnotations>);
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
@@ -6082,91 +6081,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var rightName = right.Identifier.ValueText;
                 var rightArity = right.Arity;
+                BoundExpression result;
 
                 switch (boundLeft.Kind)
                 {
                     case BoundKind.NamespaceExpression:
                         {
-                            // If K is zero and E is a namespace and E contains a nested namespace with name I, 
-                            // then the result is that namespace.
-
-                            var ns = ((BoundNamespaceExpression)boundLeft).NamespaceSymbol;
-                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                            this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
-                            diagnostics.Add(right, useSiteInfo);
-
-                            ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
-
-                            if (lookupResult.IsMultiViable)
+                            result = tryBindMemberAccessWithBoundNamespaceLeft(((BoundNamespaceExpression)boundLeft).NamespaceSymbol, node, boundLeft, right, diagnostics, lookupResult, options, typeArgumentsSyntax, typeArguments, rightName, rightArity);
+                            if (result is object)
                             {
-                                bool wasError;
-                                Symbol sym = ResultSymbol(lookupResult, rightName, rightArity, node, diagnostics, false, out wasError, ns, options);
-                                if (wasError)
-                                {
-                                    return new BoundBadExpression(node, LookupResultKind.Ambiguous, lookupResult.Symbols.AsImmutable(), ImmutableArray.Create(boundLeft), CreateErrorType(rightName), hasErrors: true);
-                                }
-                                else if (sym.Kind == SymbolKind.Namespace)
-                                {
-                                    return new BoundNamespaceExpression(node, (NamespaceSymbol)sym);
-                                }
-                                else
-                                {
-                                    Debug.Assert(sym.Kind == SymbolKind.NamedType);
-                                    var type = (NamedTypeSymbol)sym;
-
-                                    if (rightHasTypeArguments)
-                                    {
-                                        type = ConstructNamedTypeUnlessTypeArgumentOmitted(right, type, typeArgumentsSyntax, typeArguments, diagnostics);
-                                    }
-
-                                    ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
-
-                                    return new BoundTypeExpression(node, null, type);
-                                }
+                                return result;
                             }
-                            else if (lookupResult.Kind == LookupResultKind.WrongArity)
-                            {
-                                Debug.Assert(symbols.Count > 0);
-                                Debug.Assert(symbols[0].Kind == SymbolKind.NamedType);
 
-                                Error(diagnostics, lookupResult.Error, right);
-
-                                return new BoundTypeExpression(node, null,
-                                            new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
-                            }
-                            else if (lookupResult.Kind == LookupResultKind.Empty)
-                            {
-                                Debug.Assert(lookupResult.IsClear, "If there's a legitimate reason for having candidates without a reason, then we should produce something intelligent in such cases.");
-                                Debug.Assert(lookupResult.Error == null);
-                                NotFound(node, rightName, rightArity, rightName, diagnostics, aliasOpt: null, qualifierOpt: ns, options: options);
-
-                                return new BoundBadExpression(node, lookupResult.Kind, symbols.AsImmutable(), ImmutableArray.Create(boundLeft), CreateErrorType(rightName), hasErrors: true);
-                            }
                             break;
                         }
                     case BoundKind.TypeExpression:
                         {
-                            Debug.Assert((object)leftType != null);
-                            if (leftType.TypeKind == TypeKind.TypeParameter)
+                            result = tryBindMemberAccessWithBoundTypeLeft(node, boundLeft, right, invoked, indexed, diagnostics, leftType, lookupResult, options, typeArgumentsSyntax, typeArguments, rightName, rightArity);
+                            if (result is object)
                             {
-                                Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
-                                return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
+                                return result;
                             }
-                            else if (this.EnclosingNameofArgument == node)
-                            {
-                                // Support selecting an extension method from a type name in nameof(.)
-                                return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
-                            }
-                            else
-                            {
-                                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                                this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
-                                diagnostics.Add(right, useSiteInfo);
-                                if (lookupResult.IsMultiViable)
-                                {
-                                    return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
-                                }
-                            }
+
                             break;
                         }
                     case BoundKind.TypeOrValueExpression:
@@ -6207,6 +6143,130 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 lookupResult.Free();
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            BoundExpression tryBindMemberAccessWithBoundNamespaceLeft(
+                NamespaceSymbol ns,
+                ExpressionSyntax node,
+                BoundExpression boundLeft,
+                SimpleNameSyntax right,
+                BindingDiagnosticBag diagnostics,
+                LookupResult lookupResult,
+                LookupOptions options,
+                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
+                ImmutableArray<TypeWithAnnotations> typeArguments,
+                string rightName,
+                int rightArity)
+            {
+                // If K is zero and E is a namespace and E contains a nested namespace with name I, 
+                // then the result is that namespace.
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.LookupMembersWithFallback(lookupResult, ns, rightName, rightArity, ref useSiteInfo, options: options);
+                diagnostics.Add(right, useSiteInfo);
+
+                ArrayBuilder<Symbol> symbols = lookupResult.Symbols;
+
+                if (lookupResult.IsMultiViable)
+                {
+                    bool wasError;
+                    Symbol sym = ResultSymbol(lookupResult, rightName, rightArity, node, diagnostics, false, out wasError, ns, options);
+                    if (wasError)
+                    {
+                        return new BoundBadExpression(node, LookupResultKind.Ambiguous, lookupResult.Symbols.AsImmutable(), ImmutableArray.Create(boundLeft), CreateErrorType(rightName), hasErrors: true);
+                    }
+                    else if (sym.Kind == SymbolKind.Namespace)
+                    {
+                        return new BoundNamespaceExpression(node, (NamespaceSymbol)sym);
+                    }
+                    else
+                    {
+                        Debug.Assert(sym.Kind == SymbolKind.NamedType);
+                        var type = (NamedTypeSymbol)sym;
+
+                        if (!typeArguments.IsDefault)
+                        {
+                            type = ConstructNamedTypeUnlessTypeArgumentOmitted(right, type, typeArgumentsSyntax, typeArguments, diagnostics);
+                        }
+
+                        ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
+
+                        return new BoundTypeExpression(node, null, type);
+                    }
+                }
+                else if (lookupResult.Kind == LookupResultKind.WrongArity)
+                {
+                    Debug.Assert(symbols.Count > 0);
+                    Debug.Assert(symbols[0].Kind == SymbolKind.NamedType);
+
+                    Error(diagnostics, lookupResult.Error, right);
+
+                    return new BoundTypeExpression(node, null,
+                                new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
+                }
+                else if (lookupResult.Kind == LookupResultKind.Empty)
+                {
+                    Debug.Assert(lookupResult.IsClear, "If there's a legitimate reason for having candidates without a reason, then we should produce something intelligent in such cases.");
+                    Debug.Assert(lookupResult.Error == null);
+                    NotFound(node, rightName, rightArity, rightName, diagnostics, aliasOpt: null, qualifierOpt: ns, options: options);
+
+                    return new BoundBadExpression(node, lookupResult.Kind, symbols.AsImmutable(), ImmutableArray.Create(boundLeft), CreateErrorType(rightName), hasErrors: true);
+                }
+
+                return null;
+            }
+
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            BoundExpression tryBindMemberAccessWithBoundTypeLeft(
+                ExpressionSyntax node,
+                BoundExpression boundLeft,
+                SimpleNameSyntax right,
+                bool invoked,
+                bool indexed,
+                BindingDiagnosticBag diagnostics,
+                TypeSymbol leftType,
+                LookupResult lookupResult,
+                LookupOptions options,
+                SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
+                ImmutableArray<TypeWithAnnotations> typeArguments,
+                string rightName,
+                int rightArity)
+            {
+                Debug.Assert((object)leftType != null);
+                if (leftType.TypeKind == TypeKind.TypeParameter)
+                {
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract);
+                    diagnostics.Add(right, useSiteInfo);
+                    if (lookupResult.IsMultiViable)
+                    {
+                        CheckFeatureAvailability(boundLeft.Syntax, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                    }
+                    else if (lookupResult.IsClear)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSKunknown, boundLeft.Syntax, leftType, MessageID.IDS_SK_TYVAR.Localize());
+                        return BadExpression(node, LookupResultKind.NotAValue, boundLeft);
+                    }
+                }
+                else if (this.EnclosingNameofArgument == node)
+                {
+                    // Support selecting an extension method from a type name in nameof(.)
+                    return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
+                }
+                else
+                {
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options);
+                    diagnostics.Add(right, useSiteInfo);
+                    if (lookupResult.IsMultiViable)
+                    {
+                        return BindMemberOfType(node, right, rightName, rightArity, indexed, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, BoundMethodGroupFlags.None, diagnostics: diagnostics);
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -6890,7 +6950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsBadBaseAccess(node, receiver, fieldSymbol, diagnostics))
             {
-                CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
             }
 
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
@@ -6966,25 +7026,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 
-        private void CheckRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, BindingDiagnosticBag diagnostics)
+        private void CheckReceiverAndRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, BindingDiagnosticBag diagnostics)
         {
-            if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+            if (symbol.ContainingType?.IsInterface == true)
             {
-                if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
-                    !symbol.IsImplementableInterfaceMember())
+                if (symbol.IsStatic && symbol.IsAbstract)
                 {
-                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
-                }
-                else
-                {
-                    switch (symbol.DeclaredAccessibility)
-                    {
-                        case Accessibility.Protected:
-                        case Accessibility.ProtectedOrInternal:
-                        case Accessibility.ProtectedAndInternal:
+                    Debug.Assert(symbol is not TypeSymbol);
 
-                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
-                            break;
+                    if (receiverOpt is BoundQueryClause { Value: var value })
+                    {
+                        receiverOpt = value;
+                    }
+
+                    if (receiverOpt is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
+                        return;
+                    }
+
+                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces && Compilation.SourceModule != symbol.ContainingModule)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                        return;
+                    }
+                }
+
+                if (!Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+                {
+                    if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
+                        !symbol.IsImplementableInterfaceMember())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+                    }
+                    else
+                    {
+                        switch (symbol.DeclaredAccessibility)
+                        {
+                            case Accessibility.Protected:
+                            case Accessibility.ProtectedOrInternal:
+                            case Accessibility.ProtectedAndInternal:
+
+                                Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
+                                break;
+                        }
                     }
                 }
             }
@@ -7338,7 +7423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = arguments.Arguments[i];
 
-                BoundExpression index = ConvertToArrayIndex(argument, node, diagnostics, allowIndexAndRange: rank == 1);
+                BoundExpression index = ConvertToArrayIndex(argument, diagnostics, allowIndexAndRange: rank == 1);
                 convertedArguments[i] = index;
 
                 // NOTE: Dev10 only warns if rank == 1
@@ -7367,7 +7452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType, hasErrors: false);
         }
 
-        private BoundExpression ConvertToArrayIndex(BoundExpression index, SyntaxNode node, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
+        private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange)
         {
             Debug.Assert(index != null);
 
@@ -7380,6 +7465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ((BoundDiscardExpression)index).FailInference(this, diagnostics);
             }
 
+            var node = index.Syntax;
             var result =
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_Int32, node, diagnostics) ??
                 TryImplicitConversionToArrayIndex(index, SpecialType.System_UInt32, node, diagnostics) ??
@@ -7422,7 +7508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(index.Syntax, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -7531,7 +7617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression index = arguments[0];
 
-            index = ConvertToArrayIndex(index, index.Syntax, diagnostics, allowIndexAndRange: false);
+            index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false);
             return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
@@ -7926,6 +8012,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isIntNotByRef(original.Parameters[0]))
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
@@ -7987,6 +8075,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
+                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
                             patternIndexerAccess = new BoundIndexOrRangePatternIndexerAccess(
                                 syntax,
                                 receiverOpt,

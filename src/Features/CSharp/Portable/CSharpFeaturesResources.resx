@@ -625,4 +625,7 @@
   <data name="record_" xml:space="preserve">
     <value>record</value>
   </data>
+  <data name="record_struct" xml:space="preserve">
+    <value>record struct</value>
+  </data>
 </root>

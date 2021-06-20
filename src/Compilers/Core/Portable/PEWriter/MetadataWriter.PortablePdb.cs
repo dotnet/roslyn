@@ -745,8 +745,16 @@ namespace Microsoft.Cci
             DocumentHandle documentHandle;
             DebugSourceInfo info = document.GetSourceInfo();
 
+            var name = document.Location;
+            if (_usingNonSourceDocumentNameEnumerator)
+            {
+                var result = _nonSourceDocumentNameEnumerator.MoveNext();
+                Debug.Assert(result);
+                name = _nonSourceDocumentNameEnumerator.Current;
+            }
+
             documentHandle = _debugMetadataOpt.AddDocument(
-                name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
+                name: _debugMetadataOpt.GetOrAddDocumentName(name),
                 hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
                 hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
                 language: _debugMetadataOpt.GetOrAddGuid(document.Language));
@@ -842,12 +850,13 @@ namespace Microsoft.Cci
         /// Capture the set of compilation options to allow a compilation 
         /// to be reconstructed from the pdb
         /// </summary>
-        private void EmbedCompilationOptions(BlobReader? pdbCompilationOptionsReader, CommonPEModuleBuilder module)
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
         {
             var builder = new BlobBuilder();
 
-            if (pdbCompilationOptionsReader is { } reader)
+            if (this.Context.RebuildData is { } rebuildData)
             {
+                var reader = rebuildData.OptionsBlobReader;
                 builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));
             }
             else

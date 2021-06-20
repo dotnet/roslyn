@@ -299,19 +299,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
-                {
-                    TrackingSpans = oldRight.TrackingSpans
-                };
+                newRight = new NavigationBarPresentedItem(
+                    oldRight.Text, oldRight.Glyph, oldRight.TrackingSpans, oldRight.NavigationTrackingSpan, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
-                {
-                    TrackingSpans = oldLeft.TrackingSpans
-                };
+                newLeft = new NavigationBarPresentedItem(
+                    oldLeft.Text, oldLeft.Glyph, oldLeft.TrackingSpans, oldLeft.NavigationTrackingSpan, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
                 listOfLeft.Add(newLeft);
             }
 
@@ -381,13 +377,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
-                    var navBarService = GetNavBarService(document);
+                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
-                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task
+                    // below. Note that we only want to refresh if selecting the item had an effect (either navigating
+                    // or generating).  If nothing happened to don't want to refresh.  This is important as some items
+                    // exist in the type list that are only there to show a set a particular set of items in the member
+                    // list.  So selecting such an item should only update the member list, and we do not want a refresh
+                    // to wipe that out.
+                    if (!await navBarService.TryNavigateToItemAsync(document, item, view, snapshot, cancellationToken).ConfigureAwait(true))
+                        return;
                 }
             }
 
@@ -395,17 +396,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
             StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-        }
-
-        private static INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess GetNavBarService(Document document)
-        {
-            // Defer to the legacy service if the language is still using it.  Otherwise use the current ea API.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<INavigationBarItemService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            return legacyService == null
-                ? document.GetRequiredLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>()
-                : new NavigationBarItemServiceWrapper(legacyService);
         }
     }
 }
