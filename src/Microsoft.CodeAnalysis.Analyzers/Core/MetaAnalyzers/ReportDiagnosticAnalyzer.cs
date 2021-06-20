@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         .OfType<IPropertySymbol>()
                         .FirstOrDefault(p => p.OverriddenProperty != null &&
                             p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
-                    if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
+                    if (supportedDiagnosticsProperty?.GetMethod != null)
                     {
                         SyntaxReference syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
                         if (syntaxRef != null)
