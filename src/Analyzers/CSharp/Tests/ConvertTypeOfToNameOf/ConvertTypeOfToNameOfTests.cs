@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
@@ -236,6 +237,22 @@ class Test
                 _ = typeof(Bar).Name;
             }
         }
+    }
+}
+";
+            await VerifyCS.VerifyCodeFixAsync(text, text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
+        [WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")]
+        public async Task NotOnVoid()
+        {
+            var text = @"
+class C
+{
+    void M()
+    {
+        var x = typeof(void).Name;
     }
 }
 ";

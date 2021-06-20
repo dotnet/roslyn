@@ -113,5 +113,28 @@ end class
             Await VerifyVB.VerifyCodeFixAsync(text, text)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
+        <WorkItem(54233, "https://github.com/dotnet/roslyn/issues/54233")>
+        Public Async Function OnVoid() As Task
+            Dim text = "
+imports System
+
+class Test
+    sub Method()
+        dim typeVar = [|GetType(Void).Name|]
+    end sub
+end class
+"
+            Dim expected = "
+imports System
+
+class Test
+    sub Method()
+        dim typeVar = NameOf(Void)
+    end sub
+end class
+"
+            Await VerifyVB.VerifyCodeFixAsync(text, expected)
+        End Function
     End Class
 End Namespace
