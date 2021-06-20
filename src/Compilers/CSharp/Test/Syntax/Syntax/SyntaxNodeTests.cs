@@ -3647,6 +3647,33 @@ namespace HelloWorld
             Assert.True(firstParens.Contains(e));
         }
 
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_AnonymousMethodExpressionSyntax()
+        {
+            var text = "static delegate(int i) { }";
+            var expression = (AnonymousMethodExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async delegate(int i) { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_ParenthesizedLambdaExpressionSyntax()
+        {
+            var text = "static (a) => { }";
+            var expression = (ParenthesizedLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async (a) => { }", withAsync);
+        }
+
+        [Fact, WorkItem(54239, "https://github.com/dotnet/roslyn/issues/54239")]
+        public void TestWithAsyncKeyword_SimpleLambdaExpressionSyntax()
+        {
+            var text = "static a => { }";
+            var expression = (SimpleLambdaExpressionSyntax)SyntaxFactory.ParseExpression(text);
+            var withAsync = expression.WithAsyncKeyword(SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space)).ToString();
+            Assert.Equal("static async a => { }", withAsync);
+        }
+
         private static void TestWithWindowsAndUnixEndOfLines(string inputText, string expectedText, Action<CompilationUnitSyntax, string> action)
         {
             inputText = inputText.NormalizeLineEndings();
