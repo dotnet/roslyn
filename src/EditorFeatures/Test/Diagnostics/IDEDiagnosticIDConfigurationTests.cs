@@ -989,6 +989,9 @@ No editorconfig based code style option
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
 
+# IDE0150
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
