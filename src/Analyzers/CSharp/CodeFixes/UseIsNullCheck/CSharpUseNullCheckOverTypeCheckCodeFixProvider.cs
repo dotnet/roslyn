@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckOverIsObject), Shared]
@@ -50,24 +52,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-                SyntaxNode? replacement;
-                // Replace 'x is object' with 'x is not null'
-                if (node is BinaryExpressionSyntax binary)
+                SyntaxNode? replacement = node switch
                 {
-                    replacement = SyntaxFactory.IsPatternExpression(
-                        expression: binary.Left,
-                        pattern: SyntaxFactory.UnaryPattern(SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))));
-                }
-                else if (node is UnaryPatternSyntax)
-                {
-                    replacement = SyntaxFactory.ConstantPattern(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));   
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
-                }
+                    // Replace 'x is object' with 'x is not null'
+                    BinaryExpressionSyntax binary =>
+                        IsPatternExpression(
+                            expression: binary.Left,
+                            pattern: UnaryPattern(ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)))),
+                    UnaryPatternSyntax =>
+                        ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                    _ => null
+                };
 
-                editor.ReplaceNode(node, replacement);
+                // It should always be non-null value.
+                // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
+                if (replacement is not null)
+                    editor.ReplaceNode(node, replacement);
             }
 
             return Task.CompletedTask;

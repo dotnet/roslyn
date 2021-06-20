@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            if (ShouldReportDiagnostic(context.Operation))
+            if (ShouldReportDiagnostic(context.Operation) &&
+                context.Operation.Syntax is BinaryExpressionSyntax or UnaryPatternSyntax)
             {
                 var severity = option.Notification.Severity;
                 context.ReportDiagnostic(

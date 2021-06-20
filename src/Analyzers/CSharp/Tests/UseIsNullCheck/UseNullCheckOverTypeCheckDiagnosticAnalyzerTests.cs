@@ -111,6 +111,21 @@ public class C
         }
 
         [Fact]
+        public async Task TestIsNotObject2()
+        {
+            var source = @"
+public class C
+{
+    public bool M(string value)
+    {
+        return value is not object o;
+    }
+}
+";
+            await VerifyCSharp9Async(source, source);
+        }
+
+        [Fact]
         public async Task TestIsStringAgainstObject_NoDiagnostic()
         {
             var source = @"
