@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SymbolInfo leftHandBinding,
             ITypeSymbol? containerType)
         {
-            var abstractStaticsOnly = false;
+            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
 
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    abstractStaticsOnly = symbol.Kind == SymbolKind.TypeParameter;
+                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
                     containerSymbol = symbol;
                 }
 
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return default;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
-            Debug.Assert(!abstractStaticsOnly || (abstractStaticsOnly && !excludeStatic && excludeInstance));
+            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : (abstractStaticsOnly ? symbols.WhereAsArray(s => s.IsAbstract && s.IsStatic) : symbols);
+                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
