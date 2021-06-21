@@ -66,14 +66,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Inline_Diagnostics_experimental As String =
             ServicesVSResources.Inline_Diagnostics_experimental
 
-        Public ReadOnly Property Option_Display_inline_diagnostics As String =
-            ServicesVSResources.Display_inline_diagnostics
+        Public ReadOnly Property Option_Display_diagnostics_inline_experimental As String =
+            ServicesVSResources.Display_diagnostics_inline_experimental
 
-        Public ReadOnly Property Option_Hook_to_end_of_text As String =
-            ServicesVSResources.Hook_to_end_of_text
+        Public ReadOnly Property Option_at_the_end_of_the_line_of_code As String =
+            ServicesVSResources.at_the_end_of_the_line_of_code
 
-        Public ReadOnly Property Option_Hook_to_end_of_window As String =
-            ServicesVSResources.Hook_to_end_of_window
+        Public ReadOnly Property Option_on_the_right_edge_of_the_editor_window As String =
+            ServicesVSResources.on_the_right_edge_of_the_editor_window
 
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure

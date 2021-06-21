@@ -523,9 +523,9 @@ I agree to all of the foregoing:</target>
         <target state="new">Display all hints while pressing Alt+F1</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_diagnostics">
-        <source>Display inline diagnostics</source>
-        <target state="new">Display inline diagnostics</target>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -796,16 +796,6 @@ I agree to all of the foregoing:</target>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="new">Highlight related components under cursor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hook_to_end_of_text">
-        <source>Hook to end of text</source>
-        <target state="new">Hook to end of text</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hook_to_end_of_window">
-        <source>Hook to end of window</source>
-        <target state="new">Hook to end of window</target>
         <note />
       </trans-unit>
       <trans-unit id="IDs_are_not_supported_for_this_symbol_type">
@@ -2594,6 +2584,11 @@ Use the dropdown to view and navigate to other items in this file.</target>
         <target state="new">at the end</target>
         <note />
       </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="bracket_bracket">
         <source>[-] </source>
         <target state="new">[-] </target>
@@ -2648,6 +2643,11 @@ Use the dropdown to view and navigate to other items in this file.</target>
         <source>identifier</source>
         <target state="new">identifier</target>
         <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
+        <note />
       </trans-unit>
       <trans-unit id="or">
         <source>or</source>

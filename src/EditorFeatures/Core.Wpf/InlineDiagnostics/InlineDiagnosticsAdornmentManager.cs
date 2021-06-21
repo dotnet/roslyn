@@ -41,8 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             if (AdornmentLayer is not null)
             {
-                var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
-                UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, true);
+                var elements = AdornmentLayer.Elements;
+                if (elements.Any())
+                {
+                    var location = ((InlineDiagnosticsTag)elements[0].Tag).Location;
+                    if (location == InlineDiagnosticsLocations.HookedToWindow)
+                    {
+                        var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
+                        UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, true);
+                    }
+                }
             }
         }
 
@@ -155,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             var map = GetSpansOnEachLine(changedSpanCollection);
             var tagSpanToPointMap = GetTagSpansToSnapshotPointMap(map);
-            foreach (var (lineNum, tagMappingSpanList) in map)
+            foreach (var tagMappingSpanList in map.Values)
             {
                 var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
                 TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
@@ -199,7 +207,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
         }
 
-        private static Dictionary<IMappingTagSpan<InlineDiagnosticsTag>, SnapshotPoint> GetTagSpansToSnapshotPointMap(IDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>> map)
+        private static Dictionary<IMappingTagSpan<InlineDiagnosticsTag>, SnapshotPoint> GetTagSpansToSnapshotPointMap(
+            IDictionary<(int linenum, SnapshotSpan changedSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>> map)
         {
             var tagSpanToPointMap = new Dictionary<IMappingTagSpan<InlineDiagnosticsTag>, SnapshotPoint>();
 
@@ -207,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             {
                 foreach (var mappingTagSpan in kvp.Value)
                 {
-                    var point = mappingTagSpan.Span.Start.GetPoint(kvp.Key.Item2.Snapshot, PositionAffinity.Predecessor);
+                    var point = mappingTagSpan.Span.Start.GetPoint(kvp.Key.changedSpan.Snapshot, PositionAffinity.Predecessor);
                     if (point == null)
                     {
                         continue;

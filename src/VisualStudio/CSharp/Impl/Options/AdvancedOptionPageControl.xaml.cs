@@ -46,6 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
+            BindToOption(place_at_end_of_line_of_code, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp);
+            BindToOption(place_at_end_of_editor_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit);
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
@@ -114,10 +117,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.CSharp);
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
-
-            BindToOption(DisplayInlineDiagnostics, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
-            BindToOption(hook_to_end_of_text, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp);
-            BindToOption(hook_to_end_of_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp);
 
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1);
             BindToOption(ColorHints, InlineHintsOptions.ColorHints, LanguageNames.CSharp);

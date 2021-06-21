@@ -46,6 +46,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.VisualBasic)
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.VisualBasic)
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.VisualBasic)
+            BindToOption(place_at_end_of_line_of_code, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.VisualBasic)
+            BindToOption(place_at_end_of_editor_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.VisualBasic)
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit)
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics)
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
@@ -143,10 +146,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_completion_list, RegularExpressionsOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme)
-
-            BindToOption(DisplayInlineDiagnostics, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp)
-            BindToOption(hook_to_end_of_text, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp)
-            BindToOption(hook_to_end_of_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp)
 
             ' Inline hints
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsOptions.DisplayAllHintsWhilePressingAltF1)

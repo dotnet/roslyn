@@ -1722,14 +1722,14 @@ I agree to all of the foregoing:</value>
   <data name="Inline_Diagnostics_experimental" xml:space="preserve">
     <value>Inline Diagnostics (experimental)</value>
   </data>
-  <data name="Display_inline_diagnostics" xml:space="preserve">
-    <value>Display inline diagnostics</value>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
   </data>
-  <data name="Hook_to_end_of_text" xml:space="preserve">
-    <value>Hook to end of text</value>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
   </data>
-  <data name="Hook_to_end_of_window" xml:space="preserve">
-    <value>Hook to end of window</value>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
   </data>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>

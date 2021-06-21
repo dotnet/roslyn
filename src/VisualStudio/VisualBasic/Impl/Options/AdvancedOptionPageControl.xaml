@@ -28,6 +28,18 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
+                    <StackPanel>
+                        <CheckBox x:Name="DisplayDiagnosticsInline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="place_at_end_of_line_of_code"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="place_at_end_of_editor_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                        </StackPanel>
+                    </StackPanel>
                     <CheckBox x:Name="Use_64bit_analysis_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
@@ -205,22 +217,6 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox x:Uid="InlineDiagnosticsGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Diagnostics_experimental}">
-                <StackPanel>
-                    <CheckBox x:Name="DisplayInlineDiagnostics"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_inline_diagnostics}"/>
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <RadioButton GroupName="Inline_diagnostic_location"
-                                     x:Name="hook_to_end_of_text"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Hook_to_end_of_text}"/>
-                        <RadioButton GroupName="Inline_diagnostic_location"
-                                     x:Name="hook_to_end_of_window"
-                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Hook_to_end_of_window}"/>
-                    </StackPanel>
-                </StackPanel>
-            </GroupBox>
-            
             <GroupBox x:Uid="InlineHintsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Inline_Hints_experimental}">
                 <StackPanel>
