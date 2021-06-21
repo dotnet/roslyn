@@ -46,48 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
-        public void SourceModule()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
+        public void SourceModule(string ob, string cb)
         {
             var text = @"namespace NS.NS1.NS2
-{
+" + ob + @"
     class A {}
-}
-";
-            var comp = CreateCompilation(text, assemblyName: "Test");
-
-            var sym = comp.SourceModule;
-            Assert.Equal("Test.dll", sym.Name);
-            // Bug: 2026
-            Assert.Equal("Test.dll", sym.ToDisplayString());
-            Assert.Equal(String.Empty, sym.GlobalNamespace.Name);
-            Assert.Equal(SymbolKind.NetModule, sym.Kind);
-            Assert.Equal(Accessibility.NotApplicable, sym.DeclaredAccessibility);
-            Assert.False(sym.IsStatic);
-            Assert.False(sym.IsVirtual);
-            Assert.False(sym.IsOverride);
-            Assert.False(sym.IsAbstract);
-            Assert.False(sym.IsSealed);
-            Assert.Equal("Test", sym.ContainingAssembly.Name);
-            Assert.Equal("Test", sym.ContainingSymbol.Name);
-
-            var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var ns1 = (ns.GetMembers("NS1").Single() as NamespaceSymbol).GetMembers("NS2").Single() as NamespaceSymbol;
-            // NamespaceExtent 
-            var ext = ns1.Extent;
-            Assert.Equal(NamespaceKind.Module, ext.Kind);
-            Assert.Equal(1, ns1.ConstituentNamespaces.Length);
-            Assert.Same(ns1, ns1.ConstituentNamespaces[0]);
-
-            // Bug: 1979
-            Assert.Equal("Module: Test.dll", ext.ToString());
-        }
-
-        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
-        public void SourceModuleSingleLineNamespace()
-        {
-            var text = @"namespace NS.NS1.NS2;
-class A {}
+" + cb + @"
 ";
             var comp = CreateCompilation(text, assemblyName: "Test");
 
@@ -216,64 +181,23 @@ namespace NS.NS1 {
             Assert.Equal("NS.NS1.B", type2.BaseType().ToTestDisplayString());
         }
 
-        [Fact]
-        public void MultiModulesNamespace()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void MultiModulesNamespace(string ob, string cb)
         {
             var text1 = @"namespace N1
-{
+" + ob + @"
     class A {}
-}
+" + cb + @"
 ";
             var text2 = @"namespace N1
-{
+" + ob + @"
     interface IGoo {}
-}
+" + cb + @"
 ";
             var text3 = @"namespace N1
-{
+" + ob + @"
     struct SGoo {}
-}
-";
-            var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
-            var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
-
-            var compRef1 = new CSharpCompilationReference(comp1);
-            var compRef2 = new CSharpCompilationReference(comp2);
-
-            var comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
-            //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
-            //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
-            //                        references: new MetadataReference[] { compRef1, compRef2 });
-
-            var global = comp.GlobalNamespace; // throw
-            var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
-            Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
-
-            var constituents = ns.ConstituentNamespaces;
-            Assert.Equal(3, constituents.Length);
-            Assert.True(constituents.Contains(comp.SourceAssembly.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
-            Assert.True(constituents.Contains(comp.GetReferencedAssemblySymbol(compRef1).GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
-            Assert.True(constituents.Contains(comp.GetReferencedAssemblySymbol(compRef2).GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
-
-            foreach (var constituentNs in constituents)
-            {
-                Assert.Equal(NamespaceKind.Module, constituentNs.Extent.Kind);
-                Assert.Equal(ns.ToTestDisplayString(), constituentNs.ToTestDisplayString());
-            }
-        }
-
-        [Fact]
-        public void MultiModulesSingleLineNamespace()
-        {
-            var text1 = @"namespace N1;
-class A {}
-";
-            var text2 = @"namespace N1;
-interface IGoo {}
-";
-            var text3 = @"namespace N1;
-struct SGoo {}
+" + cb + @"
 ";
             var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
             var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
@@ -347,11 +271,11 @@ struct SGoo {}
         }
 
         /// Container with nested types and non-type members with the same name
-        [Fact]
-        public void ClassWithNestedTypesAndMembersWithSameName()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void ClassWithNestedTypesAndMembersWithSameName(string ob, string cb)
         {
             var text1 = @"namespace N1
-{
+" + ob + @"
     class A 
     {
         class b
@@ -368,41 +292,7 @@ struct SGoo {}
 
         int b(string s){}
     }
-}
-";
-
-            var comp = CSharpCompilation.Create(
-                assemblyName: "Test1",
-                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1) },
-                references: new MetadataReference[] { });
-            var global = comp.GlobalNamespace; // throw
-            var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
-            Assert.Equal(1, ns.GetTypeMembers().Length); // A
-            var b = ns.GetTypeMembers("A")[0].GetMembers("b");
-            Assert.Equal(5, b.Length);
-        }
-
-        /// Container with nested types and non-type members with the same name
-        [Fact]
-        public void ClassWithNestedTypesAndMembersWithSameNameSingleLineNamespace()
-        {
-            var text1 = @"namespace N1;
-class A 
-{
-    class b
-    {
-    }
-
-    class b<T>
-    {
-    }
-
-    int b;
-
-    int b() {}
-
-    int b(string s){}
-}
+" + cb + @"
 ";
 
             var comp = CSharpCompilation.Create(
@@ -448,44 +338,19 @@ namespace NS
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
-        [Fact]
-        public void GenericNamespace()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void GenericNamespace(string ob, string cb)
         {
             var compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
-{
+" + ob + @"
     class Program    
     {        
         static void Main()
         { 
         }
     }
-}
-");
-            var global = compilation.GlobalNamespace;
-
-            var @namespace = global.GetMember<NamespaceSymbol>("Goo");
-            Assert.NotNull(@namespace);
-
-            var @class = @namespace.GetMember<NamedTypeSymbol>("Program");
-            Assert.NotNull(@class);
-
-            var method = @class.GetMember<MethodSymbol>("Main");
-            Assert.NotNull(method);
-        }
-
-        [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
-        [Fact]
-        public void GenericNamespaceSingleLineNamespace()
-        {
-            var compilation = CreateEmptyCompilation(@"
-namespace Goo<T>;
-class Program
-{        
-    static void Main()
-    { 
-    }
-}
+" + cb + @"
 ");
             var global = compilation.GlobalNamespace;
 
@@ -575,12 +440,12 @@ class App
         }
 
         [WorkItem(863435, "DevDiv/Personal")]
-        [Fact]
-        public void CS1671ERR_BadModifiersOnNamespace01()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void CS1671ERR_BadModifiersOnNamespace01(string ob, string cb)
         {
             var test = @"
 public namespace NS // CS1671
-{
+" + ob + @"
     class Test
     {
         public static int Main()
@@ -588,28 +453,9 @@ public namespace NS // CS1671
             return 1;
         }
     }
-}
+" + cb + @"
 ";
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
-                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
-        }
-
-        [WorkItem(863435, "DevDiv/Personal")]
-        [Fact]
-        public void CS1671ERR_BadModifiersOnNamespace01SingleLineNamespace()
-        {
-            var test = @"
-public namespace NS; // CS1671
-class Test
-{
-    public static int Main()
-    {
-        return 1;
-    }
-}
-";
-            CreateCompilationWithMscorlib45(test, parseOptions: s_previewOptions).VerifyDiagnostics(
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
                 Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
