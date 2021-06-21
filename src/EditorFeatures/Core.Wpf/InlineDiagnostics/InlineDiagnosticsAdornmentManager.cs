@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
                     }
 
-                    tag.EditorTextLocation = lineView.Right;
                     Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
 
                     if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
