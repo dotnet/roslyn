@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 if (elements.Any())
                 {
                     var location = ((InlineDiagnosticsTag)elements[0].Tag).Location;
-                    if (location == InlineDiagnosticsLocations.HookedToWindow)
+                    if (location == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                     {
                         var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
                         UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, true);
@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
 
                     var visualElement = graphicsResult.VisualElement;
-                    if (tag.Location is InlineDiagnosticsLocations.HookedToCode)
+                    if (tag.Location is InlineDiagnosticsLocations.PlacedAtEndOfCode)
                     {
                         Canvas.SetLeft(visualElement, lineView.Right);
                     }
-                    else if (tag.Location is InlineDiagnosticsLocations.HookedToWindow)
+                    else if (tag.Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                     {
                         Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
                     }

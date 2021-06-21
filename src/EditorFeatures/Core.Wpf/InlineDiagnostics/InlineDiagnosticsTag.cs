@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             void ViewportWidthChangedHandler(object s, EventArgs e)
             {
-                if (Location is InlineDiagnosticsLocations.HookedToWindow)
+                if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                 {
                     Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
                 }

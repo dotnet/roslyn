@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public static readonly PerLanguageOption2<InlineDiagnosticsLocations> LocationOption =
             new(nameof(InlineDiagnosticsOptions),
                 nameof(LocationOption),
-                defaultValue: InlineDiagnosticsLocations.Default,
+                defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
     }
 

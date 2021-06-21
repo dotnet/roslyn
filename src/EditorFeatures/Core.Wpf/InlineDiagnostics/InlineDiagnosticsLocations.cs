@@ -6,10 +6,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     internal enum InlineDiagnosticsLocations
     {
-        HookedToCode,
-        HookedToWindow,
-
-        Default = HookedToCode,
+        PlacedAtEndOfCode,
+        PlacedAtEndOfEditor,
     }
 }
 

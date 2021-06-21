@@ -47,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
-            BindToOption(place_at_end_of_line_of_code, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToCode, LanguageNames.CSharp);
-            BindToOption(place_at_end_of_editor_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.HookedToWindow, LanguageNames.CSharp);
+            BindToOption(place_at_end_of_line_of_code, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
+            BindToOption(place_at_end_of_editor_window, InlineDiagnosticsOptions.LocationOption, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Use_64bit_analysis_process, RemoteHostOptions.OOP64Bit);
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
