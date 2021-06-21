@@ -281,6 +281,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAttributes();
             GetReturnTypeAttributes();
 
+            if (this.HasAsyncMethodBuilder(out _))
+            {
+                // This will need to be adjusted to account for explicit return type on lambdas
+                addTo.Add(ErrorCode.ERR_BuilderAttributeDisallowed, DiagnosticLocation);
+            }
+
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
         }
 

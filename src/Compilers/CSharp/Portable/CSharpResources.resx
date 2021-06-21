@@ -6704,4 +6704,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
+  <data name="ERR_BuilderAttributeDisallowed" xml:space="preserve">
+    <value>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</value>
+  </data>
 </root>

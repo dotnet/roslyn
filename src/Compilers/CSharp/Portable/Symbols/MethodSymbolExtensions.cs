@@ -12,6 +12,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -163,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderOverride = null;
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 0 }
-                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilder(builderArgument: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderOverride = null;
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 1 }
-                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilder(builderArgument: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>
