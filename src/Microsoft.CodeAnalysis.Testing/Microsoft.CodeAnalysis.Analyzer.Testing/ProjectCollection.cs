@@ -35,7 +35,22 @@ namespace Microsoft.CodeAnalysis.Testing
         {
             get
             {
-                var project = this.GetOrAdd(projectName, () => new ProjectState(projectName, _defaultLanguage, $"/{projectName}/Test", _defaultExtension));
+                string extension;
+                if (language == _defaultLanguage)
+                {
+                    extension = _defaultExtension;
+                }
+                else
+                {
+                    extension = language switch
+                    {
+                        LanguageNames.CSharp => "cs",
+                        LanguageNames.VisualBasic => "vb",
+                        _ => throw new ArgumentOutOfRangeException(nameof(language)),
+                    };
+                }
+
+                var project = this.GetOrAdd(projectName, () => new ProjectState(projectName, language, $"/{projectName}/Test", extension));
                 if (project.Language != language)
                 {
                     throw new InvalidOperationException();
