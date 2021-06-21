@@ -28,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// If the given <paramref name="asyncKeyword"/> is default, remove async if exists.
         /// Otherwise, replace the existing <see cref="AsyncKeyword"/> or add a new one.
         /// </summary>
-        /// <param name="asyncKeyword"></param>
-        /// <returns></returns>
         private protected SyntaxTokenList UpdateAsyncKeyword(SyntaxToken asyncKeyword)
         {
             var existingAsync = AsyncKeyword;
