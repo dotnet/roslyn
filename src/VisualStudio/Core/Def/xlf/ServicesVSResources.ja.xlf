@@ -147,6 +147,11 @@
         <target state="translated">C#/Visual Basic 診断言語クライアント</target>
         <note />
       </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="new">Calculating...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">依存を計算しています...</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
         <target state="translated">現在のパラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -377,6 +387,11 @@
         <target state="translated">ID</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">実装されたメンバー</target>
@@ -385,6 +400,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">メンバーを実装中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -415,6 +435,11 @@
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
         <target state="translated">継承の余白 (試験段階)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -1147,11 +1172,6 @@
         <target state="translated">重要度を更新しています</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">コード分析に 64 ビット プロセスを使用する (再起動が必要)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">ラムダに式本体を使用します</target>
@@ -1171,6 +1191,11 @@
         <source>Value</source>
         <target state="translated">値</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="new">Value Tracking</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
