@@ -77,9 +77,10 @@ public {(isStruct ? "struct" : "class")} {taskLikeName}{ofT}
         }
 
         [Theory]
-        [InlineData("typeof(MyTaskMethodBuilder)")]
-        [InlineData("typeof(object)")]
-        [InlineData("null")]
+        [InlineData("[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]")]
+        [InlineData("[AsyncMethodBuilder(typeof(object))]")]
+        [InlineData("[AsyncMethodBuilder(null)]")]
+        [InlineData("")]
         public void BuilderOnMethod_DummyBuilderOnType(string dummyBuilder)
         {
             var source = $@"
@@ -101,10 +102,10 @@ class C
     public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder({dummyBuilder})]
+{dummyBuilder}
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder({dummyBuilder})]
+{dummyBuilder}
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
@@ -183,44 +184,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_NoBuilderOnType()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-Console.WriteLine(await C.M());
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
-}}
-
-// no attribute
-{AwaitableTypeCode("MyTask")}
-
-// no attribute
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
-        }
-
-        [Fact]
-        public void BuilderOnMethod_NoBuilderOnType_Nullability()
+        public void BuilderOnMethod_Nullability()
         {
             var source = $@"
 #nullable enable
@@ -274,7 +238,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_NoBuilderOnType_BadReturns()
+        public void BuilderOnMethod_BadReturns()
         {
             var source = $@"
 using System;

@@ -283,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.HasAsyncMethodBuilder(out _))
             {
-                // This will need to be adjusted to account for explicit return type on lambdas
                 addTo.Add(ErrorCode.ERR_BuilderAttributeDisallowed, DiagnosticLocation);
             }
 

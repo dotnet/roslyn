@@ -185,11 +185,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-                bool forOverride = method.HasAsyncMethodBuilder(out methodLevelBuilder);
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilder(out methodLevelBuilder);
                 bool customBuilder;
                 object builderArgument;
 
-                if (forOverride)
+                if (useMethodLevelBuilder)
                 {
                     customBuilder = true;
                     builderArgument = methodLevelBuilder;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false, forOverride);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false, useMethodLevelBuilder);
                     if ((object)builderType != null)
                     {
                         taskProperty = GetCustomTaskProperty(F, builderType, returnType);
@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-                bool forOverride = method.HasAsyncMethodBuilder(out methodLevelBuilder);
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilder(out methodLevelBuilder);
                 bool customBuilder;
                 object builderArgument;
 
-                if (forOverride)
+                if (useMethodLevelBuilder)
                 {
                     customBuilder = true;
                     builderArgument = methodLevelBuilder;
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true, forOverride);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true, useMethodLevelBuilder);
                     if ((object)builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
@@ -336,14 +336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.UnexpectedValue(method);
         }
 
-        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forOverride = false)
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forMethodLevelBuilder = false)
         {
             var builderType = builderAttributeArgument as NamedTypeSymbol;
 
             if ((object)builderType != null &&
                  !builderType.IsErrorType() &&
                  !builderType.IsVoidType() &&
-                 (forOverride || builderType.DeclaredAccessibility == desiredAccessibility))
+                 (forMethodLevelBuilder || builderType.DeclaredAccessibility == desiredAccessibility))
             {
                 bool isArityOk = isGeneric
                                  ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
@@ -456,8 +456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        // For method-level builders, we allow the `Create` method to return a different type.
-        // We'll just use that type as the final builder type.
         private static MethodSymbol GetCustomCreateMethod(
             SyntheticBoundNodeFactory F,
             NamedTypeSymbol builderType)
