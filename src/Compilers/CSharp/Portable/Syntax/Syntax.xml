@@ -3730,6 +3730,7 @@
         <summary>Gets the return type.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" keyword.</summary>
@@ -3793,6 +3794,7 @@
       <Kind Name="ImplicitKeyword"/>
       <Kind Name="ExplicitKeyword"/>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" token.</summary>
