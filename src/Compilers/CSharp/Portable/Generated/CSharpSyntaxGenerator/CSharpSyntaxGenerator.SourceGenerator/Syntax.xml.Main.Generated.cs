@@ -453,6 +453,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
         public virtual TResult? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a SingleLineNamespaceDeclarationSyntax node.</summary>
+        public virtual TResult? VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
         public virtual TResult? VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
@@ -1149,6 +1152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a NamespaceDeclarationSyntax node.</summary>
         public virtual void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a SingleLineNamespaceDeclarationSyntax node.</summary>
+        public virtual void VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a AttributeListSyntax node.</summary>
         public virtual void VisitAttributeList(AttributeListSyntax node) => this.DefaultVisit(node);
 
@@ -1844,6 +1850,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
             => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.OpenBraceToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members), VisitToken(node.CloseBraceToken), VisitToken(node.SemicolonToken));
+
+        public override SyntaxNode? VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax node)
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), VisitToken(node.NamespaceKeyword), (NameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"), VisitToken(node.SemicolonToken), VisitList(node.Externs), VisitList(node.Usings), VisitList(node.Members));
 
         public override SyntaxNode? VisitAttributeList(AttributeListSyntax node)
             => node.Update(VisitToken(node.OpenBracketToken), (AttributeTargetSpecifierSyntax?)Visit(node.Target), VisitList(node.Attributes), VisitToken(node.CloseBracketToken));
@@ -4610,6 +4619,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new NamespaceDeclarationSyntax instance.</summary>
         public static NamespaceDeclarationSyntax NamespaceDeclaration(NameSyntax name)
             => SyntaxFactory.NamespaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, default, default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new SingleLineNamespaceDeclarationSyntax instance.</summary>
+        public static SingleLineNamespaceDeclarationSyntax SingleLineNamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken semicolonToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+        {
+            if (namespaceKeyword.Kind() != SyntaxKind.NamespaceKeyword) throw new ArgumentException(nameof(namespaceKeyword));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            return (SingleLineNamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.SingleLineNamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>()).CreateRed();
+        }
+
+        /// <summary>Creates a new SingleLineNamespaceDeclarationSyntax instance.</summary>
+        public static SingleLineNamespaceDeclarationSyntax SingleLineNamespaceDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, NameSyntax name, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members)
+            => SyntaxFactory.SingleLineNamespaceDeclaration(attributeLists, modifiers, SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken), externs, usings, members);
+
+        /// <summary>Creates a new SingleLineNamespaceDeclarationSyntax instance.</summary>
+        public static SingleLineNamespaceDeclarationSyntax SingleLineNamespaceDeclaration(NameSyntax name)
+            => SyntaxFactory.SingleLineNamespaceDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken), default, default, default);
 
         /// <summary>Creates a new AttributeListSyntax instance.</summary>
         public static AttributeListSyntax AttributeList(SyntaxToken openBracketToken, AttributeTargetSpecifierSyntax? target, SeparatedSyntaxList<AttributeSyntax> attributes, SyntaxToken closeBracketToken)

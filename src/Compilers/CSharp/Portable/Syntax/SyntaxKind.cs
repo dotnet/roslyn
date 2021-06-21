@@ -735,6 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NamespaceDeclaration = 8842,
         UsingDirective = 8843,
         ExternAliasDirective = 8844,
+        SingleLineNamespaceDeclaration = 8845,
 
         // attributes
         AttributeList = 8847,

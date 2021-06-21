@@ -157,6 +157,68 @@ interface B {
             Assert.Equal(3, type33.AllInterfaces().Length);
         }
 
+        [Fact]
+        public void InheritedTypesCrossTrees_SingleLineNamespace()
+        {
+            var text = @"namespace MT;
+public interface IGoo { void Goo(); }
+public interface IGoo<T, R> { R Goo(T t); }
+";
+            var text1 = @"namespace MT;
+public interface IBar<T> : IGoo { void Bar(T t); }
+";
+            var text2 = @"namespace NS;
+using System;
+using MT;
+public class A<T> : IGoo<T, string>, IBar<string> {
+    void IGoo.Goo() { }
+    void IBar<string>.Bar(string s) { }
+    public string Goo(T t) { return null; }
+}
+
+public class B : A<int> {}
+";
+            var text3 = @"namespace NS;
+public class C : B {}
+";
+
+            var comp = CreateCompilation(new[] { text, text1, text2, text3 });
+            var global = comp.GlobalNamespace;
+            var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
+
+            var type1 = ns.GetTypeMembers("C", 0).SingleOrDefault() as NamedTypeSymbol;
+            Assert.Equal(0, type1.Interfaces().Length);
+            Assert.Equal(3, type1.AllInterfaces().Length);
+            var sorted = (from i in type1.AllInterfaces()
+                          orderby i.Name
+                          select i).ToArray();
+            var i1 = sorted[0] as NamedTypeSymbol;
+            var i2 = sorted[1] as NamedTypeSymbol;
+            var i3 = sorted[2] as NamedTypeSymbol;
+            Assert.Equal("MT.IBar<System.String>", i1.ToTestDisplayString());
+            Assert.Equal(1, i1.Arity);
+            Assert.Equal("MT.IGoo<System.Int32, System.String>", i2.ToTestDisplayString());
+            Assert.Equal(2, i2.Arity);
+            Assert.Equal("MT.IGoo", i3.ToTestDisplayString());
+            Assert.Equal(0, i3.Arity);
+
+            Assert.Equal("B", type1.BaseType().Name);
+            // B
+            var type2 = type1.BaseType() as NamedTypeSymbol;
+            Assert.Equal(3, type2.AllInterfaces().Length);
+            Assert.NotNull(type2.BaseType());
+            // A<int>
+            var type3 = type2.BaseType() as NamedTypeSymbol;
+            Assert.Equal("NS.A<System.Int32>", type3.ToTestDisplayString());
+            Assert.Equal(2, type3.Interfaces().Length);
+            Assert.Equal(3, type3.AllInterfaces().Length);
+
+            var type33 = ns.GetTypeMembers("A", 1).SingleOrDefault() as NamedTypeSymbol;
+            Assert.Equal("NS.A<T>", type33.ToTestDisplayString());
+            Assert.Equal(2, type33.Interfaces().Length);
+            Assert.Equal(3, type33.AllInterfaces().Length);
+        }
+
         [WorkItem(537752, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537752")]
         [Fact]
         public void InheritedTypesCrossComps()

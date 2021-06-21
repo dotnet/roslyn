@@ -224,6 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
+        IDS_SingleLineNamespace = MessageBase + 12802,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -371,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
+                case MessageID.IDS_SingleLineNamespace: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.

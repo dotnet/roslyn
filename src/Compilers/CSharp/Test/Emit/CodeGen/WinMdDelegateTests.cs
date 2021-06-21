@@ -71,6 +71,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 WellKnownMemberNames.DelegateEndInvokeName);
         }
 
+        [Fact(), WorkItem(1003193, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1003193")]
+        public void SimpleDelegateMembersTestSingleLineNamespace()
+        {
+            const string libSrc =
+@"namespace Test;
+public delegate void voidDelegate();
+";
+            Func<string[], Action<ModuleSymbol>> getValidator = expectedMembers => m =>
+            {
+                {
+                    var actualMembers =
+                        m.GlobalNamespace.GetMember<NamespaceSymbol>("Test").
+                        GetMember<NamedTypeSymbol>("voidDelegate").GetMembers().ToArray();
+
+                    AssertEx.SetEqual(actualMembers.Select(s => s.Name), expectedMembers);
+                };
+            };
+
+
+            VerifyType verify = (winmd, expected) =>
+            {
+                var validator = getValidator(expected);
+
+                // We should see the same members from both source and metadata
+                var verifier = CompileAndVerify(
+                    libSrc,
+                    sourceSymbolValidator: validator,
+                    symbolValidator: validator,
+                    options: winmd ? TestOptions.ReleaseWinMD : TestOptions.ReleaseDll,
+                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+                verifier.VerifyDiagnostics();
+            };
+
+            // Test winmd
+            verify(true,
+                WellKnownMemberNames.InstanceConstructorName,
+                WellKnownMemberNames.DelegateInvokeName);
+
+            // Test normal
+            verify(false,
+                WellKnownMemberNames.InstanceConstructorName,
+                WellKnownMemberNames.DelegateInvokeName,
+                WellKnownMemberNames.DelegateBeginInvokeName,
+                WellKnownMemberNames.DelegateEndInvokeName);
+        }
+
         [Fact]
         public void TestAllDelegates()
         {

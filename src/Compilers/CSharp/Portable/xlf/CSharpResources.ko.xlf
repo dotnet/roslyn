@@ -652,6 +652,11 @@
         <target state="translated">단일 레코드 partial 선언에만 매개 변수 목록을 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleSingleLineNamespace">
+        <source>Source file can only contain one single-line namespace declaration.</source>
+        <target state="new">Source file can only contain one single-line namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 제약 조건은 'unmanaged' 제약 조건과 함께 사용할 수 없습니다.</target>
@@ -892,6 +897,16 @@
         <target state="translated">단일 요소 분해 패턴은 명확성을 위해 다른 구문이 필요합니다. 닫는 괄호 ')' 뒤에 무시 항목 지정자 '_'을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleLineAndNormalNamespace">
+        <source>Source file can not contain both single-line and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both single-line and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">
+        <source>Single-line namespace must precede all other members in a file.</source>
+        <target state="new">Single-line namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">레코드 멤버 '{0}'이(가) 정적이지 않을 수 있습니다.</target>
@@ -1040,6 +1055,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SingleLineNamespace">
+        <source>single-line namespace</source>
+        <target state="new">single-line namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3546,8 +3566,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">네임스페이스는 필드나 메서드와 같은 멤버를 직접 포함할 수 없습니다.</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">네임스페이스는 필드나 메서드와 같은 멤버를 직접 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

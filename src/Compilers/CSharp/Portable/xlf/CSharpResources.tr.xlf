@@ -652,6 +652,11 @@
         <target state="translated">Yalnızca tek kaydın kısmi bildiriminde parametre listesi olabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleSingleLineNamespace">
+        <source>Source file can only contain one single-line namespace declaration.</source>
+        <target state="new">Source file can only contain one single-line namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">'new()' kısıtlaması, 'unmanaged' kısıtlamasıyla kullanılamaz</target>
@@ -892,6 +897,16 @@
         <target state="translated">Tek öğeli bir ayrıştırma deseni, kesinleştirme için başka bir söz dizimi gerektirir. ')' kapanış parantezinden sonra '_' atma belirleyicisinin eklenmesi önerilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleLineAndNormalNamespace">
+        <source>Source file can not contain both single-line and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both single-line and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">
+        <source>Single-line namespace must precede all other members in a file.</source>
+        <target state="new">Single-line namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">'{0}' kayıt üyesi statik olmayabilir.</target>
@@ -1040,6 +1055,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SingleLineNamespace">
+        <source>single-line namespace</source>
+        <target state="new">single-line namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3547,8 +3567,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">Ad uzayı, alanlar veya yöntemler gibi üyeleri doğrudan içeremez</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">Ad uzayı, alanlar veya yöntemler gibi üyeleri doğrudan içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

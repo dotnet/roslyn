@@ -652,6 +652,11 @@
         <target state="translated">只有一个记录分部声明可以具有参数列表</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MultipleSingleLineNamespace">
+        <source>Source file can only contain one single-line namespace declaration.</source>
+        <target state="new">Source file can only contain one single-line namespace declaration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
@@ -892,6 +897,16 @@
         <target state="translated">单元素解构模式需要一些其他语法来消除歧义。建议在关闭 paren ")" 之后添加放弃指示符 "_"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SingleLineAndNormalNamespace">
+        <source>Source file can not contain both single-line and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both single-line and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">
+        <source>Single-line namespace must precede all other members in a file.</source>
+        <target state="new">Single-line namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">记录成员“{0}”可能不是静态的。</target>
@@ -1040,6 +1055,11 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SingleLineNamespace">
+        <source>single-line namespace</source>
+        <target state="new">single-line namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -3552,8 +3572,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">命名空间不能直接包含字段或方法之类的成员</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">命名空间不能直接包含字段或方法之类的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

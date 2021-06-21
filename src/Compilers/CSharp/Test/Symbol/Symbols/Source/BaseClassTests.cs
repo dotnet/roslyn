@@ -1268,6 +1268,33 @@ namespace N
         }
 
         [Fact]
+        public void NestedNames1SingleLineNamespace()
+        {
+            var text =
+@"
+namespace N;
+static class C
+{
+    class A<T>
+    {
+        class B<U> : A<B<U>>.D { }
+        private class D { }
+    }
+}
+";
+            var comp = CreateEmptyCompilation(text);
+            var global = comp.GlobalNamespace;
+            var n = global.GetMembers("N").OfType<NamespaceSymbol>().Single();
+            var c = n.GetTypeMembers("C", 0).Single();
+            var a = c.GetTypeMembers("A", 1).Single();
+            var b = a.GetTypeMembers("B", 1).Single();
+            var d = a.GetTypeMembers("D", 0).Single();
+            Assert.Equal(Accessibility.Private, d.DeclaredAccessibility);
+            Assert.Equal(d.OriginalDefinition, b.BaseType().OriginalDefinition);
+            Assert.NotEqual(d, b.BaseType());
+        }
+
+        [Fact]
         public void Using1()
         {
             var text =

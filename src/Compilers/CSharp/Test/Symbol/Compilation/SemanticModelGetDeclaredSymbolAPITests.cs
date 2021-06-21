@@ -84,6 +84,21 @@ namespace A.B
         }
 
         [Fact]
+        public void TestGetDeclaredSymbolFromSingleLineNamespace()
+        {
+            var compilation = CreateCompilation(@"
+namespace A.B;
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var decl = (BaseNamespaceDeclarationSyntax)root.Members[0];
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = model.GetDeclaredSymbol(decl);
+            Assert.NotNull(symbol);
+            Assert.Equal("B", symbol.Name);
+        }
+
+        [Fact]
         public void NamespaceAndClassWithNoNames()
         {
             var compilation = CreateCompilation(@"
@@ -123,6 +138,23 @@ namespace A.B
             var root = tree.GetCompilationUnitRoot();
             var abns = (NamespaceDeclarationSyntax)root.Members[0];
             var cdns = (NamespaceDeclarationSyntax)abns.Members[0];
+            var model = compilation.GetSemanticModel(tree);
+            var symbol = model.GetDeclaredSymbol(cdns);
+            Assert.NotNull(symbol);
+            Assert.Equal("D", symbol.Name);
+        }
+
+        [Fact]
+        public void TestGetDeclaredSymbolFromNestedSingleLineNamespace()
+        {
+            var compilation = CreateCompilation(@"
+namespace A.B;
+namespace C.D;
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var abns = (SingleLineNamespaceDeclarationSyntax)root.Members[0];
+            var cdns = (SingleLineNamespaceDeclarationSyntax)abns.Members[0];
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(cdns);
             Assert.NotNull(symbol);
@@ -219,6 +251,27 @@ namespace C<int>.B
         }
 
         [Fact]
+        public void GenericNameInSingleLineNamespaceName()
+        {
+            var compilation = CreateCompilation(@"
+namespace C<int>.B;
+class Y { }
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var classY = ((root.
+                Members[0] as SingleLineNamespaceDeclarationSyntax).
+                Members[0] as TypeDeclarationSyntax);
+
+            var model = compilation.GetSemanticModel(tree);
+
+            var symbol = model.GetDeclaredSymbol(classY);
+            Assert.NotNull(symbol);
+            Assert.Equal("C.B.Y", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void AliasedNameInNamespaceName()
         {
             var compilation = CreateCompilation(@"
@@ -232,6 +285,27 @@ namespace alias::C<int>.B
             var root = tree.GetCompilationUnitRoot();
             var classY = ((root.
                 Members[0] as NamespaceDeclarationSyntax).
+                Members[0] as TypeDeclarationSyntax);
+
+            var model = compilation.GetSemanticModel(tree);
+
+            var symbol = model.GetDeclaredSymbol(classY);
+            Assert.NotNull(symbol);
+            Assert.Equal("C.B.Y", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AliasedNameInSingleLineNamespaceName()
+        {
+            var compilation = CreateCompilation(@"
+namespace alias::C<int>.B;
+class Y { }
+");
+
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var classY = ((root.
+                Members[0] as SingleLineNamespaceDeclarationSyntax).
                 Members[0] as TypeDeclarationSyntax);
 
             var model = compilation.GetSemanticModel(tree);
@@ -1034,6 +1108,26 @@ class C1 { }
             // should validate type here
         }
 
+        [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
+        [Fact]
+        public void TestLookupUnresolvableNamespaceUsingInSingleLineNamespace()
+        {
+            var compilation = CreateCompilation(@"
+                namespace A;
+                using B.C;
+
+                public class B : C
+                {    
+                }
+            ");
+            var tree = compilation.SyntaxTrees.Single();
+            var usingDirective = (UsingDirectiveSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.UsingDirective).AsNode();
+            var model = compilation.GetSemanticModel(tree);
+            var type = model.GetTypeInfo(usingDirective.Name);
+            Assert.NotEmpty(compilation.GetDeclarationDiagnostics());
+            // should validate type here
+        }
+
         [Fact]
         public void TestLookupSourceSymbolHidesMetadataSymbol()
         {
@@ -1049,6 +1143,28 @@ namespace System
             var tree = compilation.SyntaxTrees.Single();
 
             var namespaceDecl = (NamespaceDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
+            var classDecl = (ClassDeclarationSyntax)namespaceDecl.Members[0];
+            var memberDecl = (FieldDeclarationSyntax)classDecl.Members[0];
+
+            var model = compilation.GetSemanticModel(tree);
+            var symbols = model.LookupSymbols(memberDecl.SpanStart, null, "DateTime");
+            Assert.Equal(1, symbols.Length);
+        }
+
+        [Fact]
+        public void TestLookupSourceSymbolHidesMetadataSymbolSingleLineNamespace()
+        {
+            var compilation = CreateCompilation(@"
+namespace System;
+public class DateTime
+{
+    string TheDateAndTime;
+}
+");
+
+            var tree = compilation.SyntaxTrees.Single();
+
+            var namespaceDecl = (SingleLineNamespaceDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var classDecl = (ClassDeclarationSyntax)namespaceDecl.Members[0];
             var memberDecl = (FieldDeclarationSyntax)classDecl.Members[0];
 
@@ -3017,6 +3133,29 @@ namespace NS
             var srcSym = ns1.GetMembers("A").Single() as INamedTypeSymbol;
 
             var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var declSym = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
+
+            Assert.Equal(srcSym, declSym);
+        }
+
+        [WorkItem(537953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537953")]
+        [Fact]
+        public void GetDeclaredSymbolNoTypeSymbolWithErrSingleLineNamespace()
+        {
+            var compilation = (Compilation)CreateCompilation(@"
+namespace NS;
+
+protected class A { }
+");
+            var tree = compilation.SyntaxTrees.First();
+            var root = tree.GetCompilationUnitRoot();
+            var model = compilation.GetSemanticModel(tree);
+
+            var globalNS = compilation.SourceModule.GlobalNamespace;
+            var ns1 = globalNS.GetMembers("NS").Single() as INamespaceSymbol;
+            var srcSym = ns1.GetMembers("A").Single() as INamedTypeSymbol;
+
+            var nsSyntax = (root.Members[0] as SingleLineNamespaceDeclarationSyntax);
             var declSym = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
 
             Assert.Equal(srcSym, declSym);

@@ -76,13 +76,13 @@ name_colon
 member_declaration
   : base_field_declaration
   | base_method_declaration
+  | base_namespace_declaration
   | base_property_declaration
   | base_type_declaration
   | delegate_declaration
   | enum_member_declaration
   | global_statement
   | incomplete_member
-  | namespace_declaration
   ;
 
 base_field_declaration
@@ -232,6 +232,19 @@ operator_declaration
   : attribute_list* modifier* type 'operator' ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
+base_namespace_declaration
+  : namespace_declaration
+  | single_line_namespace_declaration
+  ;
+
+namespace_declaration
+  : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
+  ;
+
+single_line_namespace_declaration
+  : attribute_list* modifier* 'namespace' name ';' extern_alias_directive* using_directive* member_declaration*
+  ;
+
 base_property_declaration
   : event_declaration
   | indexer_declaration
@@ -325,10 +338,6 @@ global_statement
 
 incomplete_member
   : attribute_list* modifier* type?
-  ;
-
-namespace_declaration
-  : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
   ;
 
 type

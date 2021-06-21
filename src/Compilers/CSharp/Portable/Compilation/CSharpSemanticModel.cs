@@ -2888,6 +2888,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract INamespaceSymbol GetDeclaredSymbol(NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+        /// <param name="declarationSyntax">The syntax node that declares a namespace.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The namespace symbol that was declared by the namespace declaration.</returns>
+        public abstract INamespaceSymbol GetDeclaredSymbol(SingleLineNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Given a type declaration, get the corresponding type symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a type.</param>
@@ -5033,6 +5042,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((TupleElementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
+                case SyntaxKind.SingleLineNamespaceDeclaration:
+                    return this.GetDeclaredSymbol((SingleLineNamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:
                     return this.GetDeclaredSymbol((ParameterSyntax)node, cancellationToken);
                 case SyntaxKind.TypeParameter:
