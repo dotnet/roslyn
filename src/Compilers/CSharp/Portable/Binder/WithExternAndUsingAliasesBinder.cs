@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 usingDirectives = compilationUnit.Usings;
                                 break;
 
-                            case NamespaceDeclarationSyntax namespaceDecl:
+                            case BaseNamespaceDeclarationSyntax namespaceDecl:
                                 usingDirectives = namespaceDecl.Usings;
                                 break;
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var previous = Next!.ImportChain;
 
-                if (_declarationSyntax is NamespaceDeclarationSyntax namespaceDecl)
+                if (_declarationSyntax is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
                     // For each dotted name add an empty entry in the chain
                     var name = namespaceDecl.Name;

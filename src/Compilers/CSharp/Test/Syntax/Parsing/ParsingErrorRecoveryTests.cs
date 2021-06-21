@@ -7096,6 +7096,7 @@ class c
             Assert.True(classDecl.OpenBraceToken.IsMissing);
             Assert.True(classDecl.CloseBraceToken.IsMissing);
             var ns = root.DescendantNodes().OfType<SingleLineNamespaceDeclarationSyntax>().Single();
+            Assert.False(ns.SemicolonToken.IsMissing);
         }
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
