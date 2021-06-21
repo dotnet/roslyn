@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void IdentifierReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void IdentifierReturnType_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " T () => default";
             UsingExpression(source, TestOptions.Regular9);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void PrimitiveReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void PrimitiveReturnType_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " int (_) => 0";
             UsingExpression(source);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void PrimitiveReturnType_02(string modifiers, params SyntaxKind[] modifierKinds)
+        public void PrimitiveReturnType_02(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " void () => { }";
             UsingExpression(source);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void ArrayReturnType(string modifiers, params SyntaxKind[] modifierKinds)
+        public void ArrayReturnType(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " T[] () => null";
             UsingExpression(source);
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void PointerReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void PointerReturnType_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " T* () => default";
             UsingExpression(source);
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void FunctionPointerReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void FunctionPointerReturnType_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " delegate*<void> () => default";
             UsingExpression(source);
@@ -2061,7 +2061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void QualifiedNameReturnType_02(string modifiers, params SyntaxKind[] modifierKinds)
+        public void QualifiedNameReturnType_02(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " A::B () => null";
             UsingExpression(source);
@@ -2169,7 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void GenericReturnType_02(string modifiers, params SyntaxKind[] modifierKinds)
+        public void GenericReturnType_02(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " A<B>.C () => null";
             UsingExpression(source);
@@ -2217,7 +2217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void TupleReturnType_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void TupleReturnType_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " (x, y) (x, y) => (x, y)";
             UsingExpression(source);
@@ -2448,7 +2448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void Ref_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void Ref_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = modifiers + " ref int (ref int x) => ref x";
             UsingExpression(source);
@@ -2494,8 +2494,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [MemberData(nameof(AsyncAndStaticModifiers))]
+        [Theory]
+        public void Ref_02(string modifiers, SyntaxKind[] modifierKinds)
+        {
+            string source = modifiers + " ref readonly A () => ref x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                foreach (var modifier in modifierKinds)
+                {
+                    N(modifier);
+                }
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+            EOF();
+        }
+
         [Fact]
-        public void Ref_02()
+        public void Ref_03()
         {
             string source = "ref D () => ref int () => ref x";
             UsingExpression(source);
@@ -3582,9 +3622,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact]
+        public void Dynamic_01()
+        {
+            string source = "dynamic () => default";
+            UsingExpression(source, TestOptions.Regular9);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "dynamic");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.DefaultLiteralExpression);
+                {
+                    N(SyntaxKind.DefaultKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Dynamic_02()
+        {
+            string source = "Delegate d = dynamic () => default;";
+            UsingDeclaration(source, TestOptions.Regular9);
+
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Delegate");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "dynamic");
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void Attributes_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void Attributes_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = $"[A] {modifiers} void () => {{ }}";
             UsingExpression(source);
@@ -3678,7 +3789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void Attributes_03(string modifiers, params SyntaxKind[] modifierKinds)
+        public void Attributes_03(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = $"[A, B] {modifiers} ref T () => default";
             UsingExpression(source);
@@ -3733,7 +3844,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [MemberData(nameof(AsyncAndStaticModifiers))]
         [Theory]
-        public void AttributeArgument_01(string modifiers, params SyntaxKind[] modifierKinds)
+        public void AttributeArgument_01(string modifiers, SyntaxKind[] modifierKinds)
         {
             string source = $"[A({modifiers} void () => {{ }})] class C {{ }}";
             UsingDeclaration(source);

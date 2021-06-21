@@ -303,6 +303,8 @@ $@"class Program
             yield return getData("(int i) => { if (i > 0) return i; return default; }", "System.Func<System.Int32, System.Int32>");
             yield return getData("(int x, short y) => { if (x > 0) return x; return y; }", "System.Func<System.Int32, System.Int16, System.Int32>");
             yield return getData("(int x, short y) => { if (x > 0) return y; return x; }", "System.Func<System.Int32, System.Int16, System.Int32>");
+            yield return getData("object () => default", "System.Func<System.Object>");
+            yield return getData("void () => { }", "System.Action");
 
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };

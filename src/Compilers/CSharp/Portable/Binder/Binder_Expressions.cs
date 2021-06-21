@@ -8413,6 +8413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(returnTypeOpt.Type?.IsVoidType() != true); // expecting !returnTypeOpt.HasType rather than System.Void
+
             if (returnRefKind == RefKind.None &&
                 (parameterRefKinds.IsDefault || parameterRefKinds.All(refKind => refKind == RefKind.None)))
             {
