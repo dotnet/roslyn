@@ -109,10 +109,10 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
             verifier.VerifyIL("C.F()",
 @"{
   // Code size       49 (0x31)
@@ -434,11 +434,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             Assert.Equal("C.MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.G()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
             Assert.Equal("C.MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -515,11 +515,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_1()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
             Assert.Equal("MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -594,11 +594,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F|0_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<M>g__G|0_1<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncReturningGenericTask(compilation));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
             Assert.Equal("MyTask<T>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 

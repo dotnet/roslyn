@@ -1928,17 +1928,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
         }
 
-        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
-        {
-            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
-            return !returnType.IsErrorType() &&
-                !returnType.IsVoidType() &&
-                !returnType.IsNonGenericTaskType(declaringCompilation) &&
-                !returnType.IsGenericTaskType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
-        }
-
         internal static int TypeToIndex(this TypeSymbol type)
         {
             switch (type.GetSpecialTypeSafe())

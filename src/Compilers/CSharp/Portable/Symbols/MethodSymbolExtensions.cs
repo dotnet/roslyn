@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
@@ -155,21 +156,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
         {
+            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType.IsNonGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 0 }
+                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
         {
+            builderOverride = null;
             return method.IsAsync
-                && method.ReturnType.IsGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 1 }
+                && (method.HasMethodLevelBuilder(builderOverride: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>
