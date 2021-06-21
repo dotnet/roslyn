@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     if (location == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                     {
                         var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
-                        UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, true);
+                        UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
                     }
                 }
             }
