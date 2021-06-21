@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             });
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context)
+        private static void AnalyzeOperation(OperationAnalysisContext context)
         {
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
             if (!option.Value)
