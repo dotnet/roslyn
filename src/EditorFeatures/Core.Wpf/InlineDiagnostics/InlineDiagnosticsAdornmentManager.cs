@@ -41,15 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             if (AdornmentLayer is not null)
             {
-                var elements = AdornmentLayer.Elements;
-                foreach (var element in elements)
-                {
-                    var tag = (InlineDiagnosticsTag)element.Tag;
-                    if (tag.TagIntersectsWindow(element.Adornment))
-                    {
-                        AdornmentLayer.RemoveAdornment(element.Adornment);
-                    }
-                }
+                var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
+                UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, true);
             }
         }
 
@@ -189,6 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         Canvas.SetLeft(visualElement, TextView.ViewportWidth - visualElement.DesiredSize.Width);
                     }
 
+                    tag.EditorTextLocation = lineView.Right;
                     Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
 
                     if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)

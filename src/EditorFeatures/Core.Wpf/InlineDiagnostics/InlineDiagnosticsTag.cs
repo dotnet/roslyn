@@ -23,7 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public const string TagID = "inline diagnostics - ";
         public readonly string ErrorType;
         public readonly InlineDiagnosticsLocations Location;
+        public double EditorTextLocation // property
+        {
+            get { return _editorTextLocation; }
+            set { _editorTextLocation = value; }
+        }
+
         private readonly DiagnosticData _diagnostic;
+        private double _editorTextLocation;
 
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location)
             : base(editorFormatMap)
