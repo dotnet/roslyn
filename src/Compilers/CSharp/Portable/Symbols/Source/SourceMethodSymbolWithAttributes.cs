@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.HasMethodLevelBuilder(out _))
                 {
-                    hasErrors = MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }
 
                 for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)

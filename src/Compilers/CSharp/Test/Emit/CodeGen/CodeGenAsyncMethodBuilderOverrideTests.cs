@@ -2614,5 +2614,34 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact]
+        public void BuilderFactoryOnMethod_IntReturnType()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))] public class MyTaskType {{ }}
+
+{AsyncBuilderFactoryCode("MyTaskTypeBuilder", "MyTaskType")}
+
+class C
+{{
+    [AsyncMethodBuilder(typeof(MyTaskTypeBuilderFactory))]
+    async int M() => await Task.Delay(4);
+}}
+
+{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTaskType")}
+{AsyncMethodBuilderAttribute}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (31,15): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     async int M() => await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(31, 15)
+                );
+        }
     }
 }
