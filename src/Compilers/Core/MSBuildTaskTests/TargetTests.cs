@@ -720,12 +720,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             [CombinatorialValues(true, false, null)] bool? runAnalyzers,
             [CombinatorialValues(true, false, null)] bool? implicitBuild,
             [CombinatorialValues(true, false, null)] bool? treatWarningsAsErrors,
-            [CombinatorialValues(true, false, null)] bool? optimizeImplicitBuild)
+            [CombinatorialValues(true, false, null)] bool? optimizeImplicitBuild,
+            [CombinatorialValues(true, null)] bool? sdkStyleProject)
         {
             var runAnalyzersPropertyGroupString = getPropertyGroup("RunAnalyzers", runAnalyzers);
             var implicitBuildPropertyGroupString = getPropertyGroup("IsImplicitlyTriggeredBuild", implicitBuild);
             var treatWarningsAsErrorsPropertyGroupString = getPropertyGroup("TreatWarningsAsErrors", treatWarningsAsErrors);
             var optimizeImplicitBuildPropertyGroupString = getPropertyGroup("OptimizeImplicitlyTriggeredBuild", optimizeImplicitBuild);
+            var sdkStyleProjectPropertyGroupString = getPropertyGroup("UsingMicrosoftNETSdk", sdkStyleProject);
 
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
@@ -735,6 +737,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {implicitBuildPropertyGroupString}
 {treatWarningsAsErrorsPropertyGroupString}
 {optimizeImplicitBuildPropertyGroupString}
+{sdkStyleProjectPropertyGroupString}
+
 
 </Project>
 "));
@@ -747,6 +751,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var analyzersEnabled = runAnalyzers ?? true;
             var expectedImplicitlySkippedAnalyzers = analyzersEnabled &&
                 implicitBuild == true &&
+                sdkStyleProject == true &&
                 (treatWarningsAsErrors != true || optimizeImplicitBuild == true);
             var expectedImplicitlySkippedAnalyzersValue = expectedImplicitlySkippedAnalyzers ? "true" : "";
             var actualImplicitlySkippedAnalyzersValue = instance.GetPropertyValue("_ImplicitlySkipAnalyzers");
