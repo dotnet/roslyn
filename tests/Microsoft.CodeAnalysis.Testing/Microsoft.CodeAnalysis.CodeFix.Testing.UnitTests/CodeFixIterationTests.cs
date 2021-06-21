@@ -3,18 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Testing.TestAnalyzers;
 using Microsoft.CodeAnalysis.Testing.TestFixes;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Testing
@@ -220,11 +212,11 @@ class TestClass {
                 }.RunAsync();
             });
 
-            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
         [Theory]
-        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded", "  5")]
+        [InlineData(-1, "Expected '1' iterations but found '2' iterations.", "  5")]
         [InlineData(0, "The upper limit for the number of code fix iterations was exceeded", " [|4|]")]
         [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
         public async Task TestTwoIterationsRequiredButIncrementalDeclaredIncorrectly(int declaredIncrementalIterations, string message, string replacement)
@@ -284,11 +276,11 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Fix all in document{Environment.NewLine}The upper limit for the number of code fix iterations was exceeded", exception.Message);
+            Assert.Equal($"Context: Fix all in document{Environment.NewLine}Expected '1' iterations but found '2' iterations.", exception.Message);
         }
 
         [Theory]
-        [InlineData(-1, "The upper limit for the number of code fix iterations was exceeded", "  5")]
+        [InlineData(-1, "Expected '1' iterations but found '2' iterations.", "  5")]
         [InlineData(0, "The upper limit for the number of fix all iterations was exceeded", " [|4|]")]
         [InlineData(1, "Expected '1' iterations but found '2' iterations.", "  5")]
         public async Task TestTwoIterationsRequiredButFixAllDeclaredIncorrectly(int declaredFixAllIterations, string message, string replacement)
@@ -401,69 +393,6 @@ class TestClass2 {
             });
 
             Assert.Equal($"Context: {context}{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
-        }
-
-        /// <summary>
-        /// Reports a diagnostic on any integer literal token with a value less than five.
-        /// </summary>
-        [DiagnosticAnalyzer(LanguageNames.CSharp)]
-        private class LiteralUnderFiveAnalyzer : DiagnosticAnalyzer
-        {
-            internal static readonly DiagnosticDescriptor Descriptor =
-                new DiagnosticDescriptor("LiteralUnderFive", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-
-            public override void Initialize(AnalysisContext context)
-            {
-                context.EnableConcurrentExecution();
-                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-
-                context.RegisterSyntaxNodeAction(HandleNumericLiteralExpression, SyntaxKind.NumericLiteralExpression);
-            }
-
-            private void HandleNumericLiteralExpression(SyntaxNodeAnalysisContext context)
-            {
-                var node = (LiteralExpressionSyntax)context.Node;
-                if (int.TryParse(node.Token.ValueText, out var value) && value < 5)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, node.Token.GetLocation()));
-                }
-            }
-        }
-
-        [ExportCodeFixProvider(LanguageNames.CSharp)]
-        [PartNotDiscoverable]
-        private class IncrementFix : CodeFixProvider
-        {
-            public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(LiteralUnderFiveAnalyzer.Descriptor.Id);
-
-            public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
-
-            public override Task RegisterCodeFixesAsync(CodeFixContext context)
-            {
-                foreach (var diagnostic in context.Diagnostics)
-                {
-                    context.RegisterCodeFix(
-                        CodeAction.Create(
-                            "LiteralUnderFive",
-                            cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                            nameof(IncrementFix)),
-                        diagnostic);
-                }
-
-                return Task.CompletedTask;
-            }
-
-            private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
-            {
-                var tree = (await document.GetSyntaxTreeAsync(cancellationToken))!;
-                var root = await tree.GetRootAsync(cancellationToken);
-                var token = root.FindToken(sourceSpan.Start);
-                var replacement = int.Parse(token.ValueText) + 1;
-                var newToken = SyntaxFactory.Literal(token.LeadingTrivia, " " + replacement.ToString(), replacement, token.TrailingTrivia);
-                return document.WithSyntaxRoot(root.ReplaceToken(token, newToken));
-            }
         }
 
         private class CSharpTest : CSharpCodeFixTest<LiteralUnderFiveAnalyzer, IncrementFix>
