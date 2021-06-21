@@ -17,6 +17,9 @@ parameters:
   LclSource: lclFilesInRepo
   LclPackageId: ''
   RepoType: gitHub
+  GitHubOrg: dotnet
+  MirrorRepo: ''
+  MirrorBranch: main
   condition: ''
 
 jobs:
@@ -64,6 +67,11 @@ jobs:
         ${{ if eq(parameters.RepoType, 'gitHub') }}:
           repoType: ${{ parameters.RepoType }}
           gitHubPatVariable: "${{ parameters.GithubPat }}"
+        ${{ if ne(parameters.MirrorRepo, '') }}:
+          isMirrorRepoSelected: true
+          gitHubOrganization: ${{ parameters.GitHubOrg }}
+          mirrorRepo: ${{ parameters.MirrorRepo }}
+          mirrorBranch: ${{ parameters.MirrorBranch }}
       condition: ${{ parameters.condition }}
 
     - task: PublishBuildArtifacts@1
