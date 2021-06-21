@@ -245,7 +245,7 @@ static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifi
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(string diagnosticId) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.VerifyAnalyzerAsync(string source, params Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected) -> System.Threading.Tasks.Task
 static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.CodeActionExpected(Microsoft.CodeAnalysis.Testing.SolutionState state) -> bool
-static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.HasAnyChange(Microsoft.CodeAnalysis.Testing.SolutionState oldState, Microsoft.CodeAnalysis.Testing.SolutionState newState) -> bool
+static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.HasAnyChange(Microsoft.CodeAnalysis.Testing.ProjectState oldState, Microsoft.CodeAnalysis.Testing.ProjectState newState, bool recursive) -> bool
 static Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.TryGetCodeActionToApply(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeAction> actions, int? codeActionIndex, string codeActionEquivalenceKey, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, Microsoft.CodeAnalysis.Testing.IVerifier> codeActionVerifier, Microsoft.CodeAnalysis.Testing.IVerifier verifier) -> Microsoft.CodeAnalysis.CodeActions.CodeAction
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerError(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.DiagnosticResult.CompilerWarning(string identifier) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
