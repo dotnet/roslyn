@@ -80,7 +80,10 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
 
             // Grab whatever comes after the close brace.  If it's not the start of a statement, ignore it.
             var nextToken = endToken.GetNextToken();
-            var nextTokenContainingStatement = nextToken.Parent!.FirstAncestorOrSelf<TExecutableStatementSyntax>();
+            if (nextToken.Parent is null)
+                return;
+
+            var nextTokenContainingStatement = nextToken.Parent.FirstAncestorOrSelf<TExecutableStatementSyntax>();
             if (nextTokenContainingStatement == null)
                 return;
 
