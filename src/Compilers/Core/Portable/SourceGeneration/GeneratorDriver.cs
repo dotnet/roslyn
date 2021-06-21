@@ -177,65 +177,43 @@ namespace Microsoft.CodeAnalysis
                 var sourceGenerator = state.Generators[i];
 
                 // initialize the generator if needed
-                if (!generatorState.Info.Initialized)
+                if (!generatorState.Initialized)
                 {
-                    var context = new IncrementalGeneratorInitializationContext(new GeneratorInfo.Builder());
+                    var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
+                    var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
+                    var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
+                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder);
+
                     Exception? ex = null;
                     try
                     {
-                        generator.Initialize(context);
+                        generator.Initialize(pipelineContext);
                     }
                     catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                     {
                         ex = e;
                     }
+
+                    var outputNodes = outputBuilder.ToImmutableAndFree();
+                    var inputNodes = inputBuilder.ToImmutableAndFree();
+
+                    // run post init
+                    if (ex is null)
+                    {
+                        try
+                        {
+                            IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, cancellationToken);
+                            postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
+                        }
+                        catch (UserFunctionException e)
+                        {
+                            ex = e.InnerException;
+                        }
+                    }
+
                     generatorState = ex is null
-                                     ? new GeneratorState(context.InfoBuilder.ToImmutable())
-                                     : SetGeneratorException(MessageProvider, GeneratorState.Uninitialized, sourceGenerator, ex, diagnosticsBag, isInit: true);
-
-                    // invoke the post init callback if requested
-                    if (generatorState.Info.PostInitCallback is object)
-                    {
-                        var sourcesCollection = this.CreateSourcesCollection();
-                        var postContext = new IncrementalGeneratorPostInitializationContext(sourcesCollection, cancellationToken);
-                        try
-                        {
-                            generatorState.Info.PostInitCallback(postContext);
-                        }
-                        catch (Exception e)
-                        {
-                            ex = e;
-                        }
-
-                        generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(sourceGenerator, sourcesCollection.ToImmutable(), cancellationToken))
-                                         : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
-
-                        sourcesCollection.Free();
-                    }
-
-                    // create the execution pipeline
-                    if (ex is null && generatorState.Info.PipelineCallback is object)
-                    {
-                        var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                        var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
-                        var pipelineContext = new IncrementalGeneratorPipelineContext(inputBuilder, outputBuilder);
-                        try
-                        {
-                            generatorState.Info.PipelineCallback(pipelineContext);
-                        }
-                        catch (Exception e)
-                        {
-                            ex = e;
-                        }
-
-                        generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, inputBuilder.ToImmutable(), outputBuilder.ToImmutable())
-                                         : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
-
-                        outputBuilder.Free();
-                        inputBuilder.Free();
-                    }
+                                     ? new GeneratorState(generatorState.Info, postInitSources, inputNodes, outputNodes)
+                                     : SetGeneratorException(MessageProvider, generatorState, sourceGenerator, ex, diagnosticsBag, isInit: true);
                 }
 
                 // if the pipeline registered any syntax input nodes, record them
@@ -261,7 +239,6 @@ namespace Microsoft.CodeAnalysis
             constantSourcesBuilder.Free();
 
             var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
-
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
@@ -270,17 +247,9 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
                 try
                 {
-                    foreach (var output in generatorState.OutputNodes)
-                    {
-                        // https://github.com/dotnet/roslyn/issues/53608
-                        // right now, we always run all output types. We'll add a mechanism to allow the host
-                        // to control what types they care about in the future
-                        output.AppendOutputs(context);
-                    }
-
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source, cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
@@ -289,12 +258,24 @@ namespace Microsoft.CodeAnalysis
                 catch (UserFunctionException ufe)
                 {
                     stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag);
-                    context.Free();
                 }
             }
 
             state = state.With(stateTable: driverStateBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree());
             return state;
+        }
+
+        private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
+        {
+            IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, CreateSourcesCollection());
+            foreach (var outputNode in outputNodes)
+            {
+                if (outputNode.Kind == outputKind)
+                {
+                    outputNode.AppendOutputs(context, cancellationToken);
+                }
+            }
+            return context;
         }
 
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)

@@ -17,40 +17,42 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct IncrementalGeneratorInitializationContext
     {
-        internal IncrementalGeneratorInitializationContext(GeneratorInfo.Builder infoBuilder)
+        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
+
+        internal IncrementalGeneratorInitializationContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
         {
-            InfoBuilder = infoBuilder;
+            _syntaxInputBuilder = syntaxInputBuilder;
+            _outputNodes = outputNodes;
         }
 
-        internal GeneratorInfo.Builder InfoBuilder { get; }
+        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
 
-        /// <summary>
-        /// Register a callback that is invoked after initialization.
-        /// </summary>
-        /// <remarks>
-        /// This method allows a generator to opt-in to an extra phase in the generator lifecycle called PostInitialization. After being initialized
-        /// any incremental generators that have opted in will have their provided callback invoked with a <see cref="IncrementalGeneratorPostInitializationContext"/> instance
-        /// that can be used to alter the compilation that is provided to subsequent generator phases.
-        /// 
-        /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before the incremental pipeline is 
-        /// invoked and will appear alongside user provided <see cref="SyntaxTree"/>s, and made available for semantic analysis. 
-        /// 
-        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operating on the compilation. 
-        /// </remarks>
-        /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
-        public void RegisterForPostInitialization(Action<IncrementalGeneratorPostInitializationContext> callback)
-        {
-            InfoBuilder.PostInitCallback = callback;
-        }
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 
-        public void RegisterExecutionPipeline(Action<IncrementalGeneratorPipelineContext> callback)
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
+
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
+
+        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction()));
+
+        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
-            InfoBuilder.PipelineCallback = callback;
+            if (!_outputNodes.Contains(outputNode))
+            {
+                _outputNodes.Add(outputNode);
+            }
         }
     }
 
     /// <summary>
-    /// Context passed to a source generator when it has opted-in to PostInitialization via <see cref="IncrementalGeneratorInitializationContext.RegisterForPostInitialization(Action{IncrementalGeneratorPostInitializationContext})"/>
+    /// Context passed to an incremental generator when it has registered an output via <see cref="IncrementalGeneratorInitializationContext.RegisterPostInitializationOutput(Action{IncrementalGeneratorPostInitializationContext})"/>
     /// </summary>
     public readonly struct IncrementalGeneratorPostInitializationContext
     {
@@ -82,42 +84,8 @@ namespace Microsoft.CodeAnalysis
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
     }
 
-    public readonly struct IncrementalGeneratorPipelineContext
-    {
-        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
-        private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
-
-        internal IncrementalGeneratorPipelineContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
-        {
-            _syntaxInputBuilder = syntaxInputBuilder;
-            _outputNodes = outputNodes;
-        }
-
-        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
-
-        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
-
-        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
-
-        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
-
-        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
-
-        public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
-
-        public void RegisterSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => source.Node.RegisterOutput(new SourceOutputNode<TSource>(source.Node, action.WrapUserAction()));
-
-        private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
-        {
-            if (!_outputNodes.Contains(outputNode))
-            {
-                _outputNodes.Add(outputNode);
-            }
-        }
-    }
-
     /// <summary>
-    /// Context passed to the callback provided as part of producing sources
+    /// Context passed to an incremental generator when it has registered an output via <see cref="IncrementalGeneratorInitializationContext.RegisterSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{SourceProductionContext, TSource})"/>
     /// </summary>
     public readonly struct SourceProductionContext
     {
@@ -164,9 +132,9 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly AdditionalSourcesCollection Sources;
 
-        internal readonly DriverStateTable.Builder TableBuilder;
+        internal readonly DriverStateTable.Builder? TableBuilder;
 
-        public IncrementalExecutionContext(DriverStateTable.Builder tableBuilder, AdditionalSourcesCollection sources)
+        public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
             Sources = sources;

@@ -42,13 +42,28 @@ namespace Microsoft.CodeAnalysis
             return (input, token) => userFunction.WrapUserFunction()(input, token).ToImmutableArray();
         }
 
-        internal static Action<TInput1, TInput2> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userFunction)
+        internal static Action<TInput> WrapUserAction<TInput>(this Action<TInput> userAction)
+        {
+            return input =>
+            {
+                try
+                {
+                    userAction(input);
+                }
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+                {
+                    throw new UserFunctionException(e);
+                }
+            };
+        }
+
+        internal static Action<TInput1, TInput2> WrapUserAction<TInput1, TInput2>(this Action<TInput1, TInput2> userAction)
         {
             return (input1, input2) =>
             {
                 try
                 {
-                    userFunction(input1, input2);
+                    userAction(input1, input2);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
