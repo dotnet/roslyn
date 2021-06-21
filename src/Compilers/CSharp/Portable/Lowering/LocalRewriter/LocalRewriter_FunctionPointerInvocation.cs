@@ -5,6 +5,8 @@
 #nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -14,21 +16,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
         {
             var rewrittenExpression = VisitExpression(node.InvokedExpression);
-            var rewrittenArgs = VisitList(node.Arguments);
+
+            // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
+            // be involved.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments, allowConversionsWithNoContext: true);
 
             MethodSymbol functionPointer = node.FunctionPointer.Signature;
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            rewrittenArgs = MakeArguments(
+            ImmutableArray<BoundExpression> rewrittenArgs = VisitArguments(
                 node.Syntax,
-                rewrittenArgs,
+                node.Arguments,
                 functionPointer,
                 expanded: false,
                 argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
                 out ImmutableArray<LocalSymbol> temps,
+                ref rewrittenExpression,
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.False);
 
+            Debug.Assert(rewrittenExpression != null);
             node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
 
             if (temps.IsDefaultOrEmpty)

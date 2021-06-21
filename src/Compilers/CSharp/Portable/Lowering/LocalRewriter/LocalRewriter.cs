@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -391,6 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PlaceholderReplacement(node);
         }
 
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            => PlaceholderReplacement(node);
+
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
         /// Each occurrence of the placeholder node is replaced with the node returned.
@@ -438,6 +440,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool removed = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
 
             Debug.Assert(removed);
+        }
+
+        private bool HasPlaceholderReplacement(BoundValuePlaceholderBase placeholder)
+        {
+            Debug.Assert(placeholder is not null);
+            return _placeholderReplacementMapDoNotUseDirectly?.ContainsKey(placeholder) ?? false;
         }
 
         public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
@@ -889,6 +897,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                     // we will consider that placeholder always represents a temp local
                     // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // An argument placeholder is always a reference to some type of temp local,
+                    // either representing a user-typed expression that went through this path
+                    // itself when it was originally visited, or the trailing out parameter that
+                    // is passed by out.
                     return true;
 
                 case BoundKind.EventAccess:

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,38 +39,67 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Rewrites the given interpolated string to the set of builder creation and Append calls, returning an array builder of the append calls and the result
+        /// Rewrites the given interpolated string to the set of handler creation and Append calls, returning an array builder of the append calls and the result
         /// local temp.
         /// </summary>
         /// <remarks>Caller is responsible for freeing the ArrayBuilder</remarks>
-        private (ArrayBuilder<BoundExpression> BuilderPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
+        private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
         {
             Debug.Assert(node.InterpolationData is { Construction: not null });
             Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundStringInsert { Value: BoundCall }));
             var data = node.InterpolationData.Value;
             var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
-            var builderTemp = _factory.Local(builderTempSymbol);
+            BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // PROTOTYPE(interp-string): Support dynamic creation
-            // var builder = new BuilderType(baseStringLength, numFormatHoles);
-            Debug.Assert(data.Construction is BoundObjectCreationExpression);
-            var builderConstruction = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression((BoundObjectCreationExpression)data.Construction));
+            // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool handlerIsValid);
+            var construction = (BoundObjectCreationExpression)data.Construction;
+
+            BoundLocal? appendShouldProceedLocal = null;
+            bool ownsAppendShouldProceedLocal = false;
+            if (data.HasTrailingHandlerValidityParameter)
+            {
+                Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
+
+                BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
+                if (!HasPlaceholderReplacement(trailingParameter))
+                {
+                    ownsAppendShouldProceedLocal = true;
+                    TypeSymbol localType = trailingParameter.Type!;
+                    Debug.Assert(localType.SpecialType == SpecialType.System_Boolean);
+                    var outLocal = _factory.SynthesizedLocal(localType);
+                    appendShouldProceedLocal = _factory.Local(outLocal);
+
+                    AddPlaceholderReplacement(trailingParameter, appendShouldProceedLocal);
+                }
+                else
+                {
+                    // We're already processing this node, so use the local VisitArguments will have allocated for us
+                    appendShouldProceedLocal = (BoundLocal)PlaceholderReplacement(trailingParameter);
+                    Debug.Assert(appendShouldProceedLocal.Type.SpecialType == SpecialType.System_Boolean);
+                }
+            }
+
+            var handlerConstructionAssignment = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression(construction));
 
             var usesBoolReturn = data.UsesBoolReturns;
-            var builderPatternExpressions = ArrayBuilder<BoundExpression>.GetInstance(usesBoolReturn ? 2 : node.Parts.Length);
-            builderPatternExpressions.Add(builderConstruction);
-            BoundExpression? appendBinaryExpression = null;
+            var resultExpressions = ArrayBuilder<BoundExpression>.GetInstance(node.Parts.Length + 1);
             foreach (var currentPart in node.Parts)
             {
                 var appendCall = (BoundCall)currentPart;
                 Debug.Assert(usesBoolReturn == (appendCall.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
 
-                var rewrittenArgs = VisitList(appendCall.Arguments);
-                var rewrittenAppendCall = MakeCall(
+                // The append call itself could have and interpolated string conversion that uses the builder local as the receiver
+                // passed to a nested construction call. This needs to affect the current call to ensure side effects are
+                // preserved, but shouldn't affect any subsequent calls.
+                BoundExpression appendReceiver = builderTemp;
+                Debug.Assert(appendCall.Method.RequiresInstanceReceiver);
+
+                var rewrittenAppendCall = VisitArgumentsAndMakeCall(
                     appendCall.Syntax,
-                    builderTemp,
+                    appendReceiver,
                     appendCall.Method,
-                    rewrittenArgs,
+                    appendCall.Arguments,
                     appendCall.ArgumentRefKindsOpt,
                     appendCall.Expanded,
                     appendCall.InvokedAsExtensionMethod,
@@ -78,27 +108,72 @@ namespace Microsoft.CodeAnalysis.CSharp
                     appendCall.Type,
                     appendCall);
 
-                Debug.Assert(usesBoolReturn == (rewrittenAppendCall.Type!.SpecialType == SpecialType.System_Boolean));
-                if (usesBoolReturn)
-                {
-                    // previousAppendCalls && appendCall
-                    appendBinaryExpression = appendBinaryExpression is null
-                        ? rewrittenAppendCall
-                        : _factory.LogicalAnd(appendBinaryExpression, rewrittenAppendCall);
-                }
-                else
-                {
-                    builderPatternExpressions.Add(rewrittenAppendCall);
-                }
+                Debug.Assert(usesBoolReturn == (appendCall.Type!.SpecialType == SpecialType.System_Boolean));
+                resultExpressions.Add(rewrittenAppendCall);
             }
 
             if (usesBoolReturn)
             {
-                Debug.Assert(appendBinaryExpression != null);
-                builderPatternExpressions.Add(appendBinaryExpression);
+                // We assume non-bool returns if there was no parts to the string, and code below is predicated on that.
+                Debug.Assert(!node.Parts.IsEmpty);
+                // Start the sequence with appendProceedLocal, if appropriate
+                BoundExpression? currentExpression = appendShouldProceedLocal;
+
+                foreach (var appendCall in resultExpressions)
+                {
+                    // previousAppendCalls && appendCall
+                    currentExpression = currentExpression is null
+                        ? appendCall
+                        : _factory.LogicalAnd(currentExpression, appendCall);
+                }
+
+                resultExpressions.Clear();
+                resultExpressions.Add(handlerConstructionAssignment);
+
+                Debug.Assert(currentExpression != null);
+
+                if (ownsAppendShouldProceedLocal)
+                {
+                    Debug.Assert(appendShouldProceedLocal is not null);
+                    var sequence = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), currentExpression);
+                    resultExpressions.Add(sequence);
+                }
+                else
+                {
+                    resultExpressions.Add(currentExpression);
+                }
+            }
+            else if (appendShouldProceedLocal is not null && resultExpressions.Count > 0)
+            {
+                // appendCalls Sequence ending in true
+                var appendCallsSequence = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, resultExpressions.ToImmutableAndClear(), _factory.Literal(value: true));
+
+                resultExpressions.Add(handlerConstructionAssignment);
+
+                // appendShouldProceedLocal && sequence
+                var appendAnd = _factory.LogicalAnd(appendShouldProceedLocal, appendCallsSequence);
+
+                BoundExpression result = appendAnd;
+
+                if (ownsAppendShouldProceedLocal)
+                {
+                    result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
+                }
+
+                resultExpressions.Add(result);
+            }
+            else if (appendShouldProceedLocal is not null && ownsAppendShouldProceedLocal)
+            {
+                // Odd case of no append calls, but with an out param. We don't need to generate any jumps checking the local because there's
+                // nothing to short circuit and avoid, but we do need a sequence to hold the lifetime of the local
+                resultExpressions.Add(_factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), ImmutableArray<BoundExpression>.Empty, handlerConstructionAssignment));
+            }
+            else
+            {
+                resultExpressions.Insert(0, handlerConstructionAssignment);
             }
 
-            return (builderPatternExpressions, builderTemp);
+            return (resultExpressions, builderTemp);
         }
 
         private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
@@ -177,15 +252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.InterpolationData is not null)
             {
                 // If we can lower to the builder pattern, do so.
-                (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal builderTemp) = RewriteToInterpolatedStringHandlerPattern(node);
+                (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerTemp) = RewriteToInterpolatedStringHandlerPattern(node);
 
                 // resultTemp = builderTemp.ToStringAndClear();
                 var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: node.Syntax);
                 BoundExpression toStringAndClearCall = toStringAndClear is not null
-                    ? BoundCall.Synthesized(node.Syntax, builderTemp, toStringAndClear)
+                    ? BoundCall.Synthesized(node.Syntax, handlerTemp, toStringAndClear)
                     : new BoundBadExpression(node.Syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, node.Type);
 
-                return _factory.Sequence(ImmutableArray.Create(builderTemp.LocalSymbol), builderPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
+                return _factory.Sequence(ImmutableArray.Create(handlerTemp.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), toStringAndClearCall);
             }
             else if (CanLowerToStringConcatenation(node))
             {
@@ -259,6 +334,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = MakeImplicitConversion(result, node.Type);
             }
             return result;
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertNoImplicitInterpolatedStringHandlerConversions(ImmutableArray<BoundExpression> arguments, bool allowConversionsWithNoContext = false)
+        {
+            if (allowConversionsWithNoContext)
+            {
+                foreach (var arg in arguments)
+                {
+                    if (arg is BoundConversion { Conversion: { Kind: ConversionKind.InterpolatedStringHandler }, ExplicitCastInCode: false, Operand: BoundInterpolatedString @string })
+                    {
+                        Debug.Assert(((BoundObjectCreationExpression)@string.InterpolationData!.Value.Construction).Arguments.All(
+                            a => a is BoundInterpolatedStringArgumentPlaceholder { ArgumentIndex: BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter }
+                                      or not BoundInterpolatedStringArgumentPlaceholder));
+                    }
+                }
+            }
+            else
+            {
+                Debug.Assert(arguments.All(arg => arg is not BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, ExplicitCastInCode: false }));
+            }
+        }
+
+        private static int GetNextInterpolatedStringHandlerConversionIndex(ReadOnlySpan<BoundExpression> arguments)
+        {
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                if (arguments[i] is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString operand })
+                {
+                    Debug.Assert(operand.InterpolationData is { Construction: BoundObjectCreationExpression });
+                    var creation = (BoundObjectCreationExpression)operand.InterpolationData.GetValueOrDefault().Construction;
+
+                    if (creation.Arguments.Length > (operand.InterpolationData.GetValueOrDefault().HasTrailingHandlerValidityParameter ? 3 : 2))
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
         }
     }
 }

@@ -293,8 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempx = X()
             // tempy = Y()
             // tempc[tempx, tempy, 123] = tempc[tempx, tempy, 123] + 1;
-
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
+            //
+            // To deal with these problems, we tell the argument visitor that these parameters will be reused,
+            // which disables these optimizations.
 
             SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
@@ -302,61 +303,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
 
-            ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
-            BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
-            ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
-            ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
-
-            // Step one: Store everything that is non-trivial into a temporary; record the
-            // stores in storesToTemps and make the actual argument a reference to the temp.
-            // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                syntax,
+                indexerAccess.Arguments,
+                indexer,
                 expanded,
                 argsToParamsOpt,
-                parameters,
-                argumentRefKinds,
-                rewrittenArguments,
-                forceLambdaSpilling: true, // lambdas must produce exactly one delegate so they must be spilled into a temp
-                actualArguments,
-                refKinds,
-                storesToTemps);
+                ref argumentRefKinds,
+                out ImmutableArray<LocalSymbol> rewriteTemps,
+                ref transformedReceiver!,
+                argumentsWillBeReused: true,
+                incomingStores: stores);
 
-            // Step two: If we have a params array, build the array and fill in the argument.
-            if (expanded)
-            {
-                BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
-                BoundAssignmentOperator storeToTemp;
-                var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
-                stores.Add(storeToTemp);
-                temps.Add(boundTemp.LocalSymbol);
-                actualArguments[actualArguments.Length - 1] = boundTemp;
-            }
-
-            // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
-            // compound assignments, but for deconstructions we use the setter if the getter is missing.)
-            var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            Debug.Assert(accessor is not null);
-
-            // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
-            // duplicate side-effects, so we'll skip that step.
-
-            if (indexer.ContainingType.IsComImport)
-            {
-                RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
-            }
-
-            Debug.Assert(actualArguments.All(static arg => arg is not null));
-            rewrittenArguments = actualArguments.AsImmutableOrNull();
-
-            foreach (BoundAssignmentOperator tempAssignment in storesToTemps)
-            {
-                temps.Add(((BoundLocal)tempAssignment.Left).LocalSymbol);
-                stores.Add(tempAssignment);
-            }
-
-            storesToTemps.Free();
-            argumentRefKinds = GetRefKindsOrNull(refKinds);
-            refKinds.Free();
+            temps.AddRange(rewriteTemps);
 
             // This is a temporary object that will be rewritten away before the lowering completes.
             return new BoundIndexerAccess(

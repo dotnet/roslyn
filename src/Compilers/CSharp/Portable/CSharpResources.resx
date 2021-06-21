@@ -6681,4 +6681,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</value>
     <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
   </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentAttributeMalformed" xml:space="preserve">
+    <value>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString" xml:space="preserve">
+    <value>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but is specified after the interpolated string constant. Reorder the arguments to move '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified" xml:space="preserve">
+    <value>Parameter '{0}' is optional, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion" xml:space="preserve">
+    <value>An expression tree may not contain an interpolated string handler conversion.</value>
+  </data>
 </root>

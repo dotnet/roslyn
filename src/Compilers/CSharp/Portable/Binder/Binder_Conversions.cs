@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Enum:
                 case TypeKind.Struct:
                 case TypeKind.Class when !type.IsAnonymousType: // We don't want to enable object creation with unspeakable types
-                    return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, node.InitializerOpt, wasTargetTyped: true);
+                    return BindClassCreationExpression(syntax, type.Name, typeNode: syntax, (NamedTypeSymbol)type, arguments, diagnostics, overloadResolutionSucceeded: out _, node.InitializerOpt, wasTargetTyped: true);
                 case TypeKind.TypeParameter:
                     return BindTypeParameterCreationExpression(syntax, (TypeParameterSymbol)type, arguments, node.InitializerOpt, typeSyntax: syntax, diagnostics);
                 case TypeKind.Delegate:

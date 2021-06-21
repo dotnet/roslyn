@@ -2025,6 +2025,9 @@
        from expression can occur. -->
   <Node Name="BoundInterpolatedStringArgumentPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow" />
+    <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
+         one of the constants in the other part of the partial class. -->
+    <Field Name="ArgumentIndex" Type="int" />
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">

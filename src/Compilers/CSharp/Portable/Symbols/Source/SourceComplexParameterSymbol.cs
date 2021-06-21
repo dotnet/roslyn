@@ -1154,14 +1154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == "")
                 {
                     // Name refers to the "this" instance parameter.
-                    if (ContainingSymbol.IsStatic)
+                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor })
                     {
                         // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
                         return null;
                     }
 
-                    return (-1, null);
+                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
                 }
 
                 var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions.
                     // This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated
                     // string handler parameter after all arguments involved.
-                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter, this);
+                    diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, errorLocation, parameter.Name, this);
                 }
 
                 return (parameter.Ordinal, parameter);

@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             var loweredReceiver = VisitExpression(node.Receiver);
+            // There are no target types for dynamic expression.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             var loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
@@ -81,16 +83,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
             Debug.Assert(rewrittenReceiver is { });
 
-            // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
-
             return MakeIndexerAccess(
                 node.Syntax,
                 rewrittenReceiver,
                 indexer,
-                rewrittenArguments,
+                node.Arguments,
                 node.ArgumentNamesOpt,
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
@@ -105,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<string> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
@@ -121,8 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
@@ -131,15 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,
                 // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-                ImmutableArray<LocalSymbol> temps;
-                rewrittenArguments = MakeArguments(
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
                     syntax,
-                    rewrittenArguments,
+                    arguments,
                     indexer,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
-                    out temps,
+                    out ImmutableArray<LocalSymbol> temps,
+                    ref rewrittenReceiver!,
                     enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);

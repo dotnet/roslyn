@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -16,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
+            // There are no target types for dynamic object creation scenarios, so there should be no implicit handler conversions
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             var loweredArguments = VisitList(node.Arguments);
             var constructorInvocation = _dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
 
@@ -35,20 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: We may need additional argument rewriting such as generating a params array,
             //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            var rewrittenArguments = VisitList(node.Arguments);
+            BoundExpression? receiverDiscard = null;
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
-            ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            rewrittenArguments = MakeArguments(
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
                 node.Syntax,
-                rewrittenArguments,
+                node.Arguments,
                 node.Constructor,
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out temps);
+                out ImmutableArray<LocalSymbol> temps,
+                ref receiverDiscard);
 
             BoundExpression rewrittenObjectCreation;
 

@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitDynamicInvocation(BoundDynamicInvocation node, bool resultDiscarded)
         {
+            // Dynamic can't have created handler conversions because we don't know target types.
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             var loweredArguments = VisitList(node.Arguments);
 
             bool hasImplicitReceiver;
@@ -137,16 +139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite the receiver
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
 
-            // Rewrite the arguments.
-            // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            var rewrittenArguments = VisitList(node.Arguments);
-
-            return MakeCall(
+            return VisitArgumentsAndMakeCall(
                 syntax: node.Syntax,
                 rewrittenReceiver: rewrittenReceiver,
                 method: node.Method,
-                rewrittenArguments: rewrittenArguments,
+                arguments: node.Arguments,
                 argumentRefKindsOpt: node.ArgumentRefKindsOpt,
                 expanded: node.Expanded,
                 invokedAsExtensionMethod: node.InvokedAsExtensionMethod,
@@ -156,33 +153,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nodeOpt: node);
         }
 
-        private BoundExpression MakeCall(
+        private BoundExpression VisitArgumentsAndMakeCall(
             SyntaxNode syntax,
             BoundExpression? rewrittenReceiver,
             MethodSymbol method,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             bool invokedAsExtensionMethod,
             ImmutableArray<int> argsToParamsOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
-            BoundCall? nodeOpt = null)
+            BoundCall? nodeOpt = null,
+            bool argumentsAreVisited = false)
         {
-            // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            ImmutableArray<LocalSymbol> temps;
-            rewrittenArguments = MakeArguments(
+            arguments = VisitArguments(
                 syntax,
-                rewrittenArguments,
+                arguments,
                 method,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out temps,
-                invokedAsExtensionMethod);
+                out ImmutableArray<LocalSymbol> temps,
+                ref rewrittenReceiver,
+                invokedAsExtensionMethod,
+                argumentsAreVisited: argumentsAreVisited);
 
-            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, rewrittenArguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps);
+            return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, arguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps);
         }
 
         private BoundExpression MakeCall(
@@ -366,21 +363,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Rewrites arguments of an invocation according to the receiving method or indexer.
-        /// It is assumed that each argument has already been lowered, but we may need
-        /// additional rewriting for the arguments, such as generating a params array, re-ordering
-        /// arguments based on <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
+        /// We will lower each argument and we may need additional rewriting for the arguments,
+        /// such as generating a params array, re-ordering arguments based on
+        /// <paramref name="argsToParamsOpt"/> map, inserting arguments for optional parameters, etc.
         /// </summary>
-        private ImmutableArray<BoundExpression> MakeArguments(
+        /// <param name="argumentsWillBeReused">
+        /// If the arguments will be reused in multiple places (such as for compound assignment)
+        /// we have to avoid some store optimizations.
+        /// </param>
+        private ImmutableArray<BoundExpression> VisitArguments(
             SyntaxNode syntax,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             out ImmutableArray<LocalSymbol> temps,
+            [NotNullIfNotNull("visitedReceiver")] ref BoundExpression? visitedReceiver,
             bool invokedAsExtensionMethod = false,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            ThreeState enableCallerInfo = ThreeState.Unknown,
+            bool argumentsWillBeReused = false,
+            ArrayBuilder<BoundExpression>? incomingStores = null,
+            bool argumentsAreVisited = false)
         {
+            Debug.Assert(!methodOrIndexer.RequiresInstanceReceiver() || visitedReceiver != null || methodOrIndexer is MethodSymbol { MethodKind: MethodKind.Constructor } || _inExpressionLambda);
+            Debug.Assert(incomingStores == null || argumentsWillBeReused);
 
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array.
@@ -391,13 +398,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If none of those are the case then we can just take an early out.
 
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
 
-            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, false, out var isComReceiver))
+            if (CanSkipRewriting(
+                    arguments,
+                    methodOrIndexer,
+                    expanded,
+                    argsToParamsOpt,
+                    invokedAsExtensionMethod,
+                    ignoreComReceiver: false,
+                    argumentsWillBeReused,
+                    out var isComReceiver,
+                    out var interpolatedStringHandlerArgumentIndex))
             {
-                temps = temporariesBuilder.ToImmutableAndFree();
                 argumentRefKindsOpt = GetEffectiveArgumentRefKinds(argumentRefKindsOpt, parameters);
+
+                ImmutableArray<BoundExpression> rewrittenArguments = arguments.SelectAsArray(
+                    static (argument, context) => argument is BoundDiscardExpression discard
+                        ? context.@this._factory.MakeTempForDiscard(discard, context.temporariesBuilder)
+                        : context.argumentsAreVisited ? argument : context.@this.VisitExpression(argument),
+                    (@this: this, temporariesBuilder, argumentsAreVisited));
+
+                temps = temporariesBuilder.ToImmutableAndFree();
 
                 return rewrittenArguments;
             }
@@ -451,35 +473,111 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
-            BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
-            ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
-            ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
+            // Interpolated string handler conversions introduce another wrinkle to this algorithm, as
+            // they can reuse the receiver or parameters from the call to perform the conversion
+            // as part of the argument list. Our saving grace here is that these conversions _must_
+            // come lexically after the arguments they use, so we don't have to deal with the param
+            // arrays or optional parameters before lowering the conversions. However, because there can
+            // be things such as lambda conversions that are not safe to evaluate twice, we have to skip
+            // the temp optimization steps to ensure that we don't do these double evaluations.
+
+            var actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
+            var storesToTemps = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
+            var refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
+            var requiresInstanceReceiver = methodOrIndexer.RequiresInstanceReceiver() && methodOrIndexer is not MethodSymbol { MethodKind: MethodKind.Constructor };
 
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(
-                expanded,
-                argsToParamsOpt,
-                parameters,
-                argumentRefKindsOpt,
-                rewrittenArguments,
-                forceLambdaSpilling: false, // lambda conversions can be re-orderd in calls without side affects
-                actualArguments,
-                refKinds,
-                storesToTemps);
-
+            if (interpolatedStringHandlerArgumentIndex < 0)
+            {
+                // No handler conversions, we can just store all directly to temps
+                VisitAndStoreToTemps(
+                    expanded,
+                    argsToParamsOpt,
+                    parameters,
+                    argumentRefKindsOpt,
+                    arguments,
+                    forceLambdaSpilling: argumentsWillBeReused, // lambda conversions can be re-ordered in calls without side affects only if they won't be reused
+                    startIndex: 0,
+                    length: arguments.Length,
+                    argumentsAreVisited,
+                    rewrittenArguments: actualArguments,
+                    refKinds: refKinds,
+                    storesToTemps: storesToTemps,
+                    tempsBuilder: temporariesBuilder);
+            }
+            else
+            {
+                argumentsWillBeReused = true;
+                visitInterpolatedStringArguments(ref visitedReceiver, argumentRefKindsOpt);
+            }
 
             // all the formal arguments, except missing optionals, are now in place. 
-            // Optimize away unnecessary temporaries.
-            // Necessary temporaries have their store instructions merged into the appropriate 
-            // argument expression.
-            OptimizeTemporaries(actualArguments, storesToTemps, temporariesBuilder);
+            if (!argumentsWillBeReused)
+            {
+                // Optimize away unnecessary temporaries.
+                // Necessary temporaries have their store instructions merged into the appropriate
+                // argument expression.
+                OptimizeTemporaries(actualArguments, storesToTemps, temporariesBuilder);
+            }
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                var array = VisitAndBuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, arguments, parameters, actualArguments[actualArguments.Length - 1], argumentsAreVisited);
+
+                if (argumentsWillBeReused)
+                {
+                    BoundLocal boundTemp = _factory.StoreToTemp(array, out BoundAssignmentOperator store);
+                    actualArguments[^1] = boundTemp;
+                    storesToTemps.Add(store);
+                }
+                else
+                {
+                    actualArguments[^1] = array;
+                }
+            }
+
+
+            if (argumentsWillBeReused)
+            {
+                // We can't optimize away the temporaries if arguments are going to be reused,
+                // because we don't know whether a specific index is going to be reused or not
+                // (and therefore re-evaluated).
+                foreach (BoundExpression expression in storesToTemps)
+                {
+                    Debug.Assert(expression is BoundSequence or BoundAssignmentOperator);
+                    if (expression is BoundAssignmentOperator assignment)
+                    {
+                        temporariesBuilder.Add(((BoundLocal)assignment.Left).LocalSymbol);
+                    }
+                }
+
+                if (incomingStores != null)
+                {
+                    // We're in the middle of a compound assignment, it will handle the sequence
+                    // of stores for us. Just add the stores to the builder we were given.
+                    incomingStores.AddRange(storesToTemps);
+                    storesToTemps.Free();
+                }
+                else
+                {
+                    // If this was an interpolated string conversion that needed a receiver, the
+                    // first store is actually the receiver, not the argument, so turn the receiver
+                    // into a sequence. Otherwise, turn the first actual argument into that sequence.
+
+#pragma warning disable CS8619 // https://github.com/dotnet/roslyn/issues/54153
+                    ref BoundExpression resultLocation = ref interpolatedStringHandlerArgumentIndex > -1 && requiresInstanceReceiver
+                        ? ref visitedReceiver!
+                        : ref actualArguments[0];
+#pragma warning restore CS8619
+
+                    resultLocation = _factory.Sequence(
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        sideEffects: StaticCast<BoundExpression>.From(storesToTemps.ToImmutableAndFree()),
+                        resultLocation);
+                }
             }
 
             if (isComReceiver)
@@ -488,7 +586,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             temps = temporariesBuilder.ToImmutableAndFree();
-            storesToTemps.Free();
 
             // * The refkind map is now filled out to match the arguments.
             // * The list of parameter names is now null because the arguments have been reordered.
@@ -500,6 +597,147 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(actualArguments.All(static arg => arg is not null));
             return actualArguments.AsImmutableOrNull();
+
+            void visitInterpolatedStringArguments(ref BoundExpression? visitedReceiver, ImmutableArray<RefKind> argumentRefKindsOpt)
+            {
+                // There are handler conversions, so we need to do more complicated reordering of things. We need to
+                // put the receiver into a temp, and then store all the arguments up to the conversion into their own
+                // temps.
+
+                if (requiresInstanceReceiver)
+                {
+                    Debug.Assert(visitedReceiver is not null);
+                    visitedReceiver = _factory.StoreToTemp(visitedReceiver, out var receiverStore, refKind: visitedReceiver.GetRefKind());
+                    storesToTemps.Add(receiverStore);
+                }
+
+                int currentIndex = 0;
+
+                while (currentIndex < arguments.Length)
+                {
+                    Debug.Assert(arguments[interpolatedStringHandlerArgumentIndex] is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler });
+
+                    // Store up to the index of the conversion
+                    VisitAndStoreToTemps(
+                        expanded,
+                        argsToParamsOpt,
+                        parameters,
+                        argumentRefKindsOpt,
+                        arguments,
+                        forceLambdaSpilling: true,
+                        startIndex: currentIndex,
+                        length: interpolatedStringHandlerArgumentIndex - currentIndex,
+                        argumentsAreVisited,
+                        rewrittenArguments: actualArguments,
+                        refKinds: refKinds,
+                        storesToTemps: storesToTemps,
+                        tempsBuilder: temporariesBuilder);
+
+                    var interpolatedString = (BoundInterpolatedString)((BoundConversion)arguments[interpolatedStringHandlerArgumentIndex]).Operand;
+                    Debug.Assert(interpolatedString.InterpolationData.HasValue);
+                    var interpolationData = interpolatedString.InterpolationData.GetValueOrDefault();
+
+                    BoundLocal? trailingOutVariable = null;
+                    var constructor = interpolationData.GetValidConstructor();
+                    var lastArgument = constructor.Arguments[^1];
+                    if (interpolationData.HasTrailingHandlerValidityParameter)
+                    {
+                        var outValidityTemp = _factory.SynthesizedLocal(lastArgument.Type!, lastArgument.Syntax);
+                        temporariesBuilder.Add(outValidityTemp);
+                        trailingOutVariable = _factory.Local(outValidityTemp);
+                    }
+
+                    foreach (var placeholder in interpolationData.ArgumentPlaceholders)
+                    {
+                        // We can have duplicates because arguments can be duplicated, but we
+                        // only need to register one placeholder per argument
+                        if (HasPlaceholderReplacement(placeholder))
+                        {
+                            continue;
+                        }
+
+                        switch (placeholder.ArgumentIndex)
+                        {
+                            case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                                Debug.Assert(requiresInstanceReceiver);
+                                Debug.Assert(visitedReceiver != null);
+                                AddPlaceholderReplacement(placeholder, visitedReceiver);
+                                break;
+                            case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
+                                Debug.Assert(trailingOutVariable != null);
+                                AddPlaceholderReplacement(placeholder, trailingOutVariable);
+                                break;
+                            case >= 0 and var argumentIndex:
+                                Debug.Assert(argumentIndex < interpolatedStringHandlerArgumentIndex);
+                                var placeholderParamIndex = argsToParamsOpt.IsDefault ? argumentIndex : argsToParamsOpt[argumentIndex];
+                                Debug.Assert(actualArguments[placeholderParamIndex] is not null);
+                                AddPlaceholderReplacement(placeholder, actualArguments[placeholderParamIndex]);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(placeholder.ArgumentIndex);
+                        }
+                    }
+
+                    var (handlerExpressions, result) = RewriteToInterpolatedStringHandlerPattern(interpolatedString);
+
+                    foreach (var placeholder in interpolationData.ArgumentPlaceholders)
+                    {
+                        if (HasPlaceholderReplacement(placeholder))
+                        {
+                            RemovePlaceholderReplacement(placeholder);
+                        }
+                    }
+
+                    // We create a sequence, rather than just directly adding all the expressions to storesToTemps, because this
+                    // sequence of handler expressions could itself contain temp stores and won't be able to differentiate them
+                    // from the temporaries owned by this lowering when we're later creating the list of temporaries for this
+                    // call.
+                    var handlerSequence = _factory.Sequence(
+                        ImmutableArray<LocalSymbol>.Empty,
+                        handlerExpressions.ToImmutableAndFree(),
+                        result);
+                    storesToTemps.Add(handlerSequence);
+
+                    var paramIndex = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[interpolatedStringHandlerArgumentIndex] : interpolatedStringHandlerArgumentIndex;
+                    refKinds[paramIndex] = GetPatchedRefKind(argumentRefKindsOpt.RefKinds(interpolatedStringHandlerArgumentIndex), parameters[paramIndex].RefKind);
+
+                    actualArguments[paramIndex] = result;
+
+                    temporariesBuilder.Add(result.LocalSymbol);
+
+                    int nextStartIndex = interpolatedStringHandlerArgumentIndex + 1;
+                    if (nextStartIndex >= arguments.Length)
+                    {
+                        break;
+                    }
+
+                    var nextInterpolationIndex = GetNextInterpolatedStringHandlerConversionIndex(arguments.AsSpan()[nextStartIndex..]);
+                    if (nextInterpolationIndex == -1)
+                    {
+                        // Rewrite the final arguments to temps
+                        // Undone: we could potentially detect when nothing else is used out of order and avoid the extra stores
+                        // in that case. We can at least avoid spilling lambdas, as we are guaranteed the lambda doesn't need to
+                        // be used twice.
+                        VisitAndStoreToTemps(
+                            expanded,
+                            argsToParamsOpt,
+                            parameters,
+                            argumentRefKindsOpt,
+                            arguments,
+                            forceLambdaSpilling: false,
+                            startIndex: nextStartIndex,
+                            length: arguments.Length - nextStartIndex,
+                            argumentsAreVisited,
+                            rewrittenArguments: actualArguments,
+                            refKinds: refKinds,
+                            storesToTemps: storesToTemps,
+                            tempsBuilder: temporariesBuilder);
+                        break;
+                    }
+
+                    interpolatedStringHandlerArgumentIndex = nextInterpolationIndex;
+                }
+            }
         }
 
         /// <summary>
@@ -582,7 +820,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, true, out _))
+            if (CanSkipRewriting(
+                    arguments,
+                    methodOrIndexer,
+                    expanded,
+                    argsToParamsOpt,
+                    invokedAsExtensionMethod,
+                    ignoreComReceiver: true,
+                    argumentsWillBeReused: false,
+                    isComReceiver: out _,
+                    interpolatedStringArgumentConversionIndex: out _))
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
@@ -624,25 +871,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // temporariesBuilder will be null when factory is null.
         private static bool CanSkipRewriting(
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             Symbol methodOrIndexer,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
             bool ignoreComReceiver,
-            out bool isComReceiver)
+            bool argumentsWillBeReused,
+            out bool isComReceiver,
+            out int interpolatedStringArgumentConversionIndex)
         {
             isComReceiver = false;
+            interpolatedStringArgumentConversionIndex = -1;
 
-            // An applicable "vararg" method could not possibly be applicable in its expanded
-            // form, and cannot possibly have named arguments or used optional parameters, 
-            // because the __arglist() argument has to be positional and in the last position. 
-
-            if (methodOrIndexer.GetIsVararg())
+            int parameterCount = methodOrIndexer.GetParameterCount();
+            if (parameterCount == 0)
             {
-                Debug.Assert(rewrittenArguments.Length == methodOrIndexer.GetParameterCount() + 1);
-                Debug.Assert(argsToParamsOpt.IsDefault);
-                Debug.Assert(!expanded);
+                // If there are no parameters, there is trivially nothing to rewrite
+                Debug.Assert(arguments.IsEmpty);
                 return true;
             }
 
@@ -654,10 +900,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isComReceiver = receiverNamedType is { IsComImport: true };
             }
 
-            return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
-                argsToParamsOpt.IsDefault &&
-                !expanded &&
-                !isComReceiver;
+            interpolatedStringArgumentConversionIndex = GetNextInterpolatedStringHandlerConversionIndex(arguments.AsSpan());
+            if (interpolatedStringArgumentConversionIndex != -1)
+            {
+                return false;
+            }
+
+            if (argumentsWillBeReused)
+            {
+                return false;
+            }
+
+            // An applicable "vararg" method could not possibly be applicable in its expanded
+            // form, and cannot possibly have named arguments or used optional parameters, 
+            // because the __arglist() argument has to be positional and in the last position. 
+
+            if (methodOrIndexer.GetIsVararg())
+            {
+                Debug.Assert(arguments.Length == methodOrIndexer.GetParameterCount() + 1);
+                Debug.Assert(argsToParamsOpt.IsDefault);
+                Debug.Assert(!expanded);
+                return true;
+            }
+
+            return arguments.Length == parameterCount &&
+                   argsToParamsOpt.IsDefault &&
+                   !expanded &&
+                   !isComReceiver;
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)
@@ -673,28 +942,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This fills in the arguments, refKinds and storesToTemps arrays.
-        private void BuildStoresToTemps(
+        private void VisitAndStoreToTemps(
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<RefKind> argumentRefKinds,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             bool forceLambdaSpilling,
-            /* out */ BoundExpression[] arguments,
+            int startIndex,
+            int length,
+            bool argumentsAreVisited,
+            /* out */ BoundExpression[] rewrittenArguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
-            /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps)
+            /* out */ ArrayBuilder<BoundExpression> storesToTemps,
+            /* out */ ArrayBuilder<LocalSymbol> tempsBuilder)
         {
-            Debug.Assert(refKinds.Count == arguments.Length);
-            Debug.Assert(storesToTemps.Count == 0);
+            Debug.Assert(refKinds.Count == rewrittenArguments.Length);
+            Debug.Assert(startIndex >= 0);
+            Debug.Assert(startIndex + length <= arguments.Length);
 
-            for (int a = 0; a < rewrittenArguments.Length; ++a)
+            for (int a = startIndex; a < startIndex + length; ++a)
             {
-                BoundExpression argument = rewrittenArguments[a];
+                BoundExpression argument = arguments[a];
+                argument = argument is BoundDiscardExpression discard
+                    ? _factory.MakeTempForDiscard(discard, tempsBuilder)
+                    : argumentsAreVisited ? argument : VisitExpression(argument);
+
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 RefKind argRefKind = argumentRefKinds.RefKinds(a);
                 RefKind paramRefKind = parameters[p].RefKind;
 
-                Debug.Assert(arguments[p] == null);
+                Debug.Assert(rewrittenArguments[p] == null);
 
                 // Unfortunately, we violate the specification and allow:
                 // M(int q, params int[] x) ... M(x : X(), q : Q());
@@ -717,8 +995,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // then we need to create a temporary as usual. The step that
                 // produces the parameter array will need to deal with that
                 // eventuality.
-                if (IsBeginningOfParamArray(p, a, expanded, arguments.Length, rewrittenArguments, argsToParamsOpt, out int paramArrayArgumentCount)
-                    && a + paramArrayArgumentCount == rewrittenArguments.Length)
+                if (IsBeginningOfParamArray(p, a, expanded, rewrittenArguments.Length, arguments, argsToParamsOpt, out int paramArrayArgumentCount)
+                    && a + paramArrayArgumentCount == arguments.Length)
                 {
                     return;
                 }
@@ -726,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
                     IsSafeForReordering(argument, argRefKind))
                 {
-                    arguments[p] = argument;
+                    rewrittenArguments[p] = argument;
                 }
                 else
                 {
@@ -735,28 +1013,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out BoundAssignmentOperator assignment,
                         refKind: paramRefKind == RefKind.In ? RefKind.In : argRefKind);
                     storesToTemps.Add(assignment);
-                    arguments[p] = temp;
+                    rewrittenArguments[p] = temp;
                 }
 
-                // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
-                // For the purpose of further analysis we will mark the arguments as -
-                // - In        if was originally passed as None
-                // - StrictIn  if was originally passed as In
-                // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
-                // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
-                if (paramRefKind == RefKind.In)
-                {
-                    Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
-                    argRefKind = argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
-                }
-
-                refKinds[p] = argRefKind;
+                refKinds[p] = GetPatchedRefKind(argRefKind, paramRefKind);
             }
 
             return;
 
             bool isLambdaConversion(BoundExpression expr)
-                => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
+                => expr is BoundConversion { ConversionKind: ConversionKind.AnonymousFunction };
+        }
+
+        private static RefKind GetPatchedRefKind(RefKind argRefKind, RefKind paramRefKind)
+        {
+            // Patch refKinds for arguments that match 'In' parameters to have effective RefKind
+            // For the purpose of further analysis we will mark the arguments as -
+            // - In        if was originally passed as None
+            // - StrictIn  if was originally passed as In
+            // Here and in the layers after the lowering we only care about None/notNone differences for the arguments
+            // Except for async stack spilling which needs to know whether arguments were originally passed as "In" and must obey "no copying" rule.
+            if (paramRefKind == RefKind.In)
+            {
+                Debug.Assert(argRefKind == RefKind.None || argRefKind == RefKind.In);
+                return argRefKind == RefKind.None ? RefKind.In : RefKindExtensions.StrictIn;
+            }
+
+            return argRefKind;
         }
 
         // This fills in the arguments and parameters arrays in evaluation order.
@@ -863,13 +1146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private BoundExpression BuildParamsArray(
+        private BoundExpression VisitAndBuildParamsArray(
             SyntaxNode syntax,
             Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<ParameterSymbol> parameters,
-            BoundExpression tempStoreArgument)
+            BoundExpression tempStoreArgument,
+            bool argumentsAreVisited)
         {
             ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance();
             int paramsParam = parameters.Length - 1;
@@ -883,9 +1167,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                for (int a = 0; a < rewrittenArguments.Length; ++a)
+                for (int a = 0; a < arguments.Length; ++a)
                 {
-                    BoundExpression argument = rewrittenArguments[a];
+                    BoundExpression argument = argumentsAreVisited ? arguments[a] : VisitExpression(arguments[a]);
                     int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                     if (p == paramsParam)
                     {
@@ -968,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void OptimizeTemporaries(
             BoundExpression[] arguments,
-            ArrayBuilder<BoundAssignmentOperator> storesToTemps,
+            ArrayBuilder<BoundExpression> storesToTemps,
             ArrayBuilder<LocalSymbol> temporariesBuilder)
         {
             Debug.Assert(arguments != null);
@@ -980,11 +1264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int tempsNeeded = MergeArgumentsAndSideEffects(arguments, storesToTemps);
                 if (tempsNeeded > 0)
                 {
-                    foreach (BoundAssignmentOperator s in storesToTemps)
+                    foreach (BoundExpression s in storesToTemps)
                     {
-                        if (s != null)
+                        Debug.Assert(s is null or BoundAssignmentOperator);
+                        if (s is BoundAssignmentOperator { Left: var left })
                         {
-                            temporariesBuilder.Add(((BoundLocal)s.Left).LocalSymbol);
+                            temporariesBuilder.Add(((BoundLocal)left).LocalSymbol);
                         }
                     }
                 }
@@ -998,10 +1283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static int MergeArgumentsAndSideEffects(
             BoundExpression[] arguments,
-            ArrayBuilder<BoundAssignmentOperator> tempStores)
+            ArrayBuilder<BoundExpression> tempStores)
         {
             Debug.Assert(arguments != null);
             Debug.Assert(tempStores != null);
+            Debug.Assert(tempStores.All(store => store is BoundAssignmentOperator));
 
             int tempsRemainedInUse = tempStores.Count;
 
@@ -1032,11 +1318,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument?.Kind == BoundKind.Local)
                 {
                     var correspondingStore = -1;
+                    BoundAssignmentOperator? currentAssignment = null;
                     for (int i = firstUnclaimedStore; i < tempStores.Count; i++)
                     {
-                        if (tempStores[i].Left == argument)
+                        var assignment = (BoundAssignmentOperator)tempStores[i];
+                        if (assignment.Left == argument)
                         {
                             correspondingStore = i;
+                            currentAssignment = assignment;
                             break;
                         }
                     }
@@ -1044,7 +1333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // store found?
                     if (correspondingStore != -1)
                     {
-                        var value = tempStores[correspondingStore].Right;
+                        Debug.Assert(currentAssignment != null);
+                        var value = currentAssignment.Right;
                         Debug.Assert(value.Type is { });
 
                         // the matched store will not need to go into side-effects, only ones before it will

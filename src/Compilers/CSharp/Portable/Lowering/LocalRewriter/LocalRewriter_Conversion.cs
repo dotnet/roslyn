@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.InterpolatedStringHandler:
                     Debug.Assert(node.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
 
-                    (ArrayBuilder<BoundExpression> builderPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern((BoundInterpolatedString)node.Operand);
-                    return _factory.Sequence(ImmutableArray.Create(handlerLocal.LocalSymbol), builderPatternExpressions.ToImmutableAndFree(), handlerLocal);
+                    (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern((BoundInterpolatedString)node.Operand);
+                    return _factory.Sequence(ImmutableArray.Create(handlerLocal.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), handlerLocal);
                 case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
                     // Skip through target-typed conditionals and switches
                     Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
