@@ -4666,9 +4666,11 @@ public class C : System.Attribute
             var source = @"
 using static System.Console;
 
+var c0 = 0 switch { 1 => new C(), int n => new() { n = n } };
 C c1 = 1 switch { int n => new() { n = n } };
 C c2 = 2 switch { int n => n switch { int u => new() { n = n + u } } };
 
+Write(c0.n);
 Write(c1.n);
 Write(c2.n);
 
@@ -4679,7 +4681,7 @@ class C
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "14");
+            CompileAndVerify(compilation, expectedOutput: "014");
         }
     }
 }
