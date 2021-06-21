@@ -482,6 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return default;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
+            Debug.Assert(!abstractStaticsOnly || (abstractStaticsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -497,13 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : symbols;
-
-            Debug.Assert(!abstractStaticsOnly || (abstractStaticsOnly && !excludeStatic && excludeInstance));
-
-            namedSymbols = abstractStaticsOnly
-                ? symbols.WhereAsArray(s => s.IsAbstract && s.IsStatic)
-                : symbols;
+                : (abstractStaticsOnly ? symbols.WhereAsArray(s => s.IsAbstract && s.IsStatic) : symbols);
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
