@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    if (method.HasMethodLevelBuilder(out var methodLevelBuilder))
+                    if (method.HasAsyncMethodBuilder(out var methodLevelBuilder))
                     {
                         var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: false, forOverride: true);
                         if ((object)initialBuilderType != null)
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
                 if (customBuilder)
                 {
-                    if (method.HasMethodLevelBuilder(out var methodLevelBuilder))
+                    if (method.HasAsyncMethodBuilder(out var methodLevelBuilder))
                     {
                         var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: true, forOverride: true);
                         if ((object)initialBuilderType != null)

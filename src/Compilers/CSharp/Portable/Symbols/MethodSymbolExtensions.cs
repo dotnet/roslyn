@@ -191,32 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && method.ReturnType.IsIAsyncEnumeratorType(compilation);
         }
 
-#nullable enable
-        /// <summary>
-        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns the "B".
-        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
-        /// </summary>
-        internal static bool HasMethodLevelBuilder(this MethodSymbol method, [NotNullWhen(true)] out object? builderArgument)
-        {
-            Debug.Assert(method is not null);
-
-            // Find the AsyncMethodBuilder attribute.
-            foreach (var attr in method.GetAttributes())
-            {
-                if (attr.IsTargetAttribute(method, AttributeDescription.AsyncMethodBuilderAttribute)
-                    && attr.CommonConstructorArguments.Length == 1
-                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
-                {
-                    builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
-                    return true;
-                }
-            }
-
-            builderArgument = null;
-            return false;
-        }
-#nullable disable
-
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
             if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)

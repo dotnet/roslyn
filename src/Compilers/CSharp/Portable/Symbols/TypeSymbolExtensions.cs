@@ -1647,17 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the AsyncMethodBuilder attribute.
-                foreach (var attr in type.GetAttributes())
-                {
-                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
-                        && attr.CommonConstructorArguments.Length == 1
-                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
-                    {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
-                        return true;
-                    }
-                }
+                return type.HasAsyncMethodBuilder(out builderArgument);
             }
 
             builderArgument = null;
