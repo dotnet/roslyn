@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
     [TagType(typeof(InlineDiagnosticsTag))]
     internal class InlineDiagnosticsTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<InlineDiagnosticsTag>
     {
@@ -80,37 +79,35 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
             RoslynDebug.AssertNotNull(diagnostic.DocumentId);
             var document = workspace.CurrentSolution.GetRequiredDocument(diagnostic.DocumentId);
+            if (document is null)
+            {
+                return null;
+            }
+
             var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.LocationOption, document.Project.Language);
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
-            return GetErrorTypeFromDiagnosticTags(diagnostic) ??
-                   GetErrorTypeFromDiagnosticSeverity(diagnostic);
-        }
-
-        private static string? GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
-        {
-            if (diagnostic.Severity == DiagnosticSeverity.Error &&
-                diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
+            if (diagnostic.Severity == DiagnosticSeverity.Error)
             {
-                return EditAndContinueErrorTypeDefinition.Name;
-            }
-
-            return null;
-        }
-
-        private static string? GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
-        {
-            switch (diagnostic.Severity)
-            {
-                case DiagnosticSeverity.Error:
+                if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
+                {
+                    return EditAndContinueErrorTypeDefinition.Name;
+                }
+                else
+                {
                     return PredefinedErrorTypeNames.SyntaxError;
-                case DiagnosticSeverity.Warning:
-                    return PredefinedErrorTypeNames.Warning;
-                default:
-                    return null;
+                }
+            }
+            else if (diagnostic.Severity == DiagnosticSeverity.Warning)
+            {
+                return PredefinedErrorTypeNames.Warning;
+            }
+            else
+            {
+                return null;
             }
         }
     }
