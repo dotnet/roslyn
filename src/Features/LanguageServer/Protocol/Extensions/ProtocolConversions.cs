@@ -640,6 +640,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
+            => GetDocumentationMarkupContent(tags, document.Project.Language, featureSupportsMarkdown);
+
+        public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, string language, bool featureSupportsMarkdown)
         {
             if (!featureSupportsMarkdown)
             {
@@ -657,7 +660,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 switch (taggedText.Tag)
                 {
                     case TextTags.CodeBlockStart:
-                        var codeBlockLanguageName = GetCodeBlockLanguageName(document);
+                        var codeBlockLanguageName = GetCodeBlockLanguageName(language);
                         builder.Append($"```{codeBlockLanguageName}{Environment.NewLine}");
                         builder.Append(taggedText.Text);
                         isInCodeBlock = true;
@@ -686,13 +689,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Value = builder.ToString(),
             };
 
-            static string GetCodeBlockLanguageName(Document document)
+            static string GetCodeBlockLanguageName(string language)
             {
-                return document.Project.Language switch
+                return language switch
                 {
                     (LanguageNames.CSharp) => CSharpMarkdownLanguageName,
                     (LanguageNames.VisualBasic) => VisualBasicMarkdownLanguageName,
-                    _ => throw new InvalidOperationException($"{document.Project.Language} is not supported"),
+                    _ => throw new InvalidOperationException($"{language} is not supported"),
                 };
             }
 
