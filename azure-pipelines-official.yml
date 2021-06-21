@@ -36,11 +36,12 @@ stages:
   displayName: Build and Test
 
   jobs:
-  - template: /eng/common/templates/job/onelocbuild.yml
-    parameters:
-      CreatePr: false
-      LclSource: lclFilesfromPackage
-      LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev16.11-vs-deps') }}:
+    - template: /eng/common/templates/job/onelocbuild.yml
+      parameters:
+        MirrorRepo: roslyn
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
   - job: OfficialBuild
     displayName: Official Build
