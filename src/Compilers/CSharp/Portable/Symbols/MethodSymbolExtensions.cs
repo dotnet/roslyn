@@ -159,23 +159,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
+        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            builderOverride = null;
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 0 }
-                && (method.HasAsyncMethodBuilder(builderArgument: out builderOverride) || method.ReturnType.IsNonGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilder(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
         /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation, [NotNullWhen(true)] out object? builderOverride)
+        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
-            builderOverride = null;
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 1 }
-                && (method.HasAsyncMethodBuilder(builderArgument: out builderOverride) || method.ReturnType.IsGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilder(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>

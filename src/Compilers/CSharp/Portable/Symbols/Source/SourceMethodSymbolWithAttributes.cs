@@ -1113,8 +1113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     !returnType.IsVoidType() &&
                     !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
                     !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
-                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation, builderOverride: out _) &&
-                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation, builderOverride: out _);
+                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation);
             }
         }
 

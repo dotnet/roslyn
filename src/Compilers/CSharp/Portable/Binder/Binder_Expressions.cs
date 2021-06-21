@@ -8680,7 +8680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return symbol is MethodSymbol method &&
                 !method.ReturnsVoid &&
-                !method.IsAsyncEffectivelyReturningTask(compilation, builderOverride: out _);
+                !method.IsAsyncEffectivelyReturningTask(compilation);
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, BindingDiagnosticBag diagnostics)

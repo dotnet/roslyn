@@ -179,63 +179,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             object methodLevelBuilder = null;
-            if (method.IsAsyncEffectivelyReturningTask(F.Compilation, out methodLevelBuilder))
+            if (method.IsAsyncEffectivelyReturningTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
+                bool forOverride = method.HasAsyncMethodBuilder(out methodLevelBuilder);
                 bool customBuilder;
+                object builderArgument;
 
-                if ((object)methodLevelBuilder != null)
+                if (forOverride)
                 {
-                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: false, forOverride: true);
                     customBuilder = true;
-                    if ((object)initialBuilderType != null)
+                    builderArgument = methodLevelBuilder;
+                }
+                else
+                {
+                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
+                }
+
+                if (customBuilder)
+                {
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false, forOverride);
+                    if ((object)builderType != null)
                     {
-                        // We only get the Create method from the initial builder type, then we'll use its return type as builder type
-                        createBuilderMethod = GetCustomCreateMethod(F, initialBuilderType, forOverride: true);
-                        builderType = createBuilderMethod?.ReturnType as NamedTypeSymbol;
-                        if ((object)builderType != null)
-                        {
-                            taskProperty = GetCustomTaskProperty(F, builderType, returnType);
-                        }
-                    }
-                    else
-                    {
-                        builderType = null;
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
                 else
                 {
-                    object builderArgument;
-                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
-                    if (customBuilder)
-                    {
-                        builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false);
-                        if ((object)builderType != null)
-                        {
-                            taskProperty = GetCustomTaskProperty(F, builderType, returnType);
-                            createBuilderMethod = GetCustomCreateMethod(F, builderType);
-                        }
-                    }
-                    else
-                    {
-                        builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
-                        Debug.Assert((object)builderType != null);
-                        TryGetBuilderMember<MethodSymbol>(
-                            F,
-                            WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
-                            builderType,
-                            customBuilder,
-                            out createBuilderMethod);
-                        TryGetBuilderMember<PropertySymbol>(
-                            F,
-                            WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
-                            builderType,
-                            customBuilder,
-                            out taskProperty);
-                    }
+                    builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder);
+                    Debug.Assert((object)builderType != null);
+                    TryGetBuilderMember<MethodSymbol>(
+                        F,
+                        WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Create,
+                        builderType,
+                        customBuilder,
+                        out createBuilderMethod);
+                    TryGetBuilderMember<PropertySymbol>(
+                        F,
+                        WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Task,
+                        builderType,
+                        customBuilder,
+                        out taskProperty);
                 }
 
                 if ((object)builderType == null ||
@@ -262,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsAsyncEffectivelyReturningGenericTask(F.Compilation, out methodLevelBuilder))
+            if (method.IsAsyncEffectivelyReturningGenericTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
@@ -278,60 +266,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
+                bool forOverride = method.HasAsyncMethodBuilder(out methodLevelBuilder);
                 bool customBuilder;
+                object builderArgument;
 
-                if ((object)methodLevelBuilder != null)
+                if (forOverride)
                 {
-                    var initialBuilderType = ValidateBuilderType(F, methodLevelBuilder, returnType.DeclaredAccessibility, isGeneric: true, forOverride: true);
                     customBuilder = true;
-                    if ((object)initialBuilderType != null)
+                    builderArgument = methodLevelBuilder;
+                }
+                else
+                {
+                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
+                }
+
+                if (customBuilder)
+                {
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true, forOverride);
+                    if ((object)builderType != null)
                     {
-                        // We only get the Create method from the initial builder type, then we'll use its return type as builder type
-                        initialBuilderType = initialBuilderType.ConstructedFrom.Construct(resultType);
-                        createBuilderMethod = GetCustomCreateMethod(F, initialBuilderType, forOverride: true);
-                        builderType = createBuilderMethod?.ReturnType as NamedTypeSymbol;
-                        if ((object)builderType != null)
-                        {
-                            taskProperty = GetCustomTaskProperty(F, builderType, returnType);
-                        }
-                    }
-                    else
-                    {
-                        builderType = null;
+                        builderType = builderType.ConstructedFrom.Construct(resultType);
+                        taskProperty = GetCustomTaskProperty(F, builderType, returnType);
+                        createBuilderMethod = GetCustomCreateMethod(F, builderType);
                     }
                 }
                 else
                 {
-                    object builderArgument;
-                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
-                    if (customBuilder)
-                    {
-                        builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true);
-                        if ((object)builderType != null)
-                        {
-                            builderType = builderType.ConstructedFrom.Construct(resultType);
-                            taskProperty = GetCustomTaskProperty(F, builderType, returnType);
-                            createBuilderMethod = GetCustomCreateMethod(F, builderType);
-                        }
-                    }
-                    else
-                    {
-                        builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
-                        Debug.Assert((object)builderType != null);
-                        builderType = builderType.Construct(resultType);
-                        TryGetBuilderMember<MethodSymbol>(
-                            F,
-                            WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create,
-                            builderType,
-                            customBuilder,
-                            out createBuilderMethod);
-                        TryGetBuilderMember<PropertySymbol>(
-                            F,
-                            WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task,
-                            builderType,
-                            customBuilder,
-                            out taskProperty);
-                    }
+                    builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T);
+                    Debug.Assert((object)builderType != null);
+                    builderType = builderType.Construct(resultType);
+                    TryGetBuilderMember<MethodSymbol>(
+                        F,
+                        WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Create,
+                        builderType,
+                        customBuilder,
+                        out createBuilderMethod);
+                    TryGetBuilderMember<PropertySymbol>(
+                        F,
+                        WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Task,
+                        builderType,
+                        customBuilder,
+                        out taskProperty);
                 }
 
                 if ((object)builderType == null ||
@@ -485,8 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // We'll just use that type as the final builder type.
         private static MethodSymbol GetCustomCreateMethod(
             SyntheticBoundNodeFactory F,
-            NamedTypeSymbol builderType,
-            bool forOverride = false)
+            NamedTypeSymbol builderType)
         {
             // The Create method's return type is expected to be builderType.
             // The WellKnownMembers routines aren't able to enforce that, which is why this method exists.
@@ -504,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
                     method.RefKind == RefKind.None &&
-                    (forOverride || method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions)))
+                    method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return method;
                 }

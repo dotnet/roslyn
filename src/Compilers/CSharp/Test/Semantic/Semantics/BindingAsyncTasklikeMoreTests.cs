@@ -109,10 +109,10 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation));
             method = (MethodSymbol)testData.GetMethodData("C.G<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation));
             verifier.VerifyIL("C.F()",
 @"{
   // Code size       49 (0x31)
@@ -160,6 +160,65 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
   IL_0032:  call       ""MyTask<T> MyTaskMethodBuilder<T>.Task.get""
   IL_0037:  ret
 }");
+        }
+
+        [Fact]
+        public void AsyncMethod_NullBuilder()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class C
+{
+    static async MyTask F() { await Task.Delay(0); }
+    static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+    static async MyTask<int> M() { await F(); return await G(3); }
+}
+[AsyncMethodBuilder(null)]
+struct MyTask
+{
+    internal Awaiter GetAwaiter() => new Awaiter();
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal void GetResult() { }
+    }
+}
+[AsyncMethodBuilder(null)]
+struct MyTask<T>
+{
+    internal T _result;
+    public T Result => _result;
+    internal Awaiter GetAwaiter() => new Awaiter(this);
+    internal class Awaiter : INotifyCompletion
+    {
+        private readonly MyTask<T> _task;
+        internal Awaiter(MyTask<T> task) { _task = task; }
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => _task.Result;
+    }
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyEmitDiagnostics(
+                // (6,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask F() { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(0); }").WithLocation(6, 29),
+                // (7,38): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask<T> G<T>(T t) { await Task.Delay(0); return t; }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await Task.Delay(0); return t; }").WithLocation(7, 38),
+                // (8,34): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask<int> M() { await F(); return await G(3); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "{ await F(); return await G(3); }").WithLocation(8, 34),
+                // (24,16): warning CS0649: Field 'MyTask<T>._result' is never assigned to, and will always have its default value 
+                //     internal T _result;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_result").WithArguments("MyTask<T>._result", "").WithLocation(24, 16)
+                );
         }
 
         [Fact]
@@ -434,11 +493,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation));
             Assert.Equal("C.MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.G()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation));
             Assert.Equal("C.MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -515,11 +574,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_1()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation));
             Assert.Equal("MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
@@ -594,11 +653,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var testData = verifier.TestData;
             var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F|0_0()").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningTask(compilation));
             Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<M>g__G|0_1<T>(T)").Method;
             Assert.True(method.IsAsync);
-            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation, out _));
+            Assert.True(method.IsAsyncEffectivelyReturningGenericTask(compilation));
             Assert.Equal("MyTask<T>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 

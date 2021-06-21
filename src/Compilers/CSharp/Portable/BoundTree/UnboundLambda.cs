@@ -692,8 +692,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     !returnType.IsVoidType() &&
-                    !lambdaSymbol.IsAsyncEffectivelyReturningTask(compilation, builderOverride: out _) &&
-                    !lambdaSymbol.IsAsyncEffectivelyReturningGenericTask(compilation, builderOverride: out _))
+                    !lambdaSymbol.IsAsyncEffectivelyReturningTask(compilation) &&
+                    !lambdaSymbol.IsAsyncEffectivelyReturningGenericTask(compilation))
                 {
                     // Cannot convert async {0} to delegate type '{1}'. An async {0} may return void, Task or Task&lt;T&gt;, none of which are convertible to '{1}'.
                     diagnostics.Add(ErrorCode.ERR_CantConvAsyncAnonFuncReturns, lambdaSymbol.DiagnosticLocation, lambdaSymbol.MessageID.Localize(), delegateType);
