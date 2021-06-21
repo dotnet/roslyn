@@ -144,7 +144,7 @@
           BeforeTargets="DeployVsixExtensionFiles"
 	       	DependsOnTargets="GetVsixDeploymentPath">
 
-    <Error Text="Deployment to Dev17 is not supported in this branch. Use the corresponding *-vs-deps branch." 
+    <Error Text="Deployment to Dev17 is not supported in this *-vs-deps branch. Use the corresponding non-VS branch." 
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
