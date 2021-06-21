@@ -359,38 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.UnexpectedValue(method);
-
-            void validateIgnoredBuilderType(SyntheticBoundNodeFactory F, NamedTypeSymbol returnType, object builderArgument, bool isGeneric)
-            {
-                var ignoredBuilderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric);
-
-                if ((object)ignoredBuilderType != null)
-                {
-                    if (isGeneric)
-                    {
-                        var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
-                        ignoredBuilderType = ignoredBuilderType.ConstructedFrom.Construct(resultType);
-                    }
-
-                    var createMethod = GetCustomCreateMethod(F, ignoredBuilderType, forOverride: false);
-                    var taskProperty = GetCustomTaskProperty(F, ignoredBuilderType, returnType);
-
-                    _ = TryCreate(
-                        F,
-                        customBuilder: true,
-                        builderType: ignoredBuilderType,
-                        resultType: null, // unused
-                        createBuilderMethod: createMethod,
-                        taskProperty: taskProperty,
-                        setException: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetException : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetException,
-                        setResult: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetResult : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetResult,
-                        awaitOnCompleted: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitOnCompleted,
-                        awaitUnsafeOnCompleted: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__AwaitUnsafeOnCompleted : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__AwaitUnsafeOnCompleted,
-                        start: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__Start_T : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__Start_T,
-                        setStateMachine: isGeneric ? WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T__SetStateMachine : WellKnownMember.System_Runtime_CompilerServices_AsyncTaskMethodBuilder__SetStateMachine,
-                        collection: out _);
-                }
-            }
         }
 
         private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forOverride = false)

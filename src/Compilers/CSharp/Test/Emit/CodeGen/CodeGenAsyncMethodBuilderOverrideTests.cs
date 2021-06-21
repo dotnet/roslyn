@@ -101,8 +101,11 @@ public {(isStruct ? "struct" : "class")} {taskLikeName}{ofT}
             }
         }
 
-        [Fact]
-        public void BuilderOnMethod()
+        [Theory]
+        [InlineData("typeof(MyTaskMethodBuilder)")]
+        [InlineData("typeof(object)")]
+        [InlineData("null")]
+        public void BuilderOnMethod_DummyBuilderOnType(string dummyBuilder)
         {
             var source = $@"
 using System;
@@ -123,16 +126,14 @@ class C
     public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder({dummyBuilder})]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder({dummyBuilder})]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 
 {AsyncMethodBuilderAttribute}
 ";
@@ -244,7 +245,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_Nullability()
+        public void BuilderOnMethod_NoBuilderOnType_Nullability()
         {
             var source = $@"
 #nullable enable
@@ -272,29 +273,29 @@ class C
     public static async MyTask<string?> M2() {{ return await G((string?)null); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+// no attribute
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+// no attribute
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
 
-#nullable disable
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
-
 {AsyncMethodBuilderAttribute}
 ";
+            // Async methods must return task-like types
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                // (14,16): warning CS8603: Possible null reference return.
-                //         return default(T); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default(T)").WithLocation(14, 16),
-                // (20,16): warning CS8603: Possible null reference return.
-                //         return await G((string?)null); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "await G((string?)null)").WithLocation(20, 16),
+                // (11,28): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     static async MyTask<T> G<T>(T t)
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "G").WithLocation(11, 28),
+                // (18,40): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     public static async MyTask<string> M()
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M").WithLocation(18, 40),
+                // (24,41): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //     public static async MyTask<string?> M2() { return await G((string?)null); }
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "M2").WithLocation(24, 41),
                 // (44,16): warning CS8618: Non-nullable field '_result' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     internal T _result;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "_result").WithArguments("field", "_result").WithLocation(44, 16)
@@ -358,238 +359,11 @@ class C
                 );
         }
 
-        [Fact]
-        public void BuilderOnMethod_BadBuilderOnType()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-Console.WriteLine(await C.M());
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
-}}
-
-[AsyncMethodBuilder(typeof(void))] // void
-{AwaitableTypeCode("MyTask")}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))] // wrong arity
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (11,29): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithLocation(11, 29),
-                // (14,38): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithLocation(14, 38),
-                // (17,41): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     public static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, @"{ System.Console.Write(""M ""); await F(); return await G(3); }").WithLocation(17, 41)
-                );
-        }
-
-        [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_CreateReturnsInt()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-}}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
-{AwaitableTypeCode("MyTask")}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")
-    .Replace("public static IgnoredTaskMethodBuilder Create() => new IgnoredTaskMethodBuilder(new MyTask());", "public static int Create() => 0;")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")
-    .Replace("public static IgnoredTaskMethodBuilder<T> Create() => new IgnoredTaskMethodBuilder<T>(new MyTask<T>());", "public static int Create() => 0;")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (9,29): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder.Create'
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithArguments("IgnoredTaskMethodBuilder", "Create").WithLocation(9, 29),
-                // (12,38): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder<T>.Create'
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithArguments("IgnoredTaskMethodBuilder<T>", "Create").WithLocation(12, 38)
-                );
-        }
-
-        [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_TaskPropertyReturnsInt()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-}}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
-{AwaitableTypeCode("MyTask")}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")
-    .Replace("public MyTask Task => _task;", "public int Task => 0;")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")
-    .Replace("public MyTask<T> Task => _task;", "public int Task => 0;")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (9,29): error CS8204: For type 'IgnoredTaskMethodBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'int'.
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithArguments("IgnoredTaskMethodBuilder", "MyTask", "int").WithLocation(9, 29),
-                // (12,38): error CS8204: For type 'IgnoredTaskMethodBuilder<T>' to be used as an AsyncMethodBuilder for type 'MyTask<T>', its Task property should return type 'MyTask<T>' instead of type 'int'.
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithArguments("IgnoredTaskMethodBuilder<T>", "MyTask<T>", "int").WithLocation(12, 38)
-                );
-        }
-
-        [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_SetExceptionIsInternal()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-}}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
-{AwaitableTypeCode("MyTask")}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")
-    .Replace("public void SetException", "internal void SetException")
-    .Replace("public void SetResult", "internal void SetResult")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")
-    .Replace("public void SetException", "internal void SetException")
-    .Replace("public void SetResult", "internal void SetResult")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (9,29): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder.SetException'
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithArguments("IgnoredTaskMethodBuilder", "SetException").WithLocation(9, 29),
-                // (12,38): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder<T>.SetException'
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithArguments("IgnoredTaskMethodBuilder<T>", "SetException").WithLocation(12, 38)
-                );
-        }
-
-        [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_SetResultIsInternal()
-        {
-            var source = $@"
-using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-
-class C
-{{
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]
-    static async MyTask F() {{ System.Console.Write(""F ""); await Task.Delay(0); }}
-
-    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
-    static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Delay(0); return t; }}
-}}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
-{AwaitableTypeCode("MyTask")}
-
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
-{AwaitableTypeCode("MyTask", "T")}
-
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")
-    .Replace("public void SetResult", "internal void SetResult")}
-
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")
-    .Replace("public void SetResult", "internal void SetResult")}
-
-{AsyncMethodBuilderAttribute}
-";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyEmitDiagnostics(
-                // (9,29): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder.SetResult'
-                //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""F ""); await Task.Delay(0); }").WithArguments("IgnoredTaskMethodBuilder", "SetResult").WithLocation(9, 29),
-                // (12,38): error CS0656: Missing compiler required member 'IgnoredTaskMethodBuilder<T>.SetResult'
-                //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{ System.Console.Write(""G ""); await Task.Delay(0); return t; }").WithArguments("IgnoredTaskMethodBuilder<T>", "SetResult").WithLocation(12, 38)
-                );
-        }
-
-        [Fact]
-        public void BuilderOnMethod_OnLocalFunction()
+        [Theory]
+        [InlineData("typeof(MyTaskMethodBuilder)")]
+        [InlineData("typeof(object)")]
+        [InlineData("null")]
+        public void BuilderOnMethod_DummyBuilderOnType_OnLocalFunction(string dummyBuilder)
         {
             var source = $@"
 using System;
@@ -607,19 +381,18 @@ static async MyTask<T> G<T>(T t) {{ System.Console.Write(""G ""); await Task.Del
 [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
 static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder({dummyBuilder})]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder({dummyBuilder})]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask")}
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 
 {AsyncMethodBuilderAttribute}
 ";
+            source = source.Replace("DUMMY_BUILDER", dummyBuilder);
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (9,21): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -791,16 +564,14 @@ class C
     public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1055,16 +826,14 @@ Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilderFactory<>))]
 Console.WriteLine(await m());
 return;
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", isStruct: true)}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T", isStruct: true)}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", isStruct: true)}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1153,16 +922,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public MyTask Task", "public object Task")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task", "public object Task")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1477,16 +1244,14 @@ class C
     public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public class MyTaskMethodBuilderFactory", "internal class MyTaskMethodBuilderFactory")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public class MyTaskMethodBuilderFactory<T>", "internal class MyTaskMethodBuilderFactory<T>")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1518,14 +1283,12 @@ class C
     {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public class MyTaskMethodBuilderFactory<T>", "private class MyTaskMethodBuilderFactory<T>")}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1600,16 +1363,14 @@ class C
     public static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", isStruct: true)}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 
 namespace System.Runtime.CompilerServices
 {{
@@ -1798,16 +1559,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public static class MyTaskMethodBuilder", "internal static class MyTaskMethodBuilder")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public static class MyTaskMethodBuilder<T>", "internal static class MyTaskMethodBuilder<T>")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1833,16 +1592,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public MyTask Task =>", "internal MyTask Task =>")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task =>", "internal MyTask<T> Task =>")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1878,16 +1635,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public MyTask Task => _task;", "public static MyTask Task => throw null;")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task => _task;", "public static MyTask<T> Task => throw null;")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1923,16 +1678,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public MyTask Task => _task;", "public static MyTask Task = null;")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public MyTask<T> Task => _task;", "public MyTask<T> Task = null;")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -1968,16 +1721,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void SetException", "internal void SetException")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetException", "internal void SetException")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2013,10 +1764,10 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask")
@@ -2025,8 +1776,6 @@ class C
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T")
     .Replace("public void SetException(Exception e) { }", "public object SetException(Exception e) => null;")}
 
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2062,16 +1811,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void SetException(Exception e)", "public void SetException()")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetException(Exception e)", "public void SetException()")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2107,16 +1854,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void SetResult", "internal void SetResult")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetResult", "internal void SetResult")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2152,16 +1897,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void AwaitOnCompleted", "internal void AwaitOnCompleted")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void AwaitOnCompleted", "internal void AwaitOnCompleted")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2197,16 +1940,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void AwaitUnsafeOnCompleted", "internal void AwaitUnsafeOnCompleted")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void AwaitUnsafeOnCompleted", "internal void AwaitUnsafeOnCompleted")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2242,16 +1983,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void Start", "internal void Start")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void Start", "internal void Start")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2287,16 +2026,14 @@ class C
     static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return await G(3); }}
 }}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask")}
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder<>))]
+[AsyncMethodBuilder(null)]
 {AwaitableTypeCode("MyTask", "T")}
 
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask").Replace("public void SetStateMachine", "internal void SetStateMachine")}
 {AsyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T").Replace("public void SetStateMachine", "internal void SetStateMachine")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask")}
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTask", "T")}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -2459,10 +2196,10 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncMethodBuilder(typeof(IgnoredBuilder1))] public class T1 {{ }}
-[AsyncMethodBuilder(typeof(IgnoredBuilder2))] public class T2 {{ }}
-[AsyncMethodBuilder(typeof(IgnoredBuilder3))] internal class T3 {{ }}
-[AsyncMethodBuilder(typeof(IgnoredBuilder4))] internal class T4 {{ }}
+[AsyncMethodBuilder(null)] public class T1 {{ }}
+[AsyncMethodBuilder(null)] public class T2 {{ }}
+[AsyncMethodBuilder(null)] internal class T3 {{ }}
+[AsyncMethodBuilder(null)] internal class T4 {{ }}
 
 {AsyncBuilderFactoryCode("B1", "T1")}
 
@@ -2494,10 +2231,6 @@ class Program
     async T4 f4() => await Task.Delay(4);
 }}
 
-{AsyncBuilderCode("IgnoredBuilder1", "T1")}
-{AsyncBuilderCode("IgnoredBuilder2", "T2")}
-{AsyncBuilderCode("IgnoredBuilder3", "T3").Replace("public class IgnoredBuilder3", "internal class IgnoredBuilder3").Replace("public T3 Task", "internal T3 Task")}
-{AsyncBuilderCode("IgnoredBuilder4", "T4").Replace("public T4 Task", "internal T4 Task")}
 {AsyncMethodBuilderAttribute}
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -2508,9 +2241,6 @@ class Program
                 // (100,19): error CS0656: Missing compiler required member 'B3.Task'
                 //     async T3 f3() => await Task.Delay(3);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Task").WithLocation(100, 19),
-                // (100,19): error CS0656: Missing compiler required member 'IgnoredBuilder3.Task'
-                //     async T3 f3() => await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("IgnoredBuilder3", "Task").WithLocation(100, 19),
                 // (103,19): error CS0656: Missing compiler required member 'B4Factory.Create'
                 //     async T4 f4() => await Task.Delay(4);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(4)").WithArguments("B4Factory", "Create").WithLocation(103, 19)
@@ -2525,7 +2255,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncMethodBuilder(typeof(IgnoredTaskMethodBuilder))] internal class MyTaskType {{ }}
+[AsyncMethodBuilder(null)] internal class MyTaskType {{ }}
 
 // Make the builder factory and the builder internal as well
 {AsyncBuilderFactoryCode("MyTaskTypeBuilder", "MyTaskType").Replace("public class MyTaskType", "internal class MyTaskType") }
@@ -2536,7 +2266,6 @@ class C
     async MyTaskType M() => await Task.Delay(4);
 }}
 
-{AsyncBuilderCode("IgnoredTaskMethodBuilder", "MyTaskType").Replace("public class IgnoredTaskMethodBuilder", "internal class IgnoredTaskMethodBuilder")}
 {AsyncMethodBuilderAttribute}
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
