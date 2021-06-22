@@ -309,6 +309,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var generateInvisibleMember = GenerateInvisibleMember(member, memberName);
                 memberName = generateInvisibleMember ? member.Name : memberName;
 
+                // The language doesn't allow static abstract implementations of interface methods. i.e,
+                // Only interface member is declared abstract static, but implementation should be only static.
                 var generateAbstractly = !member.IsStatic && !generateInvisibleMember && Abstractly;
 
                 // Check if we need to add 'new' to the signature we're adding.  We only need to do this

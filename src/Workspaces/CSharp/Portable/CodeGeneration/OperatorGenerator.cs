@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxTokenList GenerateModifiers(IMethodSymbol method)
         {
-            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
+            using var tokens = TemporaryArray<SyntaxToken>.Empty;
 
             if (method.ExplicitInterfaceImplementations.Length == 0)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
             }
 
-            return tokens.ToSyntaxTokenListAndFree();
+            return tokens.ToImmutableAndClear().ToSyntaxTokenList();
         }
     }
 }
