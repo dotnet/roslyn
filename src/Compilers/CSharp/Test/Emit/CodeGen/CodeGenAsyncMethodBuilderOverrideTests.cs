@@ -694,7 +694,7 @@ class C
 {AwaitableTypeCode("MyTask", "T")}
 
 {asyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask")}
-{asyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T")}
+{asyncBuilderFactoryCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
@@ -767,7 +767,22 @@ return;
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            compilation.VerifyEmitDiagnostics(
+                // (6,18): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes").WithLocation(6, 18),
+                // (6,84): error CS8933: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
+                Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(6, 84),
+                // (8,23): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes").WithLocation(8, 23),
+                // (8,84): error CS8933: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
+                Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(8, 84)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
                 // (6,84): error CS8933: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
@@ -800,7 +815,9 @@ return;
 {AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T", isStruct: true)}
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
+            //compilation.VerifyEmitDiagnostics();
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             // This test will be revisited once explicit lambda return types are allowed
             Assert.Equal(18, compilation.GetDiagnostics().Length);
             //var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
