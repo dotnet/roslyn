@@ -48,16 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
         }
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, DiagnosticService),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.EnableInlineDiagnostics),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineDiagnosticsOptions.LocationOption));
-        }
-
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
             return
@@ -84,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.LocationOption, document.Project.Language);
+            var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.Location, document.Project.Language);
             var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
             return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption, navigateService);
         }

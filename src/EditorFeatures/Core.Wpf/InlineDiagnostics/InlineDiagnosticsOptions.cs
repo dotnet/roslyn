@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 defaultValue: false,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
 
-        public static readonly PerLanguageOption2<InlineDiagnosticsLocations> LocationOption =
+        public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
             new(nameof(InlineDiagnosticsOptions),
-                nameof(LocationOption),
+                nameof(Location),
                 defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
     }
@@ -37,6 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InlineDiagnosticsOptions.EnableInlineDiagnostics,
-            InlineDiagnosticsOptions.LocationOption);
+            InlineDiagnosticsOptions.Location);
     }
 }
