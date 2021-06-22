@@ -4680,8 +4680,8 @@ class C
 }
 ";
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "014");
+            CompileAndVerify(compilation, expectedOutput: "014")
+                .VerifyDiagnostics();
         }
     }
 }

@@ -339,8 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
-                var oldValue = oldCase.Value;
+                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
                 var binder = GetRequiredBinder(oldCase.Syntax);
+                var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
                     ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
