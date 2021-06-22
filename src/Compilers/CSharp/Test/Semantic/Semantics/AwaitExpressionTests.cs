@@ -76,8 +76,8 @@ static class MyAwaitableExtension
         return a.Task.GetAwaiter();
     }
 }";
-           
-            var csCompilation = CreateCompilationWithCSharp(text);
+
+            var csCompilation = CreateCompilation(text, targetFramework: TargetFramework.StandardLatest);
             var tree = csCompilation.SyntaxTrees.Single();
 
             var model = csCompilation.GetSemanticModel(tree);
