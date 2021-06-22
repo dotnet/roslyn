@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.GetSyntaxTree(cancellationToken)));
+                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
 
                     // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
                     // properly record assembly symbols for.
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = compilationWithoutGeneratedDocuments;
                 }
 
-                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.GetSyntaxTree(cancellationToken)));
+                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.States.Values.Select(state => state.GetSyntaxTree(cancellationToken)));
 
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         generatedDocuments = authoritativeGeneratedDocuments.Value;
                         compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
-                            await generatedDocuments.States.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                            await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                     }
                     else
                     {
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
                             compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
-                                await generatedDocuments.States.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
+                                await generatedDocuments.States.Values.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                         }
                     }
 
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis
                     var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
                     var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
 
-                    foreach (var state in states.States)
+                    foreach (var (_, state) in states.States)
                     {
                         if (state.SourceGeneratorAssemblyName != generatorAssemblyName)
                             continue;
