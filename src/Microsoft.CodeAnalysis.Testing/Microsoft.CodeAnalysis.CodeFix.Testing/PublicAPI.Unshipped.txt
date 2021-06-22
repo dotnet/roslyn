@@ -14,6 +14,8 @@ Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedCode.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.get -> int?
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.set -> void
 Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.get -> int?
