@@ -157,8 +157,7 @@ public class C {
             compilation = comp;
             var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
             var treeModel = comp.GetSemanticModel(tree);
-            var awaitExpr = treeModel.GetAwaitExpressionInfo(syntaxNode);
-            return awaitExpr;
+            return treeModel.GetAwaitExpressionInfo(syntaxNode);
         }
 
         private AwaitExpressionInfo GetAwaitExpressionInfo(string text, params DiagnosticDescription[] diagnostics)
