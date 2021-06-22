@@ -1656,6 +1656,9 @@ I agree to all of the foregoing:</value>
   <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
     <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
   </data>
+  <data name="Skip_analyzers_for_implicitly_triggered_builds" xml:space="preserve">
+    <value>Skip analyzers for implicitly triggered builds</value>
+  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
