@@ -167,6 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+
+            M();
+        }
+
+        private void M()
+        {
         }
 
         internal DefiniteAssignmentPass(
