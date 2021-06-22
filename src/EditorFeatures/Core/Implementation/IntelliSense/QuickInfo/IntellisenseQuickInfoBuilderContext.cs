@@ -8,6 +8,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
+    /// <summary>
+    /// Context to build content for quick info item for intellisense.
+    /// </summary>
     internal sealed class IntellisenseQuickInfoBuilderContext
     {
         public IntellisenseQuickInfoBuilderContext(

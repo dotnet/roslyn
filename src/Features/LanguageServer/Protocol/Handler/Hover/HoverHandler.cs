@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             HostLanguageServices languageServices,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(semanticModel.Language == LanguageNames.CSharp || semanticModel.Language == LanguageNames.VisualBasic);
+
+            // Get the quick info service to compute quick info.
+            // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.
             var quickInfoService = (QuickInfoServiceWithProviders)languageServices.GetRequiredService<QuickInfoService>();
             var info = await quickInfoService.GetQuickInfoAsync(languageServices.WorkspaceServices.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
