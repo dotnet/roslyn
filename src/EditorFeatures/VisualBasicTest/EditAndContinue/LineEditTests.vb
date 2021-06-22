@@ -2,9 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -12,27 +15,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
         Inherits EditingTestBase
 
-        Private Shared Function ToCode(element As XElement) As String
-            Return element.Value.Replace(vbLf, vbCrLf)
-        End Function
-
-        Private Shared Function ToCode(element As XCData) As String
-            Return element.Value.Replace(vbLf, vbCrLf)
-        End Function
-
 #Region "Methods"
 
         <Fact>
         Public Sub Method_Update1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(1)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar()
 
@@ -40,15 +35,15 @@ Class C
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), Array.Empty(Of String))
         End Sub
 
         <Fact>
         Public Sub Method_Reorder1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Goo()
         Console.ReadLine(1)
@@ -58,9 +53,9 @@ Class C
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
@@ -70,15 +65,20 @@ Class C
         Console.ReadLine(1)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 6), New SourceLineUpdate(6, 2)}, {})
+            edits.VerifyLineEdits(
+            {
+                New SourceLineUpdate(2, 6),
+                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),
+                New SourceLineUpdate(6, 2)
+            }, {})
         End Sub
 
         <Fact>
         Public Sub Method_Reorder2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class Program
     Shared Sub Main()
         Goo()
@@ -93,9 +93,9 @@ Class Program
         Return 2
     End Function
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class Program
     Shared Function Goo() As Integer
         Return 1
@@ -110,23 +110,29 @@ Class Program
         Return 2
     End Function
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New SourceLineUpdate(2, 6), New SourceLineUpdate(7, 2)}, {})
+            edits.VerifyLineEdits(
+            {
+                New SourceLineUpdate(2, 6),
+                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6),
+                New SourceLineUpdate(7, 2),
+                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(10)
+            }, {})
         End Sub
 
         <Fact>
         Public Sub Method_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
 
 
@@ -134,7 +140,7 @@ Class C
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
@@ -142,15 +148,15 @@ End Class
 
         <Fact>
         Public Sub Method_LineChangeWithLambda1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         F(Function() 1)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
 
 
@@ -158,7 +164,7 @@ Class C
         F(Function() 1)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
@@ -166,75 +172,75 @@ End Class
 
         <Fact>
         Public Sub Method_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub _
             Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
         End Sub
 
         <Fact>
         Public Sub Method_Recompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar()
               Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar()"})
         End Sub
 
         <Fact>
-        Public Sub Method_Recompile3()
-            Dim src1 = ToCode(<text>
+        Public Sub Method_PartialBodyLineUpdate1()
+            Dim src1 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(2)
         
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
+            edits.VerifyLineEdits({New SourceLineUpdate(4, 5)}, {})
         End Sub
 
         <Fact>
-        Public Sub Method_Recompile4()
-            Dim src1 = ToCode(<text>
+        Public Sub Method_PartialBodyLineUpdate2()
+            Dim src1 = "
 Class C
     Shared Sub Bar()
 
@@ -242,9 +248,9 @@ Class C
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar()
         Console.ReadLine(1)
@@ -252,10 +258,10 @@ Class C
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
+            edits.VerifyLineEdits({New SourceLineUpdate(4, 3)}, {})
         End Sub
 
         <Fact>
@@ -280,7 +286,7 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub Bar()"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar()"})
 
             Dim active = GetActiveStatements(src1, src2)
             Dim syntaxMap = GetSyntaxMap(src1, src2)
@@ -291,115 +297,114 @@ End Class
 
         <Fact>
         Public Sub Method_Recompile6()
-            Dim src1 = ToCode(<![CDATA[
+            Dim src1 = "
 Class C
     Shared Sub Bar() : End Sub
 End Class
-]]>)
+"
 
-            Dim src2 = ToCode(<![CDATA[
+            Dim src2 = "
 Class C
         Shared Sub Bar() : End Sub
 End Class
-]]>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub Bar() : End Sub"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub Bar() : End Sub"})
         End Sub
 
         <Fact>
-        Public Sub Method_RudeRecompile1()
-            Dim src1 = ToCode(<text>
+        Public Sub Method_PartialBodyLineUpdate3()
+            Dim src1 = "
 Class C(Of T)
     Shared Sub Bar()
         
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C(Of T)
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({},
-                                  {"Shared Sub Bar()"},
-                                  Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
+            edits.VerifyLineEdits({New SourceLineUpdate(4, 3)},
+                                  Array.Empty(Of String))
         End Sub
 
         <Fact>
         Public Sub Method_RudeRecompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C(Of T)
     Shared Sub Bar()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C(Of T)
     Shared Sub Bar()
             Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({},
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
                                   {"Shared Sub Bar()"},
                                   Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, vbCrLf & "            ", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Method_RudeRecompile3()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Sub Bar(Of T)()
             Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Sub Bar(Of T)()
         Console.ReadLine(2)
     End Sub
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({},
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
                                   {"Shared Sub Bar(Of T)()"},
                                   Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, vbCrLf & "        ", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub Method_RudeRecompile4()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Async Function Bar() As Task(Of Integer)
         Console.WriteLine(2)
     End Function
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared Async Function Bar() As Task(Of Integer)
         Console.WriteLine(
             2)
     End Function
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({},
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
                                   {"Shared Async Function Bar() As Task(Of Integer)"})
         End Sub
 
@@ -410,43 +415,43 @@ End Class
         <Fact>
         Public Sub Constructor_Recompile1()
             Dim src1 =
-"Class C" & vbCrLf &
-    "Shared Sub New()" & vbCrLf &
-        "Console.ReadLine(2)" & vbCrLf &
-    "End Sub" & vbCrLf &
-"End Class"
+"Class C
+    Shared Sub New()
+        Console.ReadLine(2)
+    End Sub
+End Class"
 
             Dim src2 =
-"Class C" & vbCrLf &
-    "Shared Sub _" & vbLf &
-                "New()" & vbCrLf &
-        "Console.ReadLine(2)" & vbCrLf &
-    "End Sub" & vbCrLf &
-"End Class"
+"Class C
+    Shared Sub _
+                New()
+        Console.ReadLine(2)
+    End Sub
+End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub _" & vbLf & "New()"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
         End Sub
 
         <Fact>
         Public Sub Constructor_Recompile2()
             Dim src1 =
-"Class C" & vbCrLf &
-    "Shared Sub New()" & vbCrLf &
-        "MyBase.New()" & vbCrLf &
-    "End Sub" & vbCrLf &
-"End Class"
+"Class C
+    Shared Sub New()
+        MyBase.New()
+    End Sub
+End Class"
 
             Dim src2 =
-"Class C" & vbCrLf &
-    "Shared Sub _" & vbLf &
-                "New()" & vbCrLf &
-        "MyBase.New()" & vbCrLf &
-    "End Sub" & vbCrLf &
-"End Class"
+"Class C
+    Shared Sub _
+                New()
+        MyBase.New()
+    End Sub
+End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Shared Sub _" & vbLf & "New()"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Shared Sub _"})
         End Sub
 
 #End Region
@@ -455,114 +460,112 @@ End Class
 
         <Fact>
         Public Sub Field_Init_Reorder1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared Goo As Integer = 1
     Shared Bar As Integer = 2
 End Class
-</text>)
-            Dim src2 = ToCode(<text>
+"
+            Dim src2 = "
 Class C
     Shared Bar As Integer = 2
     Shared Goo As Integer = 1
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_AsNew_Reorder1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared a As New C()
     Shared c As New C()
 End Class
-</text>)
-            Dim src2 = ToCode(<text>
+"
+            Dim src2 = "
 Class C
     Shared c As New C()
     Shared a As New C()
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_AsNew_Reorder2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Shared a, b As New C()
     Shared c, d As New C()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Shared c, d As New C()
     Shared a, b As New C()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3),
-                                   New SourceLineUpdate(2, 3),
-                                   New SourceLineUpdate(3, 2),
                                    New SourceLineUpdate(3, 2)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_Init_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
 
 
     Dim Goo = 1
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_Init_LineChange2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim _
         Goo = 1
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_AsNew_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim _
         Goo As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -570,18 +573,18 @@ End Class
 
         <Fact>
         Public Sub Field_AsNew_LineChange2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Private Shared Goo As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Private _
             Shared Goo As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -589,18 +592,18 @@ End Class
 
         <Fact>
         Public Sub Field_AsNew_LineChange_WithLambda()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo, Bar As New D(Function() 1)
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo, _
              Bar As New D(Function() 1)
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {"Goo"})
@@ -608,186 +611,186 @@ End Class
 
         <Fact>
         Public Sub Field_ArrayInit_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo(1)
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
 
 
     Dim Goo(1)
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 4)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_ArrayInit_LineChange2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo(1)
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim _
         Goo(1)
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1a()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo = _
               1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo = _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo = _"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1b()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo _ 
             = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo _ "})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _ "})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1c()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo ? = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo _
             ? = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo =  1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo =  1"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo =  1"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo As Integer = 1 + 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo As Integer = 1 +  1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo As Integer = 1 +  1"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo As Integer = 1 +  1"})
         End Sub
 
         <Fact>
         Public Sub Field_SingleAsNew_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo As _
                New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo As _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo As _"})
         End Sub
 
         <Fact>
         Public Sub Field_SingleAsNew_Recompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo _
             As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo _"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo, Bar As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo, _
              Bar As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
 
@@ -797,94 +800,94 @@ End Class
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo, Bar As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo,  Bar As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
 
             ' we treat "Goo + New D()" as a whole for simplicity
-            edits.VerifyLineEdits({}, {"Goo", "Bar"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile3()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim  Goo, Bar As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo, Bar As New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo", "Bar"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile4()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo, Bar As New D()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim Goo, Bar As _
                     New D()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo", "Bar"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_ArrayInit_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Dim Goo(1)
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Dim  Goo(1)
 End Class
-</text>)
+"
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Goo(1)"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Goo(1)"})
         End Sub
 
         <Fact>
         Public Sub Field_RudeRecompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C(Of T)
     Dim Goo As Integer = 1 + 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C(Of T)
     Dim Goo As Integer = 1 +  1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({},
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates),
                                   {"Goo As Integer = 1 +  1"},
                                   Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field))
         End Sub
@@ -893,75 +896,75 @@ End Class
 #Region "Auto-Properties"
         <Fact>
         Public Sub Property_NoChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1 Implements I.P
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As Integer = 1 _
                                 Implements I.P
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {})
         End Sub
 
         <Fact>
         Public Sub PropertyTypeChar_NoChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
-    Property Goo$ = "" Implements I.P
+    Property Goo$ = """" Implements I.P
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
-    Property Goo$ = "" _
+    Property Goo$ = """" _
                        Implements I.P
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {})
         End Sub
 
         <Fact>
         Public Sub PropertyAsNew_NoChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As New C() Implements I.P
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As New C() _
                             Implements I.P
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {})
         End Sub
 
         <Fact>
         Public Sub Property_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
 
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -969,18 +972,18 @@ End Class
 
         <Fact>
         Public Sub Property_LineChange2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property _
              Goo As Integer = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -988,18 +991,18 @@ End Class
 
         <Fact>
         Public Sub PropertyTypeChar_LineChange2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
-    Property Goo$ = ""
+    Property Goo$ = """"
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property _
-             Goo$ = ""
+             Goo$ = """"
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -1007,18 +1010,18 @@ End Class
 
         <Fact>
         Public Sub PropertyAsNew_LineChange1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As New C()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property _
              Goo As New C()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({New SourceLineUpdate(2, 3)}, {})
@@ -1026,118 +1029,309 @@ End Class
 
         <Fact>
         Public Sub Property_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo _
                  As Integer = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile2()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As _
                     Integer = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo As _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile3()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As Integer _
                             = 1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo As Integer _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As Integer _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile4()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As Integer = 1
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As Integer = _
                               1
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo As Integer = _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As Integer = _"})
         End Sub
 
         <Fact>
         Public Sub PropertyAsNew_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
     Property Goo As New C()
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo As _
                     New C()
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo As _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo As _"})
         End Sub
 
         <Fact>
         Public Sub PropertyTypeChar_Recompile1()
-            Dim src1 = ToCode(<text>
+            Dim src1 = "
 Class C
-    Property Goo$ = ""
+    Property Goo$ = """"
 End Class
-</text>)
+"
 
-            Dim src2 = ToCode(<text>
+            Dim src2 = "
 Class C
     Property Goo$ = _
-                    ""
+                    """"
 End Class
-</text>)
+"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Goo$ = _"})
+            edits.VerifyLineEdits(Array.Empty(Of SequencePointUpdates), {"Property Goo$ = _"})
         End Sub
 #End Region
 
+#Region "Line Mappings"
+
+        ' <summary>
+        ' Validates that changes in #line directives produce semantic updates of the containing method.
+        ' </summary>
+        <Fact>
+        Public Sub LineMapping_ChangeLineNumber_OutsideOfMethod()
+            Dim src1 = "
+#ExternalSource(""a"", 1)
+Class C
+    Dim x As Integer = 1
+    Shared Dim y As Integer = 1
+    Sub F1() : End Sub
+    Sub F2() : End Sub
+End Class
+Class D
+    Sub New() : End Sub
+#End ExternalSource
+#ExternalSource(""a"", 4)
+    Sub F3() : End Sub
+#End ExternalSource
+#ExternalSource(""a"", 5)
+    Sub F4() : End Sub
+#End ExternalSource
+End Class
+"
+
+            Dim src2 = "
+#ExternalSource(""a"", 11)
+Class C
+    Dim x As Integer = 1
+    Shared Dim y As Integer = 1
+    Sub F1() : End Sub
+    Sub F2() : End Sub
+End Class
+Class D
+    Sub New() : End Sub
+#End ExternalSource
+#ExternalSource(""a"", 4)
+    Sub F3() : End Sub
+    Sub F4() : End Sub
+#End ExternalSource
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyLineEdits(
+                {
+                    New SequencePointUpdates("a", ImmutableArray.Create(
+                        New SourceLineUpdate(1, 11), ' x, y, F1, F2
+                        AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),' lines between F2 And D ctor
+                        New SourceLineUpdate(7, 17)))' D ctor
+                },
+                {
+                    "Sub F3() : End Sub", ' overlaps with "Sub F1"
+                    "Sub F4() : End Sub"  ' overlaps with "Sub F2"
+                })
+        End Sub
+
+        <Fact>
+        Public Sub LineMapping_LineDirectivesAndWhitespace()
+            Dim src1 = "
+Class C
+#ExternalSource(""a"", 5)
+#End ExternalSource
+#ExternalSource(""a"", 6)
+
+
+
+    Sub F() : End Sub ' line 9
+End Class
+#End ExternalSource
+"
+            Dim src2 = "
+Class C
+#ExternalSource(""a"", 9)
+    Sub F() : End Sub
+End Class
+#End ExternalSource
+"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Public Sub LineMapping_MultipleFiles()
+            Dim src1 = "
+Class C
+    Sub F()
+#ExternalSource(""a"", 1)
+        A()
+#End ExternalSource
+#ExternalSource(""b"", 1)
+        B()
+#End ExternalSource
+    End Sub
+End Class"
+            Dim src2 = "
+Class C
+    Sub F()
+#ExternalSource(""a"", 2)
+        A()
+#End ExternalSource
+#ExternalSource(""b"", 2)
+        B()
+#End ExternalSource
+    End Sub
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyLineEdits(
+                {
+                    New SequencePointUpdates("a", ImmutableArray.Create(New SourceLineUpdate(0, 1))),
+                    New SequencePointUpdates("b", ImmutableArray.Create(New SourceLineUpdate(0, 1)))
+                },
+                Array.Empty(Of String))
+        End Sub
+
+        <Fact>
+        Public Sub LineMapping_FileChange_Recompile()
+            Dim src1 = "
+Class C
+    Sub F()
+        A()
+#ExternalSource(""a"", 1)
+        B()
+#End ExternalSource
+#ExternalSource(""a"", 3)
+        C()
+    End Sub
+
+
+    Dim x As Integer = 1
+#End ExternalSource
+End Class"
+            Dim src2 = "
+Class C
+    Sub F()
+        A()
+#ExternalSource(""b"", 1)
+        B()
+#End ExternalSource
+#ExternalSource(""a"", 2)
+        C()
+    End Sub
+
+    Dim x As Integer = 1
+#End ExternalSource
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyLineEdits(
+                {
+                    New SequencePointUpdates("a", ImmutableArray.Create(New SourceLineUpdate(6, 4)))
+                },
+                {"Sub F()"})
+
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F"))
+            })
+        End Sub
+
+        <Fact>
+        Public Sub LineMapping_FileChange_RudeEdit()
+            Dim src1 = "
+#ExternalSource(""a"", 1)
+Class C
+    Sub Bar(Of T)()
+    End Sub
+End Class
+#End ExternalSource
+"
+            Dim src2 = "
+#ExternalSource(""b"", 1)
+Class C
+    Sub Bar(Of T)()
+    End Sub
+End Class
+#End ExternalSource
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                 Array.Empty(Of SequencePointUpdates)(),
+                 {"Sub Bar(Of T)()"},
+                 Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "Sub Bar(Of T)()", FeaturesResources.method))
+        End Sub
+
+#End Region
     End Class
 End Namespace

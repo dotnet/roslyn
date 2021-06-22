@@ -1246,7 +1246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-#nullable disable
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -1264,6 +1263,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)invokeMethod == null || invokeMethod.HasUseSiteError)
             {
                 return LambdaConversionResult.BadTargetType;
+            }
+
+            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            {
+                if (invokeMethod.RefKind != refKind ||
+                    !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return LambdaConversionResult.MismatchedReturnType;
+                }
             }
 
             var delegateParameters = invokeMethod.Parameters;
@@ -1426,6 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
+#nullable disable
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

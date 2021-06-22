@@ -58,6 +58,8 @@ class C
             using var md1 = diff1.GetMetadata();
             var reader1 = md1.Reader;
 
+            diff1.VerifyUpdatedTypes("0x02000002");
+
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(17, TableIndex.MemberRef, EditAndContinueOperation.Default),
@@ -534,9 +536,13 @@ class C
 
                 using (var md1 = diff1.GetMetadata())
                 {
+                    CheckAttributes(md1.Reader,
+                        new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)));  // row id 0 == delete
+
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default)); // Delete IteratorStateMachineAttribute
                 }
             }
         }
@@ -581,9 +587,15 @@ class C
 
                 using (var md1 = diff1.GetMetadata())
                 {
+                    CheckAttributes(md1.Reader,
+                        new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // row id 0 == delete
+                        new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef))); // row id 0 == delete
+
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),  // Delete AsyncStateMachineAttribute
+                        Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default));  // Delete DebuggerStepThroughAttribute
                 }
             }
         }
@@ -672,12 +684,12 @@ class C
                         Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
                 }
             }
         }
@@ -736,8 +748,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -860,6 +872,8 @@ class C
                 // only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004");
 
+                diff1.VerifyUpdatedTypes("0x02000002", "0x02000003");
+
                 using (var md1 = diff1.GetMetadata())
                 {
                     // Verify that no new TypeDefs, FieldDefs or MethodDefs were added,
@@ -871,8 +885,8 @@ class C
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -1142,8 +1156,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -1246,8 +1260,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -1357,8 +1371,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -1465,8 +1479,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -1582,8 +1596,8 @@ class C
                         Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                        Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
                     diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
@@ -1875,10 +1889,10 @@ class C
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             diff1.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -1986,8 +2000,8 @@ class C
                 Row(18, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(2, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             diff2.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -2099,10 +2113,10 @@ class C
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -2622,10 +2636,10 @@ class C
                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             // Note that the new awaiter is allocated slot <>u__3 since <>u__1 and <>u__2 are taken.
             diff1.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -2762,8 +2776,8 @@ class C
                 Row(12, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             // Note that the new awaiters are allocated slots <>u__4, <>u__5.
             diff2.VerifyIL("C.<F>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -2906,10 +2920,10 @@ class C
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(25, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
         }
 
         [Fact]
@@ -3321,6 +3335,8 @@ class C
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
+            diff1.VerifyUpdatedTypes("0x02000003", "0x02000004");
+
             diff1.VerifySynthesizedMembers(
                 "C: {<F>d__0}",
                 "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <>4__this, <x>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.Int32>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.Int32>.Current, System.Collections.IEnumerator.Current}",
@@ -3332,6 +3348,8 @@ class C
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            diff2.VerifyUpdatedTypes("0x02000003", "0x02000004");
 
             diff2.VerifySynthesizedMembers(
                  "C: {<F>d__0}",

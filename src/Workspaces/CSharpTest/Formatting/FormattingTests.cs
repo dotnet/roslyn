@@ -9861,6 +9861,54 @@ class C
 }", changedOptionSet: changingOptions);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInPropertyPatterns()
+        {
+            var code = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoSpacesInExtendedPropertyPatterns()
+        {
+            var code = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is {  CProperty . IntProperty : 2 };
+    }
+}";
+            var expectedCode = @"class C
+{
+    C CProperty { get; set; }
+    int IntProperty { get; set; }
+    void M()
+    {
+        _ = this is { CProperty.IntProperty: 2 };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(52413, "https://github.com/dotnet/roslyn/issues/52413")]
         public async Task NewLinesForBraces_PropertyPatternClauses_Default()
@@ -9972,6 +10020,62 @@ record struct R(int X);
                 @"
 record  struct  R(int X);
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_01()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = void () => { };
+}",
+@"class Program
+{
+    Delegate D = void  ()  =>  {  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_02()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A.B () => { };
+}",
+@"class Program
+{
+    Delegate D = A.B()=>{  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_03()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A<B> (x) => x;
+}",
+@"class Program
+{
+    Delegate D = A < B >  ( x ) => x;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_04()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    object F = Func((A, B) ((A, B) t) => t);
+}",
+@"class Program
+{
+    object F = Func((A,B)((A,B)t)=>t);
+}");
         }
     }
 }

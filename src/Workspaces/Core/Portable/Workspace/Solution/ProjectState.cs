@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerOptions AnalyzerOptions
             => _lazyAnalyzerOptions ??= new AnalyzerOptions(
-                additionalFiles: AdditionalDocumentStates.SelectAsArray<AdditionalText>(static state => new AdditionalTextWithState(state)),
+                additionalFiles: AdditionalDocumentStates.SelectAsArray(AdditionalTextWithState.FromState),
                 optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
 
         public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(

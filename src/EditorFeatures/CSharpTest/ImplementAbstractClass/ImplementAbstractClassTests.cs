@@ -1912,33 +1912,161 @@ record B(int i) : A
 }", parseOptions: TestOptions.RegularPreview);
         }
 
-        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestNullableGenericType()
+        public async Task TestUnconstrainedGenericNullable()
         {
             await TestAllOptionsOffAsync(
-@"abstract class C
+@"#nullable enable
+
+abstract class B<T>
 {
-    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+    public abstract T? M();
 }
 
-class [|D|] : C
+class [|D|] : B<int>
 {
 }",
-@"abstract class C
+@"#nullable enable
+
+abstract class B<T>
 {
-    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+    public abstract T? M();
 }
 
+class D : B<int>
+{
+    public override int M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable2()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<T> where T : struct
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<T> where T : struct
+{
+    public override T M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestUnconstrainedGenericNullable_Tuple()
+        {
+            await TestAllOptionsOffAsync(
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class [|D<T>|] : B<(T, T)>
+{
+}",
+@"#nullable enable
+
+abstract class B<T>
+{
+    public abstract T? M();
+}
+
+class D<T> : B<(T, T)>
+{
+    public override (T, T) M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(48742, "https://github.com/dotnet/roslyn/issues/48742")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        [InlineData("", "T")]
+        [InlineData(" where T : class", "T")]
+        [InlineData("", "T?")]
+        [InlineData(" where T : class", "T?")]
+        [InlineData(" where T : struct", "T?")]
+        public async Task TestUnconstrainedGenericNullable_NoRegression(string constraint, string passToBase)
+        {
+            await TestAllOptionsOffAsync(
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class [|D<T>|] : B<{passToBase}>{constraint}
+{{
+}}",
+$@"#nullable enable
+
+abstract class B<T>
+{{
+    public abstract T? M();
+}}
+
+class D<T> : B<{passToBase}>{constraint}
+{{
+    public override T? M()
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestWithPickMembersDialogAsync(
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
+class D : C
+{
+    [||]
+}",
+@"class C
+{
+    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+}
 class D : C
 {
     public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
         where T1 : default
         where T3 : default
     {
-        throw new System.NotImplementedException();
+        base.M(a, b, c, d);
     }
-}");
+}", new[] { "M" });
         }
     }
 }

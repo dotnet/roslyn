@@ -9030,5 +9030,135 @@ class D : I
     }
 }", index: 1);
         }
+
+        [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementTwoPropertiesOfCSharp5()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    int Bar { get; }
+    int Foo { get; }
+}
+
+class Program : ITest
+{
+    public int Bar
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public int Foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+        }
+
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : ITest
+{
+    public static void M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 0, title: FeaturesResources.Implement_interface);
+        }
+
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceMemberExplicitly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+class C : ITest
+{
+    void ITest.M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_all_members_explicitly);
+        }
+
+        [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticAbstractInterfaceMember_ImplementAbstractly()
+        {
+            await TestInRegularAndScriptAsync(@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+abstract class C : [|ITest|]
+{
+}
+",
+@"
+interface ITest
+{
+    static abstract void M1();
+}
+
+abstract class C : ITest
+{
+    public abstract static void M1();
+}
+", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), index: 1, title: FeaturesResources.Implement_interface_abstractly);
+        }
     }
 }

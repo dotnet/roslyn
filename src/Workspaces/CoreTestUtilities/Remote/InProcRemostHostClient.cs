@@ -270,6 +270,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
+                RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
+                RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
             }
 
             public void Dispose()
