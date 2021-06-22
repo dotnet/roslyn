@@ -4,17 +4,16 @@
 
 #nullable disable
 
-using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingRemoteHostOptionsAccessor
     {
-        [Obsolete("OOP is now 64bit only.")]
-        public static readonly Option2<bool> OOP64Bit = new(
-            "InternalFeatureOnOffOptions", nameof(OOP64Bit), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(StorageOptions.LocalRegistryPath + nameof(OOP64Bit)));
+        public static Option<bool> OOP64Bit => new(
+            RemoteHostOptions.OOP64Bit.Feature, RemoteHostOptions.OOP64Bit.Name, defaultValue: RemoteHostOptions.OOP64Bit.DefaultValue,
+            storageLocations: RemoteHostOptions.OOP64Bit.StorageLocations.ToArray());
     }
 }
