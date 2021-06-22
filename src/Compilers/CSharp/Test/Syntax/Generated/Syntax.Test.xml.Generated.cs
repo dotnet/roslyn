@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.RefExpression(InternalSyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax GenerateParenthesizedLambdaExpression()
-            => InternalSyntaxFactory.ParenthesizedLambdaExpression(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateParameterList(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), null, null);
+            => InternalSyntaxFactory.ParenthesizedLambdaExpression(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), null, GenerateParameterList(), InternalSyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), null, null);
 
         private static Syntax.InternalSyntax.InitializerExpressionSyntax GenerateInitializerExpression()
             => InternalSyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -1359,6 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
+            Assert.Null(node.ReturnType);
             Assert.NotNull(node.ParameterList);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind);
             Assert.Null(node.Block);
@@ -9885,7 +9886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), GenerateIdentifierName());
 
         private static ParenthesizedLambdaExpressionSyntax GenerateParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
+            => SyntaxFactory.ParenthesizedLambdaExpression(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), default(TypeSyntax), GenerateParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default(BlockSyntax), default(ExpressionSyntax));
 
         private static InitializerExpressionSyntax GenerateInitializerExpression()
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
@@ -11068,11 +11069,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
+            Assert.Null(node.ReturnType);
             Assert.NotNull(node.ParameterList);
             Assert.Equal(SyntaxKind.EqualsGreaterThanToken, node.ArrowToken.Kind());
             Assert.Null(node.Block);
             Assert.Null(node.ExpressionBody);
-            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithParameterList(node.ParameterList).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithParameterList(node.ParameterList).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
         }
 

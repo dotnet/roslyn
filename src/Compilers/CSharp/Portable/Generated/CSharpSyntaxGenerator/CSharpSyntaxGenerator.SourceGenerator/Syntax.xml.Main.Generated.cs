@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.ReturnType), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
@@ -3092,20 +3092,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), expression);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), returnType == null ? null : (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, default(SyntaxTokenList), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.ParenthesizedLambdaExpression(default, default(SyntaxTokenList), default, SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)

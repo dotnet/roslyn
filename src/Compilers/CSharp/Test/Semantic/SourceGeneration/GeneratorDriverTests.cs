@@ -1260,7 +1260,7 @@ class C { }
             var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
 
             int incrementalInitCount = 0;
-            var generator2 = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => incrementalInitCount++));
 
             int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
             var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);
@@ -1297,7 +1297,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             int incrementalInitCount = 0;
-            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => incrementalInitCount++));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
@@ -1319,7 +1319,7 @@ class C { }
             Assert.Single(compilation.SyntaxTrees);
 
             var e = new InvalidOperationException("abc");
-            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => throw e));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => throw e));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGenerators(compilation);
@@ -1430,7 +1430,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => { }));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => { }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
@@ -1451,7 +1451,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
-            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) => ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"))));
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) => ic.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"))));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
@@ -1727,13 +1727,11 @@ class C { }
 
             List<ClassDeclarationSyntax> classes = new List<ClassDeclarationSyntax>();
 
-            var generator = new IncrementalGeneratorWrapper(new IncrementalCallbackGenerator((ic) =>
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
             {
-                ic.RegisterForPostInitialization(c => c.AddSource("a", "class D {}"));
-                ic.RegisterExecutionPipeline(pc =>
-                {
-                    pc.RegisterSourceOutput(pc.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
-                });
+                ctx.RegisterPostInitializationOutput(c => c.AddSource("a", "class D {}"));
+
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is ClassDeclarationSyntax, (gsc, _) => (ClassDeclarationSyntax)gsc.Node), (spc, node) => classes.Add(node));
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);

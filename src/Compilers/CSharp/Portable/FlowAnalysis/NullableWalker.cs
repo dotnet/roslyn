@@ -144,6 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _useDelegateInvokeParameterTypes;
 
         /// <summary>
+        /// If true, the return type and nullability from _delegateInvokeMethod is used.
+        /// If false, the signature of CurrentSymbol is used instead.
+        /// </summary>
+        private bool _useDelegateInvokeReturnType;
+
+        /// <summary>
         /// Method signature used for return or parameter types. Distinct from CurrentSymbol signature
         /// when CurrentSymbol is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
@@ -377,6 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol? symbol,
             bool useConstructorExitWarnings,
             bool useDelegateInvokeParameterTypes,
+            bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
             BoundNode node,
             Binder binder,
@@ -395,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
+            _useDelegateInvokeReturnType = useDelegateInvokeReturnType;
             _delegateInvokeMethod = delegateInvokeMethodOpt;
             _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
             _returnTypesOpt = returnTypesOpt;
@@ -1073,6 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useConstructorExitWarnings,
                 useDelegateInvokeParameterTypes: false,
+                useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState: initialNullableState,
                 analyzedNullabilityMapOpt: null,
@@ -1176,6 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useConstructorExitWarnings: true,
                 useDelegateInvokeParameterTypes: false,
+                useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState,
                 analyzedNullabilities,
@@ -1225,6 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol,
                 useConstructorExitWarnings: false,
                 useDelegateInvokeParameterTypes: false,
+                useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 node,
                 binder,
@@ -1312,6 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 useConstructorExitWarnings: false,
                 useDelegateInvokeParameterTypes: false,
+                useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
                 initialState: null,
                 analyzedNullabilityMapOpt: null,
@@ -1333,11 +1345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var symbol = lambda.Symbol;
             var variables = Variables.Create(initialState.Variables).CreateNestedMethodScope(symbol);
+            UseDelegateInvokeParameterAndReturnTypes(lambda, delegateInvokeMethodOpt, out bool useDelegateInvokeParameterTypes, out bool useDelegateInvokeReturnType);
             var walker = new NullableWalker(
                 compilation,
                 symbol,
                 useConstructorExitWarnings: false,
-                useDelegateInvokeParameterTypes: UseDelegateInvokeParameterTypes(lambda, delegateInvokeMethodOpt),
+                useDelegateInvokeParameterTypes: useDelegateInvokeParameterTypes,
+                useDelegateInvokeReturnType: useDelegateInvokeReturnType,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
                 lambda.Body,
                 lambda.Binder,
@@ -1366,6 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
             bool useDelegateInvokeParameterTypes,
+            bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
             VariableState? initialState,
             ImmutableDictionary<BoundExpression, (NullabilityInfo, TypeSymbol?)>.Builder? analyzedNullabilityMapOpt,
@@ -1380,6 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             symbol,
                                             useConstructorExitWarnings,
                                             useDelegateInvokeParameterTypes,
+                                            useDelegateInvokeReturnType,
                                             delegateInvokeMethodOpt,
                                             node,
                                             binder,
@@ -2524,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateOrMethod = _delegateInvokeMethod ?? method;
+            var delegateOrMethod = _useDelegateInvokeReturnType ? _delegateInvokeMethod! : method;
             var returnType = delegateOrMethod.ReturnTypeWithAnnotations;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
 
@@ -2650,7 +2666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localFunc,
                 state,
                 delegateInvokeMethod: null,
-                useDelegateInvokeParameterTypes: false);
+                useDelegateInvokeParameterTypes: false,
+                useDelegateInvokeReturnType: false);
 
             SetInvalidResult();
 
@@ -2674,16 +2691,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol lambdaOrFunctionSymbol,
             LocalState state,
             MethodSymbol? delegateInvokeMethod,
-            bool useDelegateInvokeParameterTypes)
+            bool useDelegateInvokeParameterTypes,
+            bool useDelegateInvokeReturnType)
         {
+            Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethod is object);
+            Debug.Assert(!useDelegateInvokeReturnType || delegateInvokeMethod is object);
+
             var oldSymbol = this.CurrentSymbol;
             this.CurrentSymbol = lambdaOrFunctionSymbol;
 
-            Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethod is object);
             var oldDelegateInvokeMethod = _delegateInvokeMethod;
             _delegateInvokeMethod = delegateInvokeMethod;
             var oldUseDelegateInvokeParameterTypes = _useDelegateInvokeParameterTypes;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
+            var oldUseDelegateInvokeReturnType = _useDelegateInvokeReturnType;
+            _useDelegateInvokeReturnType = useDelegateInvokeReturnType;
 
             var oldReturnTypes = _returnTypesOpt;
             _returnTypesOpt = null;
@@ -2721,6 +2743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variables = _variables.Container!;
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
+            _useDelegateInvokeReturnType = oldUseDelegateInvokeReturnType;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
             this.CurrentSymbol = oldSymbol;
@@ -3471,6 +3494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             symbol: null,
                                             useConstructorExitWarnings: false,
                                             useDelegateInvokeParameterTypes: false,
+                                            useDelegateInvokeReturnType: false,
                                             delegateInvokeMethodOpt: null,
                                             node,
                                             binder,
@@ -6786,6 +6810,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(delegateType is object);
+
+            if (unboundLambda.HasExplicitReturnType(out _, out var returnType) &&
+                IsNullabilityMismatch(invoke.ReturnTypeWithAnnotations, returnType, requireIdentity: true))
+            {
+                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
+                    unboundLambda.MessageID.Localize(),
+                    delegateType);
+            }
+
             int count = Math.Min(invoke.ParameterCount, unboundLambda.ParameterCount);
             for (int i = 0; i < count; i++)
             {
@@ -7756,7 +7789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(delegateTypeOpt?.IsDelegateType() != false);
 
             var delegateInvokeMethod = delegateTypeOpt?.DelegateInvokeMethod;
-            bool useDelegateInvokeParameterTypes = UseDelegateInvokeParameterTypes(node, delegateInvokeMethod);
+            UseDelegateInvokeParameterAndReturnTypes(node, delegateInvokeMethod, out bool useDelegateInvokeParameterTypes, out bool useDelegateInvokeReturnType);
             if (useDelegateInvokeParameterTypes && _snapshotBuilderOpt is object)
             {
                 SetUpdatedSymbol(node, node.Symbol, delegateTypeOpt!);
@@ -7767,12 +7800,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Symbol,
                 initialState.HasValue ? initialState.Value : State.Clone(),
                 delegateInvokeMethod,
-                useDelegateInvokeParameterTypes);
+                useDelegateInvokeParameterTypes,
+                useDelegateInvokeReturnType);
         }
 
-        private static bool UseDelegateInvokeParameterTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod)
+        private static void UseDelegateInvokeParameterAndReturnTypes(BoundLambda lambda, MethodSymbol? delegateInvokeMethod, out bool useDelegateInvokeParameterTypes, out bool useDelegateInvokeReturnType)
         {
-            return delegateInvokeMethod is object && !lambda.UnboundLambda.HasExplicitlyTypedParameterList;
+            if (delegateInvokeMethod is null)
+            {
+                useDelegateInvokeParameterTypes = false;
+                useDelegateInvokeReturnType = false;
+            }
+            else
+            {
+                var unboundLambda = lambda.UnboundLambda;
+                useDelegateInvokeParameterTypes = !unboundLambda.HasExplicitlyTypedParameterList;
+                useDelegateInvokeReturnType = !unboundLambda.HasExplicitReturnType(out _, out _);
+            }
         }
 
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)

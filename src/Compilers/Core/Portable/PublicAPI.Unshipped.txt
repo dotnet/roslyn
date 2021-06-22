@@ -17,18 +17,15 @@ Microsoft.CodeAnalysis.IIncrementalGenerator
 Microsoft.CodeAnalysis.IIncrementalGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.AdditionalText!>
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Compilation!>
 Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterExecutionPipeline(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext>! callback) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext>! callback) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AdditionalTextsProvider.get -> Microsoft.CodeAnalysis.IncrementalValuesProvider<Microsoft.CodeAnalysis.AdditionalText!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.AnalyzerConfigOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.CompilationProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.Compilation!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.ParseOptions!>
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.SyntaxProvider.get -> Microsoft.CodeAnalysis.SyntaxValueProvider
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ParseOptionsProvider.get -> Microsoft.CodeAnalysis.IncrementalValueProvider<Microsoft.CodeAnalysis.ParseOptions!>
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterPostInitializationOutput(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext>! callback) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterSourceOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.SourceProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.SyntaxProvider.get -> Microsoft.CodeAnalysis.SyntaxValueProvider
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, Microsoft.CodeAnalysis.Text.SourceText! sourceText) -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddSource(string! hintName, string! source) -> void

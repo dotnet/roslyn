@@ -85,9 +85,11 @@
                We only do so by default when 'TreatWarningsAsErrors' is not 'true'. For the scenario where
 			         'TreatWarningsAsErrors' is 'true', users can explicitly enable this functionality by setting
 			         'OptimizeImplicitlyTriggeredBuild' to 'true'.
+               NOTE: This feature is currently supported only for SDK-style projects, i.e. UsingMicrosoftNETSdk = true.
     -->
     <PropertyGroup Condition="'$(_SkipAnalyzers)' == '' and
                               '$(IsImplicitlyTriggeredBuild)' == 'true' and
+                              '$(UsingMicrosoftNETSdk)' == 'true' and
                               ('$(TreatWarningsAsErrors)' != 'true' or '$(OptimizeImplicitlyTriggeredBuild)' == 'true')">
       <_ImplicitlySkipAnalyzers>true</_ImplicitlySkipAnalyzers>
       <_SkipAnalyzers>true</_SkipAnalyzers>

@@ -1955,7 +1955,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
         ERR_AbstractConversionNotInvolvingContainedType = 8931,
         ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
-        ERR_BuilderAttributeDisallowed = 8933,
+        ERR_CantConvAnonMethReturnType = 8933,
+        ERR_BuilderAttributeDisallowed = 8934,
 
         #endregion
 
