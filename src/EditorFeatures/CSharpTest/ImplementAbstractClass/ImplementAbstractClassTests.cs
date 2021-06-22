@@ -2042,21 +2042,20 @@ class D<T> : B<{passToBase}>{constraint}
         }
 
         [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestNullableTypeParameter()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+        public async Task TestNullableGenericType()
         {
-            await TestWithPickMembersDialogAsync(
-@"class C
+            await TestAllOptionsOffAsync(
+@"abstract class C
 {
-    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
 }
-class D : C
+class [|D|] : C
 {
-    [||]
 }",
-@"class C
+@"abstract class C
 {
-    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+    public abstract void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
 }
 class D : C
 {
@@ -2064,9 +2063,9 @@ class D : C
         where T1 : default
         where T3 : default
     {
-        base.M(a, b, c, d);
+        throw new System.NotImplementedException();
     }
-}", new[] { "M" });
+}");
         }
     }
 }
