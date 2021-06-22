@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Structure
@@ -41,5 +42,16 @@ namespace Microsoft.CodeAnalysis.Structure
             nameof(MaximumBannerLength), defaultValue: 80,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(MaximumBannerLength)}"));
 
+        public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
+            ShowBlockStructureGuidesForCommentsAndPreprocessorRegions,
+            ShowBlockStructureGuidesForDeclarationLevelConstructs,
+            ShowBlockStructureGuidesForCodeLevelConstructs,
+
+            ShowOutliningForCommentsAndPreprocessorRegions,
+            ShowOutliningForDeclarationLevelConstructs,
+            ShowOutliningForCommentsAndPreprocessorRegions,
+
+            CollapseRegionsWhenCollapsingToDefinitions,
+            MaximumBannerLength);
     }
 }

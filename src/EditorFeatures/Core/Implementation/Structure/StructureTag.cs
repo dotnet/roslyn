@@ -23,18 +23,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             IsDefaultCollapsed = blockSpan.IsDefaultCollapsed;
             IsImplementation = blockSpan.AutoCollapse;
 
-            if (blockSpan.HintSpan.Start < blockSpan.TextSpan.Start)
+            // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
+            // you mouse over a guideline. A guideline is not needed for non-structural blocks.
+            if (Type != PredefinedStructureTagTypes.Nonstructural)
             {
-                // The HeaderSpan is what is used for drawing the guidelines and also what is shown if
-                // you mouse over a guideline. We will use the text from the hint start to the collapsing
-                // start; in the case this spans mutiple lines the editor will clip it for us and suffix an
-                // ellipsis at the end.
-                HeaderSpan = Span.FromBounds(blockSpan.HintSpan.Start, blockSpan.TextSpan.Start);
-            }
-            else
-            {
-                var hintLine = snapshot.GetLineFromPosition(blockSpan.HintSpan.Start);
-                HeaderSpan = AbstractStructureTaggerProvider.TrimLeadingWhitespace(hintLine.Extent);
+                if (blockSpan.HintSpan.Start < blockSpan.TextSpan.Start)
+                {
+                    // We will use the text from the hint start to the collapsing start; in the
+                    // case this spans mutiple lines the editor will clip it for us and suffix an
+                    // ellipsis at the end.
+                    HeaderSpan = Span.FromBounds(blockSpan.HintSpan.Start, blockSpan.TextSpan.Start);
+                }
+                else
+                {
+                    var hintLine = snapshot.GetLineFromPosition(blockSpan.HintSpan.Start);
+                    HeaderSpan = AbstractStructureTaggerProvider.TrimLeadingWhitespace(hintLine.Extent);
+                }
             }
 
             CollapsedText = blockSpan.BannerText;
@@ -73,13 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         {
             return type switch
             {
-                BlockTypes.Conditional => PredefinedStructureTagTypes.Conditional,
                 BlockTypes.Comment => PredefinedStructureTagTypes.Comment,
+                BlockTypes.Conditional => PredefinedStructureTagTypes.Conditional,
                 BlockTypes.Expression => PredefinedStructureTagTypes.Expression,
                 BlockTypes.Imports => PredefinedStructureTagTypes.Imports,
                 BlockTypes.Loop => PredefinedStructureTagTypes.Loop,
                 BlockTypes.Member => PredefinedStructureTagTypes.Member,
                 BlockTypes.Namespace => PredefinedStructureTagTypes.Namespace,
+                BlockTypes.Nonstructural => PredefinedStructureTagTypes.Nonstructural,
                 BlockTypes.PreprocessorRegion => PredefinedStructureTagTypes.PreprocessorRegion,
                 BlockTypes.Statement => PredefinedStructureTagTypes.Statement,
                 BlockTypes.Type => PredefinedStructureTagTypes.Type,

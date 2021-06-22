@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -294,6 +295,87 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 SetBooleanOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, value)
             End Set
         End Property
+
+        Public Property Structure_ShowBlockStructureGuidesForCodeLevelConstructs As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, value)
+            End Set
+        End Property
+
+        Public Property Structure_ShowBlockStructureGuidesForCommentsAndPreprocessorRegions As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, value)
+            End Set
+        End Property
+
+        Public Property Structure_ShowBlockStructureGuidesForDeclarationLevelConstructs As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, value)
+            End Set
+        End Property
+
+        Public Property Structure_ShowOutliningForCodeLevelConstructs As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, value)
+            End Set
+        End Property
+
+        Public Property Structure_ShowOutliningForCommentsAndPreprocessorRegions As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, value)
+            End Set
+        End Property
+
+        Public Property Structure_ShowOutliningForDeclarationLevelConstructs As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, value)
+            End Set
+        End Property
+
+        Public Property Structure_CollapseRegionsWhenCollapsingToDefinitions As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, value)
+            End Set
+        End Property
+
+        Public Property Structure_MaximumBannerLength As Integer
+            Get
+                Return GetOption(BlockStructureOptions.MaximumBannerLength)
+            End Get
+            Set(value As Integer)
+                SetOption(BlockStructureOptions.MaximumBannerLength, value)
+            End Set
+        End Property
+
+        Private Function GetOption(Of T)(key As [PerLanguageOption2](Of T)) As T
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
+        End Function
+
+        Private Sub SetOption(Of T)(key As [PerLanguageOption2](Of T), value As T)
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options _
+                .WithChangedOption(key, LanguageNames.VisualBasic, value)))
+        End Sub
 
         Private Function GetBooleanOption(key As [PerLanguageOption2](Of Boolean)) As Boolean
             Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)

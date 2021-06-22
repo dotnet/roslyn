@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -767,6 +768,54 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CSharpFormattingOptions2.WrappingPreserveSingleLine); }
             set { SetBooleanOption(CSharpFormattingOptions2.WrappingPreserveSingleLine, value); }
+        }
+
+        public int Structure_ShowBlockStructureGuidesForCommentsAndPreprocessorRegions
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions); }
+            set { SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, value); }
+        }
+
+        public int Structure_ShowBlockStructureGuidesForDeclarationLevelConstructs
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs); }
+            set { SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForDeclarationLevelConstructs, value); }
+        }
+
+        public int Structure_ShowBlockStructureGuidesForCodeLevelConstructs
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs); }
+            set { SetBooleanOption(BlockStructureOptions.ShowBlockStructureGuidesForCodeLevelConstructs, value); }
+        }
+
+        public int Structure_ShowOutliningForCommentsAndPreprocessorRegions
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions); }
+            set { SetBooleanOption(BlockStructureOptions.ShowOutliningForCommentsAndPreprocessorRegions, value); }
+        }
+
+        public int Structure_ShowOutliningForDeclarationLevelConstructs
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs); }
+            set { SetBooleanOption(BlockStructureOptions.ShowOutliningForDeclarationLevelConstructs, value); }
+        }
+
+        public int Structure_ShowOutliningForCodeLevelConstructs
+        {
+            get { return GetBooleanOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs); }
+            set { SetBooleanOption(BlockStructureOptions.ShowOutliningForCodeLevelConstructs, value); }
+        }
+
+        public int Structure_CollapseRegionsWhenCollapsingToDefinitions
+        {
+            get { return GetBooleanOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions); }
+            set { SetBooleanOption(BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, value); }
+        }
+
+        public int Structure_MaximumBannerLength
+        {
+            get { return GetOption(BlockStructureOptions.MaximumBannerLength); }
+            set { SetOption(BlockStructureOptions.MaximumBannerLength, value); }
         }
 
         private int GetBooleanOption(Option2<bool> key)
