@@ -121,6 +121,11 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
+    # This is a workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1283978
+    if ($Signing -or $Setup -or $OptProf -or $Localization) {
+        & $InstallNuGetPkgScriptPath MicroBuild.Core.Sentinel -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+    }
+
     & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
 }
 catch {
