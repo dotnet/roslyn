@@ -50,12 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
 
             severity = option.Notification.Severity;
-            return context.Operation.Syntax is BinaryExpressionSyntax or UnaryPatternSyntax;
+            return true;
         }
 
         private void AnalyzeNegatedPatternOperation(OperationAnalysisContext context)
         {
-            if (!ShouldAnalyze(context, out var severity))
+            if (!ShouldAnalyze(context, out var severity) ||
+                context.Operation.Syntax is not BinaryExpressionSyntax)
             {
                 return;
             }
@@ -64,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             // Matches 'x is not MyType'
             // InputType is the type of 'x'
             // MatchedType is 'MyType'
+            // We check InheritsFromOrEquals so that we report a diagnostic on the following:
+            // 1. x is not object (which is also equivalent to 'is null' check)
+            // 2. derivedObj is parentObj (which is the same as the previous point).
+            // 3. str is string (where str is a string, this is also equivalent to 'is null' check).
+            // This doesn't match `x is not MyType y` because in such case, negatedPattern.Pattern will
+            // be `DeclarationPattern`, not `TypePattern`.
             if (negatedPattern.Pattern is ITypePatternOperation typePatternOperation &&
                 typePatternOperation.InputType.InheritsFromOrEquals(typePatternOperation.MatchedType))
             {
@@ -75,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private void AnalyzeIsTypeOperation(OperationAnalysisContext context)
         {
-            if (!ShouldAnalyze(context, out var severity))
+            if (!ShouldAnalyze(context, out var severity) ||
+                context.Operation.Syntax is not UnaryPatternSyntax)
             {
                 return;
             }
@@ -84,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             // Matches 'x is MyType'
             // isTypeOperation.TypeOperand is 'MyType'
             // isTypeOperation.ValueOperand.Type is the type of 'x'.
+            // We check InheritsFromOrEquals for the same reason as stated in AnalyzeNegatedPatternOperation.
+            // This doesn't match `x is MyType y` because in such case, we have an IsPattern instead of IsType operation.
             if (isTypeOperation.ValueOperand.Type is not null &&
                 isTypeOperation.ValueOperand.Type.InheritsFromOrEquals(isTypeOperation.TypeOperand))
             {

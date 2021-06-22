@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckOverIsObject), Shared]
     internal sealed class CSharpUseNullCheckOverTypeCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private static readonly ConstantPatternSyntax s_nullConstantPattern = ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression));
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpUseNullCheckOverTypeCheckCodeFixProvider()
@@ -58,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     BinaryExpressionSyntax binary =>
                         IsPatternExpression(
                             expression: binary.Left,
-                            pattern: UnaryPattern(ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)))),
+                            pattern: UnaryPattern(s_nullConstantPattern)),
                     UnaryPatternSyntax =>
-                        ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                        s_nullConstantPattern,
                     // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
                     _ => throw ExceptionUtilities.Unreachable
                 };
