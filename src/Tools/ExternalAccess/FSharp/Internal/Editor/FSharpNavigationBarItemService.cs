@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
         }
 
-        public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
             if (!item.Spans.IsEmpty)
@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                     notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
                 }
             }
+
+            return true;
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)

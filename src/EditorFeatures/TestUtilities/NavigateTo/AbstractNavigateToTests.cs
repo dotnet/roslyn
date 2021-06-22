@@ -71,14 +71,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, null);
             await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
             await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
+
+            return;
+
+            async Task TestAsync(
+                string content, Func<TestWorkspace, Task> body, TestHost testHost,
+                Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+            {
+                using var workspace = CreateWorkspace(content, testHost, createTrackingService);
+                await body(workspace);
+            }
         }
 
-        private async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, TestHost testHost,
-            Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+        protected async Task TestAsync(TestHost testHost, XElement content, Func<TestWorkspace, Task> body)
         {
-            using var workspace = CreateWorkspace(content, testHost, createTrackingService);
-            await body(workspace);
+            await TestAsync(content, body, testHost, null);
+            await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
+            await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
+
+            return;
+
+            async Task TestAsync(
+                XElement content, Func<TestWorkspace, Task> body, TestHost testHost,
+                Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
+            {
+                using var workspace = CreateWorkspace(content, testHost, createTrackingService);
+                await body(workspace);
+            }
         }
 
         private protected TestWorkspace CreateWorkspace(

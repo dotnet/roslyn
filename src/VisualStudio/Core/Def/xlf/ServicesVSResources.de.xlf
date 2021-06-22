@@ -162,14 +162,14 @@
         <target state="translated">Aufrufsite</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="translated">Wagenrücklauf + Zeilenumbruch (\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="new">Carriage Return + Newline (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="translated">Wagenrücklauf (\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -330,6 +330,11 @@
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Fehler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="new">Error updating suppressions: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">

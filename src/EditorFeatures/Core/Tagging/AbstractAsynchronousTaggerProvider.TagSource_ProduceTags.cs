@@ -170,34 +170,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
+                using var cancellationSeries = _cancellationSeries.TryAddReference();
+                if (cancellationSeries is null)
+                {
+                    // Already in the process of disposing
+                    return;
+                }
+
                 lock (_cancellationSeries)
                 {
-                    try
-                    {
-                        // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
-                        // first tag request we make.  We don't want that to be cancellable as we want that result to be 
-                        // shown as soon as possible.
-                        var cancellationToken = initialTags ? _disposalTokenSource.Token : _cancellationSeries.CreateNext();
+                    // cancel the last piece of computation work and enqueue the next.  This doesn't apply for the very
+                    // first tag request we make.  We don't want that to be cancellable as we want that result to be 
+                    // shown as soon as possible.
+                    var cancellationToken = initialTags ? _disposalToken : cancellationSeries.Target.CreateNext();
 
-                        // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                        // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                        // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                        // is completely done.
-                        _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
-                            async _ =>
-                            {
-                                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                            },
-                            cancellationToken,
-                            (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
-                            TaskContinuationOptions.None,
-                            TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                        // can happen if our type was disposed and we try to get a new token from _cancellationSeries.
-                    }
+                    // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
+                    // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
+                    // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
+                    // is completely done.
+                    _eventWorkQueue = _eventWorkQueue.ContinueWithAfterDelayFromAsync(
+                        async _ =>
+                        {
+                            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                            await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                        },
+                        cancellationToken,
+                        (int)_dataSource.EventChangeDelay.ComputeTimeDelay().TotalMilliseconds,
+                        TaskContinuationOptions.None,
+                        TaskScheduler.Default).CompletesAsyncOperation(_asyncListener.BeginAsyncOperation(nameof(EnqueueWork)));
                 }
             }
 
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalToken));
                 }
 
                 _firstTagsRequest = false;

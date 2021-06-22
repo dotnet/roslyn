@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
-            Debug.Assert(type.IsExpressionTree());
+            Debug.Assert(type.IsGenericOrNonGenericExpressionType(out _));
 
             // SPEC OMISSION:
             // 
@@ -1374,8 +1374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This appears to be a spec omission; the intention is to make old-style anonymous methods not 
             // convertible to expression trees.
 
-            var delegateType = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-            if (!delegateType.IsDelegateType())
+            var delegateType = type.Arity == 0 ? null : type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            if (delegateType is { } && !delegateType.IsDelegateType())
             {
                 return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
             }
@@ -1383,6 +1383,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (anonymousFunction.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression)
             {
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
+            }
+
+            if (delegateType is null)
+            {
+                return LambdaConversionResult.Success;
             }
 
             return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType);
@@ -1393,16 +1398,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
-            if (type.IsDelegateType())
+            if (type.SpecialType == SpecialType.System_Delegate)
+            {
+                if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return LambdaConversionResult.Success;
+                }
+            }
+            else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
             }
-            else if (type.IsExpressionTree())
+            else if (type.IsGenericOrNonGenericExpressionType(out bool isGenericType))
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                if (isGenericType || IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
+                {
+                    return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                }
             }
 
             return LambdaConversionResult.BadTargetType;
+        }
+
+        internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
+        {
+            return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)

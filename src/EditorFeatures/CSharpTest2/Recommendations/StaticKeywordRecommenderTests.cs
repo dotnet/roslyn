@@ -52,6 +52,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(32174, "https://github.com/dotnet/roslyn/issues/32174")]
         public async Task TestInEmptyStatement()
         {
@@ -79,6 +86,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
 $$");
         }
 
@@ -147,6 +162,22 @@ using Goo;");
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
 using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -277,6 +308,34 @@ using Bar;";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_01()
+        {
+            var source = @"global using Goo;
+$$
+using Bar;";
+
+            await VerifyWorkerAsync(source, absent: true);
+
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            //await VerifyWorkerAsync(source, absent: true, Options.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(32214, "https://github.com/dotnet/roslyn/issues/32214")]
+        public async Task TestNotBetweenGlobalUsings_02()
+        {
+            var source = @"global using Goo;
+$$
+global using Bar;";
+
+            await VerifyWorkerAsync(source, absent: true);
+
+            // Recommendation in scripting is not stable. See https://github.com/dotnet/roslyn/issues/32214
+            //await VerifyWorkerAsync(source, absent: true, Options.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedAbstract()
         {
             await VerifyAbsenceAsync(@"class C {
@@ -325,6 +384,13 @@ using Bar;";
         {
             await VerifyKeywordAsync(
 @"using $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsingInCompilationUnit()
+        {
+            await VerifyKeywordAsync(
+@"global using $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

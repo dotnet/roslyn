@@ -19,19 +19,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMap _classificationFormatMap;
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IWpfTextView _textView;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
-            IWaitIndicator waitIndicator)
+            IWaitIndicator waitIndicator,
+            IWpfTextView textView)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
             _classificationFormatMap = classificationFormatMap;
             _waitIndicator = waitIndicator;
+            _textView = textView;
         }
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
@@ -40,13 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var membersOnLine = inheritanceMarginTag.MembersOnLine;
                 Contract.ThrowIfTrue(membersOnLine.IsEmpty);
+
                 return new MarginGlyph.InheritanceMargin(
                     _threadingContext,
                     _streamingFindUsagesPresenter,
                     _classificationTypeMap,
                     _classificationFormatMap,
                     _waitIndicator,
-                    inheritanceMarginTag);
+                    inheritanceMarginTag,
+                    _textView);
             }
 
             return null;

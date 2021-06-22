@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             return (typeName, methodName);
         }
 
-        private int GetSourceFileCount()
+        public int GetSourceFileCount()
             => int.Parse(GetMetadataCompilationOptions().GetUniqueOption(CompilationOptionNames.SourceFileCount));
 
         public IEnumerable<EmbeddedSourceTextInfo> GetEmbeddedSourceTextInfo()

@@ -2855,6 +2855,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0" xml:space="preserve">
     <value>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</value>
   </data>
+  <data name="Convert_to_record_struct" xml:space="preserve">
+    <value>Convert to record struct</value>
+  </data>
   <data name="Edit_and_continue_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Edit and continue is not supported by the runtime.</value>
   </data>

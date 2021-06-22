@@ -66,7 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             }
 
             var autoReferences = projectAssets.Project?.Frameworks?.Values
-                .SelectMany(framework => framework.Dependencies?.Keys.Where(key => framework.Dependencies[key].AutoReferenced))
+                .Where(framework => framework.Dependencies != null)
+                .SelectMany(framework => framework.Dependencies!.Keys.Where(key => framework.Dependencies[key].AutoReferenced))
                 .Distinct()
                 .ToImmutableHashSet();
             autoReferences ??= ImmutableHashSet<string>.Empty;

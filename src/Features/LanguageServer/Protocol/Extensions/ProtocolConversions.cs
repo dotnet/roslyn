@@ -197,11 +197,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
-            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken);
+            => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
-        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
+        public static async Task<LSP.LocationWithText?> DocumentSpanToLocationWithTextAsync(
+            DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
         {
-            var location = await TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
+            var location = await TextSpanToLocationAsync(
+                documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken).ConfigureAwait(false);
 
             return location == null ? null : new LSP.LocationWithText
             {
@@ -280,18 +282,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentEdits;
         }
 
-        public static async Task<LSP.Location?> TextSpanToLocationAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+            Document document,
+            TextSpan textSpan,
+            bool isStale,
+            CancellationToken cancellationToken)
         {
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
             {
-                return await ConvertTextSpanToLocation(document, textSpan, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
             }
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
             {
-                return await ConvertTextSpanToLocation(document, textSpan, cancellationToken).ConfigureAwait(false);
+                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
             }
 
             return new LSP.Location
@@ -300,9 +306,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location> ConvertTextSpanToLocation(Document document, TextSpan span, CancellationToken cancellationToken)
+            static async Task<LSP.Location> ConvertTextSpanToLocation(
+                Document document,
+                TextSpan span,
+                bool isStale,
+                CancellationToken cancellationToken)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                if (isStale)
+                {
+                    // in the case of a stale item, the span may be out of bounds of the document. Cap
+                    // us to the end of the document as that's where we're going to navigate the user
+                    // to.
+                    span = TextSpan.FromBounds(
+                        Math.Min(text.Length, span.Start),
+                        Math.Min(text.Length, span.End));
+                }
 
                 return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
             }

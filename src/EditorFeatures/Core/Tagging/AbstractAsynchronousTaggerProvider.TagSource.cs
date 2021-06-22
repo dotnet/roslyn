@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _asyncListener;
 
-            private readonly CancellationTokenSource _disposalTokenSource = new();
+            private readonly CancellationTokenSource _disposalTokenSource;
+            private readonly CancellationToken _disposalToken;
 
             /// <summary>
             /// Work queue that collects event notifications and kicks off the work to process them.
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Series of tokens used to cancel previous outstanding work when new work comes in. Also used as the lock
             /// to ensure threadsafe writing of _eventWorkQueue.
             /// </summary>
-            private readonly CancellationSeries _cancellationSeries;
+            private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries;
 
             /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
@@ -121,19 +122,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
+                _disposalTokenSource = new CancellationTokenSource();
+                _disposalToken = _disposalTokenSource.Token;
+
                 _subjectBuffer = subjectBuffer;
                 _textViewOpt = textViewOpt;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
-                _cancellationSeries = new CancellationSeries(_disposalTokenSource.Token);
+                _cancellationSeries = new ReferenceCountedDisposable<CancellationSeries>(new CancellationSeries(_disposalToken));
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _disposalTokenSource.Token);
+                    _disposalToken);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _disposalTokenSource.Token);
+                        _disposalToken);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -199,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 // Stop computing any initial tags if we've been asked for them.
                 _disposalTokenSource.Cancel();
+                _disposalTokenSource.Dispose();
                 _cancellationSeries.Dispose();
 
                 _disposed = true;

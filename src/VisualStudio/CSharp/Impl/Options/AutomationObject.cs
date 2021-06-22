@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Structure;
@@ -816,6 +817,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetOption(BlockStructureOptions.MaximumBannerLength); }
             set { SetOption(BlockStructureOptions.MaximumBannerLength, value); }
+        }
+      
+        public int Fading_FadeOutUnreachableCode
+        {
+            get { return GetBooleanOption(FadingOptions.FadeOutUnreachableCode); }
+            set { SetBooleanOption(FadingOptions.FadeOutUnreachableCode, value); }
+        }
+
+        public int Fading_FadeOutUnusedImports
+        {
+            get { return GetBooleanOption(FadingOptions.FadeOutUnusedImports); }
+            set { SetBooleanOption(FadingOptions.FadeOutUnusedImports, value); }
         }
 
         private int GetBooleanOption(Option2<bool> key)
