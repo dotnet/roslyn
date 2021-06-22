@@ -40,6 +40,7 @@ stages:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
+        MirrorBranch: release/dev16.11-vs-deps
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
