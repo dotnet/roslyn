@@ -898,9 +898,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
-
-            var bound = GetUpperBoundNode(node);
-            BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
+            var boundAwait = FindBoundAwait(GetLowerBoundNode(node), node)
+                ?? FindBoundAwait(GetUpperBoundNode(node), node);
+            var awaitableInfo = boundAwait?.AwaitableInfo;
             if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
@@ -910,7 +910,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
                 isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
                 getResult: awaitableInfo.GetResult.GetPublicSymbol(),
-                isDynamic: awaitableInfo.IsDynamic);
+                isDynamic: awaitableInfo.IsDynamic
+            );
+
+            static BoundAwaitExpression FindBoundAwait(BoundNode rootSearchNode, AwaitExpressionSyntax node)
+            {
+                var cur = rootSearchNode;
+                while (true)
+                {
+                    switch (cur)
+                    {
+                        case BoundAwaitExpression ba:
+                            if (ba.Syntax == node)
+                            {
+                                return ba;
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        case BoundExpressionStatement boundExpressionStatement:
+                            cur = boundExpressionStatement.Expression;
+                            break;
+                        case BoundConversion boundConversion:
+                            //e.g.: await something + "aText"
+                            cur = boundConversion.Operand;
+                            break;
+                        case BoundBadStatement:
+                        case BoundBadExpression:
+                            return null;
+                        default:
+                            return null;
+                    }
+                }
+            }
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
