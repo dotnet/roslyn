@@ -27,12 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
-            /// <summary>
-            /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the generated
-            /// <strong>.editorconfig</strong> file for <see cref="Options"/>, or <see langword="null"/> if no such
-            /// file has been generated yet.
-            /// </summary>
-            private int? _analyzerConfigIndex;
+            private readonly SharedVerifierState _sharedState;
 
             static Test()
             {
@@ -50,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Test()
             {
+                _sharedState = new SharedVerifierState(this, DefaultFileExt);
+
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
@@ -58,17 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var compilationOptions = solution.GetProject(projectId)!.CompilationOptions!;
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
-
-#if !CODE_STYLE
-                    var options = solution.Options;
-                    var (_, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    foreach (var (key, value) in remainingOptions)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-#endif
 
                     return solution;
                 });
@@ -80,13 +66,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
 
-            /// <summary>
-            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
-            /// using a collection initializer.
-            /// </summary>
-            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+            /// <inheritdoc cref="SharedVerifierState.Options"/>
+            internal OptionsCollection Options => _sharedState.Options;
 
-            public string? EditorConfig { get; set; }
+            /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
+            public string? EditorConfig
+            {
+                get => _sharedState.EditorConfig;
+                set => _sharedState.EditorConfig = value;
+            }
 
             /// <summary>
             /// The set of code action <see cref="CodeAction.Title"/>s offered the user in this exact order.
@@ -96,25 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             protected override async Task RunImplAsync(CancellationToken cancellationToken)
             {
-                var (analyzerConfigSource, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                if (analyzerConfigSource is object)
-                {
-                    if (_analyzerConfigIndex is null)
-                    {
-                        _analyzerConfigIndex = TestState.AnalyzerConfigFiles.Count;
-                        TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
-                    }
-                    else
-                    {
-                        TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
-                    }
-                }
-                else if (_analyzerConfigIndex is { } index)
-                {
-                    _analyzerConfigIndex = null;
-                    TestState.AnalyzerConfigFiles.RemoveAt(index);
-                }
-
+                _sharedState.Apply();
                 await base.RunImplAsync(cancellationToken);
             }
 
