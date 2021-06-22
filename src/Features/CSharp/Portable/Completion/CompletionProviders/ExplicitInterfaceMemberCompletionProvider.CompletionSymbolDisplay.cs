@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -26,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             private static string ToDisplayString(IPropertySymbol symbol)
             {
-                var builder = new StringBuilder();
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+
                 if (symbol.IsIndexer)
                 {
                     builder.Append("this");
@@ -45,12 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     builder.Append(']');
                 }
 
-                return builder.ToString();
+                return pooledBuilder.ToStringAndFree();
             }
 
             private static string ToDisplayString(IMethodSymbol symbol)
             {
-                var builder = new StringBuilder();
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
                 switch (symbol.MethodKind)
                 {
                     case MethodKind.Ordinary:
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 builder.Append('(');
                 AddParameters(symbol.Parameters, builder);
                 builder.Append(')');
-                return builder.ToString();
+                return pooledBuilder.ToStringAndFree();
             }
 
             private static void AddParameters(ImmutableArray<IParameterSymbol> parameters, StringBuilder builder)
