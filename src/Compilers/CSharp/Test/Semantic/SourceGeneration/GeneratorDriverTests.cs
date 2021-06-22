@@ -1781,5 +1781,100 @@ class C { }
             Assert.Throws<OperationCanceledException>(() => driver = driver.RunGenerators(compilation, cancellationToken: cts.Token));
             Assert.True(generatorCancelled);
         }
+
+        [Fact]
+        public void ParseOptions_Can_Be_Updated()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<ParseOptions> parseOptionsCalledFor = new List<ParseOptions>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, p) => { parseOptionsCalledFor.Add(p); });
+            }));
+
+            // run the generator once, and check it was passed the parse options
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, parseOptionsCalledFor.Count);
+            Assert.Equal(parseOptions, parseOptionsCalledFor[0]);
+
+            // clear the results, and re-run
+            parseOptionsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(parseOptionsCalledFor);
+
+            // now update the parse options
+            parseOptionsCalledFor.Clear();
+            var newParseOptions = parseOptions.WithDocumentationMode(DocumentationMode.Diagnose);
+            driver = driver.WithUpdatedParseOptions(newParseOptions);
+
+            // check we ran
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, parseOptionsCalledFor.Count);
+            Assert.Equal(newParseOptions, parseOptionsCalledFor[0]);
+
+            // clear the results, and re-run
+            parseOptionsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(parseOptionsCalledFor);
+        }
+
+        [Fact]
+        public void AnalyzerConfig_Can_Be_Updated()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+            string? analyzerOptionsValue = string.Empty;
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, p) => p.GlobalOptions.TryGetValue("test", out analyzerOptionsValue));
+            }));
+
+            var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
+            builder.Add("test", "value1");
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+
+            // run the generator once, and check it was passed the configs
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal("value1", analyzerOptionsValue);
+
+            // clear the results, and re-run
+            analyzerOptionsValue = null;
+            driver = driver.RunGenerators(compilation);
+            Assert.Null(analyzerOptionsValue);
+
+            // now update the config
+            analyzerOptionsValue = null;
+            builder.Clear();
+            builder.Add("test", "value2");
+            var newOptionsProvider = optionsProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            driver = driver.WithUpdatedAnalyzerConfigOptions(newOptionsProvider);
+
+            // check we ran
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal("value2", analyzerOptionsValue);
+
+            // clear the results, and re-run
+            analyzerOptionsValue = null;
+            driver = driver.RunGenerators(compilation);
+            Assert.Null(analyzerOptionsValue);
+        }
     }
 }
