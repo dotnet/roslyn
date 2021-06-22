@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Use_is_null_check, createChangedDocument, nameof(CSharpAnalyzersResources.Use_is_null_check))
+                : base(CSharpAnalyzersResources.Prefer_null_check_over_type_check, createChangedDocument, nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check))
             {
             }
         }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             : base(IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId,
                    EnforceOnBuildValues.UseNullCheckOverTypeCheck,
                    CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
-                   CSharpAnalyzersResources.Use_is_null_check,
+                   CSharpAnalyzersResources.Prefer_null_check_over_type_check,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Null_check_can_be_clarified), AnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
@@ -32,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             context.RegisterCompilationStartAction(context =>
             {
-                // All trees should have the same language version. Bail-out early in compilation start instead of checking every tree.
-                var tree = context.Compilation.SyntaxTrees.FirstOrDefault();
-                if (tree is null || ((CSharpParseOptions)tree.Options).LanguageVersion < LanguageVersion.CSharp9)
+                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp9)
                 {
                     return;
                 }

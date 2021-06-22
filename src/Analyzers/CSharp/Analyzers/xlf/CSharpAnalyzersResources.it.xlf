@@ -92,6 +92,11 @@
         <target state="new">Null check can be clarified</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">Rimuovi l'operatore (conserva la semantica)</target>

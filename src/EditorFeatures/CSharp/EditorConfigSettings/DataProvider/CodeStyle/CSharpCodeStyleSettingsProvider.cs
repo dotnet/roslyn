@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService);
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck,
-                description: CSharpEditorResources.Prefer_is_null_check_over_is_object,
+                description: CSharpEditorResources.Prefer_null_check_over_type_check,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService);
         }
