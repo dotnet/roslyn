@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AlreadyExists">
         <source>An .editorconfig file already exist in this location</source>
-        <target state="translated">此位置中已存在 .editorconfig 文件</target>
+        <target state="new">An .editorconfig file already exist in this location</target>
         <note />
       </trans-unit>
       <trans-unit id="MoreAbout">
         <source>To learn more about .editorconfig see</source>
-        <target state="translated">若要了解有关 .editorconfig 的详细信息，请参阅</target>
+        <target state="new">To learn more about .editorconfig see</target>
         <note />
       </trans-unit>
     </body>
