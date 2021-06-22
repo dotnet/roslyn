@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
                 return true;
             }
 
-            if (node.IsKind(SyntaxKind.VariableDeclarator))
+            if (node.IsKind(SyntaxKind.VariableDeclarator) && node.Parent is VariableDeclarationSyntax { Parent: FieldDeclarationSyntax or EventFieldDeclarationSyntax })
             {
-                memberDeclaration = node.FirstAncestorOrSelf<MemberDeclarationSyntax>(a => a.IsKind(SyntaxKind.FieldDeclaration) || a.IsKind(SyntaxKind.EventFieldDeclaration));
-                return memberDeclaration is not null;
+                memberDeclaration = node.Parent.Parent;
+                return true;
             }
 
             memberDeclaration = null;
