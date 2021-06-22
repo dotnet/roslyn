@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.DotDotToken:
                     return _syntaxFactory.SlicePattern(
                         CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureSlicePattern),
-                        IsPossibleSubpatternElement() ? ParseNegatedPattern(precedence, afterIs: false, whenIsKeyword) : null);
+                        IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, whenIsKeyword) : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
@@ -452,6 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             case SyntaxKind.IdentifierToken:
                             case SyntaxKind.OpenBraceToken:
                             case SyntaxKind.OpenParenToken:
+                            case SyntaxKind.OpenBracketToken:
                                 // these all can start a pattern
                                 return false;
                             default:
@@ -541,7 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeKind: SyntaxKind.CloseBraceToken,
                 out bool isPropertyPatternClause);
             var kind = isPropertyPatternClause ? SyntaxKind.PropertyPatternClause : SyntaxKind.ListPatternClause;
-            return _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
+            var result = _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
+            if (!isPropertyPatternClause)
+                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureListPattern);
+            return result;
         }
 
         private void ParseSubpatternList(

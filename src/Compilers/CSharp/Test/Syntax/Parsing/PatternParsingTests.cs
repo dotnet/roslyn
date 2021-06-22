@@ -6656,6 +6656,9 @@ switch (e)
         public void TrailingCommaInPropertyPattern_02()
         {
             UsingExpression("e is { , }",
+                // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // e is { , }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ , }").WithArguments("list pattern").WithLocation(1, 6),
                 // (1,8): error CS8504: Pattern missing
                 // e is { , }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 8)

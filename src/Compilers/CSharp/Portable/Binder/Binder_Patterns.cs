@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnaryPatternSyntax p => BindUnaryPattern(p, inputType, inputValEscape, hasErrors, diagnostics, underIsPattern),
                 RelationalPatternSyntax p => BindRelationalPattern(p, inputType, hasErrors, diagnostics),
                 TypePatternSyntax p => BindTypePattern(p, inputType, hasErrors, diagnostics),
-                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics),
+                SlicePatternSyntax p => BindSlicePattern(p, inputType, permitDesignations, ref hasErrors, misplaced: true, diagnostics, reportUnsupported: false),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
         }
@@ -186,7 +186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool permitDesignations,
             ref bool hasErrors,
             bool misplaced,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool reportUnsupported)
         {
             if (misplaced && !hasErrors)
             {
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sliceType = inputType;
                 }
-                else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, diagnostics))
                 {
                     if (patternSymbol is MethodSymbol method)
                     {
@@ -221,14 +222,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (!inputType.IsErrorType())
-                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
                     hasErrors = true;
+                    reportUnsupported = true;
                     sliceType = CreateErrorType();
                 }
                 pattern = BindPattern(node.Pattern, sliceType, ExternalScope, permitDesignations, hasErrors, diagnostics);
             }
 
+            if (!inputType.IsErrorType() && reportUnsupported)
+                diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
             return new BoundSlicePattern(node, pattern, indexerAccess, sliceMethod, inputType: inputType, narrowedType: inputType, hasErrors);
         }
 
@@ -239,7 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool permitDesignations,
             ref bool hasErrors,
             out bool sawSlice,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            bool isCountable)
         {
             sawSlice = false;
             var builder = ArrayBuilder<BoundPattern>.GetInstance(subpatterns.Count);
@@ -252,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundPattern boundPattern;
                 if (pattern is SlicePatternSyntax slice)
                 {
-                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics);
+                    boundPattern = BindSlicePattern(slice, inputType, permitDesignations, ref hasErrors, misplaced: sawSlice, diagnostics, reportUnsupported: !isCountable);
                     sawSlice = true;
                 }
                 else
@@ -283,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.IsKind(SyntaxKind.ListPatternClause) || node.IsKind(SyntaxKind.LengthPatternClause));
             var lookupResult = LookupResult.GetInstance();
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            // PROTOTYPE(list-patterns) Report if obsolete
             bool found = TryLookupLengthOrCount(inputType, lookupResult, out lengthProperty, ref useSiteInfo);
             lookupResult.Free();
             return found;
@@ -306,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
             }
-            else if (TryFindIndexerOrIndexerPattern(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, diagnostics))
+            else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, diagnostics))
             {
                 if (patternSymbol is PropertySymbol indexer)
                 {
@@ -336,92 +340,89 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Subpatterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics, isCountable: lengthProperty is not null);
             return new BoundListPatternClause(node, subpatterns, sawSlice, indexerAccess, indexerSymbol, hasErrors);
         }
 
-        private bool TryFindIndexerOrIndexerPattern(
+        private bool TryPerformPatternIndexerLookup(
             SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
             out Symbol? patternSymbol,
             BindingDiagnosticBag diagnostics)
         {
+            indexerAccess = null;
             patternSymbol = null;
-            var lookupResult = LookupResult.GetInstance();
+            bool found;
+
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            if (TryPerformPatternIndexerLookup(syntax, receiverType, lookupResult, argIsIndex, out indexerAccess, diagnostics, ref useSiteInfo) ||
-                TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo, forPattern: true))
+            var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+            TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
+            var lookupResult = LookupResult.GetInstance();
+            if (!argType.IsErrorType())
             {
+                LookupMembersInType(
+                    lookupResult,
+                    receiverType,
+                    WellKnownMemberNames.Indexer,
+                    arity: 0,
+                    basesBeingResolved: null,
+                    LookupOptions.Default,
+                    originalBinder: this,
+                    diagnose: false,
+                    ref useSiteInfo);
+
+                if (lookupResult.IsMultiViable)
+                {
+                    var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance(lookupResult.Symbols.Count);
+                    foreach (Symbol symbol in lookupResult.Symbols)
+                    {
+                        Debug.Assert(symbol.IsIndexer());
+                        indexerGroup.Add((PropertySymbol)symbol);
+                    }
+
+                    var analyzedArguments = AnalyzedArguments.GetInstance();
+                    analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
+                    var receiver = new BoundImplicitReceiver(syntax, receiverType);
+                    var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
+                    if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } boundIndexerAccess &&
+                        boundIndexerAccess.Indexer.GetMethod is { } getMethod && IsAccessible(getMethod, ref useSiteInfo))
+                    {
+                        // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
+                        Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
+                        indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);
+                        _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
+                        found = true;
+                    }
+                    else if (boundAccess is BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess)
+                    {
+                        patternSymbol = boundIndexOrRangePatternIndexerAccess.PatternSymbol;
+                        found = true;
+                    }
+                    else
+                    {
+                        found = false;
+                    }
+                    analyzedArguments.Free();
+                    indexerGroup.Free();
+                    goto done;
+                }
+            }
+
+            // If the argType is missing or the indexer lookup has failed, we will fallback to the implicit indexer support.
+            found = TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt: null, receiverType, argIsIndex, out patternSymbol, bindingDiagnostics, ref useSiteInfo);
+
+done:
+            if (found)
+            {
+                Debug.Assert(indexerAccess is not null ^ patternSymbol is not null);
+                // At this point we have succeeded to bind a viable indexer,
+                // report additional binding diagnostics that we have seen so far
+                diagnostics.AddRange(bindingDiagnostics);
                 diagnostics.Add(syntax, useSiteInfo);
-                lookupResult.Free();
-                return true;
             }
 
             lookupResult.Free();
-            return false;
-        }
-
-        private bool TryPerformPatternIndexerLookup(
-            SyntaxNode syntax,
-            TypeSymbol receiverType,
-            LookupResult lookupResult,
-            bool argIsIndex,
-            [NotNullWhen(true)] out BoundIndexerAccess? result,
-            BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            result = null;
-
-            TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
-            if (argType.IsErrorType())
-            {
-                // If the argType is missing, we will fallback to the implicit indexer support.
-                return false;
-            }
-
-            LookupMembersInType(
-                lookupResult,
-                receiverType,
-                WellKnownMemberNames.Indexer,
-                arity: 0,
-                basesBeingResolved: null,
-                LookupOptions.Default,
-                originalBinder: this,
-                diagnose: false,
-                ref useSiteInfo);
-
-            if (lookupResult.IsMultiViable)
-            {
-                var indexerGroup = ArrayBuilder<PropertySymbol>.GetInstance(lookupResult.Symbols.Count);
-                foreach (Symbol symbol in lookupResult.Symbols)
-                {
-                    Debug.Assert(symbol.IsIndexer());
-                    indexerGroup.Add((PropertySymbol)symbol);
-                }
-
-                var analyzedArguments = AnalyzedArguments.GetInstance();
-                analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
-                var receiver = new BoundImplicitReceiver(syntax, receiverType);
-                var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
-                var boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
-                if (boundAccess is BoundIndexerAccess { ResultKind: LookupResultKind.Viable } indexerAccess &&
-                    indexerAccess.Indexer.GetMethod is { } getMethod && IsAccessible(getMethod, ref useSiteInfo))
-                {
-                    // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
-                    Debug.Assert(!indexerAccess.Indexer.IsStatic);
-                    result = BindIndexerDefaultArguments(indexerAccess, BindValueKind.RValue, bindingDiagnostics);
-                    _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
-                    // At this point we have succeeded to bind a viable indexer,
-                    // report additional binding diagnostics that we have seen so far
-                    diagnostics.AddRange(bindingDiagnostics);
-                }
-
-                analyzedArguments.Free();
-                indexerGroup.Free();
-            }
-
-            lookupResult.Clear();
-            return result is not null;
+            return found;
         }
 
         private static BoundPattern BindDiscardPattern(DiscardPatternSyntax node, TypeSymbol inputType)
