@@ -33,10 +33,10 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Inline_diagnostic_location"
-                                     x:Name="place_at_end_of_line_of_code"
+                                     x:Name="at_the_end_of_the_line_of_code"
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
                             <RadioButton GroupName="Inline_diagnostic_location"
-                                     x:Name="place_at_end_of_editor_window"
+                                     x:Name="on_the_right_edge_of_the_editor_window"
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
                     </StackPanel>
