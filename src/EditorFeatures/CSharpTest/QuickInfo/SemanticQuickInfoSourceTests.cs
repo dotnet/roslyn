@@ -7473,5 +7473,45 @@ class C1_1 : I1
                 MainDescription("void C1_1.M1()"),
                 Documentation("Summary text"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_01()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class Program
+{
+    System.Delegate D = bo$$ol () => true;
+}",
+                MainDescription("struct System.Boolean"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_02()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A
+{
+    struct B { }
+    System.Delegate D = A.B$$ () => null;
+}",
+                MainDescription("struct A.B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_03()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A<T>
+{
+}
+struct B
+{
+    System.Delegate D = A<B$$> () => null;
+}",
+                MainDescription("struct B"));
+        }
     }
 }

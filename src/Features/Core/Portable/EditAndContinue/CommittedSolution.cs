@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 var debugInfoReader = debugInfoReaderProvider.CreateEditAndContinueMethodDebugInfoReader();
 
-                var documentTasks = project.State.DocumentStates.States.Select(async documentState =>
+                var documentTasks = project.State.DocumentStates.States.Values.Select(async documentState =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

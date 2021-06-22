@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var state in documentStates.States)
+            foreach (var (_, state) in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var state in additionalDocumentStates.States)
+            foreach (var (_, state) in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis
         {
             // this may produce a version that is out of sync with the actual Document versions.
             var latestVersion = VersionStamp.Default;
-            foreach (var state in documentStates.States)
+            foreach (var (_, state) in documentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis
                 latestVersion = version.GetNewerVersion(latestVersion);
             }
 
-            foreach (var state in additionalDocumentStates.States)
+            foreach (var (_, state) in additionalDocumentStates.States)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerOptions AnalyzerOptions
             => _lazyAnalyzerOptions ??= new AnalyzerOptions(
-                additionalFiles: AdditionalDocumentStates.SelectAsArray<AdditionalText>(static state => new AdditionalTextWithState(state)),
+                additionalFiles: AdditionalDocumentStates.SelectAsArray(AdditionalTextWithState.FromState),
                 optionsProvider: new WorkspaceAnalyzerConfigOptionsProvider(this));
 
         public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis
             return new AsyncLazy<CachingAnalyzerConfigSet>(
                 asynchronousComputeFunction: async cancellationToken =>
                 {
-                    var tasks = analyzerConfigDocumentStates.States.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
+                    var tasks = analyzerConfigDocumentStates.States.Values.Select(a => a.GetAnalyzerConfigAsync(cancellationToken));
                     var analyzerConfigs = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     cancellationToken.ThrowIfCancellationRequested();
