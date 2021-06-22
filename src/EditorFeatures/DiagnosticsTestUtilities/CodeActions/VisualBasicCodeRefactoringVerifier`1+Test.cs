@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 
 #if !CODE_STYLE
 using System;
@@ -21,6 +23,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
+            /// <summary>
+            /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the generated
+            /// <strong>.editorconfig</strong> file for <see cref="Options"/>, or <see langword="null"/> if no such
+            /// file has been generated yet.
+            /// </summary>
+            private int? _analyzerConfigIndex;
+
             static Test()
             {
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
@@ -42,18 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
 #if !CODE_STYLE
                     var options = solution.Options;
+                    var (_, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
@@ -79,6 +79,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
 
             public string? EditorConfig { get; set; }
+
+            protected override async Task RunImplAsync(CancellationToken cancellationToken)
+            {
+                var (analyzerConfigSource, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
+                if (analyzerConfigSource is object)
+                {
+                    if (_analyzerConfigIndex is null)
+                    {
+                        _analyzerConfigIndex = TestState.AnalyzerConfigFiles.Count;
+                        TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
+                    }
+                    else
+                    {
+                        TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
+                    }
+                }
+                else if (_analyzerConfigIndex is { } index)
+                {
+                    _analyzerConfigIndex = null;
+                    TestState.AnalyzerConfigFiles.RemoveAt(index);
+                }
+
+                await base.RunImplAsync(cancellationToken);
+            }
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)

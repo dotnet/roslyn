@@ -26,6 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            /// <summary>
+            /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the generated
+            /// <strong>.editorconfig</strong> file for <see cref="Options"/>, or <see langword="null"/> if no such
+            /// file has been generated yet.
+            /// </summary>
+            private int? _analyzerConfigIndex;
+
             static Test()
             {
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
@@ -53,18 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
 #if !CODE_STYLE
                     var options = solution.Options;
+                    var (_, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
@@ -93,14 +91,33 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
             {
                 if (DiagnosticSelector is object)
                 {
                     Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
                 }
 
-                await base.RunAsync(cancellationToken);
+                var (analyzerConfigSource, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
+                if (analyzerConfigSource is object)
+                {
+                    if (_analyzerConfigIndex is null)
+                    {
+                        _analyzerConfigIndex = TestState.AnalyzerConfigFiles.Count;
+                        TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
+                    }
+                    else
+                    {
+                        TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
+                    }
+                }
+                else if (_analyzerConfigIndex is { } index)
+                {
+                    _analyzerConfigIndex = null;
+                    TestState.AnalyzerConfigFiles.RemoveAt(index);
+                }
+
+                await base.RunImplAsync(cancellationToken);
             }
 
 #if !CODE_STYLE

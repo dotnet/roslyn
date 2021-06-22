@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
@@ -28,6 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
+            /// <summary>
+            /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the generated
+            /// <strong>.editorconfig</strong> file for <see cref="Options"/>, or <see langword="null"/> if no such
+            /// file has been generated yet.
+            /// </summary>
+            private int? _analyzerConfigIndex;
+
             static Test()
             {
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
@@ -53,18 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
 #if !CODE_STYLE
                     var options = solution.Options;
+                    var (_, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
                     foreach (var (key, value) in remainingOptions)
                     {
                         options = options.WithChangedOption(key, value);
@@ -97,6 +94,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public string[]? ExactActionSetOffered { get; set; }
 
+            protected override async Task RunImplAsync(CancellationToken cancellationToken)
+            {
+                var (analyzerConfigSource, _) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
+                if (analyzerConfigSource is object)
+                {
+                    if (_analyzerConfigIndex is null)
+                    {
+                        _analyzerConfigIndex = TestState.AnalyzerConfigFiles.Count;
+                        TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
+                    }
+                    else
+                    {
+                        TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
+                    }
+                }
+                else if (_analyzerConfigIndex is { } index)
+                {
+                    _analyzerConfigIndex = null;
+                    TestState.AnalyzerConfigFiles.RemoveAt(index);
+                }
+
+                await base.RunImplAsync(cancellationToken);
+            }
+
             protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
             {
                 var result = base.FilterCodeActions(actions);
@@ -110,8 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-            private readonly List<AdhocWorkspace> _workspaces = new();
-
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
 
@@ -122,37 +141,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
 
-            public override AdhocWorkspace CreateWorkspace()
+            protected override Workspace CreateWorkspaceImpl()
             {
                 if (TestHost == TestHost.InProcess)
-                    return base.CreateWorkspace();
+                    return base.CreateWorkspaceImpl();
 
                 var hostServices = s_editorFeaturesOOPComposition.GetHostServices();
                 var workspace = new AdhocWorkspace(hostServices);
-                lock (_workspaces)
-                    _workspaces.Add(workspace);
-
                 return workspace;
-            }
-
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
-            {
-                try
-                {
-                    await base.RunAsync(cancellationToken).ConfigureAwait(false);
-                }
-                finally
-                {
-                    var workspaces = new List<AdhocWorkspace>();
-                    lock (_workspaces)
-                    {
-                        workspaces.AddRange(_workspaces);
-                        _workspaces.Clear();
-                    }
-
-                    foreach (var workspace in workspaces)
-                        workspace.Dispose();
-                }
             }
 #endif
         }
