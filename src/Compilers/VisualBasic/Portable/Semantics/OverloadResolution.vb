@@ -2866,6 +2866,7 @@ Bailout:
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
             Debug.Assert(candidate.State = CandidateAnalysisResultState.Applicable)
+            Debug.Assert(Not candidate.Candidate.UnderlyingSymbol.IsReducedExtensionMethod() OrElse methodOrPropertyGroup.ReceiverOpt IsNot Nothing)
 
             Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Nothing
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing

@@ -3,10 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -17,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <remarks>
     ''' For example, parameters on delegate Invoke method are cloned to delegate BeginInvoke, EndInvoke methods. 
     ''' </remarks>
-    Friend Class SourceClonedParameterSymbol
+    Friend MustInherit Class SourceClonedParameterSymbol
         Inherits SourceParameterSymbolBase
 
-        Private ReadOnly _originalParam As SourceParameterSymbol
+        Protected ReadOnly _originalParam As SourceParameterSymbol
 
         Friend Sub New(originalParam As SourceParameterSymbol, newOwner As MethodSymbol, newOrdinal As Integer)
             MyBase.New(newOwner, newOrdinal)
@@ -131,30 +127,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
-            Get
-                Return _originalParam.IsCallerLineNumber
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
-            Get
-                Return _originalParam.IsCallerMemberName
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
-            Get
-                Return _originalParam.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
-            Get
-                Return _originalParam.CallerArgumentExpressionParameterIndex
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property IsByRef As Boolean
             Get
                 Return _originalParam.IsByRef
@@ -228,6 +200,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property RefCustomModifiers As ImmutableArray(Of CustomModifier)
                 Get
                     Return _refCustomModifiers
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
+                Get
+                    Return _originalParam.IsCallerLineNumber
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
+                Get
+                    Return _originalParam.IsCallerMemberName
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
+                Get
+                    Return _originalParam.IsCallerFilePath
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                Get
+                    Return _originalParam.CallerArgumentExpressionParameterIndex
                 End Get
             End Property
 

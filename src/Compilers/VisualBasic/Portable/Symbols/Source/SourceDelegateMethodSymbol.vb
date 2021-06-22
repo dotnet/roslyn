@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim ordinal As Integer = 0
                 For Each parameter In invoke.Parameters
-                    parameters.Add(New SourceClonedParameterSymbol(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
+                    parameters.Add(New SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
                     ordinal += 1
                 Next
 
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim ordinal = 0
                 For Each parameter In invoke.Parameters
                     If parameter.IsByRef Then
-                        parameters.Add(New SourceClonedParameterSymbol(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
+                        parameters.Add(New SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
                         ordinal += 1
                     End If
                 Next

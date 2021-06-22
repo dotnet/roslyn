@@ -1985,10 +1985,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_GeneratorFailedDuringGeneration = 42502
         WRN_AnalyzerReferencesFramework = 42503
 
-        WRN_CallerArgumentExpressionAttributeSelfReferential = 42600
-        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42601
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
-        ' // AVAILABLE                             42602 - 49998
+        ' // AVAILABLE                             42600 - 49998
         ERRWRN_NextAvailable = 42602
 
         '// HIDDENS AND INFOS BEGIN HERE

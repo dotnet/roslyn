@@ -3406,7 +3406,7 @@ Next_i:
 
             Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
                 Get
-                    Return _parameterToLift.CallerArgumentExpressionParameterIndex
+                    Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 

@@ -35,6 +35,27 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_CaseInsensitivity()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(123)
+    End Sub
+
+    Private Const P As String = NameOf(P)
+    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9()
             Dim source As String = "
 Imports System
@@ -662,7 +683,7 @@ End Class
 4, explicit-value").VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly))>
+        <ConditionalFact(GetType(CoreClrOnly), AlwaysSkip:="PROTOTYPE(caller-expr): Write a proper test.")>
         Public Sub TestDelegate1()
             Dim source As String = "
 Imports System
@@ -827,6 +848,74 @@ End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="1 + 2").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestOperator()
+            Dim il = ".class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+
+    .method public specialname static 
+        class C op_Addition (
+            class C left,
+            [opt] int32 right
+        ) cil managed 
+    {
+        .param [2] = int32(0)
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 04 6c 65 66 74 00 00
+            )
+        // Method begins at RVA 0x2058
+        // Code size 7 (0x7)
+        .maxstack 1
+        .locals init (
+            [0] class C
+        )
+
+        IL_0000: nop
+        IL_0001: ldnull
+        IL_0002: stloc.0
+        IL_0003: br.s IL_0005
+
+        IL_0005: ldloc.0
+        IL_0006: ret
+    } // end of method C::op_Addition
+
+} // end of class C
+"
+
+            Dim source =
+    <compilation>
+        <file name="c.vb"><![CDATA[
+Module Program
+    Sub Main()
+        Dim obj As New C()
+        obj = obj + 0
+    End Sub
+End Module
+]]>
+        </file>
+    </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            compilation.VerifyDiagnostics()
         End Sub
 #End Region
     End Class
