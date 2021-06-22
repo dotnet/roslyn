@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class MethodGenerator
     {
+        private static readonly TypeParameterConstraintSyntax s_classConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+        private static readonly TypeParameterConstraintSyntax s_structConstraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
+        private static readonly TypeParameterConstraintSyntax s_defaultConstraint = SyntaxFactory.DefaultConstraint();
+
         internal static NamespaceDeclarationSyntax AddMethodTo(
             NamespaceDeclarationSyntax destination,
             IMethodSymbol method,
@@ -213,29 +217,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateDefaultConstraints(IMethodSymbol method)
         {
             Debug.Assert(method.ExplicitInterfaceImplementations.Any() || method.IsOverride);
-            var seenTypeParameters = new HashSet<string>();
-            var listOfClauses = new List<TypeParameterConstraintClauseSyntax>(method.TypeParameters.Length);
+
+            using var _1 = PooledHashSet<string>.GetInstance(out var seenTypeParameters);
+            using var _2 = ArrayBuilder<TypeParameterConstraintClauseSyntax>.GetInstance(out var listOfClauses);
             foreach (var parameter in method.Parameters)
             {
-                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter ||
-                    !seenTypeParameters.Add(parameter.Type.Name))
+                if (parameter.Type is not ITypeParameterSymbol { NullableAnnotation: NullableAnnotation.Annotated } typeParameter)
                 {
                     continue;
                 }
 
-                TypeParameterConstraintSyntax constraint;
-                if (typeParameter.HasReferenceTypeConstraint)
+                if (!seenTypeParameters.Add(parameter.Type.Name))
                 {
-                    constraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint);
+                    continue;
                 }
-                else if (typeParameter.HasValueTypeConstraint)
+
+                var constraint = typeParameter switch
                 {
-                    constraint = SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint);
-                }
-                else
-                {
-                    constraint = SyntaxFactory.DefaultConstraint();
-                }
+                    { HasReferenceTypeConstraint: true } => s_classConstraint,
+                    { HasValueTypeConstraint: true } => s_structConstraint,
+                    _ => s_defaultConstraint
+                };
 
                 listOfClauses.Add(SyntaxFactory.TypeParameterConstraintClause(
                     name: parameter.Type.Name.ToIdentifierName(),
