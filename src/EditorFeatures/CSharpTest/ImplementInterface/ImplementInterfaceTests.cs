@@ -56,168 +56,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             };
 
-        private const string NullableAttributesCode = @"
-namespace System.Diagnostics.CodeAnalysis
-{
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
-    internal sealed class AllowNullAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property, Inherited = false)]
-    internal sealed class DisallowNullAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
-    internal sealed class MaybeNullAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, Inherited = false)]
-    internal sealed class NotNullAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
-    internal sealed class MaybeNullWhenAttribute : Attribute
-    {
-        public MaybeNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
-        public bool ReturnValue { get; }
-    }
-
-    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
-    internal sealed class NotNullWhenAttribute : Attribute
-    {
-        public NotNullWhenAttribute(bool returnValue) => ReturnValue = returnValue;
-        public bool ReturnValue { get; }
-    }
-
-    [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue, AllowMultiple = true, Inherited = false)]
-    internal sealed class NotNullIfNotNullAttribute : Attribute
-    {
-        public NotNullIfNotNullAttribute(string parameterName) => ParameterName = parameterName;
-        public string ParameterName { get; }
-    }
-
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    internal sealed class DoesNotReturnAttribute : Attribute { }
-
-    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
-    internal sealed class DoesNotReturnIfAttribute : Attribute
-    {
-        public DoesNotReturnIfAttribute(bool parameterValue) => ParameterValue = parameterValue;
-        public bool ParameterValue { get; }
-    }
-}";
-
         internal static async Task TestWithAllCodeStyleOptionsOffAsync(
-            string initialMarkup, string expectedMarkup,
-            (string equivalenceKey, int index)? codeAction = null, ParseOptions? parseOptions = null)
-        {
-            var test = new VerifyCS.Test
-            {
-                TestCode = initialMarkup,
-                FixedCode = expectedMarkup,
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        if (parseOptions is not null)
-                        {
-                            solution = solution.WithProjectParseOptions(projectId, parseOptions);
-                        }
-
-                        return solution;
-                    },
-                },
-            };
-
-            if (codeAction is var (equivalenceKey, index))
-            {
-                test.CodeActionEquivalenceKey = equivalenceKey;
-                test.CodeActionIndex = index;
-            }
-
-            test.Options.AddRange(AllOptionsOff);
-            await test.RunAsync();
-        }
-
-        internal static async Task TestWithAllCodeStyleOptionsOnAsync(
-            string initialMarkup, string expectedMarkup,
-            (string equivalenceKey, int index)? codeAction = null, ParseOptions? parseOptions = null)
-        {
-            var test = new VerifyCS.Test
-            {
-                TestCode = initialMarkup,
-                FixedCode = expectedMarkup,
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        if (parseOptions is not null)
-                        {
-                            solution = solution.WithProjectParseOptions(projectId, parseOptions);
-                        }
-
-                        return solution;
-                    },
-                },
-            };
-
-            if (codeAction is var (equivalenceKey, index))
-            {
-                test.CodeActionEquivalenceKey = equivalenceKey;
-                test.CodeActionIndex = index;
-            }
-
-            test.Options.AddRange(AllOptionsOn);
-            await test.RunAsync();
-        }
-
-        internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(
             string initialMarkup, string expectedMarkup,
             (string equivalenceKey, int index)? codeAction = null)
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-            };
+                Options = { AllOptionsOff },
+                CodeActionEquivalenceKey = codeAction?.equivalenceKey,
+                CodeActionIndex = codeAction?.index,
+            }.RunAsync();
+        }
 
-            if (codeAction is var (equivalenceKey, index))
+        internal static async Task TestWithAllCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+        {
+            await new VerifyCS.Test
             {
-                test.CodeActionEquivalenceKey = equivalenceKey;
-                test.CodeActionIndex = index;
-            }
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                Options = { AllOptionsOn },
+            }.RunAsync();
+        }
 
-            test.Options.AddRange(AccessorOptionsOn);
-            await test.RunAsync();
+        internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = initialMarkup,
+                FixedCode = expectedMarkup,
+                Options = { AccessorOptionsOn },
+            }.RunAsync();
         }
 
         private static async Task TestInRegularAndScriptAsync(
             string initialMarkup,
             string expectedMarkup,
-            (string equivalenceKey, int index)? codeAction = null,
-            ParseOptions? parseOptions = null)
+            (string equivalenceKey, int index)? codeAction = null)
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
-                SolutionTransforms =
-                {
-                    (solution, projectId) =>
-                    {
-                        if (parseOptions is not null)
-                        {
-                            solution = solution.WithProjectParseOptions(projectId, parseOptions);
-                        }
-
-                        return solution;
-                    },
-                },
-            };
-
-            if (codeAction is var (equivalenceKey, index))
-            {
-                test.CodeActionEquivalenceKey = equivalenceKey;
-                test.CodeActionIndex = index;
-            }
-
-            await test.RunAsync();
+                CodeActionEquivalenceKey = codeAction?.equivalenceKey,
+                CodeActionIndex = codeAction?.index,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -249,8 +133,10 @@ class Class : IInterface
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestMethodInRecord()
         {
-            await TestWithAllCodeStyleOptionsOffAsync(
-@"interface IInterface
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = @"interface IInterface
 {
     void Method1();
 }
@@ -258,7 +144,7 @@ class Class : IInterface
 record Record : {|CS0535:IInterface|}
 {
 }",
-@"interface IInterface
+                FixedCode = @"interface IInterface
 {
     void Method1();
 }
@@ -269,7 +155,8 @@ record Record : IInterface
     {
         throw new System.NotImplementedException();
     }
-}", parseOptions: TestOptions.RegularPreview);
+}",
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
@@ -8946,54 +8833,53 @@ public class Test : ITest
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task GenericInterfaceNotNull1()
         {
-            await TestInRegularAndScriptAsync(
-@$"#nullable enable 
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = @"#nullable enable 
 
 using System.Diagnostics.CodeAnalysis;
 
-{NullableAttributesCode}
-
 interface IFoo<T>
-{{
+{
     [return: NotNull]
     T Bar([DisallowNull] T bar);
 
     [return: MaybeNull]
     T Baz([AllowNull] T bar);
-}}
+}
 
-class A : {{|CS0535:{{|CS0535:IFoo<int>|}}|}}
-{{
-}}",
-@$"#nullable enable 
+class A : {|CS0535:{|CS0535:IFoo<int>|}|}
+{
+}",
+                FixedCode = @"#nullable enable 
 
 using System.Diagnostics.CodeAnalysis;
 
-{NullableAttributesCode}
-
 interface IFoo<T>
-{{
+{
     [return: NotNull]
     T Bar([DisallowNull] T bar);
 
     [return: MaybeNull]
     T Baz([AllowNull] T bar);
-}}
+}
 
 class A : IFoo<int>
-{{
+{
     [return: NotNull]
     public int Bar([DisallowNull] int bar)
-    {{
+    {
         throw new System.NotImplementedException();
-    }}
+    }
 
     [return: MaybeNull]
     public int Baz([AllowNull] int bar)
-    {{
+    {
         throw new System.NotImplementedException();
-    }}
-}}");
+    }
+}",
+            }.RunAsync();
         }
 
         [WorkItem(13427, "https://github.com/dotnet/roslyn/issues/13427")]
@@ -9500,7 +9386,10 @@ class C : IGoo<string>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementTwoPropertiesOfCSharp5()
         {
-            await TestInRegularAndScriptAsync(@"
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp5,
+                TestCode = @"
 interface ITest
 {
     int Bar { get; }
@@ -9511,7 +9400,7 @@ class Program : {|CS0535:{|CS0535:ITest|}|}
 {
 }
 ",
-@"
+                FixedCode = @"
 interface ITest
 {
     int Bar { get; }
@@ -9536,7 +9425,8 @@ class Program : ITest
         }
     }
 }
-", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+",
+            }.RunAsync();
         }
 
         [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
