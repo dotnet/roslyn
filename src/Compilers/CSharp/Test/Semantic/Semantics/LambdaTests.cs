@@ -4379,10 +4379,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8933: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
                 //         f2 = T () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
-                // (10,14): error CS8933: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
                 //         f1 = U () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
         }
@@ -4406,10 +4406,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (9,14): error CS8933: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
                 //         f2 = T () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
-                // (10,14): error CS8933: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
                 //         f1 = U () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
         }
@@ -4434,10 +4434,10 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,14): error CS8933: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
                 //         e2 = T () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<U>>").WithLocation(10, 14),
-                // (11,14): error CS8933: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
+                // (11,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
                 //         e1 = U () => default;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<T>>").WithLocation(11, 14));
         }
@@ -4623,22 +4623,22 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (12,14): error CS8933: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                // (12,14): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
                 //         d2 = T (ref T t) => t;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(12, 14),
-                // (13,14): error CS8933: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                // (13,14): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
                 //         d3 = T (ref T t) => t;
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D3<T>").WithLocation(13, 14),
-                // (14,15): error CS8933: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                // (14,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
                 //         d1 = (ref T (ref T t) => ref t);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(14, 15),
-                // (16,15): error CS8933: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                // (16,15): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
                 //         d3 = (ref T (ref T t) => ref t);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D3<T>").WithLocation(16, 15),
-                // (17,15): error CS8933: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                // (17,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
                 //         d1 = (ref readonly T (ref T t) => ref t);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(17, 15),
-                // (18,15): error CS8933: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                // (18,15): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
                 //         d2 = (ref readonly T (ref T t) => ref t);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D2<T>").WithLocation(18, 15));
         }
@@ -5061,7 +5061,7 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (11,25): error CS8933: Cannot convert lambda expression to type 'Func<A>' because the return type does not match the delegate return type
+                // (11,25): error CS8934: Cannot convert lambda expression to type 'Func<A>' because the return type does not match the delegate return type
                 //         F(A () => null, B2 () => null);
                 Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "B2 () => null").WithArguments("lambda expression", "System.Func<A>").WithLocation(11, 25),
                 // (12,9): error CS0411: The type arguments for method 'Program.F<T>(Func<T>, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
