@@ -41,16 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             if (AdornmentLayer is not null)
             {
-                var elements = AdornmentLayer.Elements;
-                if (elements.Any())
-                {
-                    var location = ((InlineDiagnosticsTag)elements[0].Tag).Location;
-                    if (location == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
-                    {
-                        var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
-                        UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
-                    }
-                }
+                var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
+                UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
             }
         }
 
