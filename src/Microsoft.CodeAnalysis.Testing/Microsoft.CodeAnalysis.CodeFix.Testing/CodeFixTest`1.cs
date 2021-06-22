@@ -532,12 +532,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 numberOfIterations = -numberOfIterations;
             }
 
-            var previousDiagnostics = ImmutableArray.Create<Diagnostic>();
+            var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
             bool done;
             do
             {
-                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
+                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
                     break;
@@ -560,19 +560,19 @@ namespace Microsoft.CodeAnalysis.Testing
                 previousDiagnostics = analyzerDiagnostics;
 
                 var fixableDiagnostics = analyzerDiagnostics
-                    .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.Id)))
-                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.Location.SourceTree) is object)
+                    .Where(diagnostic => codeFixProviders.Any(provider => provider.FixableDiagnosticIds.Contains(diagnostic.diagnostic.Id)))
+                    .Where(diagnostic => project.Solution.GetDocument(diagnostic.diagnostic.Location.SourceTree) is object)
                     .ToImmutableArray();
 
                 if (CodeFixTestBehaviors.HasFlag(CodeFixTestBehaviors.FixOne))
                 {
-                    var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics);
-                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(diagnosticToFix) : ImmutableArray<Diagnostic>.Empty;
+                    var diagnosticToFix = TrySelectDiagnosticToFix(fixableDiagnostics.Select(x => x.diagnostic).ToImmutableArray());
+                    fixableDiagnostics = diagnosticToFix is object ? ImmutableArray.Create(fixableDiagnostics.Single(x => x.diagnostic == diagnosticToFix)) : ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty;
                 }
 
                 done = true;
                 var anyActions = false;
-                foreach (var diagnostic in fixableDiagnostics)
+                foreach (var (_, diagnostic) in fixableDiagnostics)
                 {
                     var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
@@ -670,12 +670,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 numberOfIterations = -numberOfIterations;
             }
 
-            var previousDiagnostics = ImmutableArray.Create<Diagnostic>();
+            var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
             bool done;
             do
             {
-                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
+                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
                     break;
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 Diagnostic? firstDiagnostic = null;
                 CodeFixProvider? effectiveCodeFixProvider = null;
                 string? equivalenceKey = null;
-                foreach (var diagnostic in analyzerDiagnostics)
+                foreach (var (_, diagnostic) in analyzerDiagnostics)
                 {
                     var actions = new List<(CodeAction, CodeFixProvider)>();
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return await formatted.GetTextAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private static bool AreDiagnosticsDifferent(ImmutableArray<Diagnostic> analyzerDiagnostics, ImmutableArray<Diagnostic> previousDiagnostics)
+        private static bool AreDiagnosticsDifferent(ImmutableArray<(Project project, Diagnostic diagnostic)> analyzerDiagnostics, ImmutableArray<(Project project, Diagnostic diagnostic)> previousDiagnostics)
         {
             if (analyzerDiagnostics.Length != previousDiagnostics.Length)
             {
@@ -828,8 +828,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
             for (var i = 0; i < analyzerDiagnostics.Length; i++)
             {
-                if ((analyzerDiagnostics[i].Id != previousDiagnostics[i].Id)
-                    || (analyzerDiagnostics[i].Location.SourceSpan != previousDiagnostics[i].Location.SourceSpan))
+                if ((analyzerDiagnostics[i].project.Id != previousDiagnostics[i].project.Id)
+                    || (analyzerDiagnostics[i].diagnostic.Id != previousDiagnostics[i].diagnostic.Id)
+                    || (analyzerDiagnostics[i].diagnostic.Location.SourceSpan != previousDiagnostics[i].diagnostic.Location.SourceSpan))
                 {
                     return true;
                 }
