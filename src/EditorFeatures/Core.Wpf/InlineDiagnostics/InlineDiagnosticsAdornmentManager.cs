@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
@@ -39,7 +40,30 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         private void TextView_ViewportWidthChanged(object sender, EventArgs e)
         {
-            if (AdornmentLayer is not null)
+            if (AdornmentLayer is null)
+            {
+                return;
+            }
+
+            var sourceContainer = TextView.TextBuffer.AsTextContainer();
+            if (sourceContainer is null)
+            {
+                return;
+            }
+
+            if (!Workspace.TryGetWorkspace(sourceContainer, out var workspace))
+            {
+                return;
+            }
+
+            var document = sourceContainer.GetOpenDocumentInCurrentContext();
+            if (document is null)
+            {
+                return;
+            }
+
+            var option = workspace.Options.GetOption(InlineDiagnosticsOptions.LocationOption, document.Project.Language);
+            if (option == InlineDiagnosticsLocations.PlacedAtEndOfEditor)
             {
                 var normalizedCollectionSpan = new NormalizedSnapshotSpanCollection(TextView.TextViewLines.FormattedSpan);
                 UpdateSpans_CallOnlyOnUIThread(normalizedCollectionSpan, removeOldTags: true);
