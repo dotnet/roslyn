@@ -246,7 +246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim initializer = New BoundFieldInitializer(syntax,
                                                         ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
                                                         boundFieldAccessExpression,
-                                                        arrayCreation)
+                                                        arrayCreation,
+                                                        binderOpt:=Nothing)
 
             boundInitializers.Add(initializer)
         End Sub
@@ -321,6 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 fieldSymbols,
                 If(fieldSymbols.Length = 1, fieldAccess, Nothing),
                 boundInitExpression,
+                Me,
                 hasErrors))
         End Sub
 
@@ -375,11 +377,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundInitializers.Add(New BoundPropertyInitializer(initValueOrAsNewNode,
                                                                propertySymbols,
                                                                If(propertySymbols.Length = 1, boundPropertyOrFieldAccess, Nothing),
-                                                               boundInitExpression))
-
+                                                               boundInitExpression,
+                                                               Me))
         End Sub
 
-        Private Function BindFieldOrPropertyInitializerExpression(
+        Friend Function BindFieldOrPropertyInitializerExpression(
             equalsValueOrAsNewSyntax As SyntaxNode,
             targetType As TypeSymbol,
             asNewVariablePlaceholderOpt As BoundWithLValueExpressionPlaceholder,
@@ -468,7 +470,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 boundInitializers.Add(New BoundFieldInitializer(equalsValueOrAsNewSyntax,
                                                                 ImmutableArray.Create(Of FieldSymbol)(fieldSymbol),
                                                                 boundFieldAccessExpr,
-                                                                boundInitValue))
+                                                                boundInitValue,
+                                                                binderOpt:=Nothing))
             End If
         End Sub
 

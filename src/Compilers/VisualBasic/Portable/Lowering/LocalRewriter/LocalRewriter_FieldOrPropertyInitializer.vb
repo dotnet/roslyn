@@ -54,22 +54,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 meReferenceOpt.SetWasCompilerGenerated()
             End If
 
-            Dim objectInitializer As BoundObjectInitializerExpression = Nothing
-            Dim createTemporary = True
-            If node.InitialValue.Kind = BoundKind.ObjectCreationExpression OrElse node.InitialValue.Kind = BoundKind.NewT Then
-                Dim objectCreationExpression = DirectCast(node.InitialValue, BoundObjectCreationExpressionBase)
-                If objectCreationExpression.InitializerOpt IsNot Nothing AndAlso
-                    objectCreationExpression.InitializerOpt.Kind = BoundKind.ObjectInitializerExpression Then
-                    objectInitializer = DirectCast(objectCreationExpression.InitializerOpt, BoundObjectInitializerExpression)
-                    createTemporary = objectInitializer.CreateTemporaryLocalForInitialization
-                End If
-            End If
-
             Dim instrument As Boolean = Me.Instrument(node)
 
             For symbolIndex = 0 To initializedSymbols.Length - 1
                 Dim symbol = initializedSymbols(symbolIndex)
                 Dim accessExpression As BoundExpression
+
+                Dim initialValueToRewrite As BoundExpression
+
+                If symbolIndex = 0 Then
+                    initialValueToRewrite = node.InitialValue
+                Else
+                    ' For all variables except the first one we rebind the initializer
+                    ' and throw away diagnostics, those are supposed to be reported in the first
+                    ' binding and don't need to be duplicated
+                    '
+                    ' Note that we have to rebind the initializers because current implementation of lambda 
+                    ' rewriter does not handle correctly blocks and locals which are reused in bound tree. 
+                    ' Actually it seems to heavily rely on an assumption that the bound tree is a tree, not 
+                    ' a DAG, with just minor deviations. Thus, the natural way of just rewriting bound 
+                    ' initializer stored in node.Initializer simply does not work because rewriting *may* 
+                    ' keep many blocks and locals unchanged and reuse them in all rewritten initializers, 
+                    ' in which case if we have a lambda inside the initializer lambda rewriter simply throws.
+
+                    Dim asNewVariablePlaceholder As BoundWithLValueExpressionPlaceholder = Nothing
+                    Dim symbolType As TypeSymbol
+
+                    If symbol.Kind = SymbolKind.Field Then
+                        symbolType = DirectCast(symbol, FieldSymbol).Type
+
+                        If syntax.Kind = SyntaxKind.AsNewClause Then
+                            asNewVariablePlaceholder = New BoundWithLValueExpressionPlaceholder(syntax, symbolType)
+                            asNewVariablePlaceholder.SetWasCompilerGenerated()
+                        End If
+                    Else
+                        symbolType = DirectCast(symbol, PropertySymbol).Type
+                    End If
+
+                    ' Rebind and discard diagnostics
+                    initialValueToRewrite = node.BinderOpt.BindFieldOrPropertyInitializerExpression(syntax,
+                                                                                                 symbolType,
+                                                                                                 asNewVariablePlaceholder,
+                                                                                                 BindingDiagnosticBag.Discarded)
+
+                End If
+
+                Dim objectInitializer As BoundObjectInitializerExpression = Nothing
+                Dim createTemporary = True
+
+                If initialValueToRewrite.Kind = Global.Microsoft.CodeAnalysis.VisualBasic.BoundKind.ObjectCreationExpression OrElse initialValueToRewrite.Kind = Global.Microsoft.CodeAnalysis.VisualBasic.BoundKind.NewT Then
+                    Dim objectCreationExpression = DirectCast(initialValueToRewrite, BoundObjectCreationExpressionBase)
+                    If objectCreationExpression.InitializerOpt IsNot Nothing AndAlso
+                    objectCreationExpression.InitializerOpt.Kind = BoundKind.ObjectInitializerExpression Then
+                        objectInitializer = DirectCast(objectCreationExpression.InitializerOpt, BoundObjectInitializerExpression)
+                        createTemporary = objectInitializer.CreateTemporaryLocalForInitialization
+                    End If
+                End If
 
                 ' if there are more than one symbol we need to create a field or property access for each of them
                 If initializedSymbols.Length > 1 Then
@@ -102,14 +142,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' we need to replace the placeholder with it, so add it to the replacement map
                     AddPlaceholderReplacement(objectInitializer.PlaceholderOpt, accessExpression)
 
-                    rewrittenStatement = VisitExpressionNode(node.InitialValue).ToStatement
+                    rewrittenStatement = VisitExpressionNode(initialValueToRewrite).ToStatement
 
                     RemovePlaceholderReplacement(objectInitializer.PlaceholderOpt)
                 Else
                     ' in all other cases we want the initial value be assigned to the member (field or property)
                     rewrittenStatement = VisitExpression(New BoundAssignmentOperator(syntax,
                                                                                      accessExpression,
-                                                                                     node.InitialValue,
+                                                                                     initialValueToRewrite,
                                                                                      suppressObjectClone:=False)).ToStatement
                 End If
 
