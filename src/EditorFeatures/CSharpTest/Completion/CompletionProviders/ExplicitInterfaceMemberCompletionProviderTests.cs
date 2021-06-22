@@ -576,6 +576,39 @@ class Bar : IGoo
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("out")]
+        public async Task TestWithRefKind(string refKind)
+        {
+            var markup = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.$$
+}}
+";
+
+            var expected = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.M({refKind} string s)
+}}
+";
+
+            await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
         public async Task TestStaticAbstractInterfaceMember()

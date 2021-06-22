@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
 
                     first = false;
+                    builder.Append(parameter.RefKind switch
+                    {
+                        RefKind.Out => "out ",
+                        RefKind.Ref => "ref ",
+                        RefKind.In => "in ",
+                        _ => ""
+                    });
+
                     AddType(parameter.Type, builder);
                     builder.Append($" {parameter.Name}");
                 }
