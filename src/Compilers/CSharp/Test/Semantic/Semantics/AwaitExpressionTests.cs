@@ -30,12 +30,7 @@ using System.Threading.Tasks;
 
 static class App{
     public static async Task Main(){
-        MyAwaitable Get()
-        {
-            return new MyAwaitable();
-        }
-
-        var x = Get();
+        var x = new MyAwaitable();
         x.SetValue(42);
 
         Console.WriteLine(await x + ""!"");
@@ -81,20 +76,13 @@ static class MyAwaitableExtension
         return a.Task.GetAwaiter();
     }
 }";
-            var refApis = System.AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Select(
-                a => MetadataReference.CreateFromFile(a.Location)
-            );
-            var tree = SyntaxFactory.SyntaxTree(SyntaxFactory.ParseCompilationUnit(text));
-            var csCompilation = CSharpCompilation.Create("something",
-                   new[] { tree },
-                   refApis,
-                   new CSharpCompilationOptions(OutputKind.ConsoleApplication)
-            );
+           
+            var csCompilation = CreateCompilationWithCSharp(text);
+            var tree = csCompilation.SyntaxTrees.Single();
 
             var model = csCompilation.GetSemanticModel(tree);
             var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
 
-            var op = model.GetOperation(awaitExpression);
             var info = model.GetAwaitExpressionInfo(awaitExpression);
 
             Assert.Equal(
@@ -161,8 +149,7 @@ public class C {
             Assert.Equal(0, info.GetHashCode());
         }
 
-        private AwaitExpressionInfo GetAwaitExpressionInfo(string text,
-            out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
+        private AwaitExpressionInfo GetAwaitExpressionInfo(string text, out CSharpCompilation compilation, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             var comp = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }, new MetadataReference[] { SystemRef });
