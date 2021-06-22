@@ -55,7 +55,7 @@ public class C
 {
     public bool M(string value)
     {
-        return [|value is object|];
+        return [|value is object|]/*comment*/;
     }
 }
 ";
@@ -64,7 +64,7 @@ public class C
 {
     public bool M(string value)
     {
-        return value is not null;
+        return value is not null/*comment*/;
     }
 }
 ";

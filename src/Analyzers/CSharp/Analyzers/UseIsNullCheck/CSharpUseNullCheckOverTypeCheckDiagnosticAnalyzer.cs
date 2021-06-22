@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
@@ -36,49 +35,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                     return;
                 }
 
-                context.RegisterOperationAction(c => AnalyzeOperation(c), OperationKind.IsType, OperationKind.NegatedPattern);
+                context.RegisterOperationAction(c => AnalyzeIsTypeOperation(c), OperationKind.IsType);
+                context.RegisterOperationAction(c => AnalyzeNegatedPatternOperation(c), OperationKind.NegatedPattern);
             });
         }
 
-        private void AnalyzeOperation(OperationAnalysisContext context)
+        private static bool ShouldAnalyze(OperationAnalysisContext context, out ReportDiagnostic severity)
         {
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck, context.Operation.Syntax.SyntaxTree, context.CancellationToken);
             if (!option.Value)
             {
+                severity = ReportDiagnostic.Default;
+                return false;
+            }
+
+            severity = option.Notification.Severity;
+            return context.Operation.Syntax is BinaryExpressionSyntax or UnaryPatternSyntax;
+        }
+
+        private void AnalyzeNegatedPatternOperation(OperationAnalysisContext context)
+        {
+            if (!ShouldAnalyze(context, out var severity))
+            {
                 return;
             }
 
-            if (ShouldReportDiagnostic(context.Operation) &&
-                context.Operation.Syntax is BinaryExpressionSyntax or UnaryPatternSyntax)
+            var negatedPattern = (INegatedPatternOperation)context.Operation;
+            // Matches 'x is not MyType'
+            // InputType is the type of 'x'
+            // MatchedType is 'MyType'
+            if (negatedPattern.Pattern is ITypePatternOperation typePatternOperation &&
+                typePatternOperation.InputType.InheritsFromOrEquals(typePatternOperation.MatchedType))
             {
-                var severity = option.Notification.Severity;
                 context.ReportDiagnostic(
                     DiagnosticHelper.Create(
                         Descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
             }
         }
 
-        private static bool ShouldReportDiagnostic(IOperation operation)
+        private void AnalyzeIsTypeOperation(OperationAnalysisContext context)
         {
-            if (operation is IIsTypeOperation isTypeOperation)
+            if (!ShouldAnalyze(context, out var severity))
             {
-                // Matches 'x is MyType'
-                // isTypeOperation.TypeOperand is 'MyType'
-                // isTypeOperation.ValueOperand.Type is the type of 'x'.
-                return isTypeOperation.ValueOperand.Type is not null &&
-                    isTypeOperation.ValueOperand.Type.InheritsFromOrEquals(isTypeOperation.TypeOperand);
-            }
-            else if (operation is INegatedPatternOperation negatedPattern)
-            {
-                // Matches 'x is not MyType'
-                // InputType is the type of 'x'
-                // MatchedType is 'MyType'
-                return negatedPattern.Pattern is ITypePatternOperation typePatternOperation &&
-                    typePatternOperation.InputType.InheritsFromOrEquals(typePatternOperation.MatchedType);
+                return;
             }
 
-            // Only OperationKind.IsType and OperationKind.NegatedPattern are registered.
-            throw ExceptionUtilities.Unreachable;
+            var isTypeOperation = (IIsTypeOperation)context.Operation;
+            // Matches 'x is MyType'
+            // isTypeOperation.TypeOperand is 'MyType'
+            // isTypeOperation.ValueOperand.Type is the type of 'x'.
+            if (isTypeOperation.ValueOperand.Type is not null &&
+                isTypeOperation.ValueOperand.Type.InheritsFromOrEquals(isTypeOperation.TypeOperand))
+            {
+                context.ReportDiagnostic(
+                    DiagnosticHelper.Create(
+                        Descriptor, context.Operation.Syntax.GetLocation(), severity, additionalLocations: null, properties: null));
+            }
         }
     }
 }

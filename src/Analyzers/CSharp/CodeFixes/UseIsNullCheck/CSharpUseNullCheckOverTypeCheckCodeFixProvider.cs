@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             foreach (var diagnostic in diagnostics)
             {
                 var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-                SyntaxNode? replacement = node switch
+                SyntaxNode replacement = node switch
                 {
                     // Replace 'x is object' with 'x is not null'
                     BinaryExpressionSyntax binary =>
@@ -61,13 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                             pattern: UnaryPattern(ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)))),
                     UnaryPatternSyntax =>
                         ConstantPattern(LiteralExpression(SyntaxKind.NullLiteralExpression)),
-                    _ => null
+                    // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
+                    _ => throw ExceptionUtilities.Unreachable
                 };
 
-                // It should always be non-null value.
-                // The analyzer reports diagnostic only on BinaryExpressionSyntax and UnaryPatternSyntax.
-                if (replacement is not null)
-                    editor.ReplaceNode(node, replacement);
+                editor.ReplaceNode(node, replacement.WithTriviaFrom(node));
             }
 
             return Task.CompletedTask;
