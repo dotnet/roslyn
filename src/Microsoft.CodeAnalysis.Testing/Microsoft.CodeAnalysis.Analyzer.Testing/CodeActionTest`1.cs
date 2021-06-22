@@ -70,12 +70,44 @@ namespace Microsoft.CodeAnalysis.Testing
                 || state.AdditionalFilesFactories.Any();
         }
 
-        protected static bool HasAnyChange(SolutionState oldState, SolutionState newState)
+        protected static bool HasAnyChange(ProjectState oldState, ProjectState newState, bool recursive)
         {
-            return !oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
+            if (!oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
                 || !oldState.GeneratedSources.SequenceEqual(newState.GeneratedSources, SourceFileEqualityComparer.Instance)
                 || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance)
-                || !oldState.AnalyzerConfigFiles.SequenceEqual(newState.AnalyzerConfigFiles, SourceFileEqualityComparer.Instance);
+                || !oldState.AnalyzerConfigFiles.SequenceEqual(newState.AnalyzerConfigFiles, SourceFileEqualityComparer.Instance))
+            {
+                return true;
+            }
+
+            if (!recursive)
+            {
+                return false;
+            }
+
+            if (oldState is SolutionState oldSolutionState)
+            {
+                if (!(newState is SolutionState newSolutionState))
+                {
+                    throw new ArgumentException("Unexpected mismatch of SolutionState with ProjectState.");
+                }
+
+                if (oldSolutionState.AdditionalProjects.Count != newSolutionState.AdditionalProjects.Count)
+                {
+                    return true;
+                }
+
+                foreach (var oldAdditionalState in oldSolutionState.AdditionalProjects)
+                {
+                    if (!newSolutionState.AdditionalProjects.TryGetValue(oldAdditionalState.Key, out var newAdditionalState)
+                        || HasAnyChange(oldAdditionalState.Value, newAdditionalState, recursive: true))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
