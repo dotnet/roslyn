@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
-        private IDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
+        private IDictionary<int, (IMappingTagSpan<InlineDiagnosticsTag> mapTagSpan, SnapshotSpan snapshotSpan)> GetSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             if (changedSpanCollection.IsEmpty())
             {
-                return SpecializedCollections.EmptyDictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>>();
+                return SpecializedCollections.EmptyDictionary<int, (IMappingTagSpan<InlineDiagnosticsTag>, SnapshotSpan)>();
             }
 
-            var map = new Dictionary<(int, SnapshotSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>>();
+            var map = new Dictionary<int, (IMappingTagSpan<InlineDiagnosticsTag> mapTagSpan, SnapshotSpan snapshotSpan)>();
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
@@ -122,13 +122,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
 
                     var lineNum = mappedPoint.Value.GetContainingLine().LineNumber;
-                    if (!map.TryGetValue((lineNum, changedSpan), out var list))
+                    if (!map.TryGetValue(lineNum, out var value))
                     {
-                        list = new List<IMappingTagSpan<InlineDiagnosticsTag>>();
-                        map.Add((lineNum, changedSpan), list);
+                        map.Add(lineNum, (tagMappingSpan, changedSpan));
                     }
 
-                    list.Add(tagMappingSpan);
+                    if (value.mapTagSpan is not null && value.mapTagSpan.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
+                    {
+                        map[lineNum] = (tagMappingSpan, changedSpan);
+                    }
                 }
             }
 
@@ -162,10 +164,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var map = GetSpansOnEachLine(changedSpanCollection);
-            var tagSpanToPointMap = GetTagSpansToSnapshotPointMap(map);
-            foreach (var tagMappingSpanList in map.Values)
+            foreach (var (lineNum, spanTuple) in map)
             {
-                var tagMappingSpan = GetHighestOrderTag(tagMappingSpanList);
+                var tagMappingSpan = spanTuple.mapTagSpan;
                 TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
                 var geometry = viewLines.GetMarkerGeometry(span);
                 if (geometry != null)
@@ -173,12 +174,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     var tag = tagMappingSpan.Tag;
                     var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.TagID + tag.ErrorType);
                     var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-                    if (!tagSpanToPointMap.TryGetValue(tagMappingSpan, out var point))
+
+                    var point = tagMappingSpan.Span.Start.GetPoint(spanTuple.snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+                    if (point == null)
                     {
                         continue;
                     }
-
-                    var lineView = TextView.GetTextViewLineContainingBufferPosition(point);
+                    var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
                     var visualElement = graphicsResult.VisualElement;
                     if (tag.Location is InlineDiagnosticsLocations.PlacedAtEndOfCode)
@@ -204,33 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     }
                 }
             }
-        }
-
-        private static Dictionary<IMappingTagSpan<InlineDiagnosticsTag>, SnapshotPoint> GetTagSpansToSnapshotPointMap(
-            IDictionary<(int linenum, SnapshotSpan changedSpan), List<IMappingTagSpan<InlineDiagnosticsTag>>> map)
-        {
-            var tagSpanToPointMap = new Dictionary<IMappingTagSpan<InlineDiagnosticsTag>, SnapshotPoint>();
-
-            foreach (var kvp in map)
-            {
-                foreach (var mappingTagSpan in kvp.Value)
-                {
-                    var point = mappingTagSpan.Span.Start.GetPoint(kvp.Key.changedSpan.Snapshot, PositionAffinity.Predecessor);
-                    if (point == null)
-                    {
-                        continue;
-                    }
-
-                    tagSpanToPointMap.Add(mappingTagSpan, point.Value);
-                }
-            }
-
-            return tagSpanToPointMap;
-        }
-
-        private static IMappingTagSpan<InlineDiagnosticsTag> GetHighestOrderTag(List<IMappingTagSpan<InlineDiagnosticsTag>> list)
-        {
-            return list.Where(s => s.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError).FirstOrDefault() ?? list.First();
         }
     }
 }
