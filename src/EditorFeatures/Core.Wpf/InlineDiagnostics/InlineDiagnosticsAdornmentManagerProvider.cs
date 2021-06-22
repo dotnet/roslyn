@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _classificationTypeRegistryService = classificationTypeRegistryService;
         }
 
-        protected override string FeatureAttributeName => FeatureAttribute.InlineErrors;
+        protected override string FeatureAttributeName => FeatureAttribute.InlineDiagnostics;
 
         protected override string AdornmentLayerName => LayerName;
 
