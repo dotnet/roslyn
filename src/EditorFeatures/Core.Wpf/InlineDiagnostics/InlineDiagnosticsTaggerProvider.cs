@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var locationOption = workspace.Options.GetOption(InlineDiagnosticsOptions.LocationOption, document.Project.Language);
-            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption);
+            var navigateService = workspace.Services.GetRequiredService<INavigateToLinkService>();
+            return new InlineDiagnosticsTag(errorType, diagnostic, _editorFormatMap, locationOption, navigateService);
         }
 
         private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)

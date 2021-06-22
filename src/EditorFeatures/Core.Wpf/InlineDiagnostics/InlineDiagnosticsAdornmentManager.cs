@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     {
                         AdornmentLayer.AddAdornment(
                             // TextRelative because the adornment is positioned relative to the text in the editor
-                            behavior: AdornmentPositioningBehavior.TextRelative,
+                            behavior: AdornmentPositioningBehavior.OwnerControlled,
                             visualSpan: span,
                             tag: tag,
                             adornment: visualElement,

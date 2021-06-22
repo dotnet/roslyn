@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -24,13 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public readonly string ErrorType;
         public readonly InlineDiagnosticsLocations Location;
         private readonly DiagnosticData _diagnostic;
+        private readonly INavigateToLinkService _navigateToLinkService;
 
-        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location)
+        public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
             : base(editorFormatMap)
         {
             ErrorType = errorType;
             _diagnostic = diagnostic;
             Location = location;
+            _navigateToLinkService = navigateToLinkService;
         }
 
         /// <summary>
@@ -92,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout.
             // TODO: Not sure if these are needed anymore since the errors are not intratextadornment tags
-            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
+            /*TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
             TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));
+            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));*/
 
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
@@ -112,6 +114,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     Canvas.SetLeft(border, view.ViewportWidth - border.DesiredSize.Width);
                 }
             }
+
+            void HandleRequestNavigate(object sender, RoutedEventArgs e)
+            {
+                var uri = link.NavigateUri;
+                _ = _navigateToLinkService.TryNavigateToLinkAsync(uri, CancellationToken.None);
+                e.Handled = true;
+            }
         }
 
         private ImageMoniker GetMoniker()
@@ -123,17 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 default:
                     return KnownMonikers.StatusError;
             }
-        }
-
-        /// <summary>
-        /// Navigates to the requrest URL
-        /// </summary>
-        private void HandleRequestNavigate(object sender, RoutedEventArgs e)
-        {
-            var link = (Hyperlink)sender;
-            var uri = link.NavigateUri.ToString();
-            Process.Start(uri);
-            e.Handled = true;
         }
 
         /// <summary>
