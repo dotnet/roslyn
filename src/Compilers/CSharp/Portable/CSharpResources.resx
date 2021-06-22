@@ -3019,6 +3019,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
     <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
   </data>
+  <data name="ERR_CantConvAnonMethReturnType" xml:space="preserve">
+    <value>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</value>
+  </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
   </data>
@@ -6618,6 +6621,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureLambdaAttributes" xml:space="preserve">
     <value>lambda attributes</value>
+  </data>
+  <data name="IDS_FeatureLambdaReturnType" xml:space="preserve">
+    <value>lambda return type</value>
   </data>
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
