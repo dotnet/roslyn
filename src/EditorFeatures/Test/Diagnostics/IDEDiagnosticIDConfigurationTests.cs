@@ -402,6 +402,9 @@ dotnet_diagnostic.IDE0110.severity = %value%
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
+# IDE0150
+dotnet_diagnostic.IDE0150.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
