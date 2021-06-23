@@ -1989,7 +1989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
         ' // AVAILABLE                             42600 - 49998
-        ERRWRN_NextAvailable = 42602
+        ERRWRN_NextAvailable = 42600
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
