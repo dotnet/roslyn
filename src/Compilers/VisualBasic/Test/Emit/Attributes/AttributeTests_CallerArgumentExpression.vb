@@ -56,6 +56,69 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_CaseInsensitivity_Metadata()
+            Dim il = "
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+
+    .method public static
+        void M (
+            int32 i,
+            [opt] string s
+        ) cil managed
+    {
+        .param [2] = nullref
+            .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+                01 00 01 49 00 00
+            )
+        // Method begins at RVA 0x2058
+        // Code size 9 (0x9)
+        .maxstack 8
+
+        IL_0000: nop
+        IL_0001: ldarg.0
+        IL_0002: call void [mscorlib]System.Console::WriteLine(int32)
+        IL_0007: nop
+        IL_0008: ret
+    } // end of method C::M
+
+} // end of class C
+"
+
+            Dim source =
+    <compilation>
+        <file name="c.vb"><![CDATA[
+Module Program
+    Sub Main()
+        C.M(0)
+    End Sub
+End Module
+]]>
+        </file>
+    </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="0").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_Version16_9()
             Dim source As String = "
 Imports System
@@ -73,8 +136,12 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_LanguageVersion, "123").WithArguments("16.9", "caller argument expression", "17").WithLocation(6, 13))
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC36716: Visual Basic 16.9 does not support caller argument expression.
+        Log(123)
+            ~~~
+</expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -218,8 +285,13 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(qq)").WithArguments("arg").WithLocation(13, 47))
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+    Public Sub M(p As Integer, q As Integer, <CallerArgumentExpression(qq)> Optional arg As String = "<default-arg>")
+                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -240,8 +312,13 @@ Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
-            CompileAndVerify(compilation, expectedOutput:="<default>").VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(pp)").WithArguments("arg").WithLocation(11, 14))
+            CompileAndVerify(compilation, expectedOutput:="<default>")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+    Sub Log(<CallerArgumentExpression(pp)> Optional arg As String = "<default>")
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -396,9 +473,13 @@ End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="<default>
-value").VerifyDiagnostics(
-    Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression(""p"")").WithArguments("p").WithLocation(10, 12)
-    )
+value")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42504: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+    Sub M(<CallerArgumentExpression("p")> Optional p As String = "<default>")
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -555,8 +636,13 @@ Public Module Program
 End Module
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression(p)").WithArguments("arg").WithLocation(7, 14))
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+    Sub New(<CallerArgumentExpression(p)> Optional arg As String = "<default-arg>")
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -617,8 +703,13 @@ End Module
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="default
-value").VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, "CallerArgumentExpression(p)").WithArguments("p").WithLocation(9, 14))
+value")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42504: The CallerArgumentExpressionAttribute applied to parameter 'p' will have no effect because it's self-referential.
+    Sub New(<CallerArgumentExpression(p)> Optional p As String = "default")
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -743,8 +834,13 @@ Class Program
 End Class
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            compilation.VerifyDiagnostics(
-                        Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Delegate").WithLocation(6, 67))
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC33010: 'Delegate' parameters cannot be declared 'Optional'.
+    Delegate Sub M(s1 As String, <CallerArgumentExpression("s1")> Optional ByRef s2 as String = "")
+                                                                  ~~~~~~~~
+]]></expected>)
+
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>

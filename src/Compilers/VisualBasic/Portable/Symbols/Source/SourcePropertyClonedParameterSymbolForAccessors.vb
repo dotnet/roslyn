@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                Return _originalParam.CallerArgumentExpressionParameterIndex
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
     End Class
