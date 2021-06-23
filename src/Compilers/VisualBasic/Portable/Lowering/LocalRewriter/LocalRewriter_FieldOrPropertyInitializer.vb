@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim objectInitializer As BoundObjectInitializerExpression = Nothing
                 Dim createTemporary = True
 
-                If initialValueToRewrite.Kind = Global.Microsoft.CodeAnalysis.VisualBasic.BoundKind.ObjectCreationExpression OrElse initialValueToRewrite.Kind = Global.Microsoft.CodeAnalysis.VisualBasic.BoundKind.NewT Then
+                If initialValueToRewrite.Kind = BoundKind.ObjectCreationExpression OrElse initialValueToRewrite.Kind = BoundKind.NewT Then
                     Dim objectCreationExpression = DirectCast(initialValueToRewrite, BoundObjectCreationExpressionBase)
                     If objectCreationExpression.InitializerOpt IsNot Nothing AndAlso
                     objectCreationExpression.InitializerOpt.Kind = BoundKind.ObjectInitializerExpression Then
