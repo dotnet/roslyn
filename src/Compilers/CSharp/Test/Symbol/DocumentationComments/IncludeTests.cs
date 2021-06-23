@@ -84,7 +84,7 @@ $@"<member name=""{documentationId}"">
         [InlineData("Property", "P:Acme.Widget.Property")]
         [InlineData("Method", "M:Acme.Widget.Method")]
         [InlineData("NamedType", "T:Acme.Widget.NamedType")]
-        public void TestDocumentationCachingSingleLineNamespace(string symbolName, string documentationId)
+        public void TestDocumentationCachingFileScopedNamespace(string symbolName, string documentationId)
         {
             using var _ = new EnsureEnglishUICulture();
 

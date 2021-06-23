@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode(
 @"namespace A;", TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'single-line namespace' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8652: The feature 'file-scoped namespace' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // namespace A;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "namespace").WithArguments("single-line namespace").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "namespace").WithArguments("file-scoped namespace").WithLocation(1, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.QualifiedName);
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.QualifiedName);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void MultipleSingleLineNamespaces()
+        public void MultipleFileScopedNamespaces()
         {
             UsingNode(
 @"namespace A;
@@ -360,7 +360,7 @@ namespace B;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -368,7 +368,7 @@ namespace B;", TestOptions.RegularPreview);
                         N(SyntaxKind.IdentifierToken, "A");
                     }
                     N(SyntaxKind.SemicolonToken);
-                    N(SyntaxKind.SingleLineNamespaceDeclaration);
+                    N(SyntaxKind.FileScopedNamespaceDeclaration);
                     {
                         N(SyntaxKind.NamespaceKeyword);
                         N(SyntaxKind.IdentifierName);
@@ -384,7 +384,7 @@ namespace B;", TestOptions.RegularPreview);
         }
 
         [Fact]
-        public void SingleLineNamespaceNestedInNormalNamespace()
+        public void FileScopedNamespaceNestedInNormalNamespace()
         {
             UsingNode(
 @"namespace A
@@ -402,7 +402,7 @@ namespace B;", TestOptions.RegularPreview);
                         N(SyntaxKind.IdentifierToken, "A");
                     }
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.SingleLineNamespaceDeclaration);
+                    N(SyntaxKind.FileScopedNamespaceDeclaration);
                     {
                         N(SyntaxKind.NamespaceKeyword);
                         N(SyntaxKind.IdentifierName);
@@ -419,7 +419,7 @@ namespace B;", TestOptions.RegularPreview);
         }
 
         [Fact]
-        public void NormalAndSingleLineNamespace1()
+        public void NormalAndFileScopedNamespace1()
         {
             UsingNode(
 @"namespace A;
@@ -429,7 +429,7 @@ namespace B
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -454,7 +454,7 @@ namespace B
         }
 
         [Fact]
-        public void NormalAndSingleLineNamespace2()
+        public void NormalAndFileScopedNamespace2()
         {
             UsingNode(
 @"namespace A
@@ -474,7 +474,7 @@ namespace B;", TestOptions.RegularPreview);
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -506,7 +506,7 @@ namespace A;", TestOptions.RegularPreview);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -529,7 +529,7 @@ using X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -568,7 +568,7 @@ namespace A;", TestOptions.RegularPreview);
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -591,7 +591,7 @@ class X { }", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -628,7 +628,7 @@ namespace A;", TestOptions.RegularPreview);
                     N(SyntaxKind.IdentifierToken, "X");
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -651,7 +651,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -683,7 +683,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);
@@ -705,7 +705,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.GenericName);
@@ -736,7 +736,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.AliasQualifiedName);
@@ -766,7 +766,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.PublicKeyword);
                     N(SyntaxKind.NamespaceKeyword);
@@ -789,7 +789,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -823,7 +823,7 @@ extern alias X;", TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.SingleLineNamespaceDeclaration);
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
                 {
                     N(SyntaxKind.NamespaceKeyword);
                     N(SyntaxKind.IdentifierName);

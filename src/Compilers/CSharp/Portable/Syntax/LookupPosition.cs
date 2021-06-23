@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, namespaceDecl.NamespaceKeyword, namespaceDecl.CloseBraceToken);
         }
 
-        internal static bool IsInNamespaceDeclaration(int position, SingleLineNamespaceDeclarationSyntax namespaceDecl)
+        internal static bool IsInNamespaceDeclaration(int position, FileScopedNamespaceDeclarationSyntax namespaceDecl)
         {
             Debug.Assert(namespaceDecl != null);
 

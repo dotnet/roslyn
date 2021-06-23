@@ -1939,9 +1939,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
         ERR_CannotInferDelegateType = 8917,
 
-        ERR_MultipleSingleLineNamespace = 8930,
-        ERR_SingleLineAndNormalNamespace = 8931,
-        ERR_SingleLineNamespaceNotBeforeAllMembers = 8932,
+        ERR_MultipleFileScopedNamespace = 8930,
+        ERR_FileScopedAndNormalNamespace = 8931,
+        ERR_FileScopedNamespaceNotBeforeAllMembers = 8932,
 
 
         #endregion

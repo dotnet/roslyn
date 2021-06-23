@@ -2957,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
-                    case SyntaxKind.SingleLineNamespaceDeclaration:
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
                         AddNonTypeMembers(builder, ((BaseNamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
@@ -4484,7 +4484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(
                             SyntaxFacts.IsTypeDeclaration(m.Kind()) ||
                             m.Kind() is SyntaxKind.NamespaceDeclaration or
-                                        SyntaxKind.SingleLineNamespaceDeclaration or
+                                        SyntaxKind.FileScopedNamespaceDeclaration or
                                         SyntaxKind.IncompleteMember);
                         break;
                 }

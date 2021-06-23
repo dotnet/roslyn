@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, WithUsingNamespacesAndTypesBinder next)
                 : base(next)
             {
-                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration);
+                Debug.Assert(declarationSyntax.Kind() is SyntaxKind.CompilationUnit or SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration);
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
             }

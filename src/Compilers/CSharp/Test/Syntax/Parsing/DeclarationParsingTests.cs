@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSingleLineNamespace()
+        public void TestFileScopedNamespace()
         {
             var text = "namespace a;";
             var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
@@ -589,8 +589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
-            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
             Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSingleLineNamespaceWithUsing()
+        public void TestFileScopedNamespaceWithUsing()
         {
             var text = "namespace a; using b.c;";
             var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
@@ -655,8 +655,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
-            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
             Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestSingleLineNamespaceWithExternAlias()
+        public void TestFileScopedNamespaceWithExternAlias()
         {
             var text = "namespace a; extern alias b;";
             var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
@@ -700,8 +700,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, file.Members[0].Kind());
-            var ns = (SingleLineNamespaceDeclarationSyntax)file.Members[0];
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, file.Members[0].Kind());
+            var ns = (FileScopedNamespaceDeclarationSyntax)file.Members[0];
             Assert.NotEqual(default, ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
             Assert.Equal("a", ns.Name.ToString());

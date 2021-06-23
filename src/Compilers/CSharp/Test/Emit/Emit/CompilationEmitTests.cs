@@ -161,15 +161,15 @@ namespace N.;
             Assert.False(emitResult.Success);
 
             emitResult.Diagnostics.Verify(
-                    // (13,1): error CS8652: The feature 'single-line namespace' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (13,1): error CS8652: The feature 'file-scoped namespace' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // namespace N.;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "namespace").WithArguments("single-line namespace").WithLocation(13, 1),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "namespace").WithArguments("file-scoped namespace").WithLocation(13, 1),
                     // (13,13): error CS1001: Identifier expected
                     // namespace N.;
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(13, 13),
-                    // (13,11): error CS8909: Single-line namespace must precede all other members in a file.
+                    // (13,11): error CS8909: File-scoped namespace must precede all other members in a file.
                     // namespace N.;
-                    Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "N.").WithLocation(13, 11),
+                    Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "N.").WithLocation(13, 11),
                     // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
                     //         public Blah field;
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),

@@ -427,6 +427,11 @@
         <target state="translated">El evento de tipo campo "{0}" no puede ser "readonly".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">La instrucción foreach no puede funcionar en variables de tipo "{0}" porque "{0}" no contiene ninguna definición de extensión o instancia pública para "{1}". ¿Quiso decir “await foreach” en lugar de “foreach”?</target>
@@ -652,9 +657,9 @@
         <target state="translated">Solo una declaración parcial de un registro puede tener una lista de parámetros</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MultipleSingleLineNamespace">
-        <source>Source file can only contain one single-line namespace declaration.</source>
-        <target state="new">Source file can only contain one single-line namespace declaration.</target>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -897,14 +902,9 @@
         <target state="translated">Un patrón de deconstrucción de un solo elemento requiere más sintaxis para la desambiguación. Se recomienda agregar un designador de descarte "_" después del paréntesis de cierre ")".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SingleLineAndNormalNamespace">
-        <source>Source file can not contain both single-line and normal namespace declarations.</source>
-        <target state="new">Source file can not contain both single-line and normal namespace declarations.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SingleLineNamespaceNotBeforeAllMembers">
-        <source>Single-line namespace must precede all other members in a file.</source>
-        <target state="new">Single-line namespace must precede all other members in a file.</target>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -1012,6 +1012,11 @@
         <target state="translated">descartes</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="new">global using directive</target>
@@ -1055,11 +1060,6 @@
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
         <target state="new">with on structs</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_SingleLineNamespace">
-        <source>single-line namespace</source>
-        <target state="new">single-line namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

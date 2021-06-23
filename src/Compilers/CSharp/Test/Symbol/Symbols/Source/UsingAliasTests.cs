@@ -371,7 +371,7 @@ namespace NS
         }
 
         [ClrOnlyFact, WorkItem(2805, "https://github.com/dotnet/roslyn/issues/2805")]
-        public void AliasWithAnErrorSingleLineNamespace()
+        public void AliasWithAnErrorFileScopedNamespace()
         {
             var text =
 @"

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
-                case SyntaxKind.SingleLineNamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
                         var ns = (BaseNamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members)
