@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Testing.TestFixes
                     CodeAction.Create(
                         "LiteralUnderFive",
                         cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                        nameof(IncrementFix)),
+                        $"{nameof(IncrementFix)}:{int.Parse(diagnostic.Properties[LiteralUnderFiveAnalyzer.CurrentValueProperty]!) + 1}"),
                     diagnostic);
             }
 

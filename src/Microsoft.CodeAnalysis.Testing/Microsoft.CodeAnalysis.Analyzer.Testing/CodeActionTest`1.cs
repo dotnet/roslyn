@@ -110,15 +110,21 @@ namespace Microsoft.CodeAnalysis.Testing
             return false;
         }
 
-        protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
+        protected static CodeAction? TryGetCodeActionToApply(int iteration, ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
         {
             CodeAction? result;
             if (codeActionIndex.HasValue && codeActionEquivalenceKey != null)
             {
-                if (actions.Length <= codeActionIndex)
+                var expectedAction = actions.FirstOrDefault(action => action.EquivalenceKey == codeActionEquivalenceKey);
+                if (expectedAction is null && iteration > 0)
                 {
+                    // No matching code action was found. This is acceptable if this is not the first iteration.
                     return null;
                 }
+
+                verifier.True(
+                    actions.Length > codeActionIndex,
+                    $"Expected to find a code action at index '{codeActionIndex}', but only '{actions.Length}' code actions were found.");
 
                 verifier.Equal(
                     codeActionEquivalenceKey,

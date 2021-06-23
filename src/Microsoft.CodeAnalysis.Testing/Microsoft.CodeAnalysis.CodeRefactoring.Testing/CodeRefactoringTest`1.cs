@@ -227,9 +227,12 @@ namespace Microsoft.CodeAnalysis.Testing
                 numberOfIterations = -numberOfIterations;
             }
 
+            var currentIteration = -1;
             bool done;
             do
             {
+                currentIteration++;
+
                 try
                 {
                     verifier.True(--numberOfIterations >= -1, "The upper limit for the number of code fix iterations was exceeded");
@@ -253,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var filteredActions = FilterCodeActions(actions.ToImmutable());
-                var actionToApply = TryGetCodeActionToApply(filteredActions, codeActionIndex, codeActionEquivalenceKey, codeActionVerifier, verifier);
+                var actionToApply = TryGetCodeActionToApply(currentIteration, filteredActions, codeActionIndex, codeActionEquivalenceKey, codeActionVerifier, verifier);
                 if (actionToApply != null)
                 {
                     anyActions = true;
