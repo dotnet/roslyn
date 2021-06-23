@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
-            Document document, TextSpan range,
+            Document document,
+            TextSpan? range,
             string? diagnosticId,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,

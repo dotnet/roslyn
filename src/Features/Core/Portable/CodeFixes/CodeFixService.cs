@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // order diagnostics by span.
             SortedDictionary<TextSpan, List<DiagnosticData>>? aggregatedDiagnostics = null;
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, diagnosticIdOpt: null, includeConfigurationFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
+                document, range, diagnosticId: null, includeConfigurationFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.IsSuppressed)

@@ -520,6 +520,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         VS_ErrorReportingService_ShowGlobalErrorInfo = 489,
 
-        SuggestedActions_GetSuggestedActionsAsync = 490,
+        ValueTracking_Command = 490,
+        ValueTracking_TrackValueSource = 491,
+
+        SuggestedActions_GetSuggestedActionsAsync = 500,
     }
 }

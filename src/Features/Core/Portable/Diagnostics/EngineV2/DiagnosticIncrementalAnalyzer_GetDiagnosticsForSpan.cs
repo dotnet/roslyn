@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     internal partial class DiagnosticIncrementalAnalyzer
     {
         public async Task<bool> TryAppendDiagnosticsForSpanAsync(
-            Document document, TextSpan range, ArrayBuilder<DiagnosticData> result, string? diagnosticId,
+            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, string? diagnosticId,
             bool includeSuppressedDiagnostics, CodeActionRequestPriority priority, bool blockForData,
             Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             Document document,
-            TextSpan range,
+            TextSpan? range,
             string? diagnosticId,
             bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
 
-            private readonly TextSpan _range;
+            private readonly TextSpan? _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
             private readonly CodeActionRequestPriority _priority;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
                  Document document,
-                 TextSpan range,
+                 TextSpan? range,
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Document document,
                 IEnumerable<StateSet> stateSets,
                 string? diagnosticId,
-                TextSpan range,
+                TextSpan? range,
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics,
@@ -257,7 +257,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.GetTextSpan())
+                return diagnostic.DocumentId == _document.Id &&
+                    (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }
