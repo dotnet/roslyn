@@ -1453,6 +1453,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
+        public void GetPartsOfForStatement(SyntaxNode? node, out SyntaxNode? variableDeclaration, out SyntaxNode? startvalue, out SyntaxNode? endCondition, out ImmutableArray<SyntaxNode> increments)
+        {
+            variableDeclaration = null;
+            startvalue = null;
+            endCondition = null;
+            increments = ImmutableArray<SyntaxNode>.Empty;
+
+            if (node is ForStatementSyntax forStatement)
+            {
+                variableDeclaration = forStatement.Declaration;
+                endCondition = forStatement.Condition;
+                increments = forStatement.Incrementors.ToImmutableArray<SyntaxNode>();
+            }
+        }
+
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 

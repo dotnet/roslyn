@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Increment))
                         {
-                            return Increment((TExpressionSyntax)leftOfAssign.WithTriviaFrom(currentAssignment), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
+                            return IncrementOrDecrement(Increment, currentAssignment, leftOfAssign);
                         }
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
                         {
-                            return Decrement((TExpressionSyntax)leftOfAssign.WithTriviaFrom(currentAssignment), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
+                            return IncrementOrDecrement(Decrement, currentAssignment, leftOfAssign);
                         }
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
@@ -100,6 +100,20 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             return Task.CompletedTask;
+
+            SyntaxNode IncrementOrDecrement(Func<TExpressionSyntax, bool, TExpressionSyntax> incrementOrDecrementFactory, SyntaxNode currentAssignment, SyntaxNode leftOfAssignment)
+            {
+                var postfix = syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent);
+                if (!postfix)
+                {
+                    syntaxFacts.GetPartsOfForStatement(currentAssignment.Parent, out _, out _, out _, out var increments);
+                    if (increments.Contains(currentAssignment))
+                    {
+                        postfix = true;
+                    }
+                }
+                return incrementOrDecrementFactory((TExpressionSyntax)leftOfAssignment.WithTriviaFrom(currentAssignment), postfix);
+            }
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

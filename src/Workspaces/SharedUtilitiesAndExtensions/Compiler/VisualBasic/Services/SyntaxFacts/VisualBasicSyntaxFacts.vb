@@ -1515,6 +1515,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
+        Public Sub GetPartsOfForStatement(node As SyntaxNode, ByRef variableDeclaration As SyntaxNode, ByRef startValue As SyntaxNode, ByRef endCondition As SyntaxNode, ByRef increments As ImmutableArray(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfForStatement
+            If TypeOf node Is ForStatementSyntax Then
+                Dim forStatement = DirectCast(node, ForStatementSyntax)
+                variableDeclaration = forStatement.ControlVariable
+                startValue = forStatement.FromValue
+                endCondition = forStatement.ToValue
+                increments = ImmutableArray.Create(Of SyntaxNode)(forStatement.StepClause)
+            End If
+        End Sub
+
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
