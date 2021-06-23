@@ -21145,64 +21145,7 @@ class E
 1
 2
 1 2
-2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.Main", @"
-{
-  // Code size      148 (0x94)
-  .maxstack  3
-  .locals init (C V_0, //c2
-                D V_1, //d
-                D V_2, //d2
-                int V_3)
-  IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  dup
-  IL_0006:  ldc.i4.1
-  IL_0007:  callvirt   ""void C.X.init""
-  IL_000c:  dup
-  IL_000d:  call       ""C E.CHelper(C)""
-  IL_0012:  stloc.0
-  IL_0013:  callvirt   ""int C.X.get""
-  IL_0018:  call       ""void System.Console.WriteLine(int)""
-  IL_001d:  ldloc.0
-  IL_001e:  callvirt   ""int C.X.get""
-  IL_0023:  call       ""void System.Console.WriteLine(int)""
-  IL_0028:  ldc.i4.2
-  IL_0029:  newobj     ""D..ctor(int)""
-  IL_002e:  dup
-  IL_002f:  ldc.i4.1
-  IL_0030:  callvirt   ""void C.X.init""
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  call       ""D E.DHelper(D)""
-  IL_003c:  stloc.2
-  IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""int C.X.get""
-  IL_0043:  stloc.3
-  IL_0044:  ldloca.s   V_3
-  IL_0046:  call       ""string int.ToString()""
-  IL_004b:  ldstr      "" ""
-  IL_0050:  ldloc.1
-  IL_0051:  callvirt   ""int D.Y.get""
-  IL_0056:  stloc.3
-  IL_0057:  ldloca.s   V_3
-  IL_0059:  call       ""string int.ToString()""
-  IL_005e:  call       ""string string.Concat(string, string, string)""
-  IL_0063:  call       ""void System.Console.WriteLine(string)""
-  IL_0068:  ldloc.2
-  IL_0069:  callvirt   ""int C.X.get""
-  IL_006e:  stloc.3
-  IL_006f:  ldloca.s   V_3
-  IL_0071:  call       ""string int.ToString()""
-  IL_0076:  ldstr      "" ""
-  IL_007b:  ldloc.2
-  IL_007c:  callvirt   ""int D.Y.get""
-  IL_0081:  stloc.3
-  IL_0082:  ldloca.s   V_3
-  IL_0084:  call       ""string int.ToString()""
-  IL_0089:  call       ""string string.Concat(string, string, string)""
-  IL_008e:  call       ""void System.Console.WriteLine(string)""
-  IL_0093:  ret
-}
-").VerifyIL("E.CHelper", @"
+2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.CHelper", @"
 {
   // Code size       14 (0xe)
   .maxstack  3
