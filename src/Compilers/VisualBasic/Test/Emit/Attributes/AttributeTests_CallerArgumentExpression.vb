@@ -1052,6 +1052,138 @@ End Module
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
             compilation.VerifyDiagnostics()
         End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter1()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression("""")> value As String)
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="New value")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect. It is applied with an invalid parameter name.
+        Set(<CallerArgumentExpression("")> value As String)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter2()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression(""value"")> value As String)
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="New value")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42504: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect because it's self-referential.
+        Set(<CallerArgumentExpression("value")> value As String)
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter3()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression("""")> Optional value As String = ""default"")
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect. It is applied with an invalid parameter name.
+        Set(<CallerArgumentExpression("")> Optional value As String = "default")
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31065: 'Set' parameter cannot be declared 'Optional'.
+        Set(<CallerArgumentExpression("")> Optional value As String = "default")
+                                           ~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter4()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression(""value"")> Optional value As String = ""default"")
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC42504: The CallerArgumentExpressionAttribute applied to parameter 'value' will have no effect because it's self-referential.
+        Set(<CallerArgumentExpression("value")> Optional value As String = "default")
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31065: 'Set' parameter cannot be declared 'Optional'.
+        Set(<CallerArgumentExpression("value")> Optional value As String = "default")
+                                                ~~~~~~~~
+]]></expected>)
+        End Sub
 #End Region
     End Class
 End Namespace
