@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
             Debug.Assert(
-                node.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.SingleLineNamespaceDeclaration ||
+                node.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration ||
                 (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
-        public override SingleNamespaceOrTypeDeclaration VisitSingleLineNamespaceDeclaration(SingleLineNamespaceDeclarationSyntax node)
+        public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
             => this.VisitBaseNamespaceDeclaration(node);
 
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
@@ -331,14 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            if (node is SingleLineNamespaceDeclarationSyntax)
+            if (node is FileScopedNamespaceDeclarationSyntax)
             {
-                if (node.Parent is SingleLineNamespaceDeclarationSyntax)
+                if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
                     // Happens when user writes:
                     //      namespace A.B;
                     //      namespace X.Y;
-                    diagnostics.Add(ErrorCode.ERR_MultipleSingleLineNamespace, node.Name.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_MultipleFileScopedNamespace, node.Name.GetLocation());
                 }
                 else if (node.Parent is NamespaceDeclarationSyntax)
                 {
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //      namespace A.B
                     //      {
                     //          namespace X.Y;
-                    diagnostics.Add(ErrorCode.ERR_SingleLineAndNormalNamespace, node.Name.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_FileScopedAndNormalNamespace, node.Name.GetLocation());
                 }
                 else
                 {
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var compilationUnit = (CompilationUnitSyntax)node.Parent;
                     if (node != compilationUnit.Members[0])
                     {
-                        diagnostics.Add(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, node.Name.GetLocation());
+                        diagnostics.Add(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, node.Name.GetLocation());
                     }
                 }
             }
@@ -375,9 +375,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //      namespace X.Y;
                 //      namespace A.B { }
-                if (node.Parent is SingleLineNamespaceDeclarationSyntax)
+                if (node.Parent is FileScopedNamespaceDeclarationSyntax)
                 {
-                    diagnostics.Add(ErrorCode.ERR_SingleLineAndNormalNamespace, node.Name.GetLocation());
+                    diagnostics.Add(ErrorCode.ERR_FileScopedAndNormalNamespace, node.Name.GetLocation());
                 }
             }
 

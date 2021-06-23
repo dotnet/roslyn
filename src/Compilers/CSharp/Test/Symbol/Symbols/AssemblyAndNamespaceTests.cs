@@ -491,20 +491,20 @@ namespace N { }
         }
 
         [Fact]
-        public void MultipleSingleLineNamespaces()
+        public void MultipleFileScopedNamespaces()
         {
             var test =
 @"namespace A;
 namespace B;";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (2,11): error CS8907: Source file can only contain one single-line namespace declaration.
+                // (2,11): error CS8907: Source file can only contain one file-scoped namespace declaration.
                 // namespace B;
-                Diagnostic(ErrorCode.ERR_MultipleSingleLineNamespace, "B").WithLocation(2, 11));
+                Diagnostic(ErrorCode.ERR_MultipleFileScopedNamespace, "B").WithLocation(2, 11));
         }
 
         [Fact]
-        public void SingleLineNamespaceNestedInNormalNamespace()
+        public void FileScopedNamespaceNestedInNormalNamespace()
         {
             var test =
 @"namespace A
@@ -513,13 +513,13 @@ namespace B;";
 }";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (3,15): error CS8908: Source file can not contain both single-line and normal namespace declarations.
+                // (3,15): error CS8908: Source file can not contain both file-scoped and normal namespace declarations.
                 //     namespace B;
-                Diagnostic(ErrorCode.ERR_SingleLineAndNormalNamespace, "B").WithLocation(3, 15));
+                Diagnostic(ErrorCode.ERR_FileScopedAndNormalNamespace, "B").WithLocation(3, 15));
         }
 
         [Fact]
-        public void NormalAndSingleLineNamespace1()
+        public void NormalAndFileScopedNamespace1()
         {
             var test =
 @"namespace A;
@@ -528,13 +528,13 @@ namespace B
 }";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (2,11): error CS8908: Source file can only contain single-line and normal namespace declarations.
+                // (2,11): error CS8908: error CS8908: Source file can not contain both file-scoped and normal namespace declarations.
                 // namespace B
-                Diagnostic(ErrorCode.ERR_SingleLineAndNormalNamespace, "B").WithLocation(2, 11));
+                Diagnostic(ErrorCode.ERR_FileScopedAndNormalNamespace, "B").WithLocation(2, 11));
         }
 
         [Fact]
-        public void NormalAndSingleLineNamespace2()
+        public void NormalAndFileScopedNamespace2()
         {
             var test =
 @"namespace A
@@ -543,9 +543,9 @@ namespace B
 namespace B;";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (4,11): error CS8909: Single-line namespace must precede all other members in a file.
+                // (4,11): error CS8909: File-scoped namespace must precede all other members in a file.
                 // namespace B;
-                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "B").WithLocation(4, 11));
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "B").WithLocation(4, 11));
         }
 
         [Fact]
@@ -582,9 +582,9 @@ using System;";
 namespace System;";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (2,11): error CS8909: Single-line namespace must precede all other members in a file.
+                // (2,11): error CS8909: File-scoped namespace must precede all other members in a file.
                 // namespace System;
-                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "System").WithLocation(2, 11));
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "System").WithLocation(2, 11));
         }
 
         [Fact]
@@ -598,7 +598,7 @@ class X { }";
         }
 
         [Fact]
-        public void SingleLineNamespaceWithPrecedingStatement()
+        public void FileScopedNamespaceWithPrecedingStatement()
         {
             var test =
 @"
@@ -606,13 +606,13 @@ System.Console.WriteLine();
 namespace B;";
 
             CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
-                // (3,11): error CS8914: Single-line namespace must precede all other members in a file.
+                // (3,11): error CS8914: File-scoped namespace must precede all other members in a file.
                 // namespace B;
-                Diagnostic(ErrorCode.ERR_SingleLineNamespaceNotBeforeAllMembers, "B").WithLocation(3, 11));
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "B").WithLocation(3, 11));
         }
 
         [Fact]
-        public void SingleLineNamespaceWithFollowingStatement()
+        public void FileScopedNamespaceWithFollowingStatement()
         {
             var test =
 @"
@@ -632,7 +632,7 @@ System.Console.WriteLine();";
         }
 
         [Fact]
-        public void SingleLineNamespaceUsingsBeforeAndAfter()
+        public void FileScopedNamespaceUsingsBeforeAndAfter()
         {
             var source1 = @"
 namespace A
@@ -664,7 +664,7 @@ class C
         }
 
         [Fact]
-        public void SingleLineNamespaceFollowedByVariable()
+        public void FileScopedNamespaceFollowedByVariable()
         {
             var test = @"
 namespace B;

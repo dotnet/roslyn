@@ -6252,7 +6252,7 @@ class A
         }
 
         [Fact]
-        public void TestSingleLineNamespaceDeclarationInUsingDirective()
+        public void TestFileScopedNamespaceDeclarationInUsingDirective()
         {
             var text = @"using namespace Goo;";
             var file = this.ParseTree(text);
@@ -6269,8 +6269,8 @@ class A
             Assert.Equal(1, members.Count);
 
             var namespaceDeclaration = members[0];
-            Assert.Equal(SyntaxKind.SingleLineNamespaceDeclaration, namespaceDeclaration.Kind());
-            Assert.False(((SingleLineNamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
+            Assert.Equal(SyntaxKind.FileScopedNamespaceDeclaration, namespaceDeclaration.Kind());
+            Assert.False(((FileScopedNamespaceDeclarationSyntax)namespaceDeclaration).Name.IsMissing);
         }
 
         [Fact]
@@ -7081,7 +7081,7 @@ static
 
         [WorkItem(947819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947819")]
         [Fact]
-        public void MissingOpenBraceForClassSingleLineNamespace()
+        public void MissingOpenBraceForClassFileScopedNamespace()
         {
             var source = @"namespace n;
 
@@ -7095,7 +7095,7 @@ class c
             Assert.False(classDecl.Identifier.IsMissing);
             Assert.True(classDecl.OpenBraceToken.IsMissing);
             Assert.True(classDecl.CloseBraceToken.IsMissing);
-            var ns = root.DescendantNodes().OfType<SingleLineNamespaceDeclarationSyntax>().Single();
+            var ns = root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single();
             Assert.False(ns.SemicolonToken.IsMissing);
         }
 

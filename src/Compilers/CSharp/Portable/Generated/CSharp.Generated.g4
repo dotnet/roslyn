@@ -233,16 +233,16 @@ operator_declaration
   ;
 
 base_namespace_declaration
-  : namespace_declaration
-  | single_line_namespace_declaration
+  : file_scoped_namespace_declaration
+  | namespace_declaration
+  ;
+
+file_scoped_namespace_declaration
+  : attribute_list* modifier* 'namespace' name ';' extern_alias_directive* using_directive* member_declaration*
   ;
 
 namespace_declaration
   : attribute_list* modifier* 'namespace' name '{' extern_alias_directive* using_directive* member_declaration* '}' ';'?
-  ;
-
-single_line_namespace_declaration
-  : attribute_list* modifier* 'namespace' name ';' extern_alias_directive* using_directive* member_declaration*
   ;
 
 base_property_declaration

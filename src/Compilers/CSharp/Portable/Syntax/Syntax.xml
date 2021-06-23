@@ -3066,8 +3066,8 @@
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
-  <Node Name="SingleLineNamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
-    <Kind Name="SingleLineNamespaceDeclaration"/>
+  <Node Name="FileScopedNamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
+    <Kind Name="FileScopedNamespaceDeclaration"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="NamespaceKeyword" Type="SyntaxToken" Override="true">

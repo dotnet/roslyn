@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (unit.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
-                case SyntaxKind.SingleLineNamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);

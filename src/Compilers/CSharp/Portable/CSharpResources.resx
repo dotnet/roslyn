@@ -6601,17 +6601,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointersCannotBeCalledWithNamedArguments" xml:space="preserve">
     <value>A function pointer cannot be called with named arguments.</value>
   </data>
-  <data name="IDS_SingleLineNamespace" xml:space="preserve">
-    <value>single-line namespace</value>
+  <data name="IDS_FeatureFileScopedNamespace" xml:space="preserve">
+    <value>file-scoped namespace</value>
   </data>
-  <data name="ERR_MultipleSingleLineNamespace" xml:space="preserve">
-    <value>Source file can only contain one single-line namespace declaration.</value>
+  <data name="ERR_MultipleFileScopedNamespace" xml:space="preserve">
+    <value>Source file can only contain one file-scoped namespace declaration.</value>
   </data>
-  <data name="ERR_SingleLineAndNormalNamespace" xml:space="preserve">
-    <value>Source file can not contain both single-line and normal namespace declarations.</value>
+  <data name="ERR_FileScopedAndNormalNamespace" xml:space="preserve">
+    <value>Source file can not contain both file-scoped and normal namespace declarations.</value>
   </data>
-  <data name="ERR_SingleLineNamespaceNotBeforeAllMembers" xml:space="preserve">
-    <value>Single-line namespace must precede all other members in a file.</value>
+  <data name="ERR_FileScopedNamespaceNotBeforeAllMembers" xml:space="preserve">
+    <value>File-scoped namespace must precede all other members in a file.</value>
   </data>
   <data name="WRN_UnreadRecordParameter" xml:space="preserve">
     <value>Parameter '{0}' is unread. Did you forget to use it to initialize the property with that name?</value>

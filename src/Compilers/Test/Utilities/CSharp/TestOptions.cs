@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions WithoutCovariantReturns = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
 
         public static readonly CSharpParseOptions RegularWithExtendedPartialMethods = RegularPreview;
-        public static readonly CSharpParseOptions RegularWithFileScopedNamespaces = Regular.WithLanguageVersion(MessageID.IDS_SingleLineNamespace.RequiredVersion());
+        public static readonly CSharpParseOptions RegularWithFileScopedNamespaces = Regular.WithLanguageVersion(MessageID.IDS_FeatureFileScopedNamespace.RequiredVersion());
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
