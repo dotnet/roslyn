@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                         postfix = true;
                     }
                 }
-                return incrementOrDecrementFactory((TExpressionSyntax)leftOfAssignment.WithTriviaFrom(currentAssignment), postfix);
+                return incrementOrDecrementFactory((TExpressionSyntax)leftOfAssignment, postfix).WithTriviaFrom(currentAssignment);
             }
         }
 
