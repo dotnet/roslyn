@@ -21119,24 +21119,24 @@ class E
     public static void Main()
     {
         var c = new C() { X = 1 };
-        var c2 = c with { X = 2 };
+        var c2 = CHelper(c);
         Console.WriteLine(c.X);
         Console.WriteLine(c2.X);
 
         var d = new D(2) { X = 1 };
-        var d2 = d with { X = 2, Y = 3 };
+        var d2 = DHelper(d);
         Console.WriteLine(d.X + "" "" + d.Y);
         Console.WriteLine(d2.X + "" ""  + d2.Y);
+    }
 
-        C c3 = d;
-        C c4 = d2;
-        c3 = c3 with { X = 3 };
-        c4 = c4 with { X = 4 };
+    private static C CHelper(C c)
+    {
+        return c with { X = 2 };
+    }
 
-        d = (D)c3;
-        d2 = (D)c4;
-        Console.WriteLine(d.X + "" "" + d.Y);
-        Console.WriteLine(d2.X + "" ""  + d2.Y);
+    private static D DHelper(D d)
+    {
+        return d with { X = 2, Y = 3 };
     }
 }";
             var verifier = CompileAndVerify(RuntimeUtilities.IsCoreClrRuntime ? src2 : new[] { src2, IsExternalInitTypeDefinition },
@@ -21145,247 +21145,111 @@ class E
 1
 2
 1 2
-2 3
-3 2
-4 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics();
-            if (RuntimeUtilities.IsCoreClrRuntime)
-            {
-                verifier.VerifyIL("E.Main", @"
+2 3", targetFramework: TargetFramework.StandardLatest).VerifyDiagnostics().VerifyIL("E.Main", @"
 {
-  // Code size      313 (0x139)
+  // Code size      148 (0x94)
   .maxstack  3
-  .locals init (C V_0, //c
+  .locals init (C V_0, //c2
                 D V_1, //d
                 D V_2, //d2
-                C V_3, //c3
-                C V_4, //c4
-                int V_5)
+                int V_3)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  dup
   IL_0006:  ldc.i4.1
   IL_0007:  callvirt   ""void C.X.init""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  callvirt   ""C C.<Clone>$()""
-  IL_0013:  dup
-  IL_0014:  ldc.i4.2
-  IL_0015:  callvirt   ""void C.X.init""
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""int C.X.get""
-  IL_0020:  call       ""void System.Console.WriteLine(int)""
-  IL_0025:  callvirt   ""int C.X.get""
-  IL_002a:  call       ""void System.Console.WriteLine(int)""
-  IL_002f:  ldc.i4.2
-  IL_0030:  newobj     ""D..ctor(int)""
-  IL_0035:  dup
-  IL_0036:  ldc.i4.1
-  IL_0037:  callvirt   ""void C.X.init""
-  IL_003c:  stloc.1
+  IL_000c:  dup
+  IL_000d:  call       ""C E.CHelper(C)""
+  IL_0012:  stloc.0
+  IL_0013:  callvirt   ""int C.X.get""
+  IL_0018:  call       ""void System.Console.WriteLine(int)""
+  IL_001d:  ldloc.0
+  IL_001e:  callvirt   ""int C.X.get""
+  IL_0023:  call       ""void System.Console.WriteLine(int)""
+  IL_0028:  ldc.i4.2
+  IL_0029:  newobj     ""D..ctor(int)""
+  IL_002e:  dup
+  IL_002f:  ldc.i4.1
+  IL_0030:  callvirt   ""void C.X.init""
+  IL_0035:  stloc.1
+  IL_0036:  ldloc.1
+  IL_0037:  call       ""D E.DHelper(D)""
+  IL_003c:  stloc.2
   IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""D D.<Clone>$()""
-  IL_0043:  dup
-  IL_0044:  ldc.i4.2
-  IL_0045:  callvirt   ""void C.X.init""
-  IL_004a:  dup
-  IL_004b:  ldc.i4.3
-  IL_004c:  callvirt   ""void D.Y.init""
-  IL_0051:  stloc.2
-  IL_0052:  ldloc.1
-  IL_0053:  callvirt   ""int C.X.get""
-  IL_0058:  stloc.s    V_5
-  IL_005a:  ldloca.s   V_5
-  IL_005c:  call       ""string int.ToString()""
-  IL_0061:  ldstr      "" ""
-  IL_0066:  ldloc.1
-  IL_0067:  callvirt   ""int D.Y.get""
-  IL_006c:  stloc.s    V_5
-  IL_006e:  ldloca.s   V_5
-  IL_0070:  call       ""string int.ToString()""
-  IL_0075:  call       ""string string.Concat(string, string, string)""
-  IL_007a:  call       ""void System.Console.WriteLine(string)""
-  IL_007f:  ldloc.2
-  IL_0080:  callvirt   ""int C.X.get""
-  IL_0085:  stloc.s    V_5
-  IL_0087:  ldloca.s   V_5
-  IL_0089:  call       ""string int.ToString()""
-  IL_008e:  ldstr      "" ""
-  IL_0093:  ldloc.2
-  IL_0094:  callvirt   ""int D.Y.get""
-  IL_0099:  stloc.s    V_5
-  IL_009b:  ldloca.s   V_5
-  IL_009d:  call       ""string int.ToString()""
-  IL_00a2:  call       ""string string.Concat(string, string, string)""
-  IL_00a7:  call       ""void System.Console.WriteLine(string)""
-  IL_00ac:  ldloc.1
-  IL_00ad:  stloc.3
-  IL_00ae:  ldloc.2
-  IL_00af:  stloc.s    V_4
-  IL_00b1:  ldloc.3
-  IL_00b2:  callvirt   ""C C.<Clone>$()""
-  IL_00b7:  dup
-  IL_00b8:  ldc.i4.3
-  IL_00b9:  callvirt   ""void C.X.init""
-  IL_00be:  stloc.3
-  IL_00bf:  ldloc.s    V_4
-  IL_00c1:  callvirt   ""C C.<Clone>$()""
-  IL_00c6:  dup
-  IL_00c7:  ldc.i4.4
-  IL_00c8:  callvirt   ""void C.X.init""
-  IL_00cd:  stloc.s    V_4
-  IL_00cf:  ldloc.3
-  IL_00d0:  castclass  ""D""
-  IL_00d5:  stloc.1
-  IL_00d6:  ldloc.s    V_4
-  IL_00d8:  castclass  ""D""
-  IL_00dd:  stloc.2
-  IL_00de:  ldloc.1
-  IL_00df:  callvirt   ""int C.X.get""
-  IL_00e4:  stloc.s    V_5
-  IL_00e6:  ldloca.s   V_5
-  IL_00e8:  call       ""string int.ToString()""
-  IL_00ed:  ldstr      "" ""
-  IL_00f2:  ldloc.1
-  IL_00f3:  callvirt   ""int D.Y.get""
-  IL_00f8:  stloc.s    V_5
-  IL_00fa:  ldloca.s   V_5
-  IL_00fc:  call       ""string int.ToString()""
-  IL_0101:  call       ""string string.Concat(string, string, string)""
-  IL_0106:  call       ""void System.Console.WriteLine(string)""
-  IL_010b:  ldloc.2
-  IL_010c:  callvirt   ""int C.X.get""
-  IL_0111:  stloc.s    V_5
-  IL_0113:  ldloca.s   V_5
-  IL_0115:  call       ""string int.ToString()""
-  IL_011a:  ldstr      "" ""
-  IL_011f:  ldloc.2
-  IL_0120:  callvirt   ""int D.Y.get""
-  IL_0125:  stloc.s    V_5
-  IL_0127:  ldloca.s   V_5
-  IL_0129:  call       ""string int.ToString()""
-  IL_012e:  call       ""string string.Concat(string, string, string)""
-  IL_0133:  call       ""void System.Console.WriteLine(string)""
-  IL_0138:  ret
-}");
+  IL_003e:  callvirt   ""int C.X.get""
+  IL_0043:  stloc.3
+  IL_0044:  ldloca.s   V_3
+  IL_0046:  call       ""string int.ToString()""
+  IL_004b:  ldstr      "" ""
+  IL_0050:  ldloc.1
+  IL_0051:  callvirt   ""int D.Y.get""
+  IL_0056:  stloc.3
+  IL_0057:  ldloca.s   V_3
+  IL_0059:  call       ""string int.ToString()""
+  IL_005e:  call       ""string string.Concat(string, string, string)""
+  IL_0063:  call       ""void System.Console.WriteLine(string)""
+  IL_0068:  ldloc.2
+  IL_0069:  callvirt   ""int C.X.get""
+  IL_006e:  stloc.3
+  IL_006f:  ldloca.s   V_3
+  IL_0071:  call       ""string int.ToString()""
+  IL_0076:  ldstr      "" ""
+  IL_007b:  ldloc.2
+  IL_007c:  callvirt   ""int D.Y.get""
+  IL_0081:  stloc.3
+  IL_0082:  ldloca.s   V_3
+  IL_0084:  call       ""string int.ToString()""
+  IL_0089:  call       ""string string.Concat(string, string, string)""
+  IL_008e:  call       ""void System.Console.WriteLine(string)""
+  IL_0093:  ret
+}
+").VerifyIL("E.CHelper", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""C C.<Clone>$()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.2
+  IL_0008:  callvirt   ""void C.X.init""
+  IL_000d:  ret
+}
+");
+            if (RuntimeUtilities.IsCoreClrRuntime)
+            {
+                verifier.VerifyIL("E.DHelper", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""D D.<Clone>$()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.2
+  IL_0008:  callvirt   ""void C.X.init""
+  IL_000d:  dup
+  IL_000e:  ldc.i4.3
+  IL_000f:  callvirt   ""void D.Y.init""
+  IL_0014:  ret
+}
+            ");
             }
             else
             {
-                verifier.VerifyIL("E.Main", @"
+                verifier.VerifyIL("E.DHelper", @"
 {
-  // Code size      318 (0x13e)
+  // Code size       26 (0x1a)
   .maxstack  3
-  .locals init (C V_0, //c
-                D V_1, //d
-                D V_2, //d2
-                C V_3, //c3
-                C V_4, //c4
-                int V_5)
-  IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  dup
-  IL_0006:  ldc.i4.1
-  IL_0007:  callvirt   ""void C.X.init""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  callvirt   ""C C.<Clone>$()""
-  IL_0013:  dup
-  IL_0014:  ldc.i4.2
-  IL_0015:  callvirt   ""void C.X.init""
-  IL_001a:  ldloc.0
-  IL_001b:  callvirt   ""int C.X.get""
-  IL_0020:  call       ""void System.Console.WriteLine(int)""
-  IL_0025:  callvirt   ""int C.X.get""
-  IL_002a:  call       ""void System.Console.WriteLine(int)""
-  IL_002f:  ldc.i4.2
-  IL_0030:  newobj     ""D..ctor(int)""
-  IL_0035:  dup
-  IL_0036:  ldc.i4.1
-  IL_0037:  callvirt   ""void C.X.init""
-  IL_003c:  stloc.1
-  IL_003d:  ldloc.1
-  IL_003e:  callvirt   ""C C.<Clone>$()""
-  IL_0043:  castclass  ""D""
-  IL_0048:  dup
-  IL_0049:  ldc.i4.2
-  IL_004a:  callvirt   ""void C.X.init""
-  IL_004f:  dup
-  IL_0050:  ldc.i4.3
-  IL_0051:  callvirt   ""void D.Y.init""
-  IL_0056:  stloc.2
-  IL_0057:  ldloc.1
-  IL_0058:  callvirt   ""int C.X.get""
-  IL_005d:  stloc.s    V_5
-  IL_005f:  ldloca.s   V_5
-  IL_0061:  call       ""string int.ToString()""
-  IL_0066:  ldstr      "" ""
-  IL_006b:  ldloc.1
-  IL_006c:  callvirt   ""int D.Y.get""
-  IL_0071:  stloc.s    V_5
-  IL_0073:  ldloca.s   V_5
-  IL_0075:  call       ""string int.ToString()""
-  IL_007a:  call       ""string string.Concat(string, string, string)""
-  IL_007f:  call       ""void System.Console.WriteLine(string)""
-  IL_0084:  ldloc.2
-  IL_0085:  callvirt   ""int C.X.get""
-  IL_008a:  stloc.s    V_5
-  IL_008c:  ldloca.s   V_5
-  IL_008e:  call       ""string int.ToString()""
-  IL_0093:  ldstr      "" ""
-  IL_0098:  ldloc.2
-  IL_0099:  callvirt   ""int D.Y.get""
-  IL_009e:  stloc.s    V_5
-  IL_00a0:  ldloca.s   V_5
-  IL_00a2:  call       ""string int.ToString()""
-  IL_00a7:  call       ""string string.Concat(string, string, string)""
-  IL_00ac:  call       ""void System.Console.WriteLine(string)""
-  IL_00b1:  ldloc.1
-  IL_00b2:  stloc.3
-  IL_00b3:  ldloc.2
-  IL_00b4:  stloc.s    V_4
-  IL_00b6:  ldloc.3
-  IL_00b7:  callvirt   ""C C.<Clone>$()""
-  IL_00bc:  dup
-  IL_00bd:  ldc.i4.3
-  IL_00be:  callvirt   ""void C.X.init""
-  IL_00c3:  stloc.3
-  IL_00c4:  ldloc.s    V_4
-  IL_00c6:  callvirt   ""C C.<Clone>$()""
-  IL_00cb:  dup
-  IL_00cc:  ldc.i4.4
-  IL_00cd:  callvirt   ""void C.X.init""
-  IL_00d2:  stloc.s    V_4
-  IL_00d4:  ldloc.3
-  IL_00d5:  castclass  ""D""
-  IL_00da:  stloc.1
-  IL_00db:  ldloc.s    V_4
-  IL_00dd:  castclass  ""D""
-  IL_00e2:  stloc.2
-  IL_00e3:  ldloc.1
-  IL_00e4:  callvirt   ""int C.X.get""
-  IL_00e9:  stloc.s    V_5
-  IL_00eb:  ldloca.s   V_5
-  IL_00ed:  call       ""string int.ToString()""
-  IL_00f2:  ldstr      "" ""
-  IL_00f7:  ldloc.1
-  IL_00f8:  callvirt   ""int D.Y.get""
-  IL_00fd:  stloc.s    V_5
-  IL_00ff:  ldloca.s   V_5
-  IL_0101:  call       ""string int.ToString()""
-  IL_0106:  call       ""string string.Concat(string, string, string)""
-  IL_010b:  call       ""void System.Console.WriteLine(string)""
-  IL_0110:  ldloc.2
-  IL_0111:  callvirt   ""int C.X.get""
-  IL_0116:  stloc.s    V_5
-  IL_0118:  ldloca.s   V_5
-  IL_011a:  call       ""string int.ToString()""
-  IL_011f:  ldstr      "" ""
-  IL_0124:  ldloc.2
-  IL_0125:  callvirt   ""int D.Y.get""
-  IL_012a:  stloc.s    V_5
-  IL_012c:  ldloca.s   V_5
-  IL_012e:  call       ""string int.ToString()""
-  IL_0133:  call       ""string string.Concat(string, string, string)""
-  IL_0138:  call       ""void System.Console.WriteLine(string)""
-  IL_013d:  ret
-}");
+  IL_0000:  ldarg.0
+  IL_0001:  callvirt   ""C C.<Clone>$()""
+  IL_0006:  castclass  ""D""
+  IL_000b:  dup
+  IL_000c:  ldc.i4.2
+  IL_000d:  callvirt   ""void C.X.init""
+  IL_0012:  dup
+  IL_0013:  ldc.i4.3
+  IL_0014:  callvirt   ""void D.Y.init""
+  IL_0019:  ret
+}
+            ");
             }
         }
 
