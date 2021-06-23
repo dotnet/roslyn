@@ -1167,5 +1167,35 @@ $@"public class C
     }}
 }}");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData(
+            "/* Before */ i [||]= i + 1; /* After */",
+            "/* Before */ i++; /* After */")]
+        [InlineData(
+            "M( /* Before */ i [||]= i + 1 /* After */ );",
+            "M( /* Before */ ++i /* After */ );")]
+        [InlineData(
+            "M( /* Before */ i [||]= i - 1 /* After */ );",
+            "M( /* Before */ --i /* After */ );")]
+        public async Task TestTriviaPreserved(string before, string after)
+        {
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
     }
 }

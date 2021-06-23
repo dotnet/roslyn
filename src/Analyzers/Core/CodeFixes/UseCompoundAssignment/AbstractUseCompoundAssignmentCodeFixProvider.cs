@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Increment))
                         {
-                            return Increment((TExpressionSyntax)leftOfAssign.WithoutTrailingTrivia(), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
+                            return Increment((TExpressionSyntax)leftOfAssign.WithTriviaFrom(currentAssignment), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
                         }
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
                         {
-                            return Decrement((TExpressionSyntax)leftOfAssign.WithoutTrailingTrivia(), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
+                            return Decrement((TExpressionSyntax)leftOfAssign.WithTriviaFrom(currentAssignment), postfix: syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent));
                         }
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
