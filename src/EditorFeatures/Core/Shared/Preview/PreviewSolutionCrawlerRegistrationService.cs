@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         }
 
                         // delay analyzing
-                        await Task.Delay(workerBackOffTimeSpan, _source.Token).ConfigureAwait(false);
+                        await _owner._listener.Delay(workerBackOffTimeSpan, _source.Token).ConfigureAwait(false);
 
                         // do actual analysis
                         if (textDocument is Document document)
