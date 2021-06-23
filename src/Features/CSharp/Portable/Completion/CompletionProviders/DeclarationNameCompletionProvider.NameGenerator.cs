@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         return name.Substring(1);
                     }
                 }
+
                 return type.CreateParameterName();
             }
         }
