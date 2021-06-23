@@ -30,14 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             return SyntaxFactory.AssignmentExpression(assignmentOpKind, left, syntaxToken, right);
         }
 
-        protected override ExpressionSyntax Increment(ExpressionSyntax left)
-        {
-            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, left);
-        }
+        protected override ExpressionSyntax Increment(ExpressionSyntax left, bool postfix)
+            => postfix
+                ? Postfix(SyntaxKind.PostIncrementExpression, left)
+                : Prefix(SyntaxKind.PreIncrementExpression, left);
 
-        protected override ExpressionSyntax Decrement(ExpressionSyntax left)
-        {
-            return SyntaxFactory.PostfixUnaryExpression(SyntaxKind.PostDecrementExpression, left);
-        }
+        protected override ExpressionSyntax Decrement(ExpressionSyntax left, bool postfix)
+            => postfix
+                ? Postfix(SyntaxKind.PostDecrementExpression, left)
+                : Prefix(SyntaxKind.PreDecrementExpression, left);
+
+        private static ExpressionSyntax Postfix(SyntaxKind kind, ExpressionSyntax operand)
+            => SyntaxFactory.PostfixUnaryExpression(kind, operand);
+
+        private static ExpressionSyntax Prefix(SyntaxKind kind, ExpressionSyntax operand)
+            => SyntaxFactory.PrefixUnaryExpression(kind, operand);
     }
 }

@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         protected abstract SyntaxToken Token(TSyntaxKind kind);
         protected abstract TAssignmentSyntax Assignment(
             TSyntaxKind assignmentOpKind, TExpressionSyntax left, SyntaxToken syntaxToken, TExpressionSyntax right);
-        protected abstract TExpressionSyntax Increment(TExpressionSyntax left);
-        protected abstract TExpressionSyntax Decrement(TExpressionSyntax left);
+        protected abstract TExpressionSyntax Increment(TExpressionSyntax left, bool postfix);
+        protected abstract TExpressionSyntax Decrement(TExpressionSyntax left, bool postfix);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Increment))
                         {
-                            return Increment((TExpressionSyntax)leftOfAssign);
+                            return Increment((TExpressionSyntax)leftOfAssign.WithoutTrailingTrivia(), postfix: syntaxFacts.IsStatement(currentAssignment.Parent));
                         }
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
                         {
-                            return Decrement((TExpressionSyntax)leftOfAssign);
+                            return Decrement((TExpressionSyntax)leftOfAssign.WithoutTrailingTrivia(), postfix: syntaxFacts.IsStatement(currentAssignment.Parent));
                         }
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
