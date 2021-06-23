@@ -282,6 +282,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitRecursivePattern(node);
         }
 
+        public override void VisitListPattern(ListPatternSyntax node)
+        {
+            TFieldOrLocalSymbol variable = MakePatternVariable(null, node.Designation as SingleVariableDesignationSyntax, _nodeToBind);
+            if ((object)variable != null)
+            {
+                _variablesBuilder.Add(variable);
+            }
+
+            base.VisitListPattern(node);
+        }
+
         protected abstract TFieldOrLocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind);
         protected abstract TFieldOrLocalSymbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind);
 

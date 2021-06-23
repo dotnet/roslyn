@@ -915,7 +915,6 @@ class X
 }
 ";
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
-            // PROTOTYPE(list-patterns) Missing diagnostics for Length (should revisit after LDM)
             compilation.VerifyEmitDiagnostics(
                 // (25,28): error CS0619: 'Test1.this[int]' is obsolete: 'error2'
                 //         _ = new Test1() is [0];
@@ -935,12 +934,21 @@ class X
                 // (26,29): error CS0619: 'Test1.Count' is obsolete: 'error3'
                 //         _ = new Test1() is [..0];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test1.Count", "error3").WithLocation(26, 29),
+                // (27,28): error CS0619: 'Test2.Length' is obsolete: 'error6'
+                //         _ = new Test2() is [0];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test2.Length", "error6").WithLocation(27, 28),
                 // (27,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is [0];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[0]").WithArguments("Test2.this[System.Index]", "error4").WithLocation(27, 28),
+                // (28,28): error CS0619: 'Test2.Length' is obsolete: 'error6'
+                //         _ = new Test2() is [..0];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test2.Length", "error6").WithLocation(28, 28),
                 // (28,28): error CS0619: 'Test2.this[Index]' is obsolete: 'error4'
                 //         _ = new Test2() is [..0];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[..0]").WithArguments("Test2.this[System.Index]", "error4").WithLocation(28, 28),
+                // (28,29): error CS0619: 'Test2.Length' is obsolete: 'error6'
+                //         _ = new Test2() is [..0];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.Length", "error6").WithLocation(28, 29),
                 // (28,29): error CS0619: 'Test2.this[Range]' is obsolete: 'error5'
                 //         _ = new Test2() is [..0];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..0").WithArguments("Test2.this[System.Range]", "error5").WithLocation(28, 29)
@@ -1522,8 +1530,8 @@ class X
     {
         switch (a)
         {
-            case not [ {} y, .. {} z ]: _ = (y, z); break;
-            case [ not {} y, .. not {} z ]: _ = (y, z); break;
+            case not [ {} y, .. {} z ] x: _ = (x, y, z); break;
+            case [ not {} y, .. not {} z ] x: _ = (x, y, z); break;
         }
     }
 }
@@ -1568,17 +1576,17 @@ class X
 {
     public void Test1(int[] a)
     {
-        if (a is not [ {} y, .. {} z ])
-             _ = (y, z); // 1
+        if (a is not [ {} y, .. {} z ] x)
+             _ = (x, y, z); // 1
         else 
-             _ = (y, z);
+             _ = (x, y, z);
     }
     public void Test2(int[] a)
     {
-        if (a is [ not {} y, .. not {} z ])
-             _ = (y, z);
+        if (a is [ not {} y, .. not {} z ] x)
+             _ = (x, y, z);
         else 
-             _ = (y, z); // 2
+             _ = (x, y, z); // 2
     }
 }
 ";

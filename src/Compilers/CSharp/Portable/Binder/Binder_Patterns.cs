@@ -361,6 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lookupResult.Clear();
                             if (!TryLookupLengthOrCount(receiverType, lookupResult, out lengthProperty, ref useSiteInfo))
                                 goto default;
+                            ReportDiagnosticsIfObsolete(diagnostics, lengthProperty, syntax, hasBaseReceiver: false);
                             // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
                             Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
                             indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);

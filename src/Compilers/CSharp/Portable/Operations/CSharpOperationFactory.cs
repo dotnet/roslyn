@@ -237,6 +237,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundTypePatternOperation((BoundTypePattern)boundNode);
                 case BoundKind.SlicePattern:
                     return CreateBoundSlicePatternOperation((BoundSlicePattern)boundNode);
+                case BoundKind.ListPattern:
+                    return CreateBoundListPatternOperation((BoundListPattern)boundNode);
                 case BoundKind.SwitchStatement:
                     return CreateBoundSwitchStatementOperation((BoundSwitchStatement)boundNode);
                 case BoundKind.SwitchLabel:
@@ -2109,6 +2111,17 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
+        {
+            // PROTOTYPE(list-patterns) IOperation
+            return new DiscardPatternOperation(
+                inputType: boundNode.InputType.GetPublicSymbol(),
+                narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
+                _semanticModel,
+                boundNode.Syntax,
+                isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
         {
             // PROTOTYPE(list-patterns) IOperation
             return new DiscardPatternOperation(

@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ListPattern_01()
         {
-            UsingExpression(@"c is [[]] v");
+            UsingExpression(@"c is [[],] v");
             verify();
 
-            UsingExpression(@"c is [[]] v", TestOptions.Regular9,
+            UsingExpression(@"c is [[],] v", TestOptions.Regular9,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is [[]]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[]] v").WithArguments("list pattern").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[],] v").WithArguments("list pattern").WithLocation(1, 6),
                 // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is [[]]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.OpenBracketToken);
                             N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CommaToken);
                         N(SyntaxKind.CloseBracketToken);
                         N(SyntaxKind.SingleVariableDesignation);
                         {
@@ -108,6 +109,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.NumericLiteralToken, "0");
                         }
                     }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ListPattern_03()
+        {
+            UsingExpression(@"c is [ , ]",
+                // (1,8): error CS8504: Pattern missing
+                // c is [ , ]
+                Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(1, 8));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    M(SyntaxKind.ConstantPattern);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
                     N(SyntaxKind.CloseBracketToken);
                 }
             }

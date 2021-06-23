@@ -1654,6 +1654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AssignPatternVariables(p, definitely);
                         }
+                        if (definitely)
+                            Assign(pat, null, false, false);
                         break;
                     }
                 case BoundKind.RelationalPattern:

@@ -2652,9 +2652,9 @@ namespace System
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (5,23): error CS9200: List patterns may not be used for a value of type '(int, int)'.
+                // (5,25): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: 1 }'
                 //         _ = (1, 2) is { 1, 2 };
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ 1, 2 }").WithArguments("(int, int)").WithLocation(5, 23)
+                Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "1").WithArguments("1").WithLocation(5, 25)
                 );
         }
 
