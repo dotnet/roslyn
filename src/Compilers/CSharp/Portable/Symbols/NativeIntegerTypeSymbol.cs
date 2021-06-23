@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => _underlyingType;
 
         internal sealed override bool IsRecord => false;
+        internal sealed override bool IsRecordStruct => false;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override bool Equals(TypeSymbol? other, TypeCompareKind comparison)
@@ -251,6 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(symbolA.Equals(symbolB, TypeCompareKind.IgnoreNativeIntegers));
             Debug.Assert(symbolB.Equals(symbolA, TypeCompareKind.IgnoreNativeIntegers));
             Debug.Assert(symbolA.GetHashCode() == symbolB.GetHashCode());
+        }
+
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
         }
 
         private sealed class NativeIntegerTypeMap : AbstractTypeMap

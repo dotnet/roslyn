@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -15,33 +14,33 @@ namespace Microsoft.CodeAnalysis
         public enum PositionState : byte
         {
             /// <summary>
-            /// Used in VB when the position is not hidden, but it's not known yet that there is a (nonempty) #ExternalSource
+            /// Used in VB when the position is not hidden, but it's not known yet that there is a (nonempty) <c>#ExternalSource</c>
             /// following.
             /// </summary>
             Unknown,
 
             /// <summary>
-            /// Used in C# for spans outside of #line directives
+            /// Used in C# for spans preceding the first <c>#line</c> directive (if any) and for <c>#line default</c> spans
             /// </summary>
             Unmapped,
 
             /// <summary>
-            /// Used in C# for spans inside of "#line linenumber" directive
+            /// Used in C# for spans inside of <c>#line linenumber</c> directive
             /// </summary>
             Remapped,
 
             /// <summary>
-            /// Used in VB for spans inside of a "#ExternalSource" directive that followed an unknown span
+            /// Used in VB for spans inside of a <c>#ExternalSource</c> directive that followed an unknown span
             /// </summary>
             RemappedAfterUnknown,
 
             /// <summary>
-            /// Used in VB for spans inside of a "#ExternalSource" directive that followed a hidden span
+            /// Used in VB for spans inside of a <c>#ExternalSource</c> directive that followed a hidden span
             /// </summary>
             RemappedAfterHidden,
 
             /// <summary>
-            /// Used in C# and VB for spans that are inside of #line hidden (C#) or outside of #ExternalSource (VB) 
+            /// Used in C# and VB for spans that are inside of <c>#line hidden</c> (C#) or outside of <c>#ExternalSource</c> (VB) 
             /// directives
             /// </summary>
             Hidden
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
         // Struct that represents an entry in the line mapping table. Entries sort by the unmapped
         // line.
-        protected readonly struct LineMappingEntry : IComparable<LineMappingEntry>
+        internal readonly struct LineMappingEntry : IComparable<LineMappingEntry>
         {
             // 0-based line in this tree
             public readonly int UnmappedLine;
@@ -84,9 +83,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public int CompareTo(LineMappingEntry other)
-            {
-                return this.UnmappedLine.CompareTo(other.UnmappedLine);
-            }
+                => UnmappedLine.CompareTo(other.UnmappedLine);
+
+            public bool IsHidden
+                => State == PositionState.Hidden;
         }
     }
 }

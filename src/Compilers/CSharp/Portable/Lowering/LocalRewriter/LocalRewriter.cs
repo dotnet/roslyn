@@ -248,17 +248,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
-            CheckRefReadOnlySymbols(node.Symbol);
+
+            var lambda = node.Symbol;
+            CheckRefReadOnlySymbols(lambda);
 
             var oldContainingSymbol = _factory.CurrentFunction;
+            var oldInstrumenter = _instrumenter;
             try
             {
-                _factory.CurrentFunction = node.Symbol;
+                _factory.CurrentFunction = lambda;
+                if (lambda.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                }
                 return base.VisitLambda(node)!;
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+                _instrumenter = oldInstrumenter;
             }
         }
 

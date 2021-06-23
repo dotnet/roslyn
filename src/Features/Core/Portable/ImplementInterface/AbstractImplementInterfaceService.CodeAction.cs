@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 ImplementTypePropertyGenerationBehavior propertyGenerationBehavior)
             {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var modifiers = new DeclarationModifiers(isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
+                var modifiers = new DeclarationModifiers(isStatic: member.IsStatic, isAbstract: generateAbstractly, isNew: addNew, isUnsafe: addUnsafe);
 
                 var useExplicitInterfaceSymbol = generateInvisibly || !Service.CanImplementImplicitly;
                 var accessibility = member.Name == memberName || generateAbstractly

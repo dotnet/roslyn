@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
+        /// When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
         /// </summary>
         public override string Name => "XAML Language Server Client (Experimental)";
 
