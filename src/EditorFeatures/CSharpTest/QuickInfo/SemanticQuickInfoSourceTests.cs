@@ -6862,6 +6862,36 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocWithTypeParamRef()
+        {
+            var markup =
+@"
+public class Program
+{
+    public static void Main() => _ = new Test<int>().$$Clone();
+}
+
+public class Test<T> : ICloneable<Test<T>>
+{
+	/// <inheritdoc/>
+	public Test<T> Clone() => new();
+}
+
+/// <summary>A type that has clonable instances.</summary>
+/// <typeparam name=""T"">The type of instances that can be cloned.</typeparam>
+public interface ICloneable<T>
+{
+    /// <summary>Clones a <typeparamref name=""T""/>.</summary>
+    /// <returns>A clone of the <typeparamref name=""T""/>.</returns>
+    public T Clone();
+}";
+
+            await TestInClassAsync(markup,
+                MainDescription("Test<int> Test<int>.Clone()"),
+                Documentation("Clones a Test<T>."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
             var markup =
@@ -7442,6 +7472,46 @@ class C1_1 : I1
                 code,
                 MainDescription("void C1_1.M1()"),
                 Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_01()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class Program
+{
+    System.Delegate D = bo$$ol () => true;
+}",
+                MainDescription("struct System.Boolean"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_02()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A
+{
+    struct B { }
+    System.Delegate D = A.B$$ () => null;
+}",
+                MainDescription("struct A.B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_03()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A<T>
+{
+}
+struct B
+{
+    System.Delegate D = A<B$$> () => null;
+}",
+                MainDescription("struct B"));
         }
     }
 }
