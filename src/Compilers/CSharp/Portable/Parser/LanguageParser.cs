@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     SyntaxListBuilder initialBadNodes = null;
                     this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.SingleLineNamespaceDeclaration);
-                    Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
+                    Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
                     namespaceToken = CheckFeatureAvailability(namespaceToken, MessageID.IDS_SingleLineNamespace);
                     return _syntaxFactory.SingleLineNamespaceDeclaration(
