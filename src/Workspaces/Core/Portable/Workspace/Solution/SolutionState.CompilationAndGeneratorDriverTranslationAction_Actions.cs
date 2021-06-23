@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_isParseOptionChange)
                     {
-                        Debug.Assert(_state.ParseOptions is object);
+                        RoslynDebug.AssertNotNull(_state.ParseOptions);
                         return generatorDriver.WithUpdatedParseOptions(_state.ParseOptions);
                     }
                     else
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    Debug.Assert(_state.CompilationOptions is object);
+                    RoslynDebug.AssertNotNull(_state.CompilationOptions);
                     return Task.FromResult(oldCompilation.WithOptions(_state.CompilationOptions));
                 }
 
