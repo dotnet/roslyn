@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="115">
         <source>editorconfig File (default)</source>
-        <target state="translated">Arquivo editorconfig (padrão)</target>
+        <target state="new">editorconfig File (default)</target>
         <note />
       </trans-unit>
       <trans-unit id="116">
         <source>Create an editorconfig file to persist your editor and code settings.</source>
-        <target state="translated">Criar um arquivo editorconfig para manter seu editor e as configurações do código.</target>
+        <target state="new">Create an editorconfig file to persist your editor and code settings.</target>
         <note />
       </trans-unit>
       <trans-unit id="117">
         <source>editorconfig File (.NET)</source>
-        <target state="translated">Arquivo editorconfig (.NET)</target>
+        <target state="new">editorconfig File (.NET)</target>
         <note />
       </trans-unit>
     </body>
