@@ -279,6 +279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundSlicePattern:
                     output = input;
                     return Tests.True.Instance;
+                case BoundListPattern list:
+                    return MakeTestsAndBindingsForListPattern(input, list, out output, bindings);
                 case BoundRecursivePattern recursive:
                     return MakeTestsAndBindingsForRecursivePattern(input, recursive, out output, bindings);
                 case BoundITuplePattern iTuple:
@@ -523,11 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // To prevent this pattern from subsuming other patterns and triggering a cascaded diagnostic, we add a test that will fail.
                     tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                 }
-            }
-
-            if (recursive.LengthPattern is not null || recursive.ListPatternClause is not null)
-            {
-                MakeTestsAndBindingsForLengthAndListPatterns(input, recursive, bindings, tests);
             }
 
             if (!recursive.Properties.IsDefault)

@@ -1627,25 +1627,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat.Pattern, definitely);
                             }
                         }
-                        if (pat.LengthPattern is not null)
-                        {
-                            AssignPatternVariables(pat.LengthPattern, definitely);
-                        }
                         if (!pat.Properties.IsDefaultOrEmpty)
                         {
                             foreach (BoundSubpattern sub in pat.Properties)
                             {
                                 AssignPatternVariables(sub.Pattern, definitely);
-                            }
-                        }
-                        if (pat.ListPatternClause is not null)
-                        {
-                            if (!pat.ListPatternClause.Subpatterns.IsDefaultOrEmpty)
-                            {
-                                foreach (BoundPattern p in pat.ListPatternClause.Subpatterns)
-                                {
-                                    AssignPatternVariables(p, definitely);
-                                }
                             }
                         }
                         if (definitely)
@@ -1658,6 +1644,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var subpat in pat.Subpatterns)
                         {
                             AssignPatternVariables(subpat.Pattern, definitely);
+                        }
+                        break;
+                    }
+                case BoundKind.ListPattern:
+                    {
+                        var pat = (BoundListPattern)pattern;
+                        foreach (BoundPattern p in pat.Subpatterns)
+                        {
+                            AssignPatternVariables(p, definitely);
                         }
                         break;
                     }

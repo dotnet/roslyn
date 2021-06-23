@@ -1439,7 +1439,6 @@
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <!-- Negative Index values indicate positions after a slice pattern -->
     <Field Name="Index" Type="int"/>
-    <!-- These will be null if input type is an array -->
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
   </Node>
@@ -1448,7 +1447,6 @@
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
-    <!-- These will be null if input type is an array -->
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>
@@ -2127,15 +2125,13 @@
   <Node Name="BoundListPattern" Base="BoundObjectPattern">
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
     <Field Name="HasSlice" Type="bool"/>
-    <Field Name="LengthProperty" Type="PropertySymbol"/>
-    <!-- These will be null if input type is an array -->
+    <Field Name="LengthProperty" Type="PropertySymbol?"/>
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="IndexerSymbol" Type="PropertySymbol?"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
     <Field Name="Pattern" Type="BoundPattern?"/>
-    <!-- These will be null if input type is an array -->
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
   </Node>

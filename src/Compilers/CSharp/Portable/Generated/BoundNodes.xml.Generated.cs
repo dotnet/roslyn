@@ -7646,12 +7646,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundListPattern : BoundObjectPattern
     {
-        public BoundListPattern(SyntaxNode syntax, ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+        public BoundListPattern(SyntaxNode syntax, ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol? lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
             : base(BoundKind.ListPattern, syntax, variable, variableAccess, inputType, narrowedType, hasErrors || subpatterns.HasErrors() || indexerAccess.HasErrors() || variableAccess.HasErrors())
         {
 
             RoslynDebug.Assert(!subpatterns.IsDefault, "Field 'subpatterns' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(lengthProperty is object, "Field 'lengthProperty' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
             RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
@@ -7667,7 +7666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasSlice { get; }
 
-        public PropertySymbol LengthProperty { get; }
+        public PropertySymbol? LengthProperty { get; }
 
         public BoundIndexerAccess? IndexerAccess { get; }
 
@@ -7675,7 +7674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitListPattern(this);
 
-        public BoundListPattern Update(ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType)
+        public BoundListPattern Update(ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol? lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType)
         {
             if (subpatterns != this.Subpatterns || hasSlice != this.HasSlice || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lengthProperty, this.LengthProperty) || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexerSymbol, this.IndexerSymbol) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
             {
@@ -13502,7 +13501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitListPattern(BoundListPattern node)
         {
-            PropertySymbol lengthProperty = GetUpdatedSymbol(node, node.LengthProperty);
+            PropertySymbol? lengthProperty = GetUpdatedSymbol(node, node.LengthProperty);
             PropertySymbol? indexerSymbol = GetUpdatedSymbol(node, node.IndexerSymbol);
             Symbol? variable = GetUpdatedSymbol(node, node.Variable);
             TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
