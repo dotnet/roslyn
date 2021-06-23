@@ -143,15 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsExpressionOfAwaitExpression([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
-        /// <summary>
-        /// Returns the parts of a for loop. C#: for(var i = 0; i &lt; 10; i++) VB: For i = 0 To 10 Step 1
-        /// </summary>
-        /// <param name="node">The for loop statement</param>
-        /// <param name="variableDeclaration">C#: var i = 0 | VB: i</param>
-        /// <param name="startValue">C#: null | VB: 0</param>
-        /// <param name="endCondition">C#: i &lt; 10 | VB: 10</param>
-        /// <param name="increments">C#: i++ | VB: Step 1</param>
-        void GetPartsOfForStatement(SyntaxNode? node, out SyntaxNode? variableDeclaration, out SyntaxNode? startValue, out SyntaxNode? endCondition, out ImmutableArray<SyntaxNode> increments);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;
