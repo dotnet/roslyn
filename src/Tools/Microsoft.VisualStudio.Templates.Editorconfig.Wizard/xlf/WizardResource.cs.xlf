@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="AlreadyExists">
         <source>An .editorconfig file already exist in this location</source>
-        <target state="translated">Soubor .editorconfig už v tomto umístění existuje.</target>
+        <target state="new">An .editorconfig file already exist in this location</target>
         <note />
       </trans-unit>
       <trans-unit id="MoreAbout">
         <source>To learn more about .editorconfig see</source>
-        <target state="translated">Další informace o souboru .editorconfig najdete v článku</target>
+        <target state="new">To learn more about .editorconfig see</target>
         <note />
       </trans-unit>
     </body>
