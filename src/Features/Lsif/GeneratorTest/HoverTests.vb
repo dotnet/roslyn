@@ -12,20 +12,18 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         Private Const TestProjectAssemblyName As String = "TestProject"
 
         <Theory>
-        <InlineData("class [|C|] { string s; }", "class C")>
-        <InlineData("class C { void [|M|]() { } }", "void C.M()")>
-        <InlineData("class C { string [|s|]; }", "(field) string C.s")>
-        <InlineData("class C { void M(string [|s|]) { M(s); } }", "(parameter) string s")>
-        <InlineData("class C { void M(string s) { string [|local|] = """"; } }", "(local variable) string local")>
+        <InlineData("class [|C|] { string s; }")>
+        <InlineData("class C { void [|M|]() { } }")>
+        <InlineData("class C { string [|s|]; }")>
+        <InlineData("class C { void M(string [|s|]) { M(s); } }")>
+        <InlineData("class C { void M(string s) { string [|local|] = """"; } }")>
         <InlineData("
 class C
 {
     /// <summary>Doc Comment</summary>
     void [|M|]() { }
-}",
-"void C.M()
-Doc Comment")>
-        Public Async Function TestDefinition(code As String, expectedHoverContents As String) As Task
+}")>
+        Public Async Function TestDefinition(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -40,26 +38,49 @@ Doc Comment")>
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
             Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value, MarkupContent)
+
+            Dim expectedHoverContents As String
+            Select Case code
+                Case "class [|C|] { string s; }"
+                    expectedHoverContents = "class C"
+                Case "class C { void [|M|]() { } }"
+                    expectedHoverContents = "void C.M()"
+                Case "class C { string [|s|]; }"
+                    expectedHoverContents = $"({FeaturesResources.field}) string C.s"
+                Case "class C { void M(string [|s|]) { M(s); } }"
+                    expectedHoverContents = $"({FeaturesResources.parameter}) string s"
+                Case "class C { void M(string s) { string [|local|] = """"; } }"
+                    expectedHoverContents = $"({FeaturesResources.local_variable}) string local"
+                Case "
+class C
+{
+    /// <summary>Doc Comment</summary>
+    void [|M|]() { }
+}"
+                    expectedHoverContents = "void C.M()
+Doc Comment"
+                Case Else
+                    Throw TestExceptionUtilities.UnexpectedValue(code)
+            End Select
 
             Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
             Assert.Equal(expectedHoverContents + Environment.NewLine, hoverMarkupContent.Value)
         End Function
 
         <Theory>
-        <InlineData("class C { [|string|] s; }", "class System.String")>
-        <InlineData("class C { void M() { [|M|](); } }", "void C.M()")>
-        <InlineData("class C { void M(string s) { M([|s|]); } }", "(parameter) string s")>
-        <InlineData("class C { void M(string s) { string local = """"; M([|local|]); } }", "(local variable) string local")>
-        <InlineData("using [|S|] = System.String;", "class System.String")>
-        <InlineData("class C { [|global|]::System.String s; }", "<global namespace>")>
+        <InlineData("class C { [|string|] s; }")>
+        <InlineData("class C { void M() { [|M|](); } }")>
+        <InlineData("class C { void M(string s) { M([|s|]); } }")>
+        <InlineData("class C { void M(string s) { string local = """"; M([|local|]); } }")>
+        <InlineData("using [|S|] = System.String;")>
+        <InlineData("class C { [|global|]::System.String s; }")>
         <InlineData("
 class C
 {
     /// <see cref=""C.[|M|]()"" />
     void M() { }
-}",
-"void C.M()")>
-        Public Async Function TestReference(code As String, expectedHoverContents As String) As Task
+}")>
+        Public Async Function TestReference(code As String) As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
                 TestWorkspace.CreateWorkspace(
                     <Workspace>
@@ -74,6 +95,31 @@ class C
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
             Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value, MarkupContent)
+
+            Dim expectedHoverContents As String
+            Select Case code
+                Case "class C { [|string|] s; }"
+                    expectedHoverContents = "class System.String"
+                Case "class C { void M() { [|M|](); } }"
+                    expectedHoverContents = "void C.M()"
+                Case "class C { void M(string s) { M([|s|]); } }"
+                    expectedHoverContents = $"({FeaturesResources.parameter}) string s"
+                Case "class C { void M(string s) { string local = """"; M([|local|]); } }"
+                    expectedHoverContents = $"({FeaturesResources.local_variable}) string local"
+                Case "using [|S|] = System.String;"
+                    expectedHoverContents = "class System.String"
+                Case "class C { [|global|]::System.String s; }"
+                    expectedHoverContents = "<global namespace>"
+                Case "
+class C
+{
+    /// <see cref=""C.[|M|]()"" />
+    void M() { }
+}"
+                    expectedHoverContents = "void C.M()"
+                Case Else
+                    Throw TestExceptionUtilities.UnexpectedValue(code)
+            End Select
 
             Assert.Equal(MarkupKind.PlainText, hoverMarkupContent.Kind)
             Assert.Equal(expectedHoverContents + Environment.NewLine, hoverMarkupContent.Value)
