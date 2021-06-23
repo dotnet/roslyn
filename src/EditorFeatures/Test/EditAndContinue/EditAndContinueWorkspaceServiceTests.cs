@@ -986,25 +986,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var moduleId = Guid.NewGuid();
 
             var source1 = @"
-class C1 
-{ 
-  void M() 
+class C1
+{
+  void M()
   {
-    System.Console.WriteLine(1); 
-    System.Console.WriteLine(2); 
-    System.Console.WriteLine(3); 
-  } 
+    System.Console.WriteLine(1);
+    System.Console.WriteLine(2);
+    System.Console.WriteLine(3);
+  }
 }";
             var source2 = @"
-class C1 
-{ 
+class C1
+{
 
-  void M() 
+  void M()
   {
-    System.Console.WriteLine(9); 
-    System.Console.WriteLine(); 
-    System.Console.WriteLine(30); 
-  } 
+    System.Console.WriteLine(9);
+    System.Console.WriteLine();
+    System.Console.WriteLine(30);
+  }
 }";
             using var _ = CreateWorkspace(out var solution, out var service);
             (solution, var document) = AddDefaultTestProject(solution, source1);
@@ -1158,7 +1158,7 @@ class C1
             var sourceV1 = @"
 /* GENERATE: class G { int X1 => 1; } */
 
-class C { int Y => 1; } 
+class C { int Y => 1; }
 ";
             var sourceV2 = @"
 /* GENERATE: class G { int X2 => 1; } */
@@ -2236,7 +2236,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
             var sourceV1 = @"
 /* GENERATE: class G { int X => 1; } */
 
-class C { int Y => 1; } 
+class C { int Y => 1; }
 ";
             var sourceV2 = @"
 /* GENERATE: class G { int X => 2; } */
@@ -2282,7 +2282,7 @@ class C { int Y => 2; }
 /* GENERATE:
 class G
 {
-    int M() 
+    int M()
     {
         return 1;
     }
@@ -2294,7 +2294,7 @@ class G
 class G
 {
 
-    int M() 
+    int M()
     {
         return 1;
     }
@@ -2340,7 +2340,7 @@ class G
         public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
         {
             var sourceV1 = @"
-partial class C { int X = 1; } 
+partial class C { int X = 1; }
 ";
             var sourceV2 = @"
 /* GENERATE: partial class C { int Y = 2; } */
@@ -2383,7 +2383,7 @@ partial class C { int X = 1; }
         public async Task BreakMode_ValidSignificantChange_SourceGenerators_AdditionalDocumentUpdate()
         {
             var source = @"
-class C { int Y => 1; } 
+class C { int Y => 1; }
 ";
 
             var additionalSourceV1 = @"
@@ -2429,7 +2429,7 @@ class C { int Y => 1; }
         public async Task BreakMode_ValidSignificantChange_SourceGenerators_AnalyzerConfigUpdate()
         {
             var source = @"
-class C { int Y => 1; } 
+class C { int Y => 1; }
 ";
 
             var configV1 = new[] { ("enc_generator_output", "1") };
@@ -2948,7 +2948,7 @@ class C { int Y => 1; }
                 methodRowIds: new[] { 1, 2, 1 },
                 modules: new[] { module4, module2, module1 });
 
-            // Project1: Test1.cs, Test2.cs      
+            // Project1: Test1.cs, Test2.cs
             // Project2: Test1.cs (link from P1)
             // Project3: Test1.cs (link from P1)
             // Project4: Test2.cs (link from P1)
@@ -3030,7 +3030,7 @@ class C { int Y => 1; }
 {
     static void M()
     {
-        try 
+        try
         {
         }
         catch (Exception e)
@@ -3044,7 +3044,7 @@ class C { int Y => 1; }
 {
     static void M()
     {
-        try 
+        try
         {
         }
         catch (Exception e)
@@ -3209,7 +3209,7 @@ class C
         /// 2) Hot-reload edit F (without breaking) to version 3.
         ///    Function remapping is produced for F v2 -> F v3 based on the last set of active statements calculated for F v2.
         ///    Assume that the execution did not progress since the last resume.
-        ///    These active statements will likely not match the actual runtime active statements, 
+        ///    These active statements will likely not match the actual runtime active statements,
         ///    however F v2 will never be remapped since it was hot-reloaded and not EnC'd.
         ///    This remapping is needed for mapping from F v1 to F v3.
         /// 3) Break. Update F to v4.
@@ -3290,7 +3290,7 @@ class C
             // EnC update F v3 -> v4
 
             EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-                new[] { markedSourceV1 },       // matches F v1    
+                new[] { markedSourceV1 },       // matches F v1
                 modules: new[] { moduleId, moduleId },
                 methodRowIds: new[] { 2, 3 },
                 methodVersions: new[] { 1, 1 }, // frame F v1 is still executing (G has not returned)
@@ -3608,7 +3608,7 @@ class C
                 loader: new FileTextLoader(sourceFileA.Path, Encoding.UTF8),
                 filePath: sourceFileA.Path));
 
-            var hotReload = new WatchHotReloadService(workspace.Services);
+            var hotReload = new WatchHotReloadService(workspace.Services, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
             await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
