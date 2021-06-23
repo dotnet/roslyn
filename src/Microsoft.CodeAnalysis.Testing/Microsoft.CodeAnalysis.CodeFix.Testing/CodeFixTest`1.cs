@@ -534,9 +534,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
+            var currentIteration = -1;
             bool done;
             do
             {
+                currentIteration++;
+
                 var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
@@ -590,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
 
                     var filteredActions = FilterCodeActions(actions.ToImmutable());
-                    var actionToApply = TryGetCodeActionToApply(filteredActions, codeFixIndex, codeFixEquivalenceKey, codeActionVerifier, verifier);
+                    var actionToApply = TryGetCodeActionToApply(currentIteration, filteredActions, codeFixIndex, codeFixEquivalenceKey, codeActionVerifier, verifier);
                     if (actionToApply != null)
                     {
                         anyActions = true;
@@ -672,9 +675,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
+            var currentIteration = -1;
             bool done;
             do
             {
+                currentIteration++;
+
                 var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<(Project project, Diagnostic diagnostic)>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
@@ -728,7 +734,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         actions.AddRange(FilterCodeActions(actionsBuilder.ToImmutable()).Select(action => (action, codeFixProvider)));
                     }
 
-                    var actionToApply = TryGetCodeActionToApply(actions.Select(a => a.Item1).ToImmutableArray(), codeFixIndex, codeFixEquivalenceKey, codeActionVerifier, verifier);
+                    var actionToApply = TryGetCodeActionToApply(currentIteration, actions.Select(a => a.Item1).ToImmutableArray(), codeFixIndex, codeFixEquivalenceKey, codeActionVerifier, verifier);
                     if (actionToApply != null)
                     {
                         firstDiagnostic = diagnostic;
