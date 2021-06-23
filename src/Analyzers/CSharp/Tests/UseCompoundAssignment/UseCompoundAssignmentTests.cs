@@ -1087,7 +1087,7 @@ $@"public class C
 {
     void M()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; ++i)
         {
         }
     }
@@ -1113,6 +1113,59 @@ $@"public class C
         M(++i);
     }
 }");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("switch($$) { }")]
+        [InlineData("while(($$) > 0) { }")]
+        [InlineData("_ = true ? $$ : 0;")]
+        [InlineData("_ = ($$);")]
+        public async Task TestPrefixIncrement1(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("return $$;")]
+        [InlineData("return true ? $$ : 0;")]
+        [InlineData("return ($$);")]
+        public async Task TestPrefixIncrement2(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
         }
     }
 }
