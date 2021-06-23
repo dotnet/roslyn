@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,12 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal struct AliasAndExternAliasDirective
     {
         public readonly AliasSymbol Alias;
-        public readonly ExternAliasDirectiveSyntax ExternAliasDirective;
+        public readonly SyntaxReference? ExternAliasDirectiveReference;
+        public readonly bool SkipInLookup;
 
-        public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax externAliasDirective)
+        public AliasAndExternAliasDirective(AliasSymbol alias, ExternAliasDirectiveSyntax? externAliasDirective, bool skipInLookup)
         {
             this.Alias = alias;
-            this.ExternAliasDirective = externAliasDirective;
+            this.ExternAliasDirectiveReference = externAliasDirective?.GetReference();
+            this.SkipInLookup = skipInLookup;
         }
+
+        public ExternAliasDirectiveSyntax? ExternAliasDirective => (ExternAliasDirectiveSyntax?)ExternAliasDirectiveReference?.GetSyntax();
     }
 }

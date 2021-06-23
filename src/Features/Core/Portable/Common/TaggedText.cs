@@ -230,6 +230,9 @@ namespace Microsoft.CodeAnalysis
                 case TextTags.Record:
                     return ClassificationTypeNames.RecordClassName;
 
+                case TextTags.RecordStruct:
+                    return ClassificationTypeNames.RecordStructName;
+
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:
                     // These tags are not visible so classify them as whitespace

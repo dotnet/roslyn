@@ -1654,66 +1654,91 @@ class C
 {
     static void Main()
     {
-        System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+        System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "method group").WithLocation(6, 30),
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "method group").WithLocation(6, 30),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
-                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
-                );
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30));
+            verify(comp, inferDelegate: false);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,65): error CS8917: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
+                // (6,65): error CS8917: The delegate type could not be inferred.
+                //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65));
+            verify(comp, inferDelegate: true);
 
-            // check tuple on the left
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(null, null, null, null)", tuple1.ToString());
+            static void verify(CSharpCompilation comp, bool inferDelegate)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
 
-            var tupleType1 = model.GetTypeInfo(tuple1);
-            Assert.Null(tupleType1.Type);
-            Assert.Null(tupleType1.ConvertedType);
+                // check tuple on the left
+                var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(null, null, null, null)", tuple1.ToString());
 
-            // check tuple on the right ...
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, () => { }, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
+                var tupleType1 = model.GetTypeInfo(tuple1);
+                Assert.Null(tupleType1.Type);
+                Assert.Null(tupleType1.ConvertedType);
 
-            var tupleType2 = model.GetTypeInfo(tuple2);
-            Assert.Null(tupleType2.Type);
-            Assert.Null(tupleType2.ConvertedType);
+                // check tuple on the right ...
+                var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(null, x => x, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
 
-            // ... its first lambda ...
-            var firstLambda = tuple2.Arguments[1].Expression;
-            Assert.Null(model.GetTypeInfo(firstLambda).Type);
-            Assert.Null(model.GetTypeInfo(firstLambda).ConvertedType);
+                var tupleType2 = model.GetTypeInfo(tuple2);
+                Assert.Null(tupleType2.Type);
+                Assert.Null(tupleType2.ConvertedType);
 
-            // ... its method group ...
-            var methodGroup = tuple2.Arguments[2].Expression;
-            Assert.Null(model.GetTypeInfo(methodGroup).Type);
-            Assert.Null(model.GetTypeInfo(methodGroup).ConvertedType);
-            Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
-            Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
+                // ... its first lambda ...
+                var firstLambda = tuple2.Arguments[1].Expression;
+                Assert.Null(model.GetTypeInfo(firstLambda).Type);
+                verifyType("System.Delegate", model.GetTypeInfo(firstLambda).ConvertedType, inferDelegate);
 
-            // ... its second lambda and the symbols it uses
-            var secondLambda = tuple2.Arguments[3].Expression;
-            Assert.Null(model.GetTypeInfo(secondLambda).Type);
-            Assert.Null(model.GetTypeInfo(secondLambda).ConvertedType);
+                // ... its method group ...
+                var methodGroup = tuple2.Arguments[2].Expression;
+                Assert.Null(model.GetTypeInfo(methodGroup).Type);
+                verifyType("System.Delegate", model.GetTypeInfo(methodGroup).ConvertedType, inferDelegate);
+                Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
+                Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
 
-            var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-            Assert.Equal("i + j", addition.ToString());
+                // ... its second lambda and the symbols it uses
+                var secondLambda = tuple2.Arguments[3].Expression;
+                verifyType("System.Func<System.Int32, System.Int32>", model.GetTypeInfo(secondLambda).Type, inferDelegate);
+                verifyType("System.Delegate", model.GetTypeInfo(secondLambda).ConvertedType, inferDelegate);
 
-            var i = addition.Left;
-            Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
+                var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+                Assert.Equal("i + j", addition.ToString());
 
-            var j = addition.Right;
-            Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
+                var i = addition.Left;
+                Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
+
+                var j = addition.Right;
+                Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
+            }
+
+            static void verifyType(string expectedType, ITypeSymbol type, bool inferDelegate)
+            {
+                if (inferDelegate)
+                {
+                    Assert.Equal(expectedType, type.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Null(type);
+                }
+            }
         }
 
         [Fact]

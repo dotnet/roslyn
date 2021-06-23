@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         }
 
         protected abstract Task<VirtualTreePoint?> GetSymbolNavigationPointAsync(Document document, ISymbol symbol, CancellationToken cancellationToken);
-        protected abstract Task NavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
 
         [Obsolete("Caller should call NavigateToItemAsync instead", error: true)]
         public void NavigateToItem(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
-            => throw new NotSupportedException($"Caller should call {nameof(NavigateToItemAsync)} instead");
+            => throw new NotSupportedException($"Caller should call {nameof(TryNavigateToItemAsync)} instead");
 
         public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
         }
 
-        public Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => NavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
 
         protected async Task NavigateToSymbolItemAsync(
             Document document, RoslynNavigationBarItem.SymbolItem item, CancellationToken cancellationToken)
