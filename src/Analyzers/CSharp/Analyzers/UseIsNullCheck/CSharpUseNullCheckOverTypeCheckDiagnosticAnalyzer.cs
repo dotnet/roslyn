@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private void AnalyzeNegatedPatternOperation(OperationAnalysisContext context)
         {
             if (!ShouldAnalyze(context, out var severity) ||
-                context.Operation.Syntax is not BinaryExpressionSyntax)
+                context.Operation.Syntax is not UnaryPatternSyntax)
             {
                 return;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         private void AnalyzeIsTypeOperation(OperationAnalysisContext context)
         {
             if (!ShouldAnalyze(context, out var severity) ||
-                context.Operation.Syntax is not UnaryPatternSyntax)
+                context.Operation.Syntax is not BinaryExpressionSyntax)
             {
                 return;
             }
