@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -2866,7 +2867,7 @@ Bailout:
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
             Debug.Assert(candidate.State = CandidateAnalysisResultState.Applicable)
-            Debug.Assert(Not candidate.Candidate.UnderlyingSymbol.IsReducedExtensionMethod() OrElse methodOrPropertyGroup.ReceiverOpt IsNot Nothing)
+            Debug.Assert(Not candidate.Candidate.UnderlyingSymbol.IsReducedExtensionMethod() OrElse methodOrPropertyGroup.ReceiverOpt IsNot Nothing OrElse TypeOf methodOrPropertyGroup.SyntaxTree Is DummySyntaxTree)
 
             Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Nothing
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
