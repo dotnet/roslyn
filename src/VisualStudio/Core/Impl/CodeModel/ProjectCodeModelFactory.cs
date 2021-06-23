@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -27,8 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     [Export(typeof(ProjectCodeModelFactory))]
     internal sealed class ProjectCodeModelFactory : ForegroundThreadAffinitizedObject, IProjectCodeModelFactory
     {
-        private static readonly TimeSpan s_documentBatchProcessingCadence = TimeSpan.FromMilliseconds(1500);
-
         private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = new ConcurrentDictionary<ProjectId, ProjectCodeModel>();
 
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
@@ -57,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // for the same documents.  Once enough time has passed, take the documents that were changed and run
             // through them, firing their latest events.
             _documentsToFireEventsFor = new AsyncBatchingWorkQueue<DocumentId>(
-                s_documentBatchProcessingCadence,
+                InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan,
                 ProcessNextDocumentBatchAsync,
                 // We only care about unique doc-ids, so pass in this comparer to collapse streams of changes for a
                 // single document down to one notification.

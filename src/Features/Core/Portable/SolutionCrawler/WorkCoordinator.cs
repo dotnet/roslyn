@@ -57,16 +57,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = TimeSpan.FromMilliseconds(_optionService.GetOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS));
-                var allFilesWorkerBackOffTimeSpan = TimeSpan.FromMilliseconds(_optionService.GetOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS));
-                var entireProjectWorkerBackOffTimeSpan = TimeSpan.FromMilliseconds(_optionService.GetOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS));
+                var activeFileBackOffTimeSpan = InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpan;
+                var allFilesWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan;
+                var entireProjectWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpan;
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 
-                var semanticBackOffTimeSpan = TimeSpan.FromMilliseconds(_optionService.GetOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS));
-                var projectBackOffTimeSpan = TimeSpan.FromMilliseconds(_optionService.GetOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS));
+                var semanticBackOffTimeSpan = InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpan;
+                var projectBackOffTimeSpan = InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpan;
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 

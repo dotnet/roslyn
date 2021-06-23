@@ -1366,7 +1366,6 @@ class C
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 
-            SetOptions(workspace);
             var testDocument = workspace.Documents.First();
             var textBuffer = testDocument.GetTextBuffer();
 
@@ -1503,18 +1502,6 @@ class C
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
             => provider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
-        private static void SetOptions(Workspace workspace)
-        {
-            // override default timespan to make test run faster
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100)));
-        }
-
         private static void MakeFirstDocumentActive(Project project)
             => MakeDocumentActive(project.Documents.First());
 
@@ -1545,8 +1532,6 @@ class C
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
-
-                WorkCoordinatorTests.SetOptions(this);
             }
 
             public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true, Type incrementalAnalyzer = null)
