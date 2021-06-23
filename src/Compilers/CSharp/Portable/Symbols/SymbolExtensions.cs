@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns the type B.
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
         /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
         /// </summary>
         internal static bool HasAsyncMethodBuilderAttribute(this Symbol symbol, [NotNullWhen(true)] out object? builderArgument)
