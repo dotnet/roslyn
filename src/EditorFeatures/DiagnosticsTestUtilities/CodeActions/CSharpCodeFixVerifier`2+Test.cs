@@ -13,6 +13,9 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -79,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
+            public Action<ImmutableArray<CodeAction>>? CodeActionsVerifier { get; set; }
+
             protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
             {
                 if (DiagnosticSelector is object)
@@ -99,6 +104,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 return DiagnosticSelector?.Invoke(fixableDiagnostics)
                     ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
+            }
+
+            protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
+            {
+                CodeActionsVerifier?.Invoke(actions);
+                return base.FilterCodeActions(actions);
             }
         }
     }
