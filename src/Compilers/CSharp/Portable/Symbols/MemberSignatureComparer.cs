@@ -235,6 +235,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
+        /// Same as <see cref="RuntimeSignatureComparer"/>, but in addition ignores name.
+        /// </summary>
+        public static readonly MemberSignatureComparer RuntimeExplicitImplementationSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: true,
+            considerRefKindDifferences: false,
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
+
+        /// <summary>
         /// Same as <see cref="RuntimeSignatureComparer"/>, but distinguishes between <c>ref</c> and <c>out</c>. During override resolution,
         /// if we find two methods that match except for <c>ref</c>/<c>out</c>, we want to prefer the one that matches, even
         /// if the runtime doesn't.

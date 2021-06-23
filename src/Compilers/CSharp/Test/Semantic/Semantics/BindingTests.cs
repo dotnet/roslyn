@@ -1887,9 +1887,10 @@ class C : I
                 // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
                 //     sealed void M3<T>() { }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
-                // (10,34): error CS0112: A static member 'C.M4<T>()' cannot be marked as override, virtual, or abstract
+                // (10,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     internal static virtual void M4<T>() { }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("virtual").WithLocation(10, 34)
+                );
         }
 
         [WorkItem(542391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542391")]

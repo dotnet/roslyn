@@ -7,15 +7,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -75,6 +78,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // legacy, and otherwise have no special meaning.
             const int MaxTimeSlice = 15;
             var delayBetweenProcessing = TimeSpan.FromMilliseconds(50);
+
+            Debug.Assert(!_threadingContext.JoinableTaskContext.IsOnMainThread, "The following context switch is not expected to cause runtime overhead.");
+            await TaskScheduler.Default;
+
+            // Ensure MEF services used by the code model are initially obtained on a background thread.
+            // This code avoids allocations where possible.
+            // https://github.com/dotnet/roslyn/issues/54159
+            string? previousLanguage = null;
+            foreach (var (_, projectState) in _visualStudioWorkspace.CurrentSolution.State.ProjectStates)
+            {
+                if (projectState.Language == previousLanguage)
+                {
+                    // Avoid duplicate calls if the language did not change
+                    continue;
+                }
+
+                previousLanguage = projectState.Language;
+                projectState.LanguageServices.GetService<ICodeModelService>();
+                projectState.LanguageServices.GetService<ISyntaxFactsService>();
+                projectState.LanguageServices.GetService<ICodeGenerationService>();
+            }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return text.Lines.GetPosition(linePosition);
         }
 
-        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
+        public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
         {
             if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
             {
