@@ -9484,11 +9484,7 @@ class C : {|CS0535:ITest|}
 {
 }
 ",
-                FixedState =
-                {
-                    Sources =
-                    {
-                        @"
+                FixedCode = @"
 interface ITest
 {
     static abstract void M1();
@@ -9502,14 +9498,9 @@ class C : ITest
     }
 }
 ",
-                    },
-                },
                 CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_all_members_explicitly, codeAction.Title),
                 CodeActionEquivalenceKey = "True;False;False:global::ITest;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
                 CodeActionIndex = 1,
-
-                // 🐛 This code fix is broken due to a missing 'static' keyword
-                CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne,
             }.RunAsync();
         }
 
@@ -9531,11 +9522,7 @@ abstract class C : {|CS0535:ITest|}
 {
 }
 ",
-                FixedState =
-                {
-                    Sources =
-                    {
-                        @"
+                FixedCode = @"
 interface ITest
 {
     static abstract void M1();
@@ -9548,9 +9535,7 @@ abstract class C : ITest
         throw new System.NotImplementedException();
     }
 }
-"
-                    }
-                },
+",
                 CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Implement_interface_abstractly, codeAction.Title),
                 CodeActionEquivalenceKey = "False;True;True:global::ITest;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
                 CodeActionIndex = 1,
