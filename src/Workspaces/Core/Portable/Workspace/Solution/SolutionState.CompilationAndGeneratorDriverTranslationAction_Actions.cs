@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly TextDocumentState _oldState;
-                private readonly TextDocumentState _newState;
+                private readonly AdditionalDocumentState _oldState;
+                private readonly AdditionalDocumentState _newState;
 
-                public TouchAdditionalDocumentAction(TextDocumentState oldState, TextDocumentState newState)
+                public TouchAdditionalDocumentAction(AdditionalDocumentState oldState, AdditionalDocumentState newState)
                 {
                     _oldState = oldState;
                     _newState = newState;
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    var oldText = AdditionalTextWithState.FromState(_oldState);
-                    var newText = AdditionalTextWithState.FromState(_newState);
+                    var oldText = _oldState.AdditionalText;
+                    var newText = _newState.AdditionalText;
 
                     // TODO: have the compiler add an API for replacing an additional text
                     // https://github.com/dotnet/roslyn/issues/54087
@@ -285,9 +285,9 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public AddAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public AddAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -299,15 +299,15 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
+                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
 
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public RemoveAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
+                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
         }
