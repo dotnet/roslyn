@@ -77,26 +77,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' keep many blocks and locals unchanged and reuse them in all rewritten initializers, 
                     ' in which case if we have a lambda inside the initializer lambda rewriter simply throws.
 
-                    Dim asNewVariablePlaceholder As BoundWithLValueExpressionPlaceholder = Nothing
-                    Dim symbolType As TypeSymbol
-
                     If symbol.Kind = SymbolKind.Field Then
-                        symbolType = DirectCast(symbol, FieldSymbol).Type
-
-                        If syntax.Kind = SyntaxKind.AsNewClause Then
-                            asNewVariablePlaceholder = New BoundWithLValueExpressionPlaceholder(syntax, symbolType)
-                            asNewVariablePlaceholder.SetWasCompilerGenerated()
-                        End If
+                        ' Rebind and discard diagnostics
+                        initialValueToRewrite = node.BinderOpt.BindFieldInitializerExpression(syntax, DirectCast(symbol, FieldSymbol), BindingDiagnosticBag.Discarded)
                     Else
-                        symbolType = DirectCast(symbol, PropertySymbol).Type
+                        ' Rebind and discard diagnostics
+                        initialValueToRewrite = node.BinderOpt.BindPropertyInitializerExpression(syntax, DirectCast(symbol, PropertySymbol), BindingDiagnosticBag.Discarded)
                     End If
-
-                    ' Rebind and discard diagnostics
-                    initialValueToRewrite = node.BinderOpt.BindFieldOrPropertyInitializerExpression(syntax,
-                                                                                                 symbolType,
-                                                                                                 asNewVariablePlaceholder,
-                                                                                                 BindingDiagnosticBag.Discarded)
-
                 End If
 
                 Dim objectInitializer As BoundObjectInitializerExpression = Nothing

@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim localDeclaration = localDeclarations(declarationIndex)
                 Debug.Assert(localDeclaration.InitializerOpt Is Nothing)
 
-                Dim rewrittenInitializer As BoundNode = Nothing
+                Dim rewrittenInitializer As BoundNode
 
                 Dim localSymbol = localDeclaration.LocalSymbol
                 Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
@@ -56,8 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim varDecl = DirectCast(node.Syntax, VariableDeclaratorSyntax)
                     Dim asNew = DirectCast(varDecl.AsClause, AsNewClauseSyntax)
-
-                    Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)
 
                     ' Rebind and discard diagnostics
                     initializerToRewrite = node.Binder.BindVariableDeclaration(varDecl, varDecl.Names(declarationIndex), asNew, Nothing, BindingDiagnosticBag.Discarded, skipAsNewInitializer:=False).InitializerOpt
