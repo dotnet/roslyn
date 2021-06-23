@@ -288,6 +288,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim ordinal As Integer = 0
                 For Each parameter In invoke.Parameters
+                    ' Delegate parameters cannot be optional in VB.
+                    ' In error cases where the parameter is specified optional in source, the parameter
+                    ' will not have a True .IsOptional.
+                    ' This is ensured by 'CheckDelegateParameterModifier'
+                    Debug.Assert(Not parameter.IsOptional)
                     parameters.Add(New SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
                     ordinal += 1
                 Next
@@ -330,6 +335,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim ordinal = 0
                 For Each parameter In invoke.Parameters
+                    ' Delegate parameters cannot be optional in VB.
+                    ' In error cases where the parameter is specified optional in source, the parameter
+                    ' will not have a True .IsOptional.
+                    ' This is ensured by 'CheckDelegateParameterModifier'
+                    Debug.Assert(Not parameter.IsOptional)
                     If parameter.IsByRef Then
                         parameters.Add(New SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(DirectCast(parameter, SourceParameterSymbol), Me, ordinal))
                         ordinal += 1

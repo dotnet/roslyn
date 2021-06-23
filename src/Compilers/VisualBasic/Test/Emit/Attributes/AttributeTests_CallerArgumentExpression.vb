@@ -683,7 +683,7 @@ End Class
 4, explicit-value").VerifyDiagnostics()
         End Sub
 
-        <ConditionalFact(GetType(CoreClrOnly), AlwaysSkip:="PROTOTYPE(caller-expr): Write a proper test.")>
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestDelegate1()
             Dim source As String = "
 Imports System
@@ -704,8 +704,47 @@ Class Program
 End Class
 "
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="2, 1+  1
-4, explicit-value").VerifyDiagnostics()
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", "
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (String V_0)
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""Sub Program.MImpl(String, ByRef String)""
+  IL_0007:  newobj     ""Sub Program.M..ctor(Object, System.IntPtr)""
+  IL_000c:  ldstr      """"
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldnull
+  IL_0015:  callvirt   ""Sub Program.M.EndInvoke(ByRef String, System.IAsyncResult)""
+  IL_001a:  ret
+}
+")
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestDelegate2()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Delegate Sub M(s1 As String, <CallerArgumentExpression(""s1"")> Optional ByRef s2 as String = """")
+
+    Shared Sub MImpl(s1 As String, ByRef s2 As String)
+        Console.WriteLine(s1)
+        Console.WriteLine(s2)
+    End Sub
+
+    Public Shared Sub Main()
+        Dim x As M = AddressOf MImpl
+        x.EndInvoke("""", Nothing)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            compilation.VerifyDiagnostics(
+                        Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Delegate").WithLocation(6, 67))
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>

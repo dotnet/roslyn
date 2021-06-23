@@ -3163,7 +3163,7 @@ ProduceBoundNode:
                         ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
                         Else
-                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse reducedExtensionReceiverOpt IsNot Nothing)
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2))
 
                             Dim argumentSyntax As SyntaxNode = Nothing
                             If callerArgumentExpressionParameterIndex = -1 Then

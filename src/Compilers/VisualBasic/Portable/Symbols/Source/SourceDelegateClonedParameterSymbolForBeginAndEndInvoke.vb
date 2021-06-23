@@ -8,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Sub New(originalParam As SourceParameterSymbol, newOwner As MethodSymbol, ordinal As Integer)
             MyBase.New(originalParam, newOwner, ordinal)
+            Debug.Assert(Not originalParam.IsOptional)
         End Sub
 
         Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
@@ -30,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                ' PROTOTYPE(caller-expr): Write proper tests and modify implementation as appropriate.
-                Return -1
+                ' This parameter cannot be optional. Hence, this property shouldn't be accessed.
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
     End Class
