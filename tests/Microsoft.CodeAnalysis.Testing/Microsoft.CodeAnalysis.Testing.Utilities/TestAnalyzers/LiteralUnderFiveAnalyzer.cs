@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class LiteralUnderFiveAnalyzer : DiagnosticAnalyzer
     {
+        internal const string CurrentValueProperty = nameof(CurrentValueProperty);
+
         internal static readonly DiagnosticDescriptor Descriptor =
             new DiagnosticDescriptor("LiteralUnderFive", "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
@@ -34,7 +36,9 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
                 && operation.ConstantValue.Value is int value
                 && value < 5)
             {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, operation.Syntax.GetLocation()));
+                var properties = ImmutableDictionary<string, string?>.Empty
+                    .Add(CurrentValueProperty, value.ToString());
+                context.ReportDiagnostic(Diagnostic.Create(Descriptor, operation.Syntax.GetLocation(), properties));
             }
         }
     }

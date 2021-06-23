@@ -395,6 +395,67 @@ class TestClass2 {
             Assert.Equal($"Context: {context}{Environment.NewLine}Expected '2' iterations but found '1' iterations.", exception.Message);
         }
 
+        [Fact]
+        [WorkItem(874, "https://github.com/dotnet/roslyn-sdk/issues/874")]
+        public async Task TestTwoIterationsRequiredButOneApplied()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|3|];
+}
+";
+            var fixedCode = @"
+class TestClass {
+  int field =  [|4|];
+}
+";
+
+            await new CSharpTest
+            {
+                TestCode = testCode,
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+                CodeActionEquivalenceKey = "IncrementFix:4",
+                CodeActionIndex = 0,
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(874, "https://github.com/dotnet/roslyn-sdk/issues/874")]
+        public async Task TestTwoIterationsRequiredButNoneApplied()
+        {
+            var testCode = @"
+class TestClass {
+  int field = [|3|];
+}
+";
+            var fixedCode = @"
+class TestClass {
+  int field =  [|4|];
+}
+";
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest
+                {
+                    TestCode = testCode,
+                    FixedState =
+                    {
+                        Sources = { fixedCode },
+                        MarkupHandling = MarkupMode.Allow,
+                    },
+                    CodeActionEquivalenceKey = "IncrementFix:3",
+                    CodeActionIndex = 0,
+                }.RunAsync();
+            });
+
+            new DefaultVerifier().EqualOrDiff($"Context: Iterative code fix application{Environment.NewLine}The code action equivalence key and index must be consistent when both are specified.", exception.Message);
+        }
+
         private class CSharpTest : CSharpCodeFixTest<LiteralUnderFiveAnalyzer, IncrementFix>
         {
             public int DiagnosticIndexToFix { get; set; }
