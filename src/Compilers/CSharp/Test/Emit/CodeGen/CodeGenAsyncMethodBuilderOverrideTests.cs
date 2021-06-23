@@ -772,7 +772,7 @@ return;
                 // (6,18): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes").WithLocation(6, 18),
-                // (6,84): error CS8934: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // (6,84): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(6, 84),
                 // (6,84): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -781,7 +781,7 @@ return;
                 // (8,23): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes").WithLocation(8, 23),
-                // (8,84): error CS8934: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // (8,84): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(8, 84),
                 // (8,84): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -886,10 +886,10 @@ public class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyEmitDiagnostics(
-                // (7,71): error CS8934: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // (7,71): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("Lambda1 "); await Task.Delay(0); } // 1
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(7, 71),
-                // (11,73): error CS8934: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
+                // (11,73): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 //     [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] static async () => { System.Console.Write("Lambda2 "); await Task.Delay(0); return 3; } // 2
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(11, 73)
                 );
