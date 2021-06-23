@@ -6820,8 +6820,6 @@ done:;
 
             Debug.Assert(type != null);
             return type;
-
-            bool isOmittedSize() => this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken;
         }
 
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)

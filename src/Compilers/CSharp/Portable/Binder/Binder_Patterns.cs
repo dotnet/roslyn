@@ -307,11 +307,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Patterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
-
+            TypeSymbol narrowedType = inputType.StrippedType();
             BindPatternDesignation(
-                node.Designation, TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated), inputValEscape, permitDesignations, node, diagnostics,
+                node.Designation, TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated), inputValEscape, permitDesignations, node, diagnostics,
                 ref hasErrors, out Symbol? variableSymbol, out BoundExpression? variableAccess);
-            return new BoundListPattern(node, subpatterns, sawSlice, lengthProperty, indexerAccess, indexerSymbol, variableSymbol, variableAccess, inputType, inputType.StrippedType(), hasErrors);
+            return new BoundListPattern(node, subpatterns, sawSlice, lengthProperty, indexerAccess, indexerSymbol, variableSymbol, variableAccess, inputType, narrowedType: narrowedType, hasErrors);
         }
 
         private bool TryPerformPatternIndexerLookup(
