@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="0_directive" xml:space="preserve">
+    <value>#{0} directive</value>
+  </data>
   <data name="Add_project_reference_to_0" xml:space="preserve">
     <value>Add project reference to '{0}'.</value>
   </data>
@@ -555,9 +558,6 @@
   </data>
   <data name="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</value>
-  </data>
-  <data name="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
-    <value>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</value>
@@ -1892,7 +1892,7 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</value>
-    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</comment>
+    <comment>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</comment>
   </data>
   <data name="_10ths_of_a_second_non_zero" xml:space="preserve">
     <value>10ths of a second (non-zero)</value>
@@ -2840,6 +2840,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
+  <data name="Introduce_parameter" xml:space="preserve">
+    <value>Introduce parameter</value>
+  </data>
+  <data name="Introduce_parameter_for_0" xml:space="preserve">
+    <value>Introduce parameter for '{0}'</value>
+  </data>
+  <data name="Introduce_parameter_for_all_occurrences_of_0" xml:space="preserve">
+    <value>Introduce parameter for all occurrences of '{0}'</value>
+  </data>
+  <data name="into_new_overload" xml:space="preserve">
+    <value>into new overload</value>
+  </data>
+  <data name="into_extracted_method_to_invoke_at_call_sites" xml:space="preserve">
+    <value>into extracted method to invoke at call sites</value>
+  </data>
+  <data name="and_update_call_sites_directly" xml:space="preserve">
+    <value>and update call sites directly</value>
+  </data>
   <data name="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</value>
   </data>
@@ -2866,5 +2884,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Making_a_method_async_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Making a method 'async' will prevent the debug session from continuing.</value>
+  </data>
+  <data name="Updating_the_attributes_of_0_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Updating the attributes of '{0}' is not supported by the runtime.</value>
   </data>
 </root>

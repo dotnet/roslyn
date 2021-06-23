@@ -841,6 +841,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                             exceptions.Add(ex);
                         }
                     }
+
                     countdown.Signal();
                 });
             }
@@ -873,6 +874,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                             exceptions.Add(ex);
                         }
                     }
+
                     countdown.Signal();
                 }, i);
             }

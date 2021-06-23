@@ -102,6 +102,14 @@ namespace Roslyn.Test.Utilities
 
                 return Task.FromResult(mappedResult);
             }
+
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                Document oldDocument,
+                Document newDocument,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected class OrderLocations : Comparer<LSP.Location>
@@ -403,6 +411,49 @@ namespace Roslyn.Test.Utilities
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
 
+        private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
+            Uri documentUri,
+            ImmutableArray<(int startLine, int startColumn, int endLine, int endColumn, string text)> changes)
+        {
+            var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
+            {
+                Text = change.text,
+                Range = new LSP.Range
+                {
+                    Start = new LSP.Position(change.startLine, change.startColumn),
+                    End = new LSP.Position(change.endLine, change.endColumn)
+                }
+            }).ToArray();
+
+            return new LSP.DidChangeTextDocumentParams()
+            {
+                TextDocument = new LSP.VersionedTextDocumentIdentifier
+                {
+                    Uri = documentUri
+                },
+                ContentChanges = changeEvents
+            };
+        }
+
+        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+            => new LSP.DidOpenTextDocumentParams
+            {
+                TextDocument = new LSP.TextDocumentItem
+                {
+                    Text = source,
+                    Uri = uri
+                }
+            };
+
+        private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(Uri uri)
+           => new LSP.DidCloseTextDocumentParams()
+           {
+               TextDocument = new LSP.TextDocumentIdentifier
+               {
+                   Uri = uri
+               }
+           };
+
         public sealed class TestLspServer : IDisposable
         {
             public readonly TestWorkspace TestWorkspace;
@@ -421,6 +472,41 @@ namespace Roslyn.Test.Utilities
             {
                 return _requestDispatcher.ExecuteRequestAsync<RequestType, ResponseType>(
                     _executionQueue, methodName, request, clientCapabilities, clientName, cancellationToken);
+            }
+
+            public async Task OpenDocumentAsync(Uri documentUri)
+            {
+                // LSP open files don't care about the project context, just the file contents with the URI.
+                // So pick any of the linked documents to get the text from.
+                var text = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
+                await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName,
+                           didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+
+            public Task InsertTextAsync(Uri documentUri, params (int line, int column, string text)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.Select(change => (startLine: change.line, startColumn: change.column, endLine: change.line, endColumn: change.column, change.text)).ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName,
+                           didChangeParams, new LSP.ClientCapabilities(), clientName: null, CancellationToken.None);
+            }
+
+            public Task DeleteTextAsync(Uri documentUri, params (int startLine, int startColumn, int endLine, int endColumn)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.Select(change => (change.startLine, change.startColumn, change.endLine, change.endColumn, text: string.Empty)).ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName,
+                           didChangeParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+
+            public Task CloseDocumentAsync(Uri documentUri)
+            {
+                var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
+                return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName,
+                           didCloseParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
             }
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;

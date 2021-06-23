@@ -8,15 +8,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -38,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                if (!AnalysisEnabled(document))
+                if (!AnalysisEnabled(document, _documentTrackingService))
                 {
                     // to reduce allocations, here, we don't clear existing diagnostics since it is dealt by other entry point such as
                     // DocumentReset or DocumentClosed.
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    await state.SaveToInMemoryStorageAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
@@ -183,7 +180,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other component knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
+
+                // can not be canceled
+                foreach (var stateSet in stateSets)
+                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
             }
         }
 
@@ -201,7 +201,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+
+                // can not be canceled
+                var documentHadDiagnostics = false;
+                foreach (var stateSet in stateSets)
+                    documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
+
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
@@ -220,7 +225,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = StateManager.OnDocumentReset(stateSets, document);
+                // can not be canceled
+                var documentHadDiagnostics = false;
+                foreach (var stateSet in stateSets)
+                    documentHadDiagnostics |= stateSet.OnDocumentReset(document);
+
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
@@ -255,14 +264,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var changed = StateManager.OnDocumentRemoved(stateSets, documentId);
+
+                var changed = false;
+                foreach (var stateSet in stateSets)
+                    changed |= stateSet.OnDocumentRemoved(documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
                 // this is Perf to reduce raising events unnecessarily.
                 if (changed)
-                {
                     RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
-                }
             }
 
             return Task.CompletedTask;
@@ -320,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return Task.CompletedTask;
         }
 
-        private static bool AnalysisEnabled(TextDocument document)
+        private static bool AnalysisEnabled(TextDocument document, IDocumentTrackingService documentTrackingService)
         {
             if (document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null)
             {
@@ -328,9 +338,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
+            if (!document.SupportsDiagnostics())
+            {
+                return false;
+            }
+
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen() && document.SupportsDiagnostics();
+            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile)
+            {
+                return documentTrackingService.TryGetActiveDocument() == document.Id;
+            }
+            else
+            {
+                return document.IsOpen();
+            }
         }
 
         /// <summary>

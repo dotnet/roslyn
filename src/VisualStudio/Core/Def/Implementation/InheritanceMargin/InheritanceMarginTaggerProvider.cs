@@ -37,11 +37,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IForegroundNotificationService notificationService) : base(
+            IAsynchronousOperationListenerProvider listenerProvider) : base(
                 threadingContext,
-                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
-                notificationService)
+                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
         {
         }
 

@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(
-                new MyCodeAction(AnalyzersResources.Change_namespace_to_match_folder_structure, cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken)),
-                context.Diagnostics);
+            if (context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
+            {
+                context.RegisterCodeFix(
+                    new MyCodeAction(AnalyzersResources.Change_namespace_to_match_folder_structure, cancellationToken => FixAllInDocumentAsync(context.Document, context.Diagnostics, cancellationToken)),
+                    context.Diagnostics);
+            }
 
             return Task.CompletedTask;
         }

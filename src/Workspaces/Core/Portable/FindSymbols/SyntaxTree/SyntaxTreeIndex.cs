@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+                return;
+
             using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
             {
                 Debug.Assert(document.IsFromPrimaryBranch());
@@ -82,6 +85,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+                return null;
+
             // See if we already cached an index with this direct document index.  If so we can just
             // return it with no additional work.
             if (!s_documentToIndex.TryGetValue(document, out var index))
@@ -108,6 +114,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             CancellationToken cancellationToken)
         {
+            if (!document.SupportsSyntaxTree)
+                return null;
+
             var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Check if we have an index for a previous version of this document.  If our

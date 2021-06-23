@@ -1246,7 +1246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-#nullable disable
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -1264,6 +1263,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)invokeMethod == null || invokeMethod.HasUseSiteError)
             {
                 return LambdaConversionResult.BadTargetType;
+            }
+
+            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            {
+                if (invokeMethod.RefKind != refKind ||
+                    !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return LambdaConversionResult.MismatchedReturnType;
+                }
             }
 
             var delegateParameters = invokeMethod.Parameters;
@@ -1400,29 +1408,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.SpecialType == SpecialType.System_Delegate)
             {
-                if (IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
-                {
-                    return LambdaConversionResult.Success;
-                }
+                return LambdaConversionResult.Success;
             }
             else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
             }
-            else if (type.IsGenericOrNonGenericExpressionType(out bool isGenericType))
+            else if (type.IsGenericOrNonGenericExpressionType(out bool _))
             {
-                if (isGenericType || IsFeatureInferredDelegateTypeEnabled(anonymousFunction))
-                {
-                    return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
-                }
+                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
             }
 
             return LambdaConversionResult.BadTargetType;
-        }
-
-        internal static bool IsFeatureInferredDelegateTypeEnabled(BoundExpression expr)
-        {
-            return expr.Syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType);
         }
 
         private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
@@ -1437,6 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
+#nullable disable
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
