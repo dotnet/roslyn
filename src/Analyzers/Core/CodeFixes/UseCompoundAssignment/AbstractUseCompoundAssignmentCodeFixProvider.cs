@@ -68,8 +68,11 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 var assignment = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
                 editor.ReplaceNode(assignment,
-                    (currentAssignment, generator) =>
+                    (current, generator) =>
                     {
+                        if (current is not TAssignmentSyntax currentAssignment)
+                            return current;
+
                         syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(currentAssignment,
                             out var leftOfAssign, out var equalsToken, out var rightOfAssign);
 
@@ -80,14 +83,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                             out _, out var opToken, out var rightExpr);
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Increment))
-                        {
-                            return IncrementOrDecrement(Increment, currentAssignment, leftOfAssign);
-                        }
+                            return Increment((TExpressionSyntax)leftOfAssign, PreferPostfix(syntaxFacts, currentAssignment)).WithTriviaFrom(currentAssignment);
 
                         if (diagnostic.Properties.ContainsKey(UseCompoundAssignmentUtilities.Decrement))
-                        {
-                            return IncrementOrDecrement(Decrement, currentAssignment, leftOfAssign);
-                        }
+                            return Decrement((TExpressionSyntax)leftOfAssign, PreferPostfix(syntaxFacts, currentAssignment)).WithTriviaFrom(currentAssignment);
 
                         var assignmentOpKind = _binaryToAssignmentMap[syntaxKinds.Convert<TSyntaxKind>(rightOfAssign.RawKind)];
                         var compoundOperator = Token(_assignmentToTokenMap[assignmentOpKind]);
@@ -100,20 +99,17 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             return Task.CompletedTask;
+        }
 
-            SyntaxNode IncrementOrDecrement(Func<TExpressionSyntax, bool, TExpressionSyntax> incrementOrDecrementFactory, SyntaxNode currentAssignment, SyntaxNode leftOfAssignment)
-            {
-                var postfix = syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent);
-                if (!postfix)
-                {
-                    syntaxFacts.GetPartsOfForStatement(currentAssignment.Parent, out _, out _, out _, out var increments);
-                    if (increments.Contains(currentAssignment))
-                    {
-                        postfix = true;
-                    }
-                }
-                return incrementOrDecrementFactory((TExpressionSyntax)leftOfAssignment, postfix).WithTriviaFrom(currentAssignment);
-            }
+        protected virtual bool PreferPostfix(ISyntaxFactsService syntaxFacts, TAssignmentSyntax currentAssignment)
+        {
+            // If we have `x = x + 1;` on it's own, then we prefer `x++` as idiomatic.
+            if (syntaxFacts.IsSimpleAssignmentStatement(currentAssignment.Parent))
+                return true;
+
+            // In any other circumstance, the value of the assignment might be read, so we need to transform to
+            // ++x to ensure that we preserve semantics.
+            return false;
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
