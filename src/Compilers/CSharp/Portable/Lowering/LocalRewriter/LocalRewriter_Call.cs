@@ -682,10 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var placeholder in interpolationData.ArgumentPlaceholders)
                     {
-                        if (HasPlaceholderReplacement(placeholder))
-                        {
-                            RemovePlaceholderReplacement(placeholder);
-                        }
+                        RemovePlaceholderReplacementIfPresent(placeholder);
                     }
 
                     // We create a sequence, rather than just directly adding all the expressions to storesToTemps, because this

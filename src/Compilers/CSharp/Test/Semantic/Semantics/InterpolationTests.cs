@@ -8096,7 +8096,7 @@ public partial struct CustomHandler
             var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
-            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
+            var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, verify: ExecutionConditionUtil.IsWindowsDesktop ? Verification.Skipped : Verification.Passes, expectedOutput: @"
 GetC
 literal:literal
 
@@ -9274,6 +9274,6 @@ literal:literal
   IL_0024:  ret
 }
 ");
-       }
+        }
     }
 }

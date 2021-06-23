@@ -295,8 +295,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
             BoundExpression constructorCall;
-            BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics, out bool overloadResolutionSucceeded);
-            if (!overloadResolutionSucceeded)
+            BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics);
+            if (nonOutConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
             {
                 // MakeConstructorInvocation can call CoerceArguments on the builder if overload resolution succeeded ignoring accessibility, which
                 // could still end up not succeeding, and that would end up changing the arguments. So we want to clear and repopulate.
@@ -312,9 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKindsBuilder.Add(RefKind.Out);
 
                 var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
-                var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics, out overloadResolutionSucceeded);
+                var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics);
 
-                if (overloadResolutionSucceeded)
+                if (outConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
                 {
                     // We successfully bound the out version, so set all the final data based on that binding
                     constructorCall = outConstructorCall;

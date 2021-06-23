@@ -4413,7 +4413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, diagnostics);
                 }
 
-                return BindClassCreationExpression(node, typeName, node.Type, type, analyzedArguments, diagnostics, overloadResolutionSucceeded: out _, node.Initializer, initializerType);
+                return BindClassCreationExpression(node, typeName, node.Type, type, analyzedArguments, diagnostics, node.Initializer, initializerType);
             }
             finally
             {
@@ -4430,8 +4430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> arguments,
             ArrayBuilder<RefKind> refKinds,
             SyntaxNode node,
-            BindingDiagnosticBag diagnostics,
-            out bool overloadResolutionSucceeded)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
             var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -4443,12 +4442,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsStatic)
                 {
-                    overloadResolutionSucceeded = false;
                     diagnostics.Add(ErrorCode.ERR_InstantiatingStaticClass, node.Location, type);
                     return MakeBadExpressionForObjectCreation(node, type, analyzedArguments, initializerOpt: null, typeSyntax: null, diagnostics, wasCompilerGenerated: true);
                 }
 
-                var creation = BindClassCreationExpression(node, type.Name, node, type, analyzedArguments, diagnostics, out overloadResolutionSucceeded);
+                var creation = BindClassCreationExpression(node, type.Name, node, type, analyzedArguments, diagnostics);
                 creation.WasCompilerGenerated = true;
                 return creation;
             }
@@ -5241,7 +5239,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol type,
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
-            out bool overloadResolutionSucceeded,
             InitializerExpressionSyntax initializerSyntaxOpt = null,
             TypeSymbol initializerTypeOpt = null,
             bool wasTargetTyped = false)
@@ -5291,7 +5288,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors);
                 }
 
-                overloadResolutionSucceeded = overloadResolutionResult.Succeeded;
                 overloadResolutionResult.Free();
                 if (result != null)
                 {
@@ -5300,18 +5296,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 
-            overloadResolutionSucceeded = TryPerformConstructorOverloadResolution(
-                type,
-                analyzedArguments,
-                typeName,
-                typeNode.Location,
-                hasErrors, //don't cascade in these cases
-                diagnostics,
-                out MemberResolutionResult<MethodSymbol> memberResolutionResult,
-                out ImmutableArray<MethodSymbol> candidateConstructors,
-                allowProtectedConstructorsOfBaseType: false);
-
-            if (overloadResolutionSucceeded)
+            if (TryPerformConstructorOverloadResolution(
+                    type,
+                    analyzedArguments,
+                    typeName,
+                    typeNode.Location,
+                    hasErrors, //don't cascade in these cases
+                    diagnostics,
+                    out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                    out ImmutableArray<MethodSymbol> candidateConstructors,
+                    allowProtectedConstructorsOfBaseType: false))
             {
                 var method = memberResolutionResult.Member;
 
@@ -5506,7 +5500,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     coClassType,
                     analyzedArguments,
                     diagnostics,
-                    overloadResolutionSucceeded: out _,
                     initializerOpt,
                     interfaceType,
                     wasTargetTyped);

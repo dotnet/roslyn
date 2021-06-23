@@ -22,6 +22,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool All<TElement>(this ReadOnlySpan<TElement> span, Func<TElement, bool> predicate)
-            => span.All(predicate, static (item, predicate) => predicate(item));
+        {
+            foreach (var e in span)
+            {
+                if (!predicate(e))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

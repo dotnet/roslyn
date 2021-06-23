@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.AddRange(args);
-            var result = BindClassCreationExpression(node, toCreate.Name, node, toCreate, analyzedArguments, diagnostics, overloadResolutionSucceeded: out _);
+            var result = BindClassCreationExpression(node, toCreate.Name, node, toCreate, analyzedArguments, diagnostics);
             result.WasCompilerGenerated = true;
             analyzedArguments.Free();
             return result;
