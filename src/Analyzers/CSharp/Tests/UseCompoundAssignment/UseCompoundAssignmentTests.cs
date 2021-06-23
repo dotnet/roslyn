@@ -1093,5 +1093,26 @@ $@"public class C
     }
 }");
         }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementInExpressionContext()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int i)
+    {
+        M(i [||]= i + 1);
+    }
+}",
+@"public class C
+{
+    void M(int i)
+    {
+        M(++i);
+    }
+}");
+        }
     }
 }
