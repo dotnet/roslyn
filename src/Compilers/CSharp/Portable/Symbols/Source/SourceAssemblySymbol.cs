@@ -1433,17 +1433,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                             }
 
-                        if (forwardedTypes.Add(forwarded))
-                        {
-                            if (forwarded.IsErrorType())
+                            if (forwardedTypes.Add(forwarded))
                             {
-                                if (!diagnostics.ReportUseSite(forwarded, NoLocation.Singleton))
+                                if (forwarded.IsErrorType())
                                 {
-                                    DiagnosticInfo info = ((ErrorTypeSymbol)forwarded).ErrorInfo;
-
-                                    if ((object)info != null)
+                                    if (!diagnostics.ReportUseSite(forwarded, NoLocation.Singleton))
                                     {
-                                        diagnostics.Add(info, NoLocation.Singleton);
+                                        DiagnosticInfo info = ((ErrorTypeSymbol)forwarded).ErrorInfo;
+
+                                        if ((object)info != null)
+                                        {
+                                            diagnostics.Add(info, NoLocation.Singleton);
+                                        }
                                     }
                                 }
                             }
@@ -1476,9 +1477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 diagnostics.Free();
-            }
 
-            Debug.Assert(lazyNetModuleAttributesBag.IsSealed);
+                Debug.Assert(lazyNetModuleAttributesBag.IsSealed);
+            }
         }
 
         private CustomAttributesBag<CSharpAttributeData> GetNetModuleAttributesBag()
