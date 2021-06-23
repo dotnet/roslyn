@@ -1058,7 +1058,6 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        // TODO2
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailSignMismatch(CSharpParseOptions parseOptions)
@@ -1075,7 +1074,36 @@ public class A
 
             var requestor = CreateCompilation(
     @"
-[assembly: C()] //causes optimistic granting
+[assembly: C()]
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
+public class A
+{
+}",
+                new[] { new CSharpCompilationReference(other) },
+                assemblyName: "John",
+                options: TestOptions.SigningReleaseDll);
+
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
+            requestor.VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailSignMismatch_AssemblyKeyName(CSharpParseOptions parseOptions)
+        {
+            string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+            internal class AssemblyKeyNameAttribute : System.Attribute { public AssemblyKeyNameAttribute() {} }";
+
+            var other = CreateCompilation(s,
+                assemblyName: "Paul",
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions); //not signed. cryptoKeyFile: KeyPairFile,
+
+            other.VerifyDiagnostics();
+
+            var requestor = CreateCompilation(
+    @"
+[assembly: AssemblyKeyName()] //causes optimistic granting
 [assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
 public class A
 {
@@ -1089,7 +1117,6 @@ public class A
                 Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
-        // TODO2 add a test for optimistic granting that still repro'es
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatch(CSharpParseOptions parseOptions)
@@ -1127,6 +1154,47 @@ public class A
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailKeyMismatch_AssemblyKeyName(CSharpParseOptions parseOptions)
+        {
+            //key is wrong in the first digit. correct key starts with 0
+            string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=10240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+            internal class AssemblyKeyNameAttribute : System.Attribute { public AssemblyKeyNameAttribute() {} }";
+
+            var other = CreateCompilation(s,
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                assemblyName: "Paul",
+                parseOptions: parseOptions);
+
+            other.VerifyDiagnostics();
+
+            var requestor = CreateCompilation(
+    @"
+[assembly: AssemblyKeyName()]
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
+public class A
+{
+}",
+                new MetadataReference[] { new CSharpCompilationReference(other) },
+                assemblyName: "John",
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
+
+            Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                    .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                    .WithLocation(1, 1),
+                // (2,12): error CS0122: 'AssemblyKeyNameAttribute' is inaccessible due to its protection level
+                // [assembly: AssemblyKeyName()]
+                Diagnostic(ErrorCode.ERR_BadAccess, "AssemblyKeyName").WithArguments("AssemblyKeyNameAttribute").WithLocation(2, 12)
+                );
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [MemberData(nameof(AllProviderParseOptions))]
         public void IVTSuccessThroughIAssembly(CSharpParseOptions parseOptions)
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
@@ -1155,7 +1223,6 @@ public class A
             Assert.Empty(requestor.GetDiagnostics());
         }
 
-        // TODO2 add a test for optimistic granting that still repro'es
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
         [MemberData(nameof(AllProviderParseOptions))]
         public void IVTDeferredFailKeyMismatchIAssembly(CSharpParseOptions parseOptions)
@@ -1189,6 +1256,48 @@ public class A
                 // (3,12): error CS0122: 'CAttribute' is inaccessible due to its protection level
                 // [assembly: C()]
                 Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("CAttribute").WithLocation(3, 12)
+                );
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [MemberData(nameof(AllProviderParseOptions))]
+        public void IVTDeferredFailKeyMismatchIAssembly_AssemblyKeyName(CSharpParseOptions parseOptions)
+        {
+            //key is wrong in the first digit. correct key starts with 0
+            string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=10240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
+            internal class AssemblyKeyNameAttribute : System.Attribute { public AssemblyKeyNameAttribute() {} }";
+
+            var other = CreateCompilation(s,
+                options: TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile),
+                assemblyName: "Paul",
+                parseOptions: parseOptions);
+
+            other.VerifyDiagnostics();
+
+            var requestor = CreateCompilation(
+    @"
+
+[assembly: AssemblyKeyName()]
+[assembly: System.Reflection.AssemblyKeyName(""roslynTestContainer"")]
+public class A
+{
+}",
+                new MetadataReference[] { new CSharpCompilationReference(other) },
+                TestOptions.SigningReleaseDll,
+                assemblyName: "John",
+                parseOptions: parseOptions);
+
+            Assert.False(other.Assembly.GivesAccessTo(requestor.Assembly));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                    .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                    .WithLocation(1, 1),
+                // (3,12): error CS0122: 'AssemblyKeyNameAttribute' is inaccessible due to its protection level
+                // [assembly: AssemblyKeyName()]
+                Diagnostic(ErrorCode.ERR_BadAccess, "AssemblyKeyName").WithArguments("AssemblyKeyNameAttribute").WithLocation(3, 12)
                 );
         }
 
