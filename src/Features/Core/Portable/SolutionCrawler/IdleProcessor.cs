@@ -67,12 +67,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var timeLeft = BackOffTimeSpan - diff;
                 if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(s_minimumDelay.TotalMilliseconds, timeLeft.TotalMilliseconds)), CancellationToken).ConfigureAwait(false))
                 {
-                    // The delay terminated early to accommodate a blocking operation. Make sure to delay long
-                    // enough that low priority (on idle) operations get a chance to be triggered.
+                    // The delay terminated early to accommodate a blocking operation. Make sure to yield so low
+                    // priority (on idle) operations get a chance to be triggered.
                     //
-                    // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
-                    // to avoid live-lock scenarios.
-                    await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken).ConfigureAwait(false);
+                    // 📝 At the time this was discovered, it was not clear exactly why the yield (previously delay)
+                    // was needed in order to avoid live-lock scenarios.
+                    await Task.Yield().ConfigureAwait(false);
                     return;
                 }
             }
