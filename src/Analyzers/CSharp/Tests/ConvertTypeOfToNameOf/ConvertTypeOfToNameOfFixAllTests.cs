@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
+    using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnalyzer,
+        CSharpConvertTypeOfToNameOfCodeFixProvider>;
+
     public partial class ConvertTypeOfToNameOfTests
     {
         [Fact]
@@ -21,9 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInDocument:typeof(Test).Name|};
-        var typeName2 = typeof(Test).Name;
-        var typeName3 = typeof(Test).Name;
+        var typeName1 = [|typeof(Test).Name|];
+        var typeName2 = [|typeof(Test).Name|];
+        var typeName3 = [|typeof(Test).Name|];
     }
 }
 ";
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 }
 ";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await VerifyCS.VerifyCodeFixAsync(input, expected);
         }
 
         [Fact]
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInDocument:typeof(Test).Name|}; var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
+        var typeName1 = [|typeof(Test).Name|]; var typeName2 = [|typeof(int).Name|]; var typeName3 = [|typeof(System.String).Name|];
     }
 }
 ";
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTypeOfToNameOf
 }
 ";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await VerifyCS.VerifyCodeFixAsync(input, expected);
         }
 
         [Fact]
@@ -79,10 +82,10 @@ class Test
 {
     static void Main()
     {
-        var typeName1 = typeof(Test).Name;
-        var typeName2 = typeof(int).Name;
-        var typeName3 = typeof(String).Name;
-        var typeName4 = {|FixAllInDocument:typeof(System.Double).Name|};
+        var typeName1 = [|typeof(Test).Name|];
+        var typeName2 = [|typeof(int).Name|];
+        var typeName3 = [|typeof(String).Name|];
+        var typeName4 = [|typeof(System.Double).Name|];
     }
 }
 ";
@@ -101,7 +104,7 @@ class Test
 }
 ";
 
-            await TestInRegularAndScriptAsync(input, expected);
+            await VerifyCS.VerifyCodeFixAsync(input, expected);
         }
 
         [Fact]
@@ -109,41 +112,44 @@ class Test
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllProject()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 class Test1
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInProject:typeof(Test1).Name|};
-        var typeName2 = typeof(Test1).Name;
-        var typeName3 = typeof(Test1).Name;
+        var typeName1 = [|typeof(Test1).Name|];
+        var typeName2 = [|typeof(Test1).Name|];
+        var typeName3 = [|typeof(Test1).Name|];
     }
 }
-        </Document>
-        <Document>
+",
+                        @"
 using System;
 
 class Test2
 {
     static void Main()
     {
-        var typeName1 = typeof(Test1).Name;
-        var typeName2 = typeof(int).Name;
-        var typeName3 = typeof(System.String).Name;
-        var typeName4 = typeof(Double).Name;
+        var typeName1 = [|typeof(Test1).Name|];
+        var typeName2 = [|typeof(int).Name|];
+        var typeName3 = [|typeof(System.String).Name|];
+        var typeName4 = [|typeof(Double).Name|];
     }
 }
-        </Document>
-    </Project>
-</Workspace>";
-
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+"
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"
 class Test1
 {
     static void Main()
@@ -153,8 +159,8 @@ class Test1
         var typeName3 = nameof(Test1);
     }
 }
-        </Document>
-        <Document>
+",
+                        @"
 using System;
 
 class Test2
@@ -167,11 +173,10 @@ class Test2
         var typeName4 = nameof(Double);
     }
 }
-        </Document>
-    </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
+",
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
@@ -179,52 +184,62 @@ class Test2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task FixAllSolution()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
 class Test1
 {
     static void Main()
     {
-        var typeName1 = {|FixAllInSolution:typeof(Test1).Name|};
-        var typeName2 = typeof(Test1).Name;
-        var typeName3 = typeof(Test1).Name;
+        var typeName1 = [|typeof(Test1).Name|];
+        var typeName2 = [|typeof(Test1).Name|];
+        var typeName3 = [|typeof(Test1).Name|];
     }
 }
-        </Document>
-        <Document>
+",
+                        @"
 using System;
 
 class Test2
 {
     static void Main()
     {
-        var typeName1 = typeof(Test1).Name;
-        var typeName2 = typeof(int).Name;
-        var typeName3 = typeof(System.String).Name;
-        var typeName4 = typeof(Double).Name;
+        var typeName1 = [|typeof(Test1).Name|];
+        var typeName2 = [|typeof(int).Name|];
+        var typeName3 = [|typeof(System.String).Name|];
+        var typeName4 = [|typeof(Double).Name|];
     }
 }
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+"
+                    },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources =
+                            {
+                                @"
 class Test3
 {
     static void Main()
     {
-        var typeName2 = typeof(int).Name; var typeName3 = typeof(System.String).Name;
+        var typeName2 = [|typeof(int).Name|]; var typeName3 = [|typeof(System.String).Name|];
     }
 }
-        </Document>
-    </Project>
-</Workspace>";
-
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
+"
+                            }
+                        }
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"
 class Test1
 {
     static void Main()
@@ -234,8 +249,8 @@ class Test1
         var typeName3 = nameof(Test1);
     }
 }
-        </Document>
-        <Document>
+",
+                        @"
 using System;
 
 class Test2
@@ -248,10 +263,15 @@ class Test2
         var typeName4 = nameof(Double);
     }
 }
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
+"
+                    },
+                    AdditionalProjects =
+                    {
+                        ["DependencyProject"] =
+                        {
+                            Sources =
+                            {
+                                @"
 class Test3
 {
     static void Main()
@@ -259,11 +279,12 @@ class Test3
         var typeName2 = nameof(System.Int32); var typeName3 = nameof(System.String);
     }
 }
-        </Document>
-    </Project>
-</Workspace>";
-
-            await TestInRegularAndScriptAsync(input, expected);
+"
+                            }
+                        }
+                    }
+                }
+            }.RunAsync();
         }
     }
 }

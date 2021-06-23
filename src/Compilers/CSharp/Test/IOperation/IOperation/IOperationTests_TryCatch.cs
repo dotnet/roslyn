@@ -8007,7 +8007,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               Initializer: 
                 null
           Filter: 
-            ISwitchExpressionOperation (3 arms) (OperationKind.SwitchExpression, Type: System.Boolean) (Syntax: 'e.Message s ... }')
+            ISwitchExpressionOperation (3 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Boolean) (Syntax: 'e.Message s ... }')
               Value: 
                 IPropertyReferenceOperation: System.String System.Exception.Message { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'e.Message')
                   Instance Receiver: 

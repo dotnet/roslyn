@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -16,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
 {
     internal class PickMembersDialogViewModel : AbstractNotifyPropertyChanged
     {
+        private readonly List<MemberSymbolViewModel> _allMembers;
+
         public List<MemberSymbolViewModel> MemberContainers { get; set; }
         public List<OptionViewModel> Options { get; set; }
 
@@ -30,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             ImmutableArray<PickMembersOption> options,
             bool selectAll)
         {
-            MemberContainers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            _allMembers = members.Select(m => new MemberSymbolViewModel(m, glyphService)).ToList();
+            MemberContainers = _allMembers;
             Options = options.Select(o => new OptionViewModel(o)).ToList();
 
             if (selectAll)
@@ -41,6 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
             {
                 DeselectAll();
             }
+        }
+
+        internal void Filter(string searchText)
+        {
+            searchText = searchText.Trim();
+            MemberContainers = searchText.Length == 0
+                ? _allMembers
+                : _allMembers.Where(m => m.SymbolAutomationText.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            NotifyPropertyChanged(nameof(MemberContainers));
         }
 
         internal void DeselectAll()

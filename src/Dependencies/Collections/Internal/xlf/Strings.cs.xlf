@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../Strings.resx">
     <body>
@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Arg_BogusIComparer">
         <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
-        <target state="new">Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</target>
+        <target state="translated">Řazení není možné, protože metoda IComparer.Compare() vrací nekonzistentní výsledky. Buď není výsledkem porovnání hodnoty samé se sebou rovnost, nebo opakované porovnání jedné hodnoty s jinou hodnotou vrací různé výsledky. IComparer: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public override void SetValue(object value)
         {
             Value = (T)value;
-            _ = Updater.QueueUpdateAsync(_option, value);
+            Updater.QueueUpdate(_option, value);
         }
 
         public override object? GetValue() => Value;
