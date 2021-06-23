@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 0 }
-                && (method.HasAsyncMethodBuilder(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return method.IsAsync
                 && method.ReturnType is NamedTypeSymbol { Arity: 1 }
-                && (method.HasAsyncMethodBuilder(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>

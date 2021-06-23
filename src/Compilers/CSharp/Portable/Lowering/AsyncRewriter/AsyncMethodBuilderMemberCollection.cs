@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-                bool useMethodLevelBuilder = method.HasAsyncMethodBuilder(out methodLevelBuilder);
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilderAttribute(out methodLevelBuilder);
                 bool customBuilder;
                 object builderArgument;
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-                bool useMethodLevelBuilder = method.HasAsyncMethodBuilder(out methodLevelBuilder);
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilderAttribute(out methodLevelBuilder);
                 bool customBuilder;
                 object builderArgument;
 

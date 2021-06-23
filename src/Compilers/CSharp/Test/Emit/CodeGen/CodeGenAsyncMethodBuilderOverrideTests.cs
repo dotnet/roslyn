@@ -295,7 +295,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_BadBuilderOnType()
+        public void BuilderOnMethod_IgnoreBadBuilderOnType()
         {
             var source = $@"
 using System;
@@ -333,7 +333,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_CreateReturnsInt()
+        public void BuilderOnMethod_IgnoreBadBuilderOnType_CreateReturnsInt()
         {
             var source = $@"
 using System;
@@ -371,7 +371,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_TaskPropertyReturnsInt()
+        public void BuilderOnMethod_IgnoreBadBuilderOnType_TaskPropertyReturnsInt()
         {
             var source = $@"
 using System;
@@ -409,7 +409,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_SetExceptionIsInternal()
+        public void BuilderOnMethod_IgnoreBadBuilderOnType_SetExceptionIsInternal()
         {
             var source = $@"
 using System;
@@ -449,7 +449,7 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_BadBuilderOnType_SetResultIsInternal()
+        public void BuilderOnMethod_IgnoreBadBuilderOnType_SetResultIsInternal()
         {
             var source = $@"
 using System;
@@ -629,17 +629,17 @@ class C
         }
 
         [Fact]
-        public void BuilderOnMethod_WrongAccessibility()
+        public void BuilderOnMethod_IgnoreBuilderTypeAccessibility()
         {
             var source = $@"
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-[AsyncMethodBuilder(typeof(B1))] public class T1 {{ }}
-[AsyncMethodBuilder(typeof(B2))] public class T2 {{ }}
-[AsyncMethodBuilder(typeof(B3))] internal class T3 {{ }}
-[AsyncMethodBuilder(typeof(B4))] internal class T4 {{ }}
+public class T1 {{ }}
+public class T2 {{ }}
+internal class T3 {{ }}
+internal class T4 {{ }}
 
 {AsyncBuilderCode("B1", "T1").Replace("public class B1", "public class B1")}
 {AsyncBuilderCode("B2", "T2").Replace("public class B2", "internal class B2")}
@@ -648,23 +648,19 @@ using System.Threading.Tasks;
 
 class Program
 {{
-    async T1 f1() => await Task.Delay(1);
-    async T2 f2() => await Task.Delay(2);
-    async T3 f3() => await Task.Delay(3);
-    async T4 f4() => await Task.Delay(4);
+    [AsyncMethodBuilder(typeof(B1))] public async T1 F1() => await Task.Delay(1);
+    [AsyncMethodBuilder(typeof(B2))] public async T2 F2() => await Task.Delay(2);
+    [AsyncMethodBuilder(typeof(B3))] internal async T3 F3() => await Task.Delay(3);
+    [AsyncMethodBuilder(typeof(B4))] internal async T4 F4() => await Task.Delay(4);
 }}
 
 {AsyncMethodBuilderAttribute}
 ";
-
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (75,19): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     async T2 f2() => await Task.Delay(2);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(2)").WithLocation(75, 19),
-                // (76,19): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
-                //     async T3 f3() => await Task.Delay(3);
-                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=> await Task.Delay(3)").WithLocation(76, 19)
+                // (76,61): error CS0656: Missing compiler required member 'B3.Task'
+                //     [AsyncMethodBuilder(typeof(B3))] internal async T3 F3() => await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=> await Task.Delay(3)").WithArguments("B3", "Task").WithLocation(76, 61)
                 );
         }
 

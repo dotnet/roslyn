@@ -1062,7 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (this.HasAsyncMethodBuilder(out _))
+                if (this.HasAsyncMethodBuilderAttribute(out _))
                 {
                     hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
                 }

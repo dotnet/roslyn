@@ -1647,7 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                return type.HasAsyncMethodBuilder(out builderArgument);
+                return type.HasAsyncMethodBuilderAttribute(out builderArgument);
             }
 
             builderArgument = null;
