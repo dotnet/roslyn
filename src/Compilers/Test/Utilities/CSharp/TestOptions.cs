@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularDefault = Regular.WithLanguageVersion(LanguageVersion.Default);
 
         /// <summary>
-        /// Usages of <see cref="TestOptions.TemporaryPreview"/> and <see cref="LanguageVersionFacts.TemporaryPreview"/>
+        /// Usages of <see cref="TestOptions.RegularNext"/> and <see cref="LanguageVersionFacts.CSharpNext"/>
         /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
         /// </summary>
-        public static readonly CSharpParseOptions TemporaryPreview = Regular.WithLanguageVersion(LanguageVersion.Preview);
+        public static readonly CSharpParseOptions RegularNext = Regular.WithLanguageVersion(LanguageVersion.Preview);
 
         public static readonly CSharpParseOptions RegularPreview = Regular.WithLanguageVersion(LanguageVersion.Preview);
         public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);

@@ -305,10 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     public static class LanguageVersionFacts
     {
         /// <summary>
-        /// Usages of TestOptions.TemporaryPreview and LanguageVersionFacts.TemporaryPreview
+        /// Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
         /// will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
         /// </summary>
-        internal const LanguageVersion TemporaryPreview = LanguageVersion.Preview;
+        internal const LanguageVersion CSharpNext = LanguageVersion.Preview;
 
         /// <summary>
         /// Displays the version number in the format expected on the command-line (/langver flag).
