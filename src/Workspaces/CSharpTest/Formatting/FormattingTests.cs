@@ -9973,5 +9973,21 @@ record struct R(int X);
 record  struct  R(int X);
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FileScopedNamespace()
+        {
+            await AssertFormatAsync(
+                @"
+namespace NS;
+
+class C { }
+",
+                @"
+namespace NS;
+
+    class C { }
+");
+        }
     }
 }

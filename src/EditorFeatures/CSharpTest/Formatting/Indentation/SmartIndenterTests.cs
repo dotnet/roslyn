@@ -205,6 +205,22 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void FileScopedNamespace()
+        {
+            var code = @"using System;
+
+namespace NS;
+
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 0);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Class()
         {
             var code = @"using System;
