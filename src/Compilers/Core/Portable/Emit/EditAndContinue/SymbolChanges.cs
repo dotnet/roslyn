@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// their containing types and namespaces. 
         /// </summary>
         private readonly IReadOnlyDictionary<ISymbol, SymbolChange> _changes;
-
+        private readonly ImmutableHashSet<ISymbol> _methodsRequiringParamEmit;
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
         protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Emit
             _definitionMap = definitionMap;
             _isAddedSymbol = isAddedSymbol;
             _changes = CalculateChanges(edits);
+            _methodsRequiringParamEmit = GetMethodsRequiringParamEmit(edits);
         }
 
         /// <summary>
@@ -48,6 +51,14 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool RequiresCompilation(ISymbol symbol)
         {
             return this.GetChange(symbol) != SymbolChange.None;
+        }
+
+        /// <summary>
+        /// Returns true if the symbol is a method that requires all parameters to be emitted
+        /// </summary>
+        public bool AlwaysEmitParams(ISymbolInternal? symbol)
+        {
+            return symbol is not null && _methodsRequiringParamEmit.Contains(symbol.GetISymbol());
         }
 
         public SymbolChange GetChange(IDefinition def)
@@ -342,6 +353,20 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             return symbol;
+        }
+
+        private static ImmutableHashSet<ISymbol> GetMethodsRequiringParamEmit(IEnumerable<SemanticEdit> edits)
+        {
+            var builder = ImmutableHashSet.CreateBuilder<ISymbol>();
+            foreach (var edit in edits)
+            {
+                if (edit.NewSymbol is not null &&
+                    edit.Options.HasFlag(SemanticEditOption.EmitAllParametersForMethodUpdate))
+                {
+                    builder.Add(edit.NewSymbol);
+                }
+            }
+            return builder.ToImmutable();
         }
     }
 }

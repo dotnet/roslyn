@@ -49,6 +49,11 @@ namespace Microsoft.CodeAnalysis.Emit
         public bool PreserveLocalVariables { get; }
 
         /// <summary>
+        /// Gets any additional options that are set for this edit
+        /// </summary>
+        public SemanticEditOption Options { get; }
+
+        /// <summary>
         /// Initializes an instance of <see cref="SemanticEdit"/>.
         /// </summary>
         /// <param name="kind">The type of edit.</param>
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.
         /// </exception>
-        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false)
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, SemanticEditOption options = SemanticEditOption.None)
         {
             if (oldSymbol == null && kind != SemanticEditKind.Insert)
             {
@@ -94,11 +99,12 @@ namespace Microsoft.CodeAnalysis.Emit
             this.NewSymbol = newSymbol;
             this.PreserveLocalVariables = preserveLocalVariables;
             this.SyntaxMap = syntaxMap;
+            this.Options = options;
         }
 
-        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null, bool preserveLocalVariables = false)
+        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null, bool preserveLocalVariables = false, SemanticEditOption options = SemanticEditOption.None)
         {
-            return new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables);
+            return new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables, options);
         }
 
         public override int GetHashCode()

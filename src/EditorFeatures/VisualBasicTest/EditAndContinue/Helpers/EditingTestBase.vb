@@ -59,7 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap,
-                hasSyntaxMap:=syntaxMap IsNot Nothing)
+                hasSyntaxMap:=syntaxMap IsNot Nothing,
+                options:=SemanticEditOption.None)
         End Function
 
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
@@ -71,7 +72,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 symbolProvider,
                 If(partialType Is Nothing, Nothing, Function(c As Compilation) CType(c.GetMember(partialType), ITypeSymbol)),
                 syntaxMap:=Nothing,
-                hasSyntaxMap:=preserveLocalVariables)
+                hasSyntaxMap:=preserveLocalVariables,
+                options:=SemanticEditOption.None)
         End Function
 
         Friend Shared Function DeletedSymbolDisplay(kind As String, displayName As String) As String
