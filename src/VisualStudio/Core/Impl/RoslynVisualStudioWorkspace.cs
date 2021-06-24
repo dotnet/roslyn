@@ -15,13 +15,18 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
@@ -44,9 +49,28 @@ namespace Microsoft.VisualStudio.LanguageServices
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             IThreadingContext threadingContext,
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            Lazy<IProjectCodeModelFactory> projectCodeModelFactory,
+            [ImportMany] IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories,
+            Lazy<VisualStudioProjectFactory> visualStudioProjectFactory,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
+            FileWatchedPortableExecutableReferenceFactory fileWatchedPortableExecutableReferenceFactory,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
-            : base(exportProvider, asyncServiceProvider)
+            : base(
+                exportProvider,
+                threadingContext,
+                textBufferCloneService,
+                textBufferFactoryService,
+                projectionBufferFactoryService,
+                projectCodeModelFactory,
+                documentOptionsProviderFactories,
+                visualStudioProjectFactory,
+                fileChangeWatcherProvider,
+                fileWatchedPortableExecutableReferenceFactory,
+                asyncServiceProvider)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;

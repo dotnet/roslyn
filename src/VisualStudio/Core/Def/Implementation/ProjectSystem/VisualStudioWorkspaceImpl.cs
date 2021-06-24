@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -112,20 +111,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
-        public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
+        public VisualStudioWorkspaceImpl(
+            ExportProvider exportProvider,
+            IThreadingContext threadingContext,
+            ITextBufferCloneService textBufferCloneService,
+            ITextBufferFactoryService textBufferFactoryService,
+            IProjectionBufferFactoryService projectionBufferFactoryService,
+            Lazy<IProjectCodeModelFactory> projectCodeModelFactory,
+            IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories,
+            Lazy<VisualStudioProjectFactory> visualStudioProjectFactory,
+            FileChangeWatcherProvider fileChangeWatcherProvider,
+            FileWatchedPortableExecutableReferenceFactory fileWatchedPortableExecutableReferenceFactory,
+            IAsyncServiceProvider asyncServiceProvider)
             : base(VisualStudioMefHostServices.Create(exportProvider))
         {
-            _threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
-            _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
-            _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
-            _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
-            _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
-            _documentOptionsProviderFactories = exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>();
+            _threadingContext = threadingContext;
+            _textBufferCloneService = textBufferCloneService;
+            _textBufferFactoryService = textBufferFactoryService;
+            _projectionBufferFactoryService = projectionBufferFactoryService;
+            _projectCodeModelFactory = projectCodeModelFactory;
+            _documentOptionsProviderFactories = documentOptionsProviderFactories;
 
             // We fetch this lazily because VisualStudioProjectFactory depends on VisualStudioWorkspaceImpl -- we have a circularity. Since this
             // exists right now as a compat shim, we'll just do this.
 #pragma warning disable CS0618 // Type or member is obsolete
-            _projectFactory = exportProvider.GetExport<VisualStudioProjectFactory>();
+            _projectFactory = visualStudioProjectFactory;
 #pragma warning restore CS0618 // Type or member is obsolete
 
             _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
@@ -135,18 +145,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
 
-            FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
-            FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
+            FileChangeWatcher = fileChangeWatcherProvider.Watcher;
+            FileWatchedReferenceFactory = fileWatchedPortableExecutableReferenceFactory;
 
             FileWatchedReferenceFactory.ReferenceChanged += this.RefreshMetadataReferencesForFile;
 
-            _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-                new ExternalErrorDiagnosticUpdateSource(
-                    this,
-                    exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                    exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                    _threadingContext), isThreadSafe: true);
+            _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() => Services.GetRequiredService<ExternalErrorDiagnosticUpdateSource>());
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;

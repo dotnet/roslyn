@@ -14,7 +14,9 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
@@ -27,6 +29,8 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Projection
 Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -100,9 +104,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New(exportProvider As Composition.ExportProvider)
-                MyBase.New(exportProvider,
-                           exportProvider.GetExportedValue(Of MockServiceProvider))
+            Public Sub New(
+                exportProvider As Composition.ExportProvider,
+                threadingContext As IThreadingContext,
+                textBufferCloneService As ITextBufferCloneService,
+                textBufferFactoryService As ITextBufferFactoryService,
+                projectionBufferFactoryService As IProjectionBufferFactoryService,
+                projectCodeModelFactory As Lazy(Of IProjectCodeModelFactory),
+                <ImportMany> documentOptionsProviderFactories As IEnumerable(Of Lazy(Of IDocumentOptionsProviderFactory, OrderableMetadata)),
+                visualStudioProjectFactory As Lazy(Of VisualStudioProjectFactory),
+                fileChangeWatcherProvider As FileChangeWatcherProvider,
+                fileWatchedPortableExecutableReferenceFactory As MetadataReferences.FileWatchedPortableExecutableReferenceFactory,
+                asyncServiceProvider As MockServiceProvider)
+                MyBase.New(
+                    exportProvider,
+                    threadingContext,
+                    textBufferCloneService,
+                    textBufferFactoryService,
+                    projectionBufferFactoryService,
+                    projectCodeModelFactory,
+                    documentOptionsProviderFactories,
+                    visualStudioProjectFactory,
+                    fileChangeWatcherProvider,
+                    fileWatchedPortableExecutableReferenceFactory,
+                    asyncServiceProvider)
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Microsoft.CodeAnalysis.Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))
