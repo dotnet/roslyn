@@ -131,7 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-
         protected void SetProperty<T>(ref T field, T value, [CallerMemberName] string name = "")
         {
             if (EqualityComparer<T>.Default.Equals(field, value))

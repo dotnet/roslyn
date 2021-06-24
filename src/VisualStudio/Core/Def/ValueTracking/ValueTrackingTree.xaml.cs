@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         {
             e.Handled = e.Handled || e.Key switch
             {
-                Key.Down => TrySelectItem(GetNextItem(expandNode: false), navigate: false),
-                Key.Up => TrySelectItem(GetPreviousItem(), navigate: false),
+                Key.Down => TrySelectItem(GetNextItem(expandNode: false), navigate: true),
+                Key.Up => TrySelectItem(GetPreviousItem(), navigate: true),
                 Key.F8 => e.KeyboardDevice.Modifiers == ModifierKeys.Shift ? TrySelectItem(GetPreviousItem(), navigate: true) : TrySelectItem(GetNextItem(expandNode: true), navigate: true),
                 Key.Enter => TrySelectItem(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, navigate: true),
                 Key.Right => TrySetExpanded(ValueTrackingTreeView.SelectedItem as TreeViewItemBase, true),
@@ -71,12 +71,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             static bool TryToggleExpanded(TreeViewItemBase? node)
-                => TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
+            {
+                return TrySetExpanded(node, node is null ? false : !node.IsNodeExpanded);
+            }
         }
 
-        private void ValueTrackingTreeView_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
+        private void ValueTrackingTreeView_MouseClickPreview(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TreeViewItemBase viewModel)
+            if (sender is TreeViewItemBase viewModel && e.ChangedButton == MouseButton.Left)
             {
                 SelectItem(viewModel, true);
                 e.Handled = true;
