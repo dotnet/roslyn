@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var solution = project.Solution;
             var serializedInheritanceMarginItems = ImmutableArray<SerializableInheritanceMarginItem>.Empty;
-            using (Logger.LogBlock(FunctionId.InheritanceMargin_TraverseInheritanceChain, cancellationToken))
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_TraverseInheritanceChain, cancellationToken, LogLevel.Information))
             {
                 serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
                     solution,

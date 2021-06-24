@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
 
             var inheritanceMemberItems = ImmutableArray<InheritanceMarginItem>.Empty;
-            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken))
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken, LogLevel.Information))
             {
                 inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                     document,
