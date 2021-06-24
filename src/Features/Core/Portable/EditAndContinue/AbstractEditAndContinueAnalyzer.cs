@@ -2489,6 +2489,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             Contract.ThrowIfTrue(oldDeclaration == null);
                                             Contract.ThrowIfFalse(newDeclaration == null);
                                             newDeclaration = GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+
+                                            // The symbols here are the compiler generated Main method so we don't have nodes to report the edit for
+                                            // so we'll just use the last global statement in the file
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(newDeclaration, EditKind.Delete), diagnostics);
+
                                             var oldBody = oldDeclaration;
                                             var newBody = newDeclaration;
 
@@ -2685,6 +2690,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         }
                                         else if (IsGlobalStatement(edit.NewNode))
                                         {
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(edit.NewNode, edit.Kind), diagnostics);
+
                                             // An insert of a global statement, when oldSymbol isn't null, is an update to the implicit Main method
                                             editKind = SemanticEditKind.Update;
 
@@ -2924,6 +2931,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         continue;
                                     }
 
+                                    if (IsGlobalStatement(edit.NewNode))
+                                    {
+                                        ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(edit.NewNode, edit.Kind), diagnostics);
+                                    }
+
                                     editKind = SemanticEditKind.Update;
                                     syntaxMap = null;
 
@@ -3125,6 +3137,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : oldNode,
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
+            }
+        }
+
+        private static void ReportMethodDeclarationRudeEdits(IMethodSymbol oldSymbol, IMethodSymbol newSymbol, TextSpan diagnosticSpan, ArrayBuilder<RudeEditDiagnostic> diagnostics)
+        {
+            if (!SymbolEqualityComparer.Default.Equals(oldSymbol.ReturnType, newSymbol.ReturnType))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.TypeUpdate, diagnosticSpan));
             }
         }
 
