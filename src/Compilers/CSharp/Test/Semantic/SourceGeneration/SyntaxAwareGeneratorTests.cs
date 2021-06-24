@@ -1532,7 +1532,7 @@ class C
     }
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10);
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1575,7 +1575,7 @@ class C
     }
 }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10);
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
