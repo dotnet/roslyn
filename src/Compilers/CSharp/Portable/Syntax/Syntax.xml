@@ -3044,20 +3044,29 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="NamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
-    <Kind Name="NamespaceDeclaration"/>
-    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
-    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+  <AbstractNode Name="BaseNamespaceDeclarationSyntax" Base="MemberDeclarationSyntax">
     <Field Name="NamespaceKeyword" Type="SyntaxToken">
       <Kind Name="NamespaceKeyword"/>
     </Field>
     <Field Name="Name" Type="NameSyntax"/>
-    <Field Name="OpenBraceToken" Type="SyntaxToken">
-      <Kind Name="OpenBraceToken"/>
-    </Field>
     <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
     <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
+  </AbstractNode>
+  <Node Name="NamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
+    <Kind Name="NamespaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="NamespaceKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
@@ -3067,6 +3076,21 @@
       </PropertyComment>
       <Kind Name="SemicolonToken"/>
     </Field>
+  </Node>
+  <Node Name="FileScopedNamespaceDeclarationSyntax" Base="BaseNamespaceDeclarationSyntax">
+    <Kind Name="FileScopedNamespaceDeclaration"/>
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="NamespaceKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="NamespaceKeyword"/>
+    </Field>
+    <Field Name="Name" Type="NameSyntax" Override="true"/>
+    <Field Name="SemicolonToken" Type="SyntaxToken">
+      <Kind Name="SemicolonToken"/>
+    </Field>
+    <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;" Override="true"/>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
   </Node>
   <Node Name="AttributeListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>

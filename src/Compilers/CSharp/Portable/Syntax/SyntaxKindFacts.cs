@@ -353,7 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public static bool IsNamespaceMemberDeclaration(SyntaxKind kind)
-            => IsTypeDeclaration(kind) || (kind == SyntaxKind.NamespaceDeclaration);
+            => IsTypeDeclaration(kind) ||
+               kind == SyntaxKind.NamespaceDeclaration ||
+               kind == SyntaxKind.FileScopedNamespaceDeclaration;
 
         public static bool IsAnyUnaryExpression(SyntaxKind token)
         {

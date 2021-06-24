@@ -451,6 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
             => InternalSyntaxFactory.NamespaceDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken), null);
 
+        private static Syntax.InternalSyntax.FileScopedNamespaceDeclarationSyntax GenerateFileScopedNamespaceDeclaration()
+            => InternalSyntaxFactory.FileScopedNamespaceDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>());
+
         private static Syntax.InternalSyntax.AttributeListSyntax GenerateAttributeList()
             => InternalSyntaxFactory.AttributeList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.AttributeSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
@@ -2527,6 +2530,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Members);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             Assert.Null(node.SemicolonToken);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationFactoryAndProperties()
+        {
+            var node = GenerateFileScopedNamespaceDeclaration();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind);
+            Assert.NotNull(node.Name);
+            Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind);
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.Members);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -7506,6 +7526,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationIdentityRewriter()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestAttributeListTokenDeleteRewriter()
         {
             var oldNode = GenerateAttributeList();
@@ -10161,6 +10207,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static NamespaceDeclarationSyntax GenerateNamespaceDeclaration()
             => SyntaxFactory.NamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default(SyntaxToken));
 
+        private static FileScopedNamespaceDeclarationSyntax GenerateFileScopedNamespaceDeclaration()
+            => SyntaxFactory.FileScopedNamespaceDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.NamespaceKeyword), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.SemicolonToken), new SyntaxList<ExternAliasDirectiveSyntax>(), new SyntaxList<UsingDirectiveSyntax>(), new SyntaxList<MemberDeclarationSyntax>());
+
         private static AttributeListSyntax GenerateAttributeList()
             => SyntaxFactory.AttributeList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), default(AttributeTargetSpecifierSyntax), new SeparatedSyntaxList<AttributeSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
@@ -12238,6 +12287,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationFactoryAndProperties()
+        {
+            var node = GenerateFileScopedNamespaceDeclaration();
+
+            Assert.Equal(default, node.AttributeLists);
+            Assert.Equal(default, node.Modifiers);
+            Assert.Equal(SyntaxKind.NamespaceKeyword, node.NamespaceKeyword.Kind());
+            Assert.NotNull(node.Name);
+            Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
+            Assert.Equal(default, node.Externs);
+            Assert.Equal(default, node.Usings);
+            Assert.Equal(default, node.Members);
+            var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members);
             Assert.Equal(node, newNode);
         }
 
@@ -17209,6 +17275,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceDeclarationIdentityRewriter()
         {
             var oldNode = GenerateNamespaceDeclaration();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFileScopedNamespaceDeclarationIdentityRewriter()
+        {
+            var oldNode = GenerateFileScopedNamespaceDeclaration();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

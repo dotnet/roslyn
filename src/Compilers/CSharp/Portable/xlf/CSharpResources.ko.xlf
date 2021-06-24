@@ -487,6 +487,16 @@
         <target state="translated">필드와 유사한 이벤트 '{0}'이(가) 'readonly'일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">'{0}' 형식 변수에서 foreach 문을 수행할 수 없습니다. '{0}'에는 '{1}'의 공개 인스턴스 또는 확장 정의가 없기 때문입니다. 'foreach' 대신 'await foreach'를 사용하시겠습니까?</target>
@@ -720,6 +730,11 @@
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
         <target state="translated">[EnumeratorCancellation] 특성은 여러 매개 변수에 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
@@ -1100,6 +1115,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -3671,8 +3691,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">네임스페이스는 필드나 메서드와 같은 멤버를 직접 포함할 수 없습니다.</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">네임스페이스는 필드나 메서드와 같은 멤버를 직접 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

@@ -2495,16 +2495,16 @@ namespace N1 {
                 SymbolDisplayPartKind.ClassName);
         }
 
-        [Fact]
-        public void TestAlias3()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void TestAlias3(string ob, string cb)
         {
             var text = @"
 using Goo = N1.C1;
 
-namespace N1 {
+namespace N1 " + ob + @"
     class Goo { }
     class C1 { }
-}
+" + cb + @"
 ";
 
             Func<NamespaceSymbol, Symbol> findSymbol = global =>
@@ -4374,17 +4374,18 @@ class C
         }
 
         [WorkItem(791756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
-        [Fact]
-        public void KindOptions()
+        [Theory]
+        [MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void KindOptions(string ob, string cb)
         {
             var source = @"
 namespace N
-{
+" + ob + @"
     class C
     {
         event System.Action E;
     }
-}
+" + cb + @"
 ";
             var memberFormat = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -7071,23 +7072,23 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Fact]
-        public void TestReadOnlyStruct_Nested()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void TestReadOnlyStruct_Nested(string ob, string cb)
         {
             var source = @"
 namespace Nested
-{
+" + ob + @"
     struct X
     {
         readonly void M() { }
     }
-}
+" + cb + @"
 ";
             var format = SymbolDisplayFormat.TestFormat
                 .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
                 .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
 
             var declaration = (BaseTypeDeclarationSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.StructDeclaration);

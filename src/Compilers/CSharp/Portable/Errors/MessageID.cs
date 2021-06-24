@@ -228,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
+        IDS_FeatureFileScopedNamespace = MessageBase + 12806,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -379,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers: //semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: //semantic check
+                case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 8.0 features.
