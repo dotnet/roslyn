@@ -155,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
                 // Don't offer this if there are any errors or ambiguities.
                 return false;
             }
+
             if (!(lambdaSemanticInfo.Symbol is IMethodSymbol lambdaMethod) || !(invocationSemanticInfo.Symbol is IMethodSymbol invocationMethod))
             {
                 return false;

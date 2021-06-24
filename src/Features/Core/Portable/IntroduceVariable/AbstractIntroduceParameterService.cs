@@ -106,10 +106,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
-            context.RegisterRefactoring(new CodeActionWithNestedActions(
-                string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
-            context.RegisterRefactoring(new CodeActionWithNestedActions(
-                string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+            if (actions.Value.actions.Length > 0)
+            {
+                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
+            }
+
+            if (actions.Value.actionsAllOccurrences.Length > 0)
+            {
+                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+            }
         }
 
         /// <summary>

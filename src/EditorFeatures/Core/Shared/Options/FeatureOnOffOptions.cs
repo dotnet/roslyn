@@ -88,6 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
 
+        public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
+            nameof(FeatureOnOffOptions), nameof(SkipAnalyzersForImplicitlyTriggeredBuilds), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(SkipAnalyzersForImplicitlyTriggeredBuilds)}"));
     }
 
     [ExportOptionProvider, Shared]
@@ -117,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
             FeatureOnOffOptions.ShowInheritanceMargin,
-            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,
+            FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
     }
 }

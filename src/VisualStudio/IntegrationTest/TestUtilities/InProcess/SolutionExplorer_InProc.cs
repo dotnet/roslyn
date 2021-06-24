@@ -192,6 +192,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new ArgumentException($"Could not find project file, current hierarchy items '{string.Join(", ", rootHierarchyItems.Select(x => x.Name))}'");
             }
+
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
         }
@@ -210,6 +211,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 throw new ArgumentException(nameof(solutionElementString));
             }
+
             CreateSolution(solutionName);
 
             foreach (var projectElement in solutionElement.Elements("Project"))
@@ -313,6 +315,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var projectReference = references.Where(x => x.ContainingProject != null).Select(x => x.Name);
                 throw new ArgumentException($"reference to project {projectReferenceName} not found, references: '{string.Join(", ", projectReference)}'");
             }
+
             reference.Remove();
         }
 
@@ -324,6 +327,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 CloseSolution(saveExistingSolutionIfExists);
             }
+
             dte.Solution.Open(path);
 
             _solution = (EnvDTE80.Solution2)dte.Solution;
@@ -806,6 +810,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -839,6 +844,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 
@@ -884,6 +890,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     pfCancelUpdate = 1;
                 }
+
                 return 0;
             }
 

@@ -22,11 +22,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             InternalSolutionCrawlerOptions.SolutionCrawler,
-            InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS,
-            InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS,
-            InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS,
-            InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS,
-            InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS,
-            InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS);
+            InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly);
     }
 }

@@ -1905,6 +1905,7 @@ class C { int Y => 2; }
                 Assert.NotEmpty(delta.MetadataDelta);
                 Assert.NotEmpty(delta.PdbDelta);
                 Assert.Equal(0x06000001, delta.UpdatedMethods.Single());
+                Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
                 Assert.Equal(moduleId, delta.Module);
                 Assert.Empty(delta.ExceptionRegions);
                 Assert.Empty(delta.SequencePoints);
@@ -2042,6 +2043,7 @@ class C { int Y => 2; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(0x06000002, delta.UpdatedMethods.Single());
+            Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
             Assert.Equal(moduleId, delta.Module);
             Assert.Empty(delta.ExceptionRegions);
             Assert.Empty(delta.SequencePoints);
@@ -2157,6 +2159,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(6, delta.UpdatedMethods.Length);  // F, C.C(), D.D(), E.E(int), E.E(int, int), lambda
+            AssertEx.SetEqual(new[] { 0x02000002, 0x02000003, 0x02000004, 0x02000005 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2271,6 +2274,7 @@ class C { int Y => 2; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(2, delta.UpdatedMethods.Length);
+            AssertEx.Equal(new[] { 0x02000002, 0x02000003 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2332,6 +2336,7 @@ class G
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Empty(delta.UpdatedMethods);
+            Assert.Empty(delta.UpdatedTypes);
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2375,6 +2380,7 @@ partial class C { int X = 1; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(1, delta.UpdatedMethods.Length); // constructor update
+            Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2421,6 +2427,7 @@ class C { int Y => 1; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(1, delta.UpdatedMethods.Length);
+            Assert.Equal(0x02000003, delta.UpdatedTypes.Single());
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2463,6 +2470,7 @@ class C { int Y => 1; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(1, delta.UpdatedMethods.Length);
+            Assert.Equal(0x02000003, delta.UpdatedTypes.Single());
 
             EndDebuggingSession(debuggingSession);
         }
@@ -2502,6 +2510,7 @@ class C { int Y => 1; }
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Equal(1, delta.UpdatedMethods.Length);
+            Assert.Equal(0x02000002, delta.UpdatedTypes.Single());
 
             EndDebuggingSession(debuggingSession);
         }
@@ -3191,6 +3200,7 @@ class C
             Assert.NotEmpty(delta.MetadataDelta);
             Assert.NotEmpty(delta.PdbDelta);
             Assert.Empty(delta.UpdatedMethods);
+            Assert.Empty(delta.UpdatedTypes);
 
             AssertEx.Equal(new[]
             {
@@ -3260,6 +3270,7 @@ class C
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(0x02000002, updates.Updates.Single().UpdatedTypes.Single());
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             CommitSolutionUpdate(debuggingSession);
@@ -3278,6 +3289,7 @@ class C
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(0x02000002, updates.Updates.Single().UpdatedTypes.Single());
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             CommitSolutionUpdate(debuggingSession);
@@ -3305,6 +3317,7 @@ class C
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(0x02000002, updates.Updates.Single().UpdatedTypes.Single());
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             CommitSolutionUpdate(debuggingSession);
@@ -3431,6 +3444,7 @@ class C
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(0x02000002, updates.Updates.Single().UpdatedTypes.Single());
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             CommitSolutionUpdate(debuggingSession);
@@ -3489,6 +3503,7 @@ class C
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
             Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(0x02000002, updates.Updates.Single().UpdatedTypes.Single());
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             CommitSolutionUpdate(debuggingSession);
@@ -3625,6 +3640,7 @@ class C
             var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
             Assert.Empty(result.diagnostics);
             Assert.Equal(1, result.updates.Length);
+            AssertEx.Equal(new[] { 0x02000002 }, result.updates[0].UpdatedTypes);
 
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 

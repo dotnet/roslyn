@@ -9028,6 +9028,7 @@ class C
                         lines[i] = new string(' ', count: 8) + lines[i];
                     }
                 }
+
                 return string.Join(Environment.NewLine, lines);
             }
 
@@ -10020,6 +10021,62 @@ record struct R(int X);
                 @"
 record  struct  R(int X);
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_01()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = void () => { };
+}",
+@"class Program
+{
+    Delegate D = void  ()  =>  {  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_02()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A.B () => { };
+}",
+@"class Program
+{
+    Delegate D = A.B()=>{  };
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_03()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    Delegate D = A<B> (x) => x;
+}",
+@"class Program
+{
+    Delegate D = A < B >  ( x ) => x;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LambdaReturnType_04()
+        {
+            await AssertFormatAsync(
+@"class Program
+{
+    object F = Func((A, B) ((A, B) t) => t);
+}",
+@"class Program
+{
+    object F = Func((A,B)((A,B)t)=>t);
+}");
         }
     }
 }

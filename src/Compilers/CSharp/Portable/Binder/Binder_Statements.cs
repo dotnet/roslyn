@@ -1809,6 +1809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
         }
 
+#nullable enable
         internal void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, SyntaxNode syntax,
             UnboundLambda anonymousFunction, TypeSymbol targetType)
         {
@@ -1868,9 +1869,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            // At this point we know that we have either a delegate type or an expression type for the target.
+            if (reason == LambdaConversionResult.MismatchedReturnType)
+            {
+                Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, syntax, id, targetType);
+                return;
+            }
 
-            var delegateType = targetType.GetDelegateType();
+            // At this point we know that we have either a delegate type or an expression type for the target.
 
             // The target type is a valid delegate or expression tree type. Is there something wrong with the
             // parameter list?
@@ -1895,6 +1900,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethNoParams, syntax, targetType);
                 return;
             }
+
+            var delegateType = targetType.GetDelegateType();
+            Debug.Assert(delegateType is not null);
 
             // There is a parameter list. Does it have the right number of elements?
 
@@ -2013,6 +2021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(false, "Missing case in lambda conversion error reporting");
             diagnostics.Add(ErrorCode.ERR_InternalError, syntax.Location);
         }
+#nullable disable
 
         protected static void GenerateImplicitConversionError(BindingDiagnosticBag diagnostics, CSharpCompilation compilation, SyntaxNode syntax,
             Conversion conversion, TypeSymbol sourceType, TypeSymbol targetType, ConstantValue sourceConstantValueOpt = null)
@@ -2375,7 +2384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnaryOperatorKind.DynamicTrue,
                     BindToNaturalType(expr, diagnostics),
                     ConstantValue.NotAvailable,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
                     boolean)
                 {
@@ -2441,10 +2451,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
+
             // Consider op_true to be compiler-generated so that it doesn't appear in the semantic model.
             // UNDONE: If we decide to expose the operator in the semantic model, we'll have to remove the
             // WasCompilerGenerated flag (and possibly suppress the symbol in specific APIs).
-            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, resultKind, originalUserDefinedOperators, signature.ReturnType)
+            return new BoundUnaryOperator(node, signature.Kind, resultOperand, ConstantValue.NotAvailable, signature.Method, signature.ConstrainedToTypeOpt, resultKind, originalUserDefinedOperators, signature.ReturnType)
             {
                 WasCompilerGenerated = true
             };

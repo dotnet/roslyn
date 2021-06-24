@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
+            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -321,6 +321,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
+        private static ISourceGenerator? CoerceGeneratorType(object? generator)
+        {
+            if (generator is IIncrementalGenerator incrementalGenerator)
+            {
+                return new IncrementalGeneratorWrapper(incrementalGenerator);
+            }
+            return null;
+        }
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
@@ -345,16 +353,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Type _attributeType;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private readonly bool _allowNetFramework;
+            private readonly Func<object?, TExtension?>? _coerceFunction;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
             private ImmutableSortedDictionary<string, ImmutableSortedSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
+            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework, Func<object?, TExtension?>? coerceFunction = null)
             {
                 _reference = reference;
                 _attributeType = attributeType;
                 _languagesFunc = languagesFunc;
                 _allowNetFramework = allowNetFramework;
+                _coerceFunction = coerceFunction;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -564,10 +574,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    TExtension? analyzer;
+                    object? typeInstance;
                     try
                     {
-                        analyzer = Activator.CreateInstance(type) as TExtension;
+                        typeInstance = Activator.CreateInstance(type);
                     }
                     catch (Exception e)
                     {
@@ -576,6 +586,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
+                    TExtension? analyzer = typeInstance as TExtension ?? _coerceFunction?.Invoke(typeInstance);
                     if (analyzer != null)
                     {
                         analyzers.Add(analyzer);

@@ -146,6 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         return userSelectedItem;
                     }
                 }
+
                 userSelected = false;
 
                 // If the provider specified a selected item, then pick that one.

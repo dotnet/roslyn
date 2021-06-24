@@ -482,6 +482,7 @@ record Derived(int Other) : [|Base$$|]
                 If showCompletionInArgumentLists Then
                     Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 End If
+
                 state.SendTypeChars(": 1, B")
 
                 If showCompletionInArgumentLists Then
@@ -800,6 +801,7 @@ class C
                     state.SendBackspace()
                     Await state.WaitForAsynchronousOperationsAsync()
                 Next
+
                 Await state.AssertCompletionSession()
 
                 state.SendBackspace()
@@ -2335,6 +2337,7 @@ public class C
                 Else
                     Await state.AssertNoCompletionSession()
                 End If
+
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 state.SendTypeChars(":")
@@ -4887,6 +4890,7 @@ class C
                 For i = 1 To "ConfigureAwait".Length
                     state.SendBackspace()
                 Next
+
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem("ConfigureAwait")
@@ -5156,6 +5160,7 @@ class C
                 For i As Integer = 1 To "System.".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
 
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -5177,6 +5182,7 @@ class C
                 For i As Integer = 1 To "Sys.".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
 
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -6565,12 +6571,14 @@ class C
                 For i = 1 To "ze".Length
                     state.SendBackspace()
                 Next
+
                 Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
 
                 state.SendEscape()
                 For i = 1 To "Normali".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
                 Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
 
@@ -6619,12 +6627,14 @@ class C
                 For i = 1 To "ze".Length
                     state.SendBackspace()
                 Next
+
                 Await state.AssertSelectedCompletionItem("★ Normalize", displayTextSuffix:="()")
 
                 state.SendEscape()
                 For i = 1 To "Normali".Length
                     state.SendBackspace()
                 Next
+
                 state.SendEscape()
                 Assert.Contains("s.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
 

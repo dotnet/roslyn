@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                                 return;
                             }
                         }
+
                         break;
 
                     case SyntaxKind.ClassDeclaration:
@@ -125,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                                 return;
                             }
                         }
+
                         break;
 
                     default:

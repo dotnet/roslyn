@@ -1458,6 +1458,7 @@
     <Kind Name="ParenthesizedLambdaExpression"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ReturnType" Type="TypeSyntax" Optional="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
@@ -3730,6 +3731,7 @@
         <summary>Gets the return type.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" keyword.</summary>
@@ -3793,6 +3795,7 @@
       <Kind Name="ImplicitKeyword"/>
       <Kind Name="ExplicitKeyword"/>
     </Field>
+    <Field Name="ExplicitInterfaceSpecifier" Type="ExplicitInterfaceSpecifierSyntax" Optional="true"/>
     <Field Name="OperatorKeyword" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the "operator" token.</summary>
