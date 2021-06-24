@@ -14052,7 +14052,7 @@ return 1;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
         [Fact]
@@ -14075,7 +14075,7 @@ return 1;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
         [Fact]
@@ -14106,7 +14106,7 @@ int Goo()
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
         [Fact]
@@ -14171,7 +14171,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "await Task.Delay(100);", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "await Task.Delay(100);"));
         }
 
         [Fact]
@@ -14196,7 +14196,7 @@ return 1;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return 1;", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
         [Fact]
@@ -14224,7 +14224,7 @@ Task<int> GetInt()
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return await GetInt();", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return await GetInt();"));
         }
 
         [Fact]
@@ -14246,7 +14246,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+               Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
         [Fact]
@@ -14269,7 +14269,7 @@ return;
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "return;", CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return;"));
         }
 
         [Fact]
@@ -14300,7 +14300,7 @@ int Goo()
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "int Goo()\r\n{\r\n    return 1;\r\n}"));
         }
 
         [Fact]
@@ -14337,7 +14337,7 @@ public class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
         [Fact]
@@ -14360,7 +14360,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement),
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
@@ -14386,7 +14386,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement));
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
         [Fact]
@@ -14414,7 +14414,7 @@ Console.Write(1);
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, null, CSharpFeaturesResources.global_statement),
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
