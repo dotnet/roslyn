@@ -163,6 +163,13 @@ namespace Roslyn.Test.Utilities
             return reader.GetParameters().Select(handle => reader.GetParameter(handle).Name).ToArray();
         }
 
+        public static StringHandle[] GetParameterDefNames(this MetadataReader reader, MethodDefinitionHandle methodDefHandle)
+        {
+            var methodDef = reader.GetMethodDefinition(methodDefHandle);
+            var parameters = methodDef.GetParameters();
+            return methodDef.GetParameters().Select(handle => reader.GetParameter(handle).Name).ToArray();
+        }
+
         public static StringHandle[] GetPropertyDefNames(this MetadataReader reader)
         {
             return reader.PropertyDefinitions.Select(handle => reader.GetPropertyDefinition(handle).Name).ToArray();
