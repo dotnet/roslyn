@@ -82,9 +82,9 @@ static class MyAwaitableExtension
 
             var model = csCompilation.GetSemanticModel(tree);
             var awaitExpression = tree.GetRoot().DescendantNodes().OfType<AwaitExpressionSyntax>().First();
+            Assert.Equal("[234..241)", awaitExpression.Location.SourceSpan.ToString());
 
             var info = model.GetAwaitExpressionInfo(awaitExpression);
-
             Assert.Equal(
                 "System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32> MyAwaitableExtension.GetAwaiter(this MyAwaitable a)",
                 info.GetAwaiterMethod.ToTestDisplayString()
