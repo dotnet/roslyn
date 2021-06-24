@@ -358,7 +358,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
         // Parameters are associated with the method through the EncLog table.
         protected override ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef)
-            => default;
+        {
+            if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
+            {
+                for (int i = 0; i < _parameterDefList.Count; i++)
+                {
+                    if (SymbolEquivalentEqualityComparer.Instance.Equals(methodDef, _parameterDefList[i].Key))
+                    {
+                        return MetadataTokens.ParameterHandle(i + 1);
+                    }
+                }
+            }
+
+            return default;
+        }
 
         protected override AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference)
         {
@@ -515,14 +528,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var methodDef in typeDef.GetMethods(this.Context))
             {
-                if (this.AddDefIfNecessary(_methodDefs, methodDef))
+                var added = this.AddDefIfNecessary(_methodDefs, methodDef);
+
+                var needsParameterEmit = _changes.AlwaysEmitParams(methodDef.GetInternalSymbol());
+
+                if (added || needsParameterEmit)
                 {
                     foreach (var paramDef in this.GetParametersToEmit(methodDef))
                     {
                         _parameterDefs.Add(paramDef);
                         _parameterDefList.Add(KeyValuePairUtil.Create(methodDef, paramDef));
                     }
+                }
 
+                if (added)
+                {
                     if (methodDef.GenericParameterCount > 0)
                     {
                         foreach (var typeParameter in methodDef.GenericParameters)
