@@ -25,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Workspace _workspace;
         private readonly GraphQueryManager _graphQueryManager;
 
@@ -40,9 +41,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _threadingContext = threadingContext;
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
-            _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
+            _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
         }
 
         private void EnsureInitialized()
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        internal static List<IGraphQuery> GetGraphQueries(IGraphContext context)
+        internal List<IGraphQuery> GetGraphQueries(IGraphContext context)
         {
             var graphQueries = new List<IGraphQuery>();
 
@@ -134,7 +135,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     // WARNING: searchParameters.SearchQuery returns an IVsSearchQuery object, which
                     // is a COM type. Therefore, it's probably best to grab the values we want now
                     // rather than get surprised by COM marshalling later.
-                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString));
+                    graphQueries.Add(new SearchGraphQuery(
+                        _threadingContext, _asyncListener, searchParameters.SearchQuery.SearchString));
                 }
             }
 

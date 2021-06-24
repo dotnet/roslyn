@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,16 +14,84 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 using System.Runtime.ExceptionServices;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal sealed class SearchGraphQuery : IGraphQuery
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly string _searchPattern;
 
-        public SearchGraphQuery(string searchPattern)
-            => _searchPattern = searchPattern;
+        public SearchGraphQuery(
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener,
+            string searchPattern)
+        {
+            _threadingContext = threadingContext;
+            _asyncListener = asyncListener;
+            _searchPattern = searchPattern;
+        }
 
+        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+            var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
+            var searcher = NavigateToSearcher.Create(
+                solution,
+                _asyncListener,
+                callback,
+                _searchPattern,
+                searchCurrentDocument: false,
+                NavigateToUtilities.GetKindsProvided(solution),
+                _threadingContext.DisposalToken);
+
+            await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
+
+            return graphBuilder;
+        }
+
+        private class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
+        {
+            private readonly Solution _solution;
+            private readonly IGraphContext _context;
+            private readonly GraphBuilder _graphBuilder;
+
+            public ProgressionNavigateToSearchCallback(Solution solution, IGraphContext context, GraphBuilder graphBuilder)
+            {
+                _solution = solution;
+                _context = context;
+                _graphBuilder = graphBuilder;
+            }
+
+            public void Done(bool isFullyLoaded)
+            {
+                _context.OnCompleted();
+            }
+
+            public void ReportProgress(int current, int maximum)
+            {
+                _context.ReportProgress(current, maximum, null);
+            }
+
+            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            {
+                var symbolNode = GetSymbolNode(result);
+                var documentNode = _graphBuilder.AddNodeForDocument(result.NavigableItem.Document);
+                _graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
+                return Task.CompletedTask;
+            }
+
+            private GraphNode GetSymbolNode(INavigateToSearchResult result)
+            {
+                throw new System.NotImplementedException();
+            }
+        }
+
+#if false
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
@@ -187,5 +253,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             return results.ToImmutable();
         }
+#endif
     }
-}
+    }
