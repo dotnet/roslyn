@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -76,11 +77,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var solution = project.Solution;
-            var serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
-                solution,
-                project.Id,
-                symbolKeyAndLineNumbers,
-                cancellationToken).ConfigureAwait(false);
+            var serializedInheritanceMarginItems = ImmutableArray<SerializableInheritanceMarginItem>.Empty;
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_TraverseInheritanceChain, cancellationToken))
+            {
+                serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
+                    solution,
+                    project.Id,
+                    symbolKeyAndLineNumbers,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             return await serializedInheritanceMarginItems.SelectAsArrayAsync(
                 (serializedItem, _) => InheritanceMarginItem.ConvertAsync(solution, serializedItem, cancellationToken), cancellationToken).ConfigureAwait(false);
         }

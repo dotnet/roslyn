@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
@@ -111,10 +112,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return;
             }
 
-            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
+            var inheritanceMemberItems = ImmutableArray<InheritanceMarginItem>.Empty;
+            using (Logger.LogBlock(FunctionId.InheritanceMargin_GetInheritanceMemberItems, cancellationToken))
+            {
+                inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                     document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
+            }
 
             if (inheritanceMemberItems.IsEmpty)
             {

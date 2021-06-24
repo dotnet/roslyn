@@ -522,5 +522,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         ValueTracking_Command = 490,
         ValueTracking_TrackValueSource = 491,
+
+        InheritanceMargin_GetInheritanceMemberItems = 492,
+        InheritanceMargin_TraverseInheritanceChain = 493,
     }
 }
