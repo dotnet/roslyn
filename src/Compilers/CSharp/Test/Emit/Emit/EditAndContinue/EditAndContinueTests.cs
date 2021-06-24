@@ -294,6 +294,227 @@ class Bad : Bad
                 Handle(2, TableIndex.AssemblyRef));
         }
 
+        [Fact]
+        public void ModifyMethod_RenameParameter()
+        {
+            var source0 =
+@"class C
+{
+    static void Main() { }
+    static string F(int a) { return a.ToString(); }
+}";
+            var source1 =
+@"class C
+{
+    static void Main() { }
+    static string F(int x) { return x.ToString(); }
+}";
+            var source2 =
+@"class C
+{
+    static void Main() { }
+    static string F(int b) { return b.ToString(); }
+}";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe);
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+
+            // Verify full metadata contains expected rows.
+            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
+            var reader0 = md0.MetadataReader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "Main", "F", ".ctor");
+            CheckNames(reader0, reader0.GetMemberRefNames(), /*CompilationRelaxationsAttribute.*/".ctor", /*RuntimeCompatibilityAttribute.*/".ctor", /*Object.*/".ctor", "ToString", /*DebuggableAttribute*/".ctor");
+            CheckNames(reader0, reader0.GetParameterDefNames(), "a");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(
+                md0,
+                EmptyLocalsProvider);
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F");
+            CheckNames(readers, reader1.GetMemberRefNames(), "ToString");
+            CheckNames(readers, reader1.GetParameterDefNames(), "x");
+            CheckNames(readers, reader1.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "x");
+
+            CheckEncLog(reader1,
+                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(7, TableIndex.TypeRef),
+                Handle(8, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(2, TableIndex.Param),
+                Handle(6, TableIndex.MemberRef),
+                Handle(2, TableIndex.StandAloneSig),
+                Handle(2, TableIndex.AssemblyRef));
+
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
+
+            // Verify delta metadata contains expected rows.
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "F");
+            CheckNames(readers, reader2.GetMemberRefNames(), "ToString");
+            CheckNames(readers, reader2.GetParameterDefNames(), "b");
+            CheckNames(readers, reader2.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "b");
+
+            CheckEncLog(reader2,
+                Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader2,
+                Handle(9, TableIndex.TypeRef),
+                Handle(10, TableIndex.TypeRef),
+                Handle(2, TableIndex.MethodDef),
+                Handle(3, TableIndex.Param),
+                Handle(7, TableIndex.MemberRef),
+                Handle(3, TableIndex.StandAloneSig),
+                Handle(3, TableIndex.AssemblyRef));
+
+            var v0 = CompileAndVerify(compilation0);
+
+            // Before
+            v0.VerifyIL("C.F", @"
+{
+    // Code size       13 (0xd)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarga.s   V_0
+    IL_0003:  call       ""string int.ToString()""
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+}
+");
+
+            v0.VerifyPdb("C.F", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <entryPoint declaringType=""C"" methodName=""Main"" />
+      <methods>
+        <method containingType=""C"" name=""F"" parameterNames=""a"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""Main"" />
+            <encLocalSlotMap>
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""28"" endLine=""4"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x1"" startLine=""4"" startColumn=""30"" endLine=""4"" endColumn=""50"" document=""1"" />
+            <entry offset=""0xb"" startLine=""4"" startColumn=""51"" endLine=""4"" endColumn=""52"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
+
+            // After
+            var v1 = CompileAndVerify(compilation1);
+            v1.VerifyIL("C.F", @"
+{
+    // Code size       13 (0xd)
+    .maxstack  1
+    .locals init (string V_0)
+    IL_0000:  nop
+    IL_0001:  ldarga.s   V_0
+    IL_0003:  call       ""string int.ToString()""
+    IL_0008:  stloc.0
+    IL_0009:  br.s       IL_000b
+    IL_000b:  ldloc.0
+    IL_000c:  ret
+}
+");
+
+            v1.VerifyPdb("C.F", @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <entryPoint declaringType=""C"" methodName=""Main"" />
+      <methods>
+        <method containingType=""C"" name=""F"" parameterNames=""x"">
+          <customDebugInfo>
+            <forward declaringType=""C"" methodName=""Main"" />
+            <encLocalSlotMap>
+              <slot kind=""21"" offset=""0"" />
+            </encLocalSlotMap>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""28"" endLine=""4"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x1"" startLine=""4"" startColumn=""30"" endLine=""4"" endColumn=""50"" document=""1"" />
+            <entry offset=""0xb"" startLine=""4"" startColumn=""51"" endLine=""4"" endColumn=""52"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
+
+            diff1.VerifyPdb(new[] { 0x06000002 }, @"
+    <symbols>
+      <files>
+        <file id=""1"" name="""" language=""C#"" />
+      </files>
+      <methods>
+        <method token=""0x6000002"">
+          <customDebugInfo>
+            <using>
+              <namespace usingCount=""0"" />
+            </using>
+          </customDebugInfo>
+          <sequencePoints>
+            <entry offset=""0x0"" startLine=""4"" startColumn=""28"" endLine=""4"" endColumn=""29"" document=""1"" />
+            <entry offset=""0x1"" startLine=""4"" startColumn=""30"" endLine=""4"" endColumn=""50"" document=""1"" />
+            <entry offset=""0xb"" startLine=""4"" startColumn=""51"" endLine=""4"" endColumn=""52"" document=""1"" />
+          </sequencePoints>
+        </method>
+      </methods>
+    </symbols>
+");
+        }
+
         [CompilerTrait(CompilerFeature.Tuples)]
         [Fact]
         public void ModifyMethod_WithTuples()
@@ -11327,7 +11548,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
         {
             return true;
         }
@@ -11421,7 +11642,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
         {
             return true;
         }

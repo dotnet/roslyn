@@ -1113,6 +1113,68 @@ class C
         }
 
         [Fact]
+        public void Method_ParameterRename()
+        {
+            var source0 = @"
+using System.Collections.Generic;
+class C
+{
+    string M(string s) => s.ToString();
+}";
+            var source1 = @"
+using System.Collections.Generic;
+class C
+{
+     string M(string m) => m.ToString();
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.M");
+            var other = matcher.MapDefinition(member.GetCciAdapter());
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void Method_ParameterRenameToDiscard()
+        {
+            var source0 = @"
+using System.Collections.Generic;
+class C
+{
+    string M(string s) => s.ToString();
+}";
+            var source1 = @"
+using System.Collections.Generic;
+class C
+{
+     string M(string _) => ""Hello"";
+}";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default,
+                compilation0.SourceAssembly,
+                default,
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.M");
+            var other = matcher.MapDefinition(member.GetCciAdapter());
+            Assert.NotNull(other);
+        }
+
+        [Fact]
         public void Field_NullableChange()
         {
             var source0 = @"
@@ -1443,7 +1505,7 @@ public record R
             var source1 = @"
 public record R
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => true;
+    protected virtual bool PrintMembers(System.Text.StringBuilder sb) => true;
 }";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
@@ -1468,7 +1530,7 @@ public record R
             var source0 = @"
 public record R
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder builder) => true;
+    protected virtual bool PrintMembers(System.Text.StringBuilder sb) => true;
 }";
             var source1 = @"
 public record R
