@@ -7002,7 +7002,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
@@ -8588,7 +8588,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -12066,7 +12066,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
@@ -14775,7 +14775,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -24906,7 +24906,7 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
@@ -27439,7 +27439,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidateEventModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -59581,18 +59581,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static T1 P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
-                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "9.0").WithLocation(15, 12),
+                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static T2 P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "9.0").WithLocation(16, 12)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-
+                                                        parseOptions: TestOptions.Regular9,
+                                                        targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
@@ -59623,17 +59622,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static T1 M1(T1 x) => x;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
-                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "9.0").WithLocation(13, 18),
+                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static T2 M2(T2 x) => x;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "9.0").WithLocation(14, 12)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                            parseOptions: TestOptions.Regular9,
+                                            targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
@@ -59687,17 +59686,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static event System.Action<System.Func<T1, T1>> E1;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
-                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "9.0").WithLocation(24, 53),
+                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static event System.Action<System.Func<T2, T2>> E2;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "9.0").WithLocation(25, 53)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                              parseOptions: TestOptions.Regular9,
+                                              targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a

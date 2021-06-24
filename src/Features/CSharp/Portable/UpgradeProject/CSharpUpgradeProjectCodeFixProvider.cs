@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8511", // error CS8511: An expression of type 'T' cannot be handled by a pattern of type '<null>'. Please use language version 'preview' or greater to match an open type with a constant pattern.
                 "CS8627", // error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
                 "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                "CS8773", // error CS8773: Feature is not available in C# 9.0. Please use language version X or greater.
                 "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
                 "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 
                 "CS8904", // error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
