@@ -18809,7 +18809,7 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,8): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
@@ -18836,7 +18836,7 @@ sealed record A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,15): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,15): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // sealed record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
                 // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
@@ -20706,7 +20706,7 @@ record A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,8): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.

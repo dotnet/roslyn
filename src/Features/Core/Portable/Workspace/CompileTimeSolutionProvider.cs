@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 {
                     var anyConfigs = false;
 
-                    foreach (var configState in projectState.AnalyzerConfigDocumentStates.States)
+                    foreach (var (_, configState) in projectState.AnalyzerConfigDocumentStates.States)
                     {
                         if (IsRazorAnalyzerConfig(configState))
                         {
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     // only remove design-time only documents when source-generated ones replace them
                     if (anyConfigs)
                     {
-                        foreach (var documentState in projectState.DocumentStates.States)
+                        foreach (var (_, documentState) in projectState.DocumentStates.States)
                         {
                             if (documentState.Attributes.DesignTimeOnly)
                             {

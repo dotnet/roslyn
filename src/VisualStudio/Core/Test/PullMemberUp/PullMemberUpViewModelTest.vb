@@ -230,6 +230,7 @@ class MyClass : Level1BaseClass, Level1Interface
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
+
             Return member
         End Function
 

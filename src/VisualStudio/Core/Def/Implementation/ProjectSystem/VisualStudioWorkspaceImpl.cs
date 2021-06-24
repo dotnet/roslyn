@@ -73,8 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
-        private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
-        private readonly Dictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = new();
+        private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
+        private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = ImmutableDictionary<ProjectId, string>.Empty;
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -1305,10 +1305,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal string? TryGetDependencyNodeTargetIdentifier(ProjectId projectId)
         {
-            lock (_gate)
-            {
-                return _projectToDependencyNodeTargetIdentifier.GetValueOrDefault(projectId, defaultValue: null);
-            }
+            // This doesn't take a lock since _projectToDependencyNodeTargetIdentifier is immutable
+            _projectToDependencyNodeTargetIdentifier.TryGetValue(projectId, out var identifier);
+            return identifier;
         }
 
         internal override void SetDocumentContext(DocumentId documentId)
@@ -1589,8 +1588,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
-                _projectToMaxSupportedLangVersionMap.Remove(projectId);
-                _projectToDependencyNodeTargetIdentifier.Remove(projectId);
+                // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+                ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
+                // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+                ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
                 _projectToRuleSetFilePath.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
@@ -1986,20 +1987,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             RegisterDocumentOptionProviders(_documentOptionsProviderFactories);
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54137", AllowLocks = false)]
         internal void SetMaxLanguageVersion(ProjectId projectId, string? maxLanguageVersion)
         {
-            lock (_gate)
-            {
-                _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
-            }
+            ImmutableInterlocked.Update(
+                ref _projectToMaxSupportedLangVersionMap,
+                static (map, arg) => map.SetItem(arg.projectId, arg.maxLanguageVersion),
+                (projectId, maxLanguageVersion));
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54135", AllowLocks = false)]
         internal void SetDependencyNodeTargetIdentifier(ProjectId projectId, string targetIdentifier)
         {
-            lock (_gate)
-            {
-                _projectToDependencyNodeTargetIdentifier[projectId] = targetIdentifier;
-            }
+            ImmutableInterlocked.Update(
+                ref _projectToDependencyNodeTargetIdentifier,
+                static (map, arg) => map.SetItem(arg.projectId, arg.targetIdentifier),
+                (projectId, targetIdentifier));
         }
 
         internal void RefreshProjectExistsUIContextForLanguage(string language)
