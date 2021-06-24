@@ -39,6 +39,9 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_Razor_pull_diagnostics_experimental_requires_restart}" 
                               Checked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked"
                               Unchecked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked"/>
+                    
+                    <CheckBox x:Name="Use_64bit_analysis_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_use_64bit_analysis_process}" />
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
