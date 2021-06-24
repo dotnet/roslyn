@@ -10779,13 +10779,13 @@ namespace N
         [Fact]
         public void TopLevelStatement_Update()
         {
-            var source0 =
-    @"using System;
+            var source0 = @"
+using System;
 
 Console.WriteLine(""Hello"");
 ";
-            var source1 =
-    @"using System;
+            var source1 = @"
+using System;
 
 Console.WriteLine(""Hello World"");
 ";
@@ -10793,6 +10793,7 @@ Console.WriteLine(""Hello World"");
             var compilation1 = compilation0.WithSource(source1);
 
             var method0 = compilation0.GetMember<MethodSymbol>("<Program>$.<Main>$");
+            var method1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
 
             // Verify full metadata contains expected rows.
             var bytes0 = compilation0.EmitToArray();
@@ -10806,7 +10807,6 @@ Console.WriteLine(""Hello World"");
             var generation0 = EmitBaseline.CreateInitialBaseline(
                 md0,
                 EmptyLocalsProvider);
-            var method1 = compilation1.GetMember<MethodSymbol>("<Program>$.<Main>$");
 
             var diff1 = compilation1.EmitDifference(
                 generation0,

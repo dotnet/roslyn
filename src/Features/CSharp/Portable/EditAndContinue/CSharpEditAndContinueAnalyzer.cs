@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// - <see cref="BlockSyntax"/> for method-like member declarations with block bodies (methods, operators, constructors, destructors, accessors).
         /// - <see cref="ExpressionSyntax"/> for variable declarators of fields, properties with an initializer expression, or 
         ///   for method-like member declarations with expression bodies (methods, properties, indexers, operators)
+        /// - <see cref="CompilationUnitSyntax"/> for top level statements
         /// 
         /// A null reference otherwise.
         /// </returns>
@@ -160,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 return variableDeclarator.Initializer?.Value;
             }
-            else if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+
+            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
             {
                 // For top level statements, where there is no syntax node to represent the entire body of the synthesized
                 // main method we just use the compilation unit itself

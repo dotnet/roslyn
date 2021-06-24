@@ -10581,7 +10581,7 @@ Console.WriteLine(x());
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
-        public void TopLevelStatement_UpdateLocalFunction_ForEach1()
+        public void TopLevelStatement_InsertMultiScopeCapture()
         {
             var src1 = @"
 using System;
