@@ -1827,12 +1827,8 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Empty(parseOptionsCalledFor);
 
-            // update the parse options to a null value
-            driver = driver.WithUpdatedParseOptions(null!);
-
-            // check the driver ignored the null update
-            driver = driver.RunGenerators(compilation);
-            Assert.Empty(parseOptionsCalledFor);
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedParseOptions(null!));
         }
 
         [Fact]
@@ -1878,12 +1874,8 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Equal("value2", analyzerOptionsValue);
 
-            // update the analyzer config to be null 
-            driver = driver.WithUpdatedAnalyzerConfigOptions(null!);
-
-            // check the driver ignored the null update
-            driver = driver.RunGenerators(compilation);
-            Assert.Equal("value2", analyzerOptionsValue);
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.WithUpdatedAnalyzerConfigOptions(null!));
         }
 
         [Fact]
@@ -1906,7 +1898,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t?.Path), (spc, p) => { additionalTextPaths.Add(p); });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t.Path), (spc, p) => { additionalTextPaths.Add(p); });
             }));
 
             // run the generator once and check we saw the additional file
@@ -1931,13 +1923,8 @@ class C { }
             Assert.Single(additionalTextPaths);
             Assert.Equal("path4.txt", additionalTextPaths[0]);
 
-            // replace it with null, and check that we get back null
-            additionalTextPaths.Clear();
-            driver = driver.ReplaceAdditionalText(additionalText1, null!);
-            driver = driver.RunGenerators(compilation);
-
-            Assert.Single(additionalTextPaths);
-            Assert.Null(additionalTextPaths[0]);
+            // replace it with null, and check that it throws
+            Assert.Throws<ArgumentNullException>(() => driver.ReplaceAdditionalText(additionalText1, null!));
         }
     }
 }

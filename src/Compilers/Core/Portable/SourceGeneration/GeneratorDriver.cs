@@ -106,13 +106,26 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver ReplaceAdditionalText(AdditionalText oldText, AdditionalText newText)
         {
+            if (oldText is null)
+            {
+                throw new ArgumentNullException(nameof(oldText));
+            }
+            if (newText is null)
+            {
+                throw new ArgumentNullException(nameof(newText));
+            }
+
             var newState = _state.With(additionalTexts: _state.AdditionalTexts.Replace(oldText, newText));
             return FromState(newState);
         }
 
-        public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => FromState(_state.With(parseOptions: newOptions));
+        public GeneratorDriver WithUpdatedParseOptions(ParseOptions newOptions) => newOptions is object
+                                                                                   ? FromState(_state.With(parseOptions: newOptions))
+                                                                                   : throw new ArgumentNullException(nameof(newOptions));
 
-        public GeneratorDriver WithUpdatedAnalyzerConfigOptions(AnalyzerConfigOptionsProvider newOptions) => FromState(_state.With(optionsProvider: newOptions));
+        public GeneratorDriver WithUpdatedAnalyzerConfigOptions(AnalyzerConfigOptionsProvider newOptions) => newOptions is object
+                                                                                                             ? FromState(_state.With(optionsProvider: newOptions))
+                                                                                                             : throw new ArgumentNullException(nameof(newOptions));
 
         public GeneratorDriverRunResult GetRunResult()
         {
@@ -347,6 +360,5 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract AdditionalSourcesCollection CreateSourcesCollection();
-
     }
 }
