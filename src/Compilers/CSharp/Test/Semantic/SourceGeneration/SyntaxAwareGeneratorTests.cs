@@ -1192,9 +1192,9 @@ class F
             Assert.Equal(3, results.GeneratedTrees.Length);
 
             // we produced the expected modified sources, but only called for the one different tree
-            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[0].FilePath);
-            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[1].FilePath);
-            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[2].FilePath);
+            Assert.EndsWith("fieldD.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
             Assert.Single(fieldsCalledFor, "fieldD");
         }
 
