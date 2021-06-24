@@ -1959,9 +1959,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantConvAnonMethReturnType = 8934,
         ERR_BuilderAttributeDisallowed = 8935,
 
-        ERR_MultipleFileScopedNamespace = 8930,
-        ERR_FileScopedAndNormalNamespace = 8931,
-        ERR_FileScopedNamespaceNotBeforeAllMembers = 8932,
+        ERR_MultipleFileScopedNamespace = 8940,
+        ERR_FileScopedAndNormalNamespace = 8941,
+        ERR_FileScopedNamespaceNotBeforeAllMembers = 8942,
 
 
         #endregion
