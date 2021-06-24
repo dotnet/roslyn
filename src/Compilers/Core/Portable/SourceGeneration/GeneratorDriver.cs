@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(GeneratorDriverState state)
         {
-            Debug.Assert(state.Generators.GroupBy(s => GetGeneratorType(s)).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
+            Debug.Assert(state.Generators.GroupBy(s => s.GetGeneratorType()).Count() == state.Generators.Length); // ensure we don't have duplicate generator types
             _state = state;
         }
 
@@ -129,32 +129,6 @@ namespace Microsoft.CodeAnalysis
                 return sources.ToImmutableAndFree();
             }
         }
-
-        /// <summary>
-        /// Returns the underlying type of a given generator
-        /// </summary>
-        /// <remarks>
-        /// For <see cref="IIncrementalGenerator"/>s we create a wrapper type that also implements
-        /// <see cref="ISourceGenerator"/>. This method will unwrap and return the underlying type
-        /// in those cases.
-        /// </remarks>
-        /// <param name="generator">The generator to get the type of</param>
-        /// <returns>The underlying generator type</returns>
-        public static Type GetGeneratorType(ISourceGenerator generator)
-        {
-            if (generator is IncrementalGeneratorWrapper igw)
-            {
-                return igw.Generator.GetType();
-            }
-            return generator.GetType();
-        }
-
-        /// <summary>
-        /// Wraps an <see cref="IIncrementalGenerator"/> in an <see cref="ISourceGenerator"/> object that can be used to construct a <see cref="GeneratorDriver"/>
-        /// </summary>
-        /// <param name="incrementalGenerator">The incremental generator to wrap</param>
-        /// <returns>A wrapped generator that can be passed to a generator driver</returns>
-        public static ISourceGenerator WrapGenerator(IIncrementalGenerator incrementalGenerator) => new IncrementalGeneratorWrapper(incrementalGenerator);
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
@@ -281,7 +255,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-            var type = GetGeneratorType(generator);
+            var type = generator.GetGeneratorType();
             var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
@@ -311,7 +285,7 @@ namespace Microsoft.CodeAnalysis
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
-            var diagnostic = Diagnostic.Create(descriptor, Location.None, GetGeneratorType(generator).Name, e.GetType().Name, e.Message);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message);
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
@@ -334,7 +308,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)
         {
-            var type = GetGeneratorType(generator);
+            var type = generator.GetGeneratorType();
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
