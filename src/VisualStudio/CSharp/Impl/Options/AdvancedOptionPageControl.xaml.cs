@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptions.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptions.ForImplicitObjectCreation, LanguageNames.CSharp);
 
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp);
+            ShowInheritanceMargin.IsChecked = OptionStore.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -217,6 +217,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp, false);
             UpdateInlineHintsOptions();
+        }
+
+        private void ShowInheritanceMargin_Changed(object sender, RoutedEventArgs e)
+        {
+            this.ShowInheritanceMargin.IsThreeState = false;
+            this.OptionStore.SetOption(FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, this.ShowInheritanceMargin.IsChecked);
         }
     }
 }

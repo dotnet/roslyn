@@ -146,7 +146,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
 
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic)
+            ShowInheritanceMargin.IsChecked = optionStore.GetOption(FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -181,6 +181,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub DisplayInlineParameterNameHints_Unchecked()
             Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub ShowInheritanceMargin_Changed(sender As Object, e As RoutedEventArgs)
+            Me.ShowInheritanceMargin.IsThreeState = False
+            Me.OptionStore.SetOption(FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, Me.ShowInheritanceMargin.IsChecked)
         End Sub
     End Class
 End Namespace
