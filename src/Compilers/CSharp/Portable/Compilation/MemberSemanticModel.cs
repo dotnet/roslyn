@@ -899,10 +899,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            BoundAwaitExpression boundAwait = (BoundAwaitExpression)GetLowerBoundNode(node);
-            Debug.Assert(boundAwait.Syntax == node);
-
-            var awaitableInfo = boundAwait.AwaitableInfo;
+            var bound = GetLowerBoundNode(node);
+            BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
             if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
@@ -912,8 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 getAwaiter: (IMethodSymbol)awaitableInfo.GetAwaiter?.ExpressionSymbol.GetPublicSymbol(),
                 isCompleted: awaitableInfo.IsCompleted.GetPublicSymbol(),
                 getResult: awaitableInfo.GetResult.GetPublicSymbol(),
-                isDynamic: awaitableInfo.IsDynamic
-            );
+                isDynamic: awaitableInfo.IsDynamic);
         }
 
         public override ForEachStatementInfo GetForEachStatementInfo(ForEachStatementSyntax node)
