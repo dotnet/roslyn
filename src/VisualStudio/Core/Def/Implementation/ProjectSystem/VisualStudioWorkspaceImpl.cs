@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -113,6 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioWorkspaceImpl(
             ExportProvider exportProvider,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             IThreadingContext threadingContext,
             ITextBufferCloneService textBufferCloneService,
             ITextBufferFactoryService textBufferFactoryService,
@@ -143,7 +145,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
 
-            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
+            var listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
+            var token = listener.BeginAsyncOperation(nameof(InitializeUIAffinitizedServicesAsync));
+            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider))
+                .CompletesAsyncOperation(token);
 
             FileChangeWatcher = fileChangeWatcherProvider.Watcher;
             FileWatchedReferenceFactory = fileWatchedPortableExecutableReferenceFactory;

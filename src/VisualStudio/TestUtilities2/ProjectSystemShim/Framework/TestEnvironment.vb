@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -106,6 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New(
                 exportProvider As Composition.ExportProvider,
+                asynchronousOperationListenerProvider As IAsynchronousOperationListenerProvider,
                 threadingContext As IThreadingContext,
                 textBufferCloneService As ITextBufferCloneService,
                 textBufferFactoryService As ITextBufferFactoryService,
@@ -118,6 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 asyncServiceProvider As MockServiceProvider)
                 MyBase.New(
                     exportProvider,
+                    asynchronousOperationListenerProvider,
                     threadingContext,
                     textBufferCloneService,
                     textBufferFactoryService,
