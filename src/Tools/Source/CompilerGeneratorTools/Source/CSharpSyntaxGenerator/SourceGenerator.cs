@@ -8,10 +8,10 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace CSharpSyntaxGenerator
 {
     [Generator]
-    public sealed class SourceGenerator : CachingSourceGenerator
+    public class SourceGenerator : IIncrementalGenerator
     {
         private static readonly DiagnosticDescriptor s_MissingSyntaxXml = new DiagnosticDescriptor(
             "CSSG1001",
@@ -48,73 +48,72 @@ namespace CSharpSyntaxGenerator
             defaultSeverity: DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        protected override bool TryGetRelevantInput(in GeneratorExecutionContext context, out AdditionalText? input, out SourceText? inputText)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            input = context.AdditionalFiles.SingleOrDefault(a => Path.GetFileName(a.Path) == "Syntax.xml");
-            if (input == null)
+            // find the syntax file
+            var info = context.AdditionalTextsProvider.Collect().Select((texts, _) => new SyntaxInfo(texts.SingleOrDefault(a => Path.GetFileName(a.Path) == "Syntax.xml")));
+
+            // get the text
+            info = info.Select((i, ct) => i with { Text = i.File?.GetText(ct) });
+
+            // load the tree
+            var result = info.Select<SyntaxInfo, Result>((info, ct) =>
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_MissingSyntaxXml, location: null));
-                inputText = null;
-                return false;
-            }
+                if (info.File is null)
+                {
+                    return new DiagnosticResult(Diagnostic.Create(s_MissingSyntaxXml, location: null));
+                }
+                if (info.Text is null)
+                {
+                    return new DiagnosticResult(Diagnostic.Create(s_MissingSyntaxXml, location: null)); ;
+                }
 
-            inputText = input.GetText();
-            if (inputText == null)
+                using var reader = XmlReader.Create(new SourceTextReader(info.Text), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
+                try
+                {
+                    var serializer = new XmlSerializer(typeof(Tree));
+                    var tree = (Tree)serializer.Deserialize(reader);
+                    TreeFlattening.FlattenChildren(tree);
+
+                    return new SuccessResult(
+                            buildResult(writer => SourceWriter.WriteMain(writer, tree, ct), "Syntax.xml.Main.Generated.cs"),
+                            buildResult(writer => SourceWriter.WriteInternal(writer, tree, ct), "Syntax.xml.Internal.Generated.cs"),
+                            buildResult(writer => SourceWriter.WriteSyntax(writer, tree, ct), "Syntax.xml.Syntax.Generated.cs"));
+                }
+                catch (InvalidOperationException ex) when (ex.InnerException is XmlException xmlException)
+                {
+                    var line = info.Text.Lines[xmlException.LineNumber - 1]; // LineNumber is one-based.
+                    int offset = xmlException.LinePosition - 1; // LinePosition is one-based
+                    var position = line.Start + offset;
+                    var span = new TextSpan(position, 0);
+                    var lineSpan = info.Text.Lines.GetLinePositionSpan(span);
+
+                    return new DiagnosticResult(Diagnostic.Create(
+                            s_SyntaxXmlError,
+                            location: Location.Create(info.File.Path, span, lineSpan),
+                            xmlException.Message)
+                    );
+                }
+            }).WithComparer(new ResultComparer());
+
+            // do the actual generation
+            context.RegisterSourceOutput(result, (spc, result) =>
             {
-                context.ReportDiagnostic(Diagnostic.Create(s_UnableToReadSyntaxXml, location: null));
-                return false;
-            }
+                if (result is DiagnosticResult dr)
+                {
+                    spc.ReportDiagnostic(dr.Diagnostic);
+                    return;
+                }
+                else if (result is SuccessResult sr)
+                {
+                    // Create a SourceText from each StringBuilder, once again avoiding allocating a single massive string
+                    addResult(spc, sr.Main, "Syntax.xml.Main.Generated.cs");
+                    addResult(spc, sr.Internal, "Syntax.xml.Internal.Generated.cs");
+                    addResult(spc, sr.Syntax, "Syntax.xml.Syntax.Generated.cs");
+                }
+            });
 
-            return true;
-        }
-
-        protected override bool TryGenerateSources(
-            AdditionalText input,
-            SourceText inputText,
-            out ImmutableArray<(string hintName, SourceText sourceText)> sources,
-            out ImmutableArray<Diagnostic> diagnostics,
-            CancellationToken cancellationToken)
-        {
-            Tree tree;
-            var reader = XmlReader.Create(new SourceTextReader(inputText), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
-
-            try
-            {
-                var serializer = new XmlSerializer(typeof(Tree));
-                tree = (Tree)serializer.Deserialize(reader);
-            }
-            catch (InvalidOperationException ex) when (ex.InnerException is XmlException)
-            {
-                var xmlException = (XmlException)ex.InnerException;
-
-                var line = inputText.Lines[xmlException.LineNumber - 1]; // LineNumber is one-based.
-                int offset = xmlException.LinePosition - 1; // LinePosition is one-based
-                var position = line.Start + offset;
-                var span = new TextSpan(position, 0);
-                var lineSpan = inputText.Lines.GetLinePositionSpan(span);
-
-                sources = default;
-                diagnostics = ImmutableArray.Create(
-                    Diagnostic.Create(
-                        s_SyntaxXmlError,
-                        location: Location.Create(input.Path, span, lineSpan),
-                        xmlException.Message));
-
-                return false;
-            }
-
-            TreeFlattening.FlattenChildren(tree);
-
-            var sourcesBuilder = ImmutableArray.CreateBuilder<(string hintName, SourceText sourceText)>();
-            addResult(writer => SourceWriter.WriteMain(writer, tree, cancellationToken), "Syntax.xml.Main.Generated.cs");
-            addResult(writer => SourceWriter.WriteInternal(writer, tree, cancellationToken), "Syntax.xml.Internal.Generated.cs");
-            addResult(writer => SourceWriter.WriteSyntax(writer, tree, cancellationToken), "Syntax.xml.Syntax.Generated.cs");
-
-            sources = sourcesBuilder.ToImmutable();
-            diagnostics = ImmutableArray<Diagnostic>.Empty;
-            return true;
-
-            void addResult(Action<TextWriter> writeFunction, string hintName)
+            static StringBuilder buildResult(Action<TextWriter> writeFunction, string hintName)
             {
                 // Write out the contents to a StringBuilder to avoid creating a single large string
                 // in memory
@@ -123,11 +122,38 @@ namespace CSharpSyntaxGenerator
                 {
                     writeFunction(textWriter);
                 }
-
-                // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
-                var sourceText = SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8);
-                sourcesBuilder.Add((hintName, sourceText));
+                return stringBuilder;
             }
+
+            static void addResult(SourceProductionContext spc, StringBuilder stringBuilder, string hintName)
+            {
+                // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
+                spc.AddSource(hintName, SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8));
+            }
+        }
+
+        private record Result();
+
+        private record SuccessResult(StringBuilder Main, StringBuilder Internal, StringBuilder Syntax) : Result;
+
+        private record DiagnosticResult(Diagnostic Diagnostic) : Result;
+
+        private record SyntaxInfo(AdditionalText? File, SourceText? Text = null);
+
+        private sealed class ResultComparer : IEqualityComparer<Result>
+        {
+            public bool Equals(Result x, Result y)
+            {
+                if (x is SuccessResult sx && y is SuccessResult sy)
+                {
+                    return sx.Main.Equals(sy.Main)
+                        && sx.Internal.Equals(sy.Internal)
+                        && sx.Syntax.Equals(sy.Syntax);
+                }
+                return x.Equals(y);
+            }
+
+            public int GetHashCode(Result obj) => obj.GetHashCode();
         }
 
         private sealed class SourceTextReader : TextReader
