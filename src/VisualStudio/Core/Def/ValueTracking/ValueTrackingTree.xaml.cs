@@ -24,11 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
     /// </summary>
     internal partial class ValueTrackingTree : UserControl
     {
-        private readonly ValueTrackingTreeViewModel _viewModel;
-
         public ValueTrackingTree(ValueTrackingTreeViewModel viewModel)
         {
-            DataContext = _viewModel = viewModel;
+            DataContext = viewModel;
             InitializeComponent();
         }
 
