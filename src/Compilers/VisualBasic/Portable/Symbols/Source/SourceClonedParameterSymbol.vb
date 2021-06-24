@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class SourceClonedParameterSymbol
         Inherits SourceParameterSymbolBase
 
-        Protected ReadOnly _originalParam As SourceParameterSymbol
+        Protected ReadOnly _originalParam As SourceParameterSymbolBase
 
-        Friend Sub New(originalParam As SourceParameterSymbol, newOwner As MethodSymbol, newOrdinal As Integer)
+        Friend Sub New(originalParam As SourceParameterSymbolBase, newOwner As MethodSymbol, newOrdinal As Integer)
             MyBase.New(newOwner, newOrdinal)
             Debug.Assert(originalParam IsNot Nothing)
             _originalParam = originalParam
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
         Friend Overrides Function WithTypeAndCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier), refCustomModifiers As ImmutableArray(Of CustomModifier)) As ParameterSymbol
-            Return New SourceClonedParameterSymbolWithCustomModifiers(_originalParam, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, refCustomModifiers)
+            Return New SourceClonedParameterSymbolWithCustomModifiers(Me, DirectCast(Me.ContainingSymbol, MethodSymbol), Me.Ordinal, type, customModifiers, refCustomModifiers)
         End Function
 
         Friend NotInheritable Class SourceClonedParameterSymbolWithCustomModifiers
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly _refCustomModifiers As ImmutableArray(Of CustomModifier)
 
             Friend Sub New(
-                originalParam As SourceParameterSymbol,
+                originalParam As SourceClonedParameterSymbol,
                 newOwner As MethodSymbol,
                 newOrdinal As Integer,
                 type As TypeSymbol,
