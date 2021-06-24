@@ -467,6 +467,11 @@
         <target state="translated">기능 '{0}'은(는) 실험적이며 지원되지 않습니다. 사용하도록 설정하려면 '/features:{1}'을(를) 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion10">
+        <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 8.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>

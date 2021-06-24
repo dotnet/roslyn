@@ -1244,6 +1244,7 @@ class C { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.Preview)]
         public void GeneratorDriver_Prefers_Incremental_Generators(LanguageVersion langVer)
         {
@@ -1284,6 +1285,7 @@ class C { }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.Preview)]
         public void GeneratorDriver_Initializes_Incremental_Generators(LanguageVersion langVer)
         {
@@ -1337,7 +1339,7 @@ class C { }
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1362,7 +1364,7 @@ class C { }
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 

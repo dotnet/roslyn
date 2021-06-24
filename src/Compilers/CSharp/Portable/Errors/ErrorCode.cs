@@ -1958,6 +1958,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         HDN_DuplicateWithGlobalUsing = 8933,
         ERR_CantConvAnonMethReturnType = 8934,
         ERR_BuilderAttributeDisallowed = 8935,
+        ERR_FeatureNotAvailableInVersion10 = 8936,
 
         #endregion
 
