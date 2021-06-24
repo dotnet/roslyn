@@ -899,19 +899,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            //usually the GetUpperBoundNode is sufficient, but we need to handle
-            //for example BoundExpressionStatement or BoundConversion here, too.
-            BoundAwaitExpression boundAwait = null;
-            foreach (var boundNode in GetBoundNodes(node))
-            {
-                if (boundNode is BoundAwaitExpression ba)
-                {
-                    Debug.Assert(boundNode.Syntax == node);
-                    boundAwait = ba;
-                    break;
-                }
-            }
-            var awaitableInfo = boundAwait?.AwaitableInfo;
+            BoundAwaitExpression boundAwait = (BoundAwaitExpression)GetLowerBoundNode(node);
+            Debug.Assert(boundAwait.Syntax == node);
+
+            var awaitableInfo = boundAwait.AwaitableInfo;
             if (awaitableInfo == null)
             {
                 return default(AwaitExpressionInfo);
