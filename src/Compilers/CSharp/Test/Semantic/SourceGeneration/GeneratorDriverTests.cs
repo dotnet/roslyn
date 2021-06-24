@@ -1826,6 +1826,13 @@ class C { }
             parseOptionsCalledFor.Clear();
             driver = driver.RunGenerators(compilation);
             Assert.Empty(parseOptionsCalledFor);
+
+            // update the parse options to a null value
+            driver = driver.WithUpdatedParseOptions(null!);
+
+            // check the driver ignored the null update
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(parseOptionsCalledFor);
         }
 
         [Fact]
@@ -1871,10 +1878,66 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Equal("value2", analyzerOptionsValue);
 
-            // clear the results, and re-run
-            analyzerOptionsValue = null;
+            // update the analyzer config to be null 
+            driver = driver.WithUpdatedAnalyzerConfigOptions(null!);
+
+            // check the driver ignored the null update
             driver = driver.RunGenerators(compilation);
-            Assert.Null(analyzerOptionsValue);
+            Assert.Equal("value2", analyzerOptionsValue);
+        }
+
+        [Fact]
+        public void AdditionalText_Can_Be_Replaced()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            InMemoryAdditionalText additionalText1 = new InMemoryAdditionalText("path1.txt", "");
+            InMemoryAdditionalText additionalText2 = new InMemoryAdditionalText("path2.txt", "");
+            InMemoryAdditionalText additionalText3 = new InMemoryAdditionalText("path3.txt", "");
+
+
+            List<string?> additionalTextPaths = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider.Select((t, _) => t?.Path), (spc, p) => { additionalTextPaths.Add(p); });
+            }));
+
+            // run the generator once and check we saw the additional file
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText1, additionalText2, additionalText3 });
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(3, additionalTextPaths.Count);
+            Assert.Equal("path1.txt", additionalTextPaths[0]);
+            Assert.Equal("path2.txt", additionalTextPaths[1]);
+            Assert.Equal("path3.txt", additionalTextPaths[2]);
+
+            // re-run and check nothing else got added
+            additionalTextPaths.Clear();
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(additionalTextPaths);
+
+            // now, update the additional text, but keep the path the same
+            additionalTextPaths.Clear();
+            driver = driver.ReplaceAdditionalText(additionalText2, new InMemoryAdditionalText("path4.txt", ""));
+
+            // run, and check that only the replaced file was invoked
+            driver = driver.RunGenerators(compilation);
+            Assert.Single(additionalTextPaths);
+            Assert.Equal("path4.txt", additionalTextPaths[0]);
+
+            // replace it with null, and check that we get back null
+            additionalTextPaths.Clear();
+            driver = driver.ReplaceAdditionalText(additionalText1, null!);
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Single(additionalTextPaths);
+            Assert.Null(additionalTextPaths[0]);
         }
     }
 }
