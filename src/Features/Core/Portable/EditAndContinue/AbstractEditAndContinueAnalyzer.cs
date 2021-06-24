@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected abstract bool IsGlobalStatement(SyntaxNode node);
 
+        protected abstract TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node);
+
         /// <summary>
         /// Returns all symbols associated with an edit.
         /// Returns an empty set if the edit is not associated with any symbols.
@@ -2492,7 +2494,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                             // The symbols here are the compiler generated Main method so we don't have nodes to report the edit for
                                             // so we'll just use the last global statement in the file
-                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(newDeclaration, EditKind.Delete), diagnostics);
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(newDeclaration), diagnostics);
 
                                             var oldBody = oldDeclaration;
                                             var newBody = newDeclaration;
@@ -2690,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         }
                                         else if (IsGlobalStatement(edit.NewNode))
                                         {
-                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(edit.NewNode, edit.Kind), diagnostics);
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(edit.NewNode), diagnostics);
 
                                             // An insert of a global statement, when oldSymbol isn't null, is an update to the implicit Main method
                                             editKind = SemanticEditKind.Update;
@@ -2933,7 +2935,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                     if (IsGlobalStatement(edit.NewNode))
                                     {
-                                        ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetDiagnosticSpan(edit.NewNode, edit.Kind), diagnostics);
+                                        ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(edit.NewNode), diagnostics);
                                     }
 
                                     editKind = SemanticEditKind.Update;
@@ -3145,7 +3147,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             if (!SymbolEqualityComparer.Default.Equals(oldSymbol.ReturnType, newSymbol.ReturnType))
             {
-                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.TypeUpdate, diagnosticSpan));
+                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangeImplicitMainReturnType, diagnosticSpan));
             }
         }
 

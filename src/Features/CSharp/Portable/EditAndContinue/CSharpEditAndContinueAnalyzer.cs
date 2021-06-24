@@ -789,6 +789,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override bool IsGlobalStatement(SyntaxNode node)
             => node.IsKind(SyntaxKind.GlobalStatement);
 
+        protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
+        {
+            if (node is CompilationUnitSyntax unit)
+            {
+                // When deleting something from a compilation unit we just report diagnostics for the last global statment
+                return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
+            }
+
+            return GetDiagnosticSpan(node, EditKind.Delete);
+        }
+
         protected override string LineDirectiveKeyword
             => "line";
 
@@ -1474,11 +1485,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    if (editKind == EditKind.Delete)
-                    {
-                        // When deleting something from a compilation unit we just report diagnostics for the last global statment
-                        return ((CompilationUnitSyntax)node).Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span;
-                    }
                     return default(TextSpan);
 
                 case SyntaxKind.GlobalStatement:

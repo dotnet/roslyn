@@ -803,6 +803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
+        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
+            Return Nothing
+        End Function
+
         Protected Overrides ReadOnly Property LineDirectiveKeyword As String
             Get
                 Return "ExternalSource"
