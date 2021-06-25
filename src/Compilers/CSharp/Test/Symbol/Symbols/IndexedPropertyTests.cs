@@ -412,22 +412,22 @@ F()
   // Code size       33 (0x21)
   .maxstack  4
   .locals init (IA V_0,
-                int V_1,
-                int V_2)
+  int V_1,
+  int V_2)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  call       ""int[] B.F()""
   IL_0007:  ldc.i4.0
   IL_0008:  ldelem.i4
-  IL_0009:  stloc.1
+  IL_0009:  stloc.2
   IL_000a:  ldloc.0
-  IL_000b:  ldloc.1
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
+  IL_000b:  ldloc.2
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
   IL_000f:  ldloc.0
-  IL_0010:  ldloc.1
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
+  IL_0010:  ldloc.2
+  IL_0011:  stloc.1
+  IL_0012:  ldloca.s   V_1
   IL_0014:  callvirt   ""int IA.P[ref int].get""
   IL_0019:  ldc.i4.1
   IL_001a:  add
@@ -461,22 +461,22 @@ F()
   // Code size       33 (0x21)
   .maxstack  4
   .locals init (int V_0,
-                int V_1,
-                int V_2)
+  int V_1,
+  int V_2)
   IL_0000:  ldarg.0
   IL_0001:  call       ""int[] B.F()""
   IL_0006:  ldc.i4.0
   IL_0007:  ldelem.i4
-  IL_0008:  stloc.0
+  IL_0008:  stloc.1
   IL_0009:  dup
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
+  IL_000a:  ldloc.1
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
   IL_000e:  callvirt   ""int IA.P[ref int].get""
   IL_0013:  stloc.2
-  IL_0014:  ldloc.0
-  IL_0015:  stloc.1
-  IL_0016:  ldloca.s   V_1
+  IL_0014:  ldloc.1
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
   IL_0018:  ldloc.2
   IL_0019:  ldc.i4.1
   IL_001a:  add
@@ -733,27 +733,27 @@ F()
   // Code size       39 (0x27)
   .maxstack  5
   .locals init (int V_0,
-                int V_1,
-                int V_2,
-                int V_3)
+  int V_1,
+  int V_2,
+  int V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldsfld     ""int C.x""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.2
   IL_0007:  dup
-  IL_0008:  ldloc.0
-  IL_0009:  stloc.1
-  IL_000a:  ldloca.s   V_1
+  IL_0008:  ldloc.2
+  IL_0009:  stloc.0
+  IL_000a:  ldloca.s   V_0
   IL_000c:  ldc.i4.0
-  IL_000d:  stloc.2
-  IL_000e:  ldloca.s   V_2
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
   IL_0010:  callvirt   ""int IA.P[ref int, ref int].get""
   IL_0015:  stloc.3
-  IL_0016:  ldloc.0
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_1
+  IL_0016:  ldloc.2
+  IL_0017:  stloc.0
+  IL_0018:  ldloca.s   V_0
   IL_001a:  ldc.i4.0
-  IL_001b:  stloc.2
-  IL_001c:  ldloca.s   V_2
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_1
   IL_001e:  ldloc.3
   IL_001f:  ldc.i4.1
   IL_0020:  add
@@ -765,30 +765,30 @@ F()
   // Code size       47 (0x2f)
   .maxstack  5
   .locals init (int V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                int V_4)
+  int V_1,
+  int V_2,
+  int V_3,
+  int V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldsfld     ""int C.x""
-  IL_0006:  stloc.0
+  IL_0006:  stloc.2
   IL_0007:  ldsfld     ""int C.y""
-  IL_000c:  stloc.1
+  IL_000c:  stloc.3
   IL_000d:  dup
-  IL_000e:  ldloc.0
-  IL_000f:  stloc.2
-  IL_0010:  ldloca.s   V_2
-  IL_0012:  ldloc.1
-  IL_0013:  stloc.3
-  IL_0014:  ldloca.s   V_3
+  IL_000e:  ldloc.2
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.3
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
   IL_0016:  callvirt   ""int IA.P[ref int, ref int].get""
   IL_001b:  stloc.s    V_4
-  IL_001d:  ldloc.0
-  IL_001e:  stloc.2
-  IL_001f:  ldloca.s   V_2
-  IL_0021:  ldloc.1
-  IL_0022:  stloc.3
-  IL_0023:  ldloca.s   V_3
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.3
+  IL_0022:  stloc.1
+  IL_0023:  ldloca.s   V_1
   IL_0025:  ldloc.s    V_4
   IL_0027:  ldc.i4.1
   IL_0028:  add

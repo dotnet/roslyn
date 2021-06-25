@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -312,18 +311,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            ImmutableArray<LocalSymbol> argTemps;
             arguments = VisitArguments(
+                syntax,
+                arguments,
+                property,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt,
+                ref rewrittenReceiver,
+                out ArrayBuilder<LocalSymbol>? argTempsBuilder,
+                out BitVector positionsAssignedToTemp,
+                receiverIsArgumentSideEffectSequence: out _);
+
+            arguments = MakeArguments(
                 syntax,
                 arguments,
                 property,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out argTemps,
-                ref rewrittenReceiver,
+                ref argTempsBuilder,
+                positionsAssignedToTemp,
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.True);
+
+            var argTemps = argTempsBuilder?.ToImmutableAndFree() ?? default;
 
             if (used)
             {

@@ -130,24 +130,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     arguments,
                     indexer,
+                    argsToParamsOpt,
+                    ref argumentRefKindsOpt,
+                    ref rewrittenReceiver!,
+                    out ArrayBuilder<LocalSymbol>? temps,
+                    out BitVector positionsAssignedToTemp,
+                    receiverIsArgumentSideEffectSequence: out _);
+
+                rewrittenArguments = MakeArguments(
+                    syntax,
+                    rewrittenArguments,
+                    indexer,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
-                    out ImmutableArray<LocalSymbol> temps,
-                    ref rewrittenReceiver!,
+                    ref temps,
+                    positionsAssignedToTemp,
                     enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 
-                if (temps.IsDefaultOrEmpty)
+                if (temps?.Count is null or 0)
                 {
+                    temps?.Free();
                     return call;
                 }
                 else
                 {
                     return new BoundSequence(
                         syntax,
-                        temps,
+                        temps.ToImmutableAndFree(),
                         ImmutableArray<BoundExpression>.Empty,
                         call,
                         type);

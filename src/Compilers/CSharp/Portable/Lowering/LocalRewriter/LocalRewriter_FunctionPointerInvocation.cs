@@ -6,8 +6,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,27 +23,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol functionPointer = node.FunctionPointer.Signature;
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            ImmutableArray<BoundExpression> rewrittenArgs = VisitArguments(
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ImmutableArray<BoundExpression> rewrittenArgs = MakeArguments(
                 node.Syntax,
                 node.Arguments,
                 functionPointer,
                 expanded: false,
                 argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
-                out ImmutableArray<LocalSymbol> temps,
-                ref rewrittenExpression,
+                ref temps,
+                positionsAssignedToTemp: default,
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.False);
 
             Debug.Assert(rewrittenExpression != null);
             node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
 
-            if (temps.IsDefaultOrEmpty)
+            if (temps?.Count is null or 0)
             {
+                temps?.Free();
                 return node;
             }
 
-            return new BoundSequence(node.Syntax, temps, sideEffects: ImmutableArray<BoundExpression>.Empty, node, node.Type);
+            return new BoundSequence(node.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, node, node.Type);
         }
     }
 }

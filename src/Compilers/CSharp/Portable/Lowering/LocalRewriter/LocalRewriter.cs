@@ -442,19 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(removed);
         }
 
-        private void RemovePlaceholderReplacementIfPresent(BoundValuePlaceholderBase placeholder)
-        {
-            Debug.Assert(placeholder is { });
-            Debug.Assert(_placeholderReplacementMapDoNotUseDirectly is { });
-            _ = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
-        }
-
-        private bool HasPlaceholderReplacement(BoundValuePlaceholderBase placeholder)
-        {
-            Debug.Assert(placeholder is not null);
-            return _placeholderReplacementMapDoNotUseDirectly?.ContainsKey(placeholder) ?? false;
-        }
-
         public sealed override BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
         {
             // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage

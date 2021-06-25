@@ -293,29 +293,100 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempx = X()
             // tempy = Y()
             // tempc[tempx, tempy, 123] = tempc[tempx, tempy, 123] + 1;
-            //
-            // To deal with these problems, we tell the argument visitor that these parameters will be reused,
-            // which disables these optimizations.
 
             SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
-            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
-            bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
+            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
 
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
                 syntax,
                 indexerAccess.Arguments,
                 indexer,
-                expanded,
                 argsToParamsOpt,
                 ref argumentRefKinds,
-                out ImmutableArray<LocalSymbol> rewriteTemps,
                 ref transformedReceiver!,
-                argumentsWillBeReused: true,
-                incomingStores: stores);
+                out ArrayBuilder<LocalSymbol>? argumentTemps,
+                out BitVector positionsAssignedToTemp,
+                out bool receiverIsSideEffectSequence);
 
-            temps.AddRange(rewriteTemps);
+            if (argumentTemps != null)
+            {
+                temps.AddRange(argumentTemps);
+                argumentTemps.Free();
+            }
+
+            if (receiverIsSideEffectSequence)
+            {
+                // The receiver is a sequence of stores and other side effects because one of the arguments is
+                // an interpolated string handler conversion that needs information from the surrounding context.
+                // Pick apart the sequence, add the side effects to the containing list of stores, and set the
+                // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
+                var receiverSequence = (BoundSequence)transformedReceiver;
+                Debug.Assert(receiverSequence is { Locals: { IsEmpty: true }, Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp } } });
+
+                stores.AddRange(receiverSequence.SideEffects);
+                transformedReceiver = receiverSequence.Value;
+            }
+
+            bool expanded = indexerAccess.Expanded;
+
+            ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
+            BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
+            ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
+            ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
+
+            // Step one: Store everything that is non-trivial into a temporary; record the
+            // stores in storesToTemps and make the actual argument a reference to the temp.
+            // Do not yet attempt to deal with params arrays or optional arguments.
+            BuildStoresToTemps(
+                expanded,
+                argsToParamsOpt,
+                parameters,
+                argumentRefKinds,
+                rewrittenArguments,
+                positionsAssignedToTemp,
+                forceLambdaSpilling: true, // lambdas must produce exactly one delegate so they must be spilled into a temp
+                actualArguments,
+                refKinds,
+                storesToTemps);
+
+            // Step two: If we have a params array, build the array and fill in the argument.
+            if (expanded)
+            {
+                BoundExpression array = BuildParamsArray(syntax, indexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                BoundAssignmentOperator storeToTemp;
+                var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
+                stores.Add(storeToTemp);
+                temps.Add(boundTemp.LocalSymbol);
+                actualArguments[actualArguments.Length - 1] = boundTemp;
+            }
+
+            // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
+            // compound assignments, but for deconstructions we use the setter if the getter is missing.)
+            var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
+            Debug.Assert(accessor is not null);
+
+            // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
+            // duplicate side-effects, so we'll skip that step.
+
+            if (indexer.ContainingType.IsComImport)
+            {
+                RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
+            }
+
+            Debug.Assert(actualArguments.All(static arg => arg is not null));
+            rewrittenArguments = actualArguments.AsImmutableOrNull();
+
+            foreach (BoundAssignmentOperator tempAssignment in storesToTemps)
+            {
+                temps.Add(((BoundLocal)tempAssignment.Left).LocalSymbol);
+                stores.Add(tempAssignment);
+            }
+
+            storesToTemps.Free();
+            argumentRefKinds = GetRefKindsOrNull(refKinds);
+            refKinds.Free();
 
             // This is a temporary object that will be rewritten away before the lowering completes.
             return new BoundIndexerAccess(

@@ -2013,8 +2013,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodResult,
                 analyzedArguments.Arguments,
                 diagnostics,
-                boundExpression.Type,
-                boundExpression.GetRefKind());
+                receiverType: null,
+                receiverRefKind: default);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

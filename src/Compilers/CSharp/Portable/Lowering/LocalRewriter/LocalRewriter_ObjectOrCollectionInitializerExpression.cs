@@ -166,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
             if (addMethod.Parameters[0].RefKind == RefKind.Ref)
             {
@@ -179,7 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(syntax, initializer.Arguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, ref rewrittenReceiver, enableCallerInfo: ThreeState.True);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                syntax,
+                initializer.Arguments,
+                addMethod,
+                initializer.ArgsToParamsOpt,
+                ref argumentRefKindsOpt,
+                ref rewrittenReceiver,
+                out ArrayBuilder<LocalSymbol>? temps,
+                out BitVector positionsAssignedToTemp,
+                receiverIsArgumentSideEffectSequence: out _);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, positionsAssignedToTemp, enableCallerInfo: ThreeState.True);
 
             var rewrittenType = VisitType(initializer.Type);
 
@@ -193,10 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
+                Debug.Assert(temps?.Count is null or 0);
+                temps?.Free();
                 return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps?.ToImmutableAndFree() ?? default);
         }
 
         // Rewrite object initializer member assignments and add them to the result.

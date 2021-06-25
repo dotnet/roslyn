@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, originalParameterIndex);
                     if (parameter.IsOptional)
                     {
-                        // Parameter '{0}' is optional, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
+                        // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
                         diagnostics.Add(
                             ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified,
                             unconvertedString.Syntax.Location,
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, argumentIndex);
                     if (argumentIndex > interpolatedStringArgNum)
                     {
-                        // Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but is specified after the interpolated string constant. Reorder the arguments to move '{0}' before '{1}'.
+                        // Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.
                         diagnostics.Add(
                             ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString,
                             arguments[argumentIndex].Syntax.Location,

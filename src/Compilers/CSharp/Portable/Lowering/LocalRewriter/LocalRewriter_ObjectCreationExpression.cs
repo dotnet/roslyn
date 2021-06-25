@@ -38,20 +38,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
             BoundExpression? receiverDiscard = null;
 
-            // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
                 node.Syntax,
                 node.Arguments,
                 node.Constructor,
+                node.ArgsToParamsOpt,
+                ref argumentRefKindsOpt,
+                ref receiverDiscard,
+                out ArrayBuilder<LocalSymbol>? tempsBuilder,
+                out BitVector positionsAssignedToTemp,
+                receiverIsArgumentSideEffectSequence: out _);
+
+            // We have already lowered each argument, but we may need some additional rewriting for the arguments,
+            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
+            rewrittenArguments = MakeArguments(
+                node.Syntax,
+                rewrittenArguments,
+                node.Constructor,
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out ImmutableArray<LocalSymbol> temps,
-                ref receiverDiscard);
+                ref tempsBuilder,
+                positionsAssignedToTemp);
 
             BoundExpression rewrittenObjectCreation;
+            var temps = tempsBuilder?.ToImmutableAndFree() ?? default;
 
             if (_inExpressionLambda)
             {

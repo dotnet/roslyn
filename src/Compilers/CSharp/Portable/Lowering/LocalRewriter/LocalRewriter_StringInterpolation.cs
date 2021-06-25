@@ -56,28 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var construction = (BoundObjectCreationExpression)data.Construction;
 
             BoundLocal? appendShouldProceedLocal = null;
-            bool ownsAppendShouldProceedLocal = false;
             if (data.HasTrailingHandlerValidityParameter)
             {
                 Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
 
                 BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
-                if (!HasPlaceholderReplacement(trailingParameter))
-                {
-                    ownsAppendShouldProceedLocal = true;
-                    TypeSymbol localType = trailingParameter.Type!;
-                    Debug.Assert(localType.SpecialType == SpecialType.System_Boolean);
-                    var outLocal = _factory.SynthesizedLocal(localType);
-                    appendShouldProceedLocal = _factory.Local(outLocal);
+                TypeSymbol localType = trailingParameter.Type!;
+                Debug.Assert(localType.SpecialType == SpecialType.System_Boolean);
+                var outLocal = _factory.SynthesizedLocal(localType);
+                appendShouldProceedLocal = _factory.Local(outLocal);
 
-                    AddPlaceholderReplacement(trailingParameter, appendShouldProceedLocal);
-                }
-                else
-                {
-                    // We're already processing this node, so use the local VisitArguments will have allocated for us
-                    appendShouldProceedLocal = (BoundLocal)PlaceholderReplacement(trailingParameter);
-                    Debug.Assert(appendShouldProceedLocal.Type.SpecialType == SpecialType.System_Boolean);
-                }
+                AddPlaceholderReplacement(trailingParameter, appendShouldProceedLocal);
             }
 
             var handlerConstructionAssignment = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression(construction));
@@ -89,23 +78,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var appendCall = (BoundCall)currentPart;
                 Debug.Assert(usesBoolReturn == (appendCall.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
 
-                // The append call itself could have and interpolated string conversion that uses the builder local as the receiver
+                // The append call itself could have an interpolated string conversion that uses the builder local as the receiver
                 // passed to a nested construction call. This needs to affect the current call to ensure side effects are
                 // preserved, but shouldn't affect any subsequent calls.
-                BoundExpression appendReceiver = builderTemp;
+                BoundExpression? appendReceiver = builderTemp;
                 Debug.Assert(appendCall.Method.RequiresInstanceReceiver);
+                var argRefKindsOpt = appendCall.ArgumentRefKindsOpt;
 
-                var rewrittenAppendCall = VisitArgumentsAndMakeCall(
+                var rewrittenArguments = VisitArguments(
+                    appendCall.Syntax,
+                    appendCall.Arguments,
+                    appendCall.Method,
+                    appendCall.ArgsToParamsOpt,
+                    ref argRefKindsOpt,
+                    ref appendReceiver,
+                    out ArrayBuilder<LocalSymbol>? temps,
+                    out BitVector positionsAssignedToTemp,
+                    receiverIsArgumentSideEffectSequence: out _);
+
+                var rewrittenAppendCall = MakeArgumentsAndCall(
                     appendCall.Syntax,
                     appendReceiver,
                     appendCall.Method,
-                    appendCall.Arguments,
+                    rewrittenArguments,
                     appendCall.ArgumentRefKindsOpt,
                     appendCall.Expanded,
                     appendCall.InvokedAsExtensionMethod,
                     appendCall.ArgsToParamsOpt,
                     appendCall.ResultKind,
                     appendCall.Type,
+                    temps,
+                    positionsAssignedToTemp,
                     appendCall);
 
                 Debug.Assert(usesBoolReturn == (appendCall.Type!.SpecialType == SpecialType.System_Boolean));
@@ -132,16 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(currentExpression != null);
 
-                if (ownsAppendShouldProceedLocal)
-                {
-                    Debug.Assert(appendShouldProceedLocal is not null);
-                    var sequence = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), currentExpression);
-                    resultExpressions.Add(sequence);
-                }
-                else
-                {
-                    resultExpressions.Add(currentExpression);
-                }
+                var sequence = _factory.Sequence(
+                    appendShouldProceedLocal is not null
+                        ? ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol)
+                        : ImmutableArray<LocalSymbol>.Empty,
+                    resultExpressions.ToImmutableAndClear(),
+                    currentExpression);
+
+                resultExpressions.Add(sequence);
             }
             else if (appendShouldProceedLocal is not null && resultExpressions.Count > 0)
             {
@@ -155,14 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression result = appendAnd;
 
-                if (ownsAppendShouldProceedLocal)
-                {
-                    result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
-                }
+                result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
 
                 resultExpressions.Add(result);
             }
-            else if (appendShouldProceedLocal is not null && ownsAppendShouldProceedLocal)
+            else if (appendShouldProceedLocal is not null)
             {
                 // Odd case of no append calls, but with an out param. We don't need to generate any jumps checking the local because there's
                 // nothing to short circuit and avoid, but we do need a sequence to hold the lifetime of the local
@@ -355,25 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(arguments.All(arg => arg is not BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, ExplicitCastInCode: false }));
             }
-        }
-
-        private static int GetNextInterpolatedStringHandlerConversionIndex(ReadOnlySpan<BoundExpression> arguments)
-        {
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                if (arguments[i] is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString operand })
-                {
-                    Debug.Assert(operand.InterpolationData is { Construction: BoundObjectCreationExpression });
-                    var creation = (BoundObjectCreationExpression)operand.InterpolationData.GetValueOrDefault().Construction;
-
-                    if (creation.Arguments.Length > (operand.InterpolationData.GetValueOrDefault().HasTrailingHandlerValidityParameter ? 3 : 2))
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return -1;
         }
     }
 }

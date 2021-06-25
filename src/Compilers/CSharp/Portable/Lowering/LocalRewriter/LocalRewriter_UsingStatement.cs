@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
 
-            return VisitArgumentsAndMakeCall(
+            return MakeArgumentsAndCall(
                 syntax,
                 expression,
                 method,
@@ -509,7 +509,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType,
-                argumentsAreVisited: true);
+                temps: null,
+                positionsAssignedToTemp: BitVector.Null);
         }
     }
 }
