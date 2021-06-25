@@ -10,8 +10,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
     internal static class ProgressionOptions
     {
+        private const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Components\Progression\";
+
         public static readonly Option2<bool> SearchUsingNavigateToEngine = new(
             nameof(ProgressionOptions), nameof(SearchUsingNavigateToEngine), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.Specific.ProgressionOptions.SearchUsingNavigateToEngine"));
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "SearchUsingNavigateToEngine"));
     }
 }
