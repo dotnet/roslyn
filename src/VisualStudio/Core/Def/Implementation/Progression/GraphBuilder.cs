@@ -747,48 +747,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
 
             return symbolNode;
-
-            //using (_gate.DisposableWait(cancellationToken))
-            //{
-            //    _createdNodes.Add(symbolNode);
-            //    _nodeToContextDocumentMap[symbolNode] = document;
-            //    _nodeToContextProjectMap[symbolNode] = project;
-            //}
         }
 
         private static string GetIconString(Glyph glyph)
         {
-            return glyph switch
+            var groupName = glyph switch
             {
-                Glyph.ClassPublic or Glyph.ClassProtected or Glyph.ClassPrivate or Glyph.ClassInternal => IconHelper.GetIconName("Class", GetAccessibility(glyph, Glyph.ClassPublic)),
-                Glyph.ConstantPublic or Glyph.ConstantProtected or Glyph.ConstantPrivate or Glyph.ConstantInternal => IconHelper.GetIconName("Field", GetAccessibility(glyph, Glyph.ConstantPublic)),
-                Glyph.DelegatePublic or Glyph.DelegateProtected or Glyph.DelegatePrivate or Glyph.DelegateInternal => IconHelper.GetIconName("Delegate", GetAccessibility(glyph, Glyph.DelegatePublic)),
-                Glyph.EnumPublic or Glyph.EnumProtected or Glyph.EnumPrivate or Glyph.EnumInternal => IconHelper.GetIconName("Enum", GetAccessibility(glyph, Glyph.EnumPublic)),
-                Glyph.EnumMemberPublic or Glyph.EnumMemberProtected or Glyph.EnumMemberPrivate or Glyph.EnumMemberInternal => IconHelper.GetIconName("EnumMember", GetAccessibility(glyph, Glyph.EnumMemberPublic)),
-                Glyph.ExtensionMethodPublic or Glyph.ExtensionMethodProtected or Glyph.ExtensionMethodPrivate or Glyph.ExtensionMethodInternal => IconHelper.GetIconName("Method", GetAccessibility(glyph, Glyph.ExtensionMethodPublic)),
-                Glyph.EventPublic or Glyph.EventProtected or Glyph.EventPrivate or Glyph.EventInternal => IconHelper.GetIconName("Event", GetAccessibility(glyph, Glyph.EventPublic)),
-                Glyph.FieldPublic or Glyph.FieldProtected or Glyph.FieldPrivate or Glyph.FieldInternal => IconHelper.GetIconName("Field", GetAccessibility(glyph, Glyph.FieldPublic)),
-                Glyph.InterfacePublic or Glyph.InterfaceProtected or Glyph.InterfacePrivate or Glyph.InterfaceInternal => IconHelper.GetIconName("Interface", GetAccessibility(glyph, Glyph.InterfacePublic)),
-                Glyph.MethodPublic or Glyph.MethodProtected or Glyph.MethodPrivate or Glyph.MethodInternal => IconHelper.GetIconName("Method", GetAccessibility(glyph, Glyph.MethodPublic)),
-                Glyph.ModulePublic or Glyph.ModuleProtected or Glyph.ModulePrivate or Glyph.ModuleInternal => IconHelper.GetIconName("Module", GetAccessibility(glyph, Glyph.ModulePublic)),
-                Glyph.PropertyPublic or Glyph.PropertyProtected or Glyph.PropertyPrivate or Glyph.PropertyInternal => IconHelper.GetIconName("Property", GetAccessibility(glyph, Glyph.PropertyPublic)),
-                Glyph.StructurePublic or Glyph.StructureProtected or Glyph.StructurePrivate or Glyph.StructureInternal => IconHelper.GetIconName("Structure", GetAccessibility(glyph, Glyph.StructurePublic)),
+                Glyph.ClassPublic or Glyph.ClassProtected or Glyph.ClassPrivate or Glyph.ClassInternal => "Class",
+                Glyph.ConstantPublic or Glyph.ConstantProtected or Glyph.ConstantPrivate or Glyph.ConstantInternal => "Field",
+                Glyph.DelegatePublic or Glyph.DelegateProtected or Glyph.DelegatePrivate or Glyph.DelegateInternal => "Delegate",
+                Glyph.EnumPublic or Glyph.EnumProtected or Glyph.EnumPrivate or Glyph.EnumInternal => "Enum",
+                Glyph.EnumMemberPublic or Glyph.EnumMemberProtected or Glyph.EnumMemberPrivate or Glyph.EnumMemberInternal => "EnumMember",
+                Glyph.ExtensionMethodPublic or Glyph.ExtensionMethodProtected or Glyph.ExtensionMethodPrivate or Glyph.ExtensionMethodInternal => "Method",
+                Glyph.EventPublic or Glyph.EventProtected or Glyph.EventPrivate or Glyph.EventInternal => "Event",
+                Glyph.FieldPublic or Glyph.FieldProtected or Glyph.FieldPrivate or Glyph.FieldInternal => "Field",
+                Glyph.InterfacePublic or Glyph.InterfaceProtected or Glyph.InterfacePrivate or Glyph.InterfaceInternal => "Interface",
+                Glyph.MethodPublic or Glyph.MethodProtected or Glyph.MethodPrivate or Glyph.MethodInternal => "Method",
+                Glyph.ModulePublic or Glyph.ModuleProtected or Glyph.ModulePrivate or Glyph.ModuleInternal => "Module",
+                Glyph.PropertyPublic or Glyph.PropertyProtected or Glyph.PropertyPrivate or Glyph.PropertyInternal => "Property",
+                Glyph.StructurePublic or Glyph.StructureProtected or Glyph.StructurePrivate or Glyph.StructureInternal => "Structure",
                 _ => null,
             };
-        }
 
-        private static Accessibility GetAccessibility(Glyph glyph, Glyph publicGlyph)
-        {
-            var diff = glyph - publicGlyph;
+            if (groupName == null)
+                return null;
 
-            return diff switch
-            {
-                0 => Accessibility.Public,
-                1 => Accessibility.Protected,
-                2 => Accessibility.Private,
-                3 => Accessibility.Internal,
-                _ => throw ExceptionUtilities.UnexpectedValue(glyph),
-            };
+            var accessibility = GlyphExtensions.GetAccessibility(GlyphTags.GetTags(glyph));
+            return IconHelper.GetIconName(groupName, accessibility);
         }
 
         public void ApplyToGraph(Graph graph)
