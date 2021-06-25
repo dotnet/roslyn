@@ -962,6 +962,11 @@
         <target state="translated">Nie można określić opcji /main, jeśli istnieje jednostka kompilacji z instrukcjami najwyższego poziomu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">W tym kontekście nie można użyć zmiennej lokalnej ani funkcji lokalnej „{0}” zadeklarowanej w instrukcji najwyższego poziomu.</target>
