@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         protected Workspace Workspace { get; }
 
         public int LineNumber => LineSpan.Start + 1; // LineSpan is 0 indexed, editors are not
-        public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
 
         public string FileName { get; }
 
@@ -57,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IThreadingContext threadingContext,
             Workspace workspace,
             ImmutableArray<TreeItemViewModel> children = default)
+            : base()
         {
             FileName = fileName;
             TextSpan = textSpan;
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             };
         }
 
-        public virtual void Select()
+        public virtual void NavigateTo()
         {
             var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService is null)
