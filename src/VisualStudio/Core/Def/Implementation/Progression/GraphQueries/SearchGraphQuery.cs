@@ -36,7 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _searchPattern = searchPattern;
         }
 
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        public Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var option = solution.Options.GetOption(ProgressionOptions.SearchUsingNavigateToEngine);
+            return option
+                ? SearchUsingNavigateToEngineAsync(solution, context, cancellationToken)
+                : SearchUsingSymbolsAsync(solution, context, cancellationToken);
+        }
+
+        private async Task<GraphBuilder> SearchUsingNavigateToEngineAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
             var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
@@ -54,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return graphBuilder;
         }
 
-        public async Task<GraphBuilder> GetGraphAsync1(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        private async Task<GraphBuilder> SearchUsingSymbolsAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
 
