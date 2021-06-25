@@ -33,16 +33,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 C)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -67,18 +66,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 F)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Private" Label="F"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=(Name=F ParentType=C))" Category="CodeSchema_Class" CodeSchemaProperty_IsPrivate="True" CommonLabel="F" Icon="Microsoft.VisualStudio.Class.Private" Label="F"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Type=C)" Target="(@3 Type=(Name=F ParentType=C))" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 F)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -103,18 +99,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 M())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="M()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=C Member=M)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="M" Icon="Microsoft.VisualStudio.Method.Private" Label="M"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Type=C)" Target="(@3 Type=C Member=M)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 M())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -152,19 +145,19 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
+                            <Node Id="(@1 @3 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 C)" Category="Contains"/>
+                            <Link Source="(@1 @3)" Target="(@1 @3 C)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project2.vb"/>
                             <Alias n="3" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="4" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -202,18 +195,15 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Goo())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@3 Namespace=N Type=C Member=Goo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo"/>
-                            <Node Id="(@3 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Goo)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Goo())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -251,23 +241,19 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 ZBar())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
+                            <Node Id="(@1 @3 ZGoo())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo()"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZBar)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZBar" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZGoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZGoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo"/>
-                            <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZBar)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZGoo)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 ZBar())" Category="Contains"/>
+                            <Link Source="(@1 @3)" Target="(@1 @3 ZGoo())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project2.vb"/>
                             <Alias n="3" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="4" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -292,18 +278,15 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=Dog Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Type=Dog)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=Dog)" Category="Contains"/>
-                            <Link Source="(@3 Type=Dog)" Target="(@3 Type=Dog Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -352,18 +335,15 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
-                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -388,18 +368,15 @@ End Namespace
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
-                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

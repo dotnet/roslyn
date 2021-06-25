@@ -693,6 +693,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public async Task AddNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
+            var document = result.NavigableItem.Document;
+            var project = document.Project;
+            if (document.FilePath == null || project.FilePath == null)
+                return;
+
             var category = result.Kind switch
             {
                 NavigateToItemKind.Class => CodeNodeCategories.Class,
@@ -713,10 +718,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (category == null)
                 return;
 
-            var document = result.NavigableItem.Document;
-            var project = document.Project;
-
             var documentNode = this.AddNodeForDocument(document);
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
 
             var label = result.NavigableItem.DisplayTaggedParts.JoinText();
             var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
@@ -725,13 +730,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode.Label = label;
             symbolNode.AddCategory(category);
             symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
-
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
             symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
-
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
-
             symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
                 document.FilePath,
                 new Position(span.Start.Line, span.Start.Character),
