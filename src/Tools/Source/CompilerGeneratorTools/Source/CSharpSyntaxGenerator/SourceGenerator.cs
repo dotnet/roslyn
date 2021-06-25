@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace CSharpSyntaxGenerator
 {
     [Generator]
-    public class SourceGenerator : IIncrementalGenerator
+    public sealed class SourceGenerator : IIncrementalGenerator
     {
         private static readonly DiagnosticDescriptor s_MissingSyntaxXml = new DiagnosticDescriptor(
             "CSSG1001",
@@ -97,19 +97,19 @@ namespace CSharpSyntaxGenerator
             }).WithComparer(new ResultComparer());
 
             // do the actual generation
-            context.RegisterSourceOutput(result, (spc, result) =>
+            context.RegisterSourceOutput(result, (context, result) =>
             {
-                if (result is DiagnosticResult dr)
+                if (result is DiagnosticResult { Diagnostic: var diagnostic })
                 {
-                    spc.ReportDiagnostic(dr.Diagnostic);
+                    context.ReportDiagnostic(diagnostic);
                     return;
                 }
                 else if (result is SuccessResult sr)
                 {
                     // Create a SourceText from each StringBuilder, once again avoiding allocating a single massive string
-                    addResult(spc, sr.Main, "Syntax.xml.Main.Generated.cs");
-                    addResult(spc, sr.Internal, "Syntax.xml.Internal.Generated.cs");
-                    addResult(spc, sr.Syntax, "Syntax.xml.Syntax.Generated.cs");
+                    addResult(context, sr.Main, "Syntax.xml.Main.Generated.cs");
+                    addResult(context, sr.Internal, "Syntax.xml.Internal.Generated.cs");
+                    addResult(context, sr.Syntax, "Syntax.xml.Syntax.Generated.cs");
                 }
             });
 
@@ -125,10 +125,10 @@ namespace CSharpSyntaxGenerator
                 return stringBuilder;
             }
 
-            static void addResult(SourceProductionContext spc, StringBuilder stringBuilder, string hintName)
+            static void addResult(SourceProductionContext context, StringBuilder stringBuilder, string hintName)
             {
                 // And create a SourceText from the StringBuilder, once again avoiding allocating a single massive string
-                spc.AddSource(hintName, SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8));
+                context.AddSource(hintName, SourceText.From(new StringBuilderReader(stringBuilder), stringBuilder.Length, encoding: Encoding.UTF8));
             }
         }
 
