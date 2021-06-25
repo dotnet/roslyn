@@ -68,26 +68,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// Starts the watcher.
         /// </summary>
         /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
+        /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task StartSessionAsync(Solution solution, ImmutableArray<string> _capabilities, CancellationToken cancellationToken)
+        public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(_capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
 
         /// <summary>
         /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call 
-        /// where <paramref name="shouldCommit"/> was `true` or the one passed to <see cref="StartSessionAsync(Solution, ImmutableArray{string}, CancellationToken)"/> 
+        /// where <paramref name="commitUpdates"/> was `true` or the one passed to <see cref="StartSessionAsync(Solution, ImmutableArray{string}, CancellationToken)"/>
         /// for the first invocation.
         /// </summary>
         /// <param name="solution">Solution snapshot.</param>
-        /// <param name="shouldCommit">commits changes if true, discards if false</param>
+        /// <param name="commitUpdates">commits changes if true, discards if false</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
         /// </returns>
-        public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, bool shouldCommit, CancellationToken cancellationToken)
+        public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, bool commitUpdates, CancellationToken cancellationToken)
         {
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                if (shouldCommit)
+                if (commitUpdates)
                 {
                     _encService.CommitSolutionUpdate(sessionId, out _);
                 }
