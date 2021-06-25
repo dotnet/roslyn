@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol>? temps = null;
             rewrittenArgs = MakeArguments(
                 node.Syntax,
-                node.Arguments,
+                rewrittenArgs,
                 functionPointer,
                 expanded: false,
                 argsToParamsOpt: default,

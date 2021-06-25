@@ -2014,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 analyzedArguments.Arguments,
                 diagnostics,
                 receiverType: null,
-                receiverRefKind: default);
+                receiverRefKind: null);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
