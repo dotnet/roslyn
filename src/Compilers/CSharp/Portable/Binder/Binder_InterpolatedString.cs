@@ -202,11 +202,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool isHandlerConversion,
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments = default,
-            ImmutableArray<RefKind> refKinds = default)
+            ImmutableArray<RefKind> additionalConstructorRefKinds = default)
         {
             Debug.Assert(additionalConstructorArguments.IsDefault
-                ? refKinds.IsDefault
-                : additionalConstructorArguments.Length == refKinds.Length);
+                ? additionalConstructorRefKinds.IsDefault
+                : additionalConstructorArguments.Length == additionalConstructorRefKinds.Length);
+            additionalConstructorArguments = additionalConstructorArguments.NullToEmpty();
+            additionalConstructorRefKinds = additionalConstructorRefKinds.NullToEmpty();
+
             ReportUseSite(interpolatedStringHandlerType, diagnostics, unconvertedInterpolatedString.Syntax);
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
@@ -280,20 +283,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversionDiagnostics?.Free();
 
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
-            int constructorArgumentLength = 2 + (additionalConstructorArguments.IsDefault ? 0 : additionalConstructorArguments.Length);
+            int constructorArgumentLength = 2 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
-            populateArguments(unconvertedInterpolatedString, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+            populateArguments(unconvertedInterpolatedString.Syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
 
             var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(constructorArgumentLength);
             refKindsBuilder.Add(RefKind.None);
             refKindsBuilder.Add(RefKind.None);
+            refKindsBuilder.AddRange(additionalConstructorRefKinds);
 
-            if (!refKinds.IsDefault)
-            {
-                refKindsBuilder.AddRange(refKinds);
-            }
-
-            var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
+            var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
             BoundExpression constructorCall;
             BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics);
             if (nonOutConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
@@ -306,12 +305,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // track that we're using the type no matter what.
                 var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
                 var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType);
-                var outConstructorAdditionalArguments = additionalConstructorArguments.NullToEmpty().Add(trailingConstructorValidityPlaceholder);
-                populateArguments(unconvertedInterpolatedString, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+                var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
+                populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
 
                 refKindsBuilder.Add(RefKind.Out);
 
-                var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
+                var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: nonOutConstructorDiagnostics);
                 var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics);
 
                 if (outConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
@@ -328,6 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // a constructor with the correct number of arguments. We presume that, if one failed for this reason and the other failed
                     // for a different reason, that different reason is the one the user will want to know about. If both or neither failed
                     // because of this error, we'll report everything.
+
+                    // https://github.com/dotnet/roslyn/issues/54396 Instead of inspecting errors, we should be capturing the results of overload
+                    // resolution and attempting to determine which method considered was the best to report errors for.
 
                     var nonOutConstructorHasArityError = nonOutConstructorDiagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_BadCtorArgCount) ?? false;
                     var outConstructorHasArityError = outConstructorDiagnostics.DiagnosticBag?.AsEnumerableWithoutResolution().Any(d => (ErrorCode)d.Code == ErrorCode.ERR_BadCtorArgCount) ?? false;
@@ -381,17 +383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 unconvertedInterpolatedString.Type,
                 unconvertedInterpolatedString.HasErrors);
 
-            static void populateArguments(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments, int baseStringLength, int numFormatHoles, NamedTypeSymbol intType, ArrayBuilder<BoundExpression> argumentsBuilder)
+            static void populateArguments(SyntaxNode syntax, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments, int baseStringLength, int numFormatHoles, NamedTypeSymbol intType, ArrayBuilder<BoundExpression> argumentsBuilder)
             {
                 // literalLength
-                argumentsBuilder.Add(new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true });
+                argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true });
                 // formattedCount
-                argumentsBuilder.Add(new BoundLiteral(unconvertedInterpolatedString.Syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
+                argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
                 // Any other arguments from the call site
-                if (!additionalConstructorArguments.IsDefault)
-                {
-                    argumentsBuilder.AddRange(additionalConstructorArguments);
-                }
+                argumentsBuilder.AddRange(additionalConstructorArguments);
             }
         }
 
@@ -575,6 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
+            Debug.Assert(handlerParameterIndexes.All((index, paramLength) => index >= BoundInterpolatedStringArgumentPlaceholder.InstanceParameter && index < paramLength,
+                                                     parameters.Length));
+
             // We need to find the appropriate argument expression for every expected parameter, and error on any that occur after the current parameter
 
             ImmutableArray<int> handlerArgumentIndexes;
@@ -588,17 +590,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Args and parameters were reordered via named parameters, or parameters are missing. Find the correct argument index for each parameter.
                 var handlerArgumentIndexesBuilder = ArrayBuilder<int>.GetInstance(handlerParameterIndexes.Length, fillWithValue: BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter);
-                for (int argumentIndex = 0; argumentIndex < arguments.Count; argumentIndex++)
+                for (int handlerParameterIndex = 0; handlerParameterIndex < handlerParameterIndexes.Length; handlerParameterIndex++)
                 {
-                    // The index in the original parameter list we're looking to match up.
-                    var argumentParameterIndex = memberAnalysisResult.ParameterFromArgument(argumentIndex);
-                    for (int handlerParameterIndex = 0; handlerParameterIndex < handlerParameterIndexes.Length; handlerParameterIndex++)
+                    int handlerParameter = handlerParameterIndexes[handlerParameterIndex];
+                    Debug.Assert(handlerArgumentIndexesBuilder[handlerParameterIndex] is BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter);
+
+                    if (handlerParameter == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
                     {
+                        handlerArgumentIndexesBuilder[handlerParameterIndex] = handlerParameter;
+                        continue;
+                    }
+
+                    for (int argumentIndex = 0; argumentIndex < arguments.Count; argumentIndex++)
+                    {
+                        // The index in the original parameter list we're looking to match up.
+                        int argumentParameterIndex = memberAnalysisResult.ParameterFromArgument(argumentIndex);
                         // Is the original parameter index of the current argument the parameter index that was specified in the attribute?
-                        if (argumentParameterIndex == handlerParameterIndexes[handlerParameterIndex])
+                        if (argumentParameterIndex == handlerParameter)
                         {
                             // We can't just bail out on the first match: users can duplicate parameters in attributes, causing the same value to be passed twice.
-                            Debug.Assert(handlerArgumentIndexesBuilder[handlerParameterIndex] == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter);
                             handlerArgumentIndexesBuilder[handlerParameterIndex] = argumentIndex;
                         }
                     }
@@ -620,48 +630,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 RefKind refKind;
                 TypeSymbol placeholderType;
-                if (argumentIndex == BoundInterpolatedStringArgumentPlaceholder.InstanceParameter)
+                switch (argumentIndex)
                 {
-                    Debug.Assert(receiverRefKind != null && receiverType is not null);
-                    refKind = receiverRefKind.GetValueOrDefault();
-                    placeholderType = receiverType;
-                }
-                else if (argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
-                {
-                    // Don't error if the parameter isn't optional: the user will already have an error for missing an optional parameter or overload resolution failed.
-                    // If it is optional, then they could otherwise not specify the parameter and that's an error
-                    var originalParameterIndex = handlerParameterIndexes[i];
-                    var parameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, originalParameterIndex);
-                    if (parameter.IsOptional)
-                    {
-                        // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
-                        diagnostics.Add(
-                            ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified,
-                            unconvertedString.Syntax.Location,
-                            parameter.Name,
-                            interpolatedStringParameter.Name);
-                        hasErrors = true;
-                    }
+                    case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                        Debug.Assert(receiverRefKind != null && receiverType is not null);
+                        refKind = receiverRefKind.GetValueOrDefault();
+                        placeholderType = receiverType;
+                        break;
+                    case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
+                        {
+                            // Don't error if the parameter isn't optional or params: the user will already have an error for missing an optional parameter or overload resolution failed.
+                            // If it is optional, then they could otherwise not specify the parameter and that's an error
+                            var originalParameterIndex = handlerParameterIndexes[i];
+                            var parameter = parameters[originalParameterIndex];
+                            if (parameter.IsOptional || parameter.IsParams)
+                            {
+                                // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
+                                diagnostics.Add(
+                                    ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified,
+                                    unconvertedString.Syntax.Location,
+                                    parameter.Name,
+                                    interpolatedStringParameter.Name);
+                                hasErrors = true;
+                            }
 
-                    refKind = parameter.RefKind;
-                    placeholderType = parameter.Type;
-                }
-                else
-                {
-                    var parameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, argumentIndex);
-                    if (argumentIndex > interpolatedStringArgNum)
-                    {
-                        // Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.
-                        diagnostics.Add(
-                            ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString,
-                            arguments[argumentIndex].Syntax.Location,
-                            parameter.Name,
-                            interpolatedStringParameter.Name);
-                        hasErrors = true;
-                    }
+                            refKind = parameter.RefKind;
+                            placeholderType = parameter.Type;
+                        }
+                        break;
+                    default:
+                        {
+                            var originalParameterIndex = handlerParameterIndexes[i];
+                            var parameter = parameters[originalParameterIndex];
+                            if (argumentIndex > interpolatedStringArgNum)
+                            {
+                                // Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.
+                                diagnostics.Add(
+                                    ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString,
+                                    arguments[argumentIndex].Syntax.Location,
+                                    parameter.Name,
+                                    interpolatedStringParameter.Name);
+                                hasErrors = true;
+                            }
 
-                    refKind = parameter.RefKind;
-                    placeholderType = parameter.Type;
+                            refKind = parameter.RefKind;
+                            placeholderType = parameter.Type;
+                        }
+                        break;
                 }
 
                 var placeholderSyntax = argumentIndex switch
@@ -689,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 isHandlerConversion: true,
                 additionalConstructorArguments: argumentPlaceholdersBuilder.ToImmutableAndFree(),
-                refKinds: argumentRefKindsBuilder.ToImmutableAndFree());
+                additionalConstructorRefKinds: argumentRefKindsBuilder.ToImmutableAndFree());
 
             return new BoundConversion(
                 interpolatedString.Syntax,

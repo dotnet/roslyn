@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
             // be involved.
             AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments, allowConversionsWithNoContext: true);
+            var rewrittenArgs = VisitList(node.Arguments);
 
             MethodSymbol functionPointer = node.FunctionPointer.Signature;
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             ArrayBuilder<LocalSymbol>? temps = null;
-            ImmutableArray<BoundExpression> rewrittenArgs = MakeArguments(
+            rewrittenArgs = MakeArguments(
                 node.Syntax,
                 node.Arguments,
                 functionPointer,
