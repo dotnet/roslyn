@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // We try to mitigate circularity problems by only actively loading attributes that pass a syntactic check
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
                 return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyContainerAttributeSetting,
                     WellKnownAttributeData.StringMissingValue, QuickAttributes.AssemblyKeyName);
             }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // We try to mitigate circularity problems by only actively loading attributes that pass a syntactic check
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
                 return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyFileAttributeSetting,
                     WellKnownAttributeData.StringMissingValue, QuickAttributes.AssemblyKeyFile);
             }
@@ -367,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // We mitigate circularity problems by only actively loading attributes that pass a syntactic check
                 return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting,
                     missingValue: null, QuickAttributes.AssemblySignatureKey);
             }
