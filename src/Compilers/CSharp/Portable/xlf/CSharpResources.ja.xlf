@@ -962,6 +962,11 @@
         <target state="translated">トップレベルのステートメントを含むコンパイル ユニットがある場合、/main を指定することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">このコンテキストでは、トップレベルのステートメントで宣言されたローカル変数またはローカル関数 '{0}' を使用することはできません。</target>

@@ -962,6 +962,11 @@
         <target state="translated">如果存在包含顶级语句的编译单元，则不能指定 /main。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">在此上下文中，无法使用在顶级语句中声明的局部变量或本地函数“{0}”。</target>

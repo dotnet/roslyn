@@ -6722,4 +6722,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BuilderAttributeDisallowed" xml:space="preserve">
     <value>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</value>
   </data>
+  <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
+    <value>At least one top-level statement must be non-empty.</value>
+  </data>
 </root>

@@ -962,6 +962,11 @@
         <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">이 컨텍스트에서는 최상위 문에 선언된 지역 변수 또는 로컬 함수 '{0}'을(를) 사용할 수 없습니다.</target>

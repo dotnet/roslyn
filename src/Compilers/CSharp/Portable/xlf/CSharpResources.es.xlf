@@ -962,6 +962,11 @@
         <target state="translated">No se puede especificar /main si hay una unidad de compilación con instrucciones de nivel superior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">No se puede usar la variable local ni la función local "{0}" declarada en una instrucción de nivel superior en este contexto.</target>

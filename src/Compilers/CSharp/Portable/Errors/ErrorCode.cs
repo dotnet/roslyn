@@ -1959,6 +1959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantConvAnonMethReturnType = 8934,
         ERR_BuilderAttributeDisallowed = 8935,
         ERR_FeatureNotAvailableInVersion10 = 8936,
+        ERR_SimpleProgramIsEmpty = 8937,
 
         #endregion
 
