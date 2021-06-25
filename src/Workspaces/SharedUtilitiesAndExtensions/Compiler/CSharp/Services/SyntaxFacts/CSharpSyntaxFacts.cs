@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is NamespaceDeclarationSyntax ||
+            return node is BaseNamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
                    node is EnumDeclarationSyntax;
         }
