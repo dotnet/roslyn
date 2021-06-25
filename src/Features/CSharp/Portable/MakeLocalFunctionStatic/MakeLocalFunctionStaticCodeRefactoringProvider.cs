@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var (document, textSpan, cancellationToken) = context;
 
             var syntaxTree = (await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(syntaxTree))
+            if (!MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpParseOptions)syntaxTree.Options).LanguageVersion))
             {
                 return;
             }
