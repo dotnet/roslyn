@@ -1995,18 +1995,6 @@ class C { }
             Assert.Equal("path2.txt", additionalTextPaths[0]);
 
             Assert.Empty(additionalTextsContents);
-
-            // replace it with null, and check that we get back null
-            additionalTextPaths.Clear();
-            additionalTextsContents.Clear();
-            driver = driver.ReplaceAdditionalText(thirdText, null!);
-            driver = driver.RunGenerators(compilation);
-
-            Assert.Single(additionalTextPaths);
-            Assert.Null(additionalTextPaths[0]);
-            Assert.Single(additionalTextsContents);
-            Assert.Null(additionalTextsContents[0]);
-
         }
     }
 }
