@@ -7,11 +7,6 @@ parameters:
   type: string
   default: default
 
-- name: IbcSourceBranchName
-  type: string
-  default: default
-
-
 - name: SignType
   default: real
   type: string
