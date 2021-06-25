@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -22,6 +24,22 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             return result.ToImmutable();
+        }
+
+        public static TextSpan GetBoundedSpan(INavigableItem item, SourceText sourceText)
+        {
+            var spanStart = item.SourceSpan.Start;
+            var spanEnd = item.SourceSpan.End;
+            if (item.IsStale)
+            {
+                // in the case of a stale item, the span may be out of bounds of the document. Cap
+                // us to the end of the document as that's where we're going to navigate the user
+                // to.
+                spanStart = spanStart > sourceText.Length ? sourceText.Length : spanStart;
+                spanEnd = spanEnd > sourceText.Length ? sourceText.Length : spanEnd;
+            }
+
+            return TextSpan.FromBounds(spanStart, spanEnd);
         }
     }
 }

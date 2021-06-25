@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
+using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Progression;
@@ -347,23 +348,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
-                // TODO: The check here is to see if the SymbolId property exists on the node
-                // and if so, that's been created by us. However, eventually we'll want to extend
-                // this to other scenarios where C#\VB nodes that aren't created by us are passed in.
-                if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null)
+                if (graphNode.GetValue(RoslynGraphProperties.ContextProjectId) == null)
+                    return null;
+
+                // Has to have at least a symbolid, or source location to navigate to.
+                if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null &&
+                    graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation).FileName == null)
                 {
                     return null;
                 }
 
                 if (typeof(T) == typeof(IGraphNavigateToItem))
-                {
                     return new GraphNavigatorExtension(_threadingContext, _workspace) as T;
-                }
 
                 if (typeof(T) == typeof(IGraphFormattedLabel))
-                {
                     return new GraphFormattedLabelExtension() as T;
-                }
             }
 
             return null;

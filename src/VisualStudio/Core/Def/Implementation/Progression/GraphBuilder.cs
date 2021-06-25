@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
@@ -688,6 +689,97 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 return node;
             }
+        }
+
+        public async Task AddNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        {
+            var category = result.Kind switch
+            {
+                NavigateToItemKind.Class => CodeNodeCategories.Class,
+                NavigateToItemKind.Delegate => CodeNodeCategories.Delegate,
+                NavigateToItemKind.Enum => CodeNodeCategories.Enum,
+                NavigateToItemKind.Interface => CodeNodeCategories.Interface,
+                NavigateToItemKind.Module => CodeNodeCategories.Module,
+                NavigateToItemKind.Structure => CodeNodeCategories.Struct,
+                NavigateToItemKind.Method => CodeNodeCategories.Method,
+                NavigateToItemKind.Property => CodeNodeCategories.Property,
+                NavigateToItemKind.Event => CodeNodeCategories.Event,
+                NavigateToItemKind.Constant or
+                NavigateToItemKind.EnumItem or
+                NavigateToItemKind.Field => CodeNodeCategories.Field,
+                _ => null,
+            };
+
+            if (category == null)
+                return;
+
+            var document = result.NavigableItem.Document;
+            var project = document.Project;
+
+            var documentNode = this.AddNodeForDocument(document);
+
+            var label = result.NavigableItem.DisplayTaggedParts.JoinText();
+            var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
+            var symbolNode = _graph.Nodes.GetOrCreate(id);
+
+            symbolNode.Label = label;
+            symbolNode.AddCategory(category);
+            symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
+
+            symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
+            symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+
+            symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
+                document.FilePath,
+                new Position(span.Start.Line, span.Start.Character),
+                new Position(span.End.Line, span.End.Character));
+
+            this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
+
+            using (_gate.DisposableWait(cancellationToken))
+            {
+                _createdNodes.Add(symbolNode);
+                _nodeToContextDocumentMap[symbolNode] = document;
+                _nodeToContextProjectMap[symbolNode] = project;
+            }
+        }
+
+        private static string GetIconString(Glyph glyph)
+        {
+            return glyph switch
+            {
+                Glyph.ClassPublic or Glyph.ClassProtected or Glyph.ClassPrivate or Glyph.ClassInternal => IconHelper.GetIconName("Class", GetAccessibility(glyph, Glyph.ClassPublic)),
+                Glyph.ConstantPublic or Glyph.ConstantProtected or Glyph.ConstantPrivate or Glyph.ConstantInternal => IconHelper.GetIconName("Field", GetAccessibility(glyph, Glyph.ConstantPublic)),
+                Glyph.DelegatePublic or Glyph.DelegateProtected or Glyph.DelegatePrivate or Glyph.DelegateInternal => IconHelper.GetIconName("Delegate", GetAccessibility(glyph, Glyph.DelegatePublic)),
+                Glyph.EnumPublic or Glyph.EnumProtected or Glyph.EnumPrivate or Glyph.EnumInternal => IconHelper.GetIconName("Enum", GetAccessibility(glyph, Glyph.EnumPublic)),
+                Glyph.EnumMemberPublic or Glyph.EnumMemberProtected or Glyph.EnumMemberPrivate or Glyph.EnumMemberInternal => IconHelper.GetIconName("EnumMember", GetAccessibility(glyph, Glyph.EnumMemberPublic)),
+                Glyph.ExtensionMethodPublic or Glyph.ExtensionMethodProtected or Glyph.ExtensionMethodPrivate or Glyph.ExtensionMethodInternal => IconHelper.GetIconName("Method", GetAccessibility(glyph, Glyph.ExtensionMethodPublic)),
+                Glyph.EventPublic or Glyph.EventProtected or Glyph.EventPrivate or Glyph.EventInternal => IconHelper.GetIconName("Event", GetAccessibility(glyph, Glyph.EventPublic)),
+                Glyph.FieldPublic or Glyph.FieldProtected or Glyph.FieldPrivate or Glyph.FieldInternal => IconHelper.GetIconName("Field", GetAccessibility(glyph, Glyph.FieldPublic)),
+                Glyph.InterfacePublic or Glyph.InterfaceProtected or Glyph.InterfacePrivate or Glyph.InterfaceInternal => IconHelper.GetIconName("Interface", GetAccessibility(glyph, Glyph.InterfacePublic)),
+                Glyph.MethodPublic or Glyph.MethodProtected or Glyph.MethodPrivate or Glyph.MethodInternal => IconHelper.GetIconName("Method", GetAccessibility(glyph, Glyph.MethodPublic)),
+                Glyph.ModulePublic or Glyph.ModuleProtected or Glyph.ModulePrivate or Glyph.ModuleInternal => IconHelper.GetIconName("Module", GetAccessibility(glyph, Glyph.ModulePublic)),
+                Glyph.PropertyPublic or Glyph.PropertyProtected or Glyph.PropertyPrivate or Glyph.PropertyInternal => IconHelper.GetIconName("Property", GetAccessibility(glyph, Glyph.PropertyPublic)),
+                Glyph.StructurePublic or Glyph.StructureProtected or Glyph.StructurePrivate or Glyph.StructureInternal => IconHelper.GetIconName("Structure", GetAccessibility(glyph, Glyph.StructurePublic)),
+                _ => null,
+            };
+        }
+
+        private static Accessibility GetAccessibility(Glyph glyph, Glyph publicGlyph)
+        {
+            var diff = glyph - publicGlyph;
+
+            return diff switch
+            {
+                0 => Accessibility.Public,
+                1 => Accessibility.Protected,
+                2 => Accessibility.Private,
+                3 => Accessibility.Internal,
+                _ => throw ExceptionUtilities.UnexpectedValue(glyph),
+            };
         }
 
         public void ApplyToGraph(Graph graph)

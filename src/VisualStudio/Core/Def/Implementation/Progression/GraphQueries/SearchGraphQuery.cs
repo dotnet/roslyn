@@ -69,7 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             public void Done(bool isFullyLoaded)
             {
-                _context.OnCompleted();
+                // Do nothing here.  Even though the navigate to search completed, we still haven't passed any
+                // information along to progression.  That will happen in GraphQueryManager.PopulateContextGraphAsync
             }
 
             public void ReportProgress(int current, int maximum)
@@ -79,20 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                var symbolNode = GetSymbolNode(result);
-                var documentNode = _graphBuilder.AddNodeForDocument(result.NavigableItem.Document);
-                _graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
-                return Task.CompletedTask;
-            }
-
-            private GraphNode GetSymbolNode(INavigateToSearchResult result)
-            {
-                throw new System.NotImplementedException();
+                return _graphBuilder.AddNodeAsync(result, cancellationToken);
             }
         }
 
-#if false
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        public async Task<GraphBuilder> GetGraphAsync1(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
 
@@ -253,6 +245,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             return results.ToImmutable();
         }
-#endif
     }
-    }
+}
