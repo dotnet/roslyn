@@ -65,7 +65,7 @@ namespace CSharpSyntaxGenerator
                 }
                 if (info.Text is null)
                 {
-                    return new DiagnosticResult(Diagnostic.Create(s_MissingSyntaxXml, location: null)); ;
+                    return new DiagnosticResult(Diagnostic.Create(s_MissingSyntaxXml, location: null));
                 }
 
                 using var reader = XmlReader.Create(new SourceTextReader(info.Text), new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit });
