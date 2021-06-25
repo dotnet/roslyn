@@ -101,6 +101,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
         internal VisualStudioProjectTracker? _projectTracker;
 
+        private VirtualMemoryNotificationListener? _memoryListener;
+
         private OpenFileTracker? _openFileTracker;
         internal FileChangeWatcher FileChangeWatcher { get; }
         internal FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
@@ -202,6 +204,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _openFileTracker = openFileTracker;
+            }
+
+            var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _threadingContext.DisposalToken).ConfigureAwait(true);
+
+            // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
+            lock (_gate)
+            {
+                _memoryListener = memoryListener;
             }
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
