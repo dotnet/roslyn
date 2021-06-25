@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            var bound = GetUpperBoundNode(node);
+            var bound = GetLowerBoundNode(node);
             BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
             if (awaitableInfo == null)
             {

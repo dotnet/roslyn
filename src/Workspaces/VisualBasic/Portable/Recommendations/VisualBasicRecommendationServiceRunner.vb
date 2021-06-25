@@ -211,6 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
                 container = leftHandTypeInfo.ConvertedType
             End If
+
             If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then
                 ' TODO remove this when 531549 which causes leftHandTypeInfo to be an error type is fixed
                 container = leftHandSymbolInfo.Symbol.GetSymbolType()
@@ -353,6 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ElseIf s.Kind = SymbolKind.NamedType AndAlso s.IsImplicitlyDeclared Then
                 Return Not TypeOf DirectCast(s, INamedTypeSymbol).AssociatedSymbol Is IEventSymbol
             End If
+
             Return True
         End Function
 

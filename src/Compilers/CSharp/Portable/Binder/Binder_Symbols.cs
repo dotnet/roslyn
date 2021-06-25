@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.Kind == SymbolKind.NamedType)
             {
-                CheckRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
+                CheckReceiverAndRuntimeSupportForSymbolAccess(where, receiverOpt: null, symbol, diagnostics);
 
                 if (suppressUseSiteDiagnostics && diagnostics.DependenciesBag is object)
                 {

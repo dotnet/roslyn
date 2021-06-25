@@ -81,7 +81,8 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;
-Editor Color Scheme;</source>
+Editor Color Scheme;
+Inheritance Margin;</source>
         <target state="needs-review-translation">顯示內嵌提示;
 顯示已關閉檔案的診斷;
 為規則運算式著色; 

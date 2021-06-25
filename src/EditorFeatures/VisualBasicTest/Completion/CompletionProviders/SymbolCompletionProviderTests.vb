@@ -7750,6 +7750,7 @@ End Namespace
             For index = 2 To 8
                 Await VerifyItemExistsAsync(text, "Item" + index.ToString())
             Next
+
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")

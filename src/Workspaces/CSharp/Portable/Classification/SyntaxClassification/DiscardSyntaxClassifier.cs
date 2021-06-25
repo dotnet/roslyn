@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
                     }
+
                     break;
 
                 case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         result.Add(new ClassifiedSpan(syntax.Span, ClassificationTypeNames.Keyword));
                     }
+
                     break;
             }
         }

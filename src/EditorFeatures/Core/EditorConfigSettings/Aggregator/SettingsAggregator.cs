@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
             {
                 TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
             }
+
             if (supportsVisualBasic)
             {
                 TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);

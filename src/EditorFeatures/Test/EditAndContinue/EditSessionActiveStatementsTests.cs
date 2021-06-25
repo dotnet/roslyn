@@ -47,13 +47,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
             var debuggingSession = new DebuggingSession(
+                new DebuggingSessionId(1),
                 solution,
                 mockDebuggerService,
                 EditAndContinueTestHelpers.Net5RuntimeCapabilities,
                 mockCompilationOutputsProvider,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
-                new DebuggingSessionTelemetry(),
-                new EditSessionTelemetry());
+                reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)
             {

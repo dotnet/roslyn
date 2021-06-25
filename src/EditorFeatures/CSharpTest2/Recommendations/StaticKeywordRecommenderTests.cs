@@ -335,31 +335,49 @@ global using Bar;";
             //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAbstract()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedAbstract([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     abstract $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedVirtual()
+        public async Task TestAfterNestedAbstractInInterface()
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyKeywordAsync(@"interface C {
+    abstract $$");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedVirtual([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
+        {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     virtual $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedOverride()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedOverride([CombinatorialValues("class", "struct", "record", "record struct", "record class", "interface")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
     override $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedSealed()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestNotAfterNestedSealed([CombinatorialValues("class", "struct", "record", "record struct", "record class")] string declarationKind)
         {
-            await VerifyAbsenceAsync(@"class C {
+            await VerifyAbsenceAsync(declarationKind + @" C {
+    sealed $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNestedSealedInInterface()
+        {
+            await VerifyKeywordAsync(@"interface C {
     sealed $$");
         }
 

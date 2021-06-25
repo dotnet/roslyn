@@ -858,5 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         FunctionPointerUnmanagedCallingConvention = 9067,
 
         RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
     }
 }

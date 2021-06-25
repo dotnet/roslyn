@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly IManagedEditAndContinueDebuggerService _debuggerService;
 
-        private IDisposable? _debuggingSessionConnection;
+        private RemoteDebuggingSessionProxy? _debuggingSession;
 
         private bool _disabled;
 
@@ -56,6 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private Solution GetCurrentCompileTimeSolution()
             => _proxy.Workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(_proxy.Workspace.CurrentSolution);
 
+        private RemoteDebuggingSessionProxy GetDebuggingSession()
+        {
+            var debuggingSession = _debuggingSession;
+            Contract.ThrowIfNull(debuggingSession);
+            return debuggingSession;
+        }
+
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
         /// </summary>
@@ -72,12 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                _debuggingSessionConnection = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
+                _debuggingSession = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, reportDiagnostics: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _disabled = true;
             }
+
+            // the service failed, error has been reported - disable further operations
+            _disabled = _debuggingSession == null;
         }
 
         public async Task EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -90,10 +99,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             }
 
             var solution = GetCurrentCompileTimeSolution();
+            var session = GetDebuggingSession();
 
             try
             {
-                await _proxy.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -103,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             // Start tracking after we entered break state so that break-state session is active.
             // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await _activeStatementTrackingService.StartTrackingAsync(solution, cancellationToken).ConfigureAwait(false);
+            await _activeStatementTrackingService.StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
         }
 
         public Task ExitBreakStateAsync(CancellationToken cancellationToken)
@@ -123,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 Contract.ThrowIfTrue(_disabled);
-                await _proxy.CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -139,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().DiscardSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -157,11 +167,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
-
-                Contract.ThrowIfNull(_debuggingSessionConnection);
-                _debuggingSessionConnection.Dispose();
-                _debuggingSessionConnection = null;
+                await GetDebuggingSession().EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+                _debuggingSession = null;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -179,9 +186,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
+                var debuggingSession = _debuggingSession;
+                if (debuggingSession == null)
+                {
+                    return false;
+                }
+
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await _proxy.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await debuggingSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -195,7 +208,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                var (updates, _, _) = await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (updates, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
                 return updates;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -213,7 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, filePath, cancellationToken) =>
                     _activeStatementTrackingService.GetSpansAsync(solution, documentId, filePath, cancellationToken));
 
-                var span = await _proxy.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
+                var span = await GetDebuggingSession().GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
                 return span?.ToSourceSpan();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -227,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                return await _proxy.IsActiveStatementInExceptionRegionAsync(solution, instruction, cancellationToken).ConfigureAwait(false);
+                return await GetDebuggingSession().IsActiveStatementInExceptionRegionAsync(solution, instruction, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
