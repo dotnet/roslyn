@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis
                 else if (inputItems.Length == previousTable.Count)
                 {
                     // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
-                    // This allows us to correctly 'replace' items even that aren't actually the same. In the case that the item 
-                    // really isn't modified, but a new item, we still function correctly as we mostly treat them the same, but
-                    // will perform an extra comparison that is ommitted in the pure 'added' case.
+                    // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
+                    // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
+                    // but will perform an extra comparison that is omitted in the pure 'added' case.
                     var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer);
                     Debug.Assert(modified);
                     itemsSet.Remove(inputItems[itemIndex]);
