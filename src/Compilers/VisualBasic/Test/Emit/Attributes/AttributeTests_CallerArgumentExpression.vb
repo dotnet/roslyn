@@ -1212,7 +1212,7 @@ End Class
 <expected><![CDATA[
 BC31065: 'Set' parameter cannot be declared 'Optional'.
         Set(<CallerArgumentExpression("x")> Optional value As String = "default")
-                                              ~~~~~~~~
+                                            ~~~~~~~~
 ]]></expected>)
         End Sub
 
