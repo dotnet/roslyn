@@ -34,9 +34,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 _context.ReportProgress(current, maximum, null);
             }
 
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
+            public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                return _graphBuilder.AddNodeAsync(result, cancellationToken);
+                var node = await _graphBuilder.CreateNodeAsync(result, cancellationToken).ConfigureAwait(false);
+                if (node != null)
+                {
+                    lock (this)
+                        _context.OutputNodes.Add(node);
+                }
             }
         }
     }

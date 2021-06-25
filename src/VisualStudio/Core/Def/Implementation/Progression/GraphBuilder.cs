@@ -691,12 +691,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public async Task AddNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task<GraphNode> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
         {
             var document = result.NavigableItem.Document;
             var project = document.Project;
             if (document.FilePath == null || project.FilePath == null)
-                return;
+                return null;
 
             var category = result.Kind switch
             {
@@ -716,7 +716,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             };
 
             if (category == null)
-                return;
+                return null;
 
             var documentNode = this.AddNodeForDocument(document);
 
@@ -739,12 +739,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
 
-            using (_gate.DisposableWait(cancellationToken))
-            {
-                _createdNodes.Add(symbolNode);
-                _nodeToContextDocumentMap[symbolNode] = document;
-                _nodeToContextProjectMap[symbolNode] = project;
-            }
+            return symbolNode;
+
+            //using (_gate.DisposableWait(cancellationToken))
+            //{
+            //    _createdNodes.Add(symbolNode);
+            //    _nodeToContextDocumentMap[symbolNode] = document;
+            //    _nodeToContextProjectMap[symbolNode] = project;
+            //}
         }
 
         private static string GetIconString(Glyph glyph)
