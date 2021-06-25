@@ -1453,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var diagnostics = BindingDiagnosticBag.GetInstance();
+            var discardedDiagnostics = BindingDiagnosticBag.Discarded;
 
             ImmutableArray<string> netModuleNames;
             ImmutableArray<CSharpAttributeData> attributesFromNetModules = GetNetModuleAttributes(out netModuleNames);
@@ -1462,17 +1462,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attributesFromNetModules.Any())
             {
-                wellKnownData = limitedDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, diagnostics);
+                wellKnownData = limitedDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, discardedDiagnostics);
             }
 
-            diagnostics.Free();
+            discardedDiagnostics.Free();
 
             return (CommonAssemblyWellKnownAttributeData)wellKnownData;
 
             // Similar to ValidateAttributeUsageAndDecodeWellKnownAttributes, but doesn't load assembly-level attributes from source
             // and only decodes 3 specific attributes.
             WellKnownAttributeData limitedDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> attributesFromNetModules,
-                ImmutableArray<string> netModuleNames, BindingDiagnosticBag diagnostics)
+                ImmutableArray<string> netModuleNames, BindingDiagnosticBag discardedDiagnostics)
             {
                 Debug.Assert(attributesFromNetModules.Any());
                 Debug.Assert(netModuleNames.Any());
@@ -1488,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = netModuleAttributesCount - 1; i >= 0; i--)
                 {
                     CSharpAttributeData attribute = attributesFromNetModules[i];
-                    if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], diagnostics, ref uniqueAttributes))
+                    if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], discardedDiagnostics, ref uniqueAttributes))
                     {
                         limitedDecodeWellKnownAttribute(attribute, ref result);
                     }
