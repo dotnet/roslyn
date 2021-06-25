@@ -92,11 +92,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         {
                             await AddLinkedNodeForTypeAsync(
                                 project, namedType, graphBuilder,
-                                symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                                symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree),
+                                cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
-                            await AddLinkedNodeForMemberAsync(project, symbol, graphBuilder).ConfigureAwait(false);
+                            await AddLinkedNodeForMemberAsync(
+                                project, symbol, graphBuilder, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -104,30 +106,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private async Task<GraphNode> AddLinkedNodeForTypeAsync(
-            Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
+            Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder,
+            IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // If this named type is contained in a parent type, then just link farther up
             if (namedType.ContainingType != null)
             {
                 var parentTypeNode = await AddLinkedNodeForTypeAsync(
-                    project, namedType.ContainingType, graphBuilder, syntaxTrees).ConfigureAwait(false);
-                var typeNode = await graphBuilder.AddNodeAsync(namedType, relatedNode: parentTypeNode).ConfigureAwait(false);
-                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode);
+                    project, namedType.ContainingType, graphBuilder, syntaxTrees, cancellationToken).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(namedType, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
 
                 return typeNode;
             }
             else
             {
                 // From here, we can link back up to the containing project item
-                var typeNode = await graphBuilder.AddNodeAsync(namedType, contextProject: project, contextDocument: null).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(
+                    namedType, contextProject: project, contextDocument: null, cancellationToken).ConfigureAwait(false);
 
                 foreach (var tree in syntaxTrees)
                 {
                     var document = project.Solution.GetDocument(tree);
                     Contract.ThrowIfNull(document);
 
-                    var documentNode = graphBuilder.AddNodeForDocument(document);
-                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode);
+                    var documentNode = graphBuilder.AddNodeForDocument(document, cancellationToken);
+                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
                 }
 
                 return typeNode;
@@ -135,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private async Task<GraphNode> AddLinkedNodeForMemberAsync(
-            Project project, ISymbol symbol, GraphBuilder graphBuilder)
+            Project project, ISymbol symbol, GraphBuilder graphBuilder, CancellationToken cancellationToken)
         {
             var member = symbol;
             Contract.ThrowIfNull(member.ContainingType);
@@ -143,10 +147,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var trees = member.DeclaringSyntaxReferences.Select(d => d.SyntaxTree);
 
             var parentTypeNode = await AddLinkedNodeForTypeAsync(
-                project, member.ContainingType, graphBuilder, trees).ConfigureAwait(false);
+                project, member.ContainingType, graphBuilder, trees, cancellationToken).ConfigureAwait(false);
             var memberNode = await graphBuilder.AddNodeAsync(
-                symbol, relatedNode: parentTypeNode).ConfigureAwait(false);
-            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode);
+                symbol, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode, cancellationToken);
 
             return memberNode;
         }
