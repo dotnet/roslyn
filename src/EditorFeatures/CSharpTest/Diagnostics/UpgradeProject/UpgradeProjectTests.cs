@@ -1068,7 +1068,7 @@ class C1 : [|I1|]
     public void M01() {}
 }
 ",
-                expected: LanguageVersion.Preview,
+                expected: LanguageVersion.CSharp10,
                 new CSharpParseOptions(LanguageVersion.CSharp9));
         }
     }
