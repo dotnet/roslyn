@@ -725,6 +725,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             var label = result.NavigableItem.DisplayTaggedParts.JoinText();
             var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
+
+            // If we already have a node that matches this (say there are multiple identical sibling symbols in an error
+            // situation).  We just ignore the second match.
+            var existing = _graph.Nodes.Get(id);
+            if (existing != null)
+                return null;
+
             var symbolNode = _graph.Nodes.GetOrCreate(id);
 
             symbolNode.Label = label;
