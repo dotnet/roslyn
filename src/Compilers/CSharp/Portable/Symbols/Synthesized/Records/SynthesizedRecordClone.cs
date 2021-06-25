@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
-            return (ReturnType: VirtualCloneInBase() is { } baseClone && !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses ?
+            return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase() is { } baseClone ?
                                      baseClone.ReturnTypeWithAnnotations :
                                      TypeWithAnnotations.Create(isNullableEnabled: true, ContainingType),
                     Parameters: ImmutableArray<ParameterSymbol>.Empty,
