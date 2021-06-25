@@ -404,6 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (p.RefKind != RefKind.None)
                     {
                         var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: ordinal++, suppressOptional: true);
+                        Debug.Assert(!synthesizedParam.IsOptional);
                         parameters.Add(synthesizedParam);
                     }
                 }
