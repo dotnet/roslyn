@@ -224,7 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
-        IDS_FeatureFileScopedNamespace = MessageBase + 12802,
+        IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
+        IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
+        IDS_FeatureLambdaReturnType = MessageBase + 12804,
+        IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
+        IDS_FeatureFileScopedNamespace = MessageBase + 12806,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -341,6 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureGlobalUsing:
                 case MessageID.IDS_FeatureInferredDelegateType: // semantic check
                 case MessageID.IDS_FeatureLambdaAttributes: // semantic check
+                case MessageID.IDS_FeatureExtendedPropertyPatterns:
+                case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
+                case MessageID.IDS_FeatureLambdaReturnType: // semantic check
+                case MessageID.IDS_AsyncMethodBuilderOverride: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 9.0 features.

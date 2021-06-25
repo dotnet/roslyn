@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             {
                 sb.AppendFormat("[{0},{1}]", actPair.Key, actPair.Value);
             }
+
             var actualPairsStr = sb.ToString();
             Assert.Equal(expectedPairsStr, actualPairsStr);
         }

@@ -2886,12 +2886,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -2947,12 +2944,9 @@ class A
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
-                // (6,18): error CS1026: ) expected
+                // (6,17): error CS1026: ) expected
                 //         return 0;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 18),
-                // (6,18): error CS1002: ; expected
-                //         return 0;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -4650,12 +4644,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -4707,12 +4698,9 @@ public class MainClass
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
-                // (3,61): error CS1026: ) expected
+                // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(3, 61),
-                // (3,61): error CS1002: ; expected
-                //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(3, 61),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)

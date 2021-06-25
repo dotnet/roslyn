@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 result += values.Count;
             }
+
             return result;
         }
 

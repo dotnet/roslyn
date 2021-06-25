@@ -1705,18 +1705,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.OperatorDeclaration:
-                    var operatorDecl = (OperatorDeclarationSyntax)declaration;
-
-                    return OperatorFacts.OperatorNameFromDeclaration(operatorDecl);
+                    {
+                        var operatorDecl = (OperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
+                    }
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
                     {
-                        return WellKnownMemberNames.ExplicitConversionName;
-                    }
-                    else
-                    {
-                        return WellKnownMemberNames.ImplicitConversionName;
+                        var operatorDecl = (ConversionOperatorDeclarationSyntax)declaration;
+                        return GetDeclarationName(declaration, operatorDecl.ExplicitInterfaceSpecifier, OperatorFacts.OperatorNameFromDeclaration(operatorDecl));
                     }
 
                 case SyntaxKind.EventFieldDeclaration:

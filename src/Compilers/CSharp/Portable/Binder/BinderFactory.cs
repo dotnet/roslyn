@@ -160,8 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInRecordBodyBinder(RecordDeclarationSyntax typeDecl)
         {
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration);
-
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);
             Binder resultBinder = visitor.VisitTypeDeclarationCore(typeDecl, NodeUsage.NamedTypeBodyOrTypeParameters);

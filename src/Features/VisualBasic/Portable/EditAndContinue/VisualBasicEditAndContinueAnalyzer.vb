@@ -1214,7 +1214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Dim newSymbols As OneOrMany(Of ISymbol) = Nothing
 
             If editKind = EditKind.Delete Then
-                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1222,7 +1222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             If editKind = EditKind.Insert Then
-                If Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1230,8 +1230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             If editKind = EditKind.Update Then
-                If Not TryGetSyntaxNodesForEdit(oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-                   Not TryGetSyntaxNodesForEdit(newNode, newModel, newSymbols, cancellationToken) Then
+                If Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
+                   Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
                     Return OneOrMany(Of (ISymbol, ISymbol)).Empty
                 End If
 
@@ -1257,6 +1257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Private Shared Function TryGetSyntaxNodesForEdit(
+            editKind As EditKind,
             node As SyntaxNode,
             model As SemanticModel,
             <Out> ByRef symbols As OneOrMany(Of ISymbol),
@@ -1271,13 +1272,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                      SyntaxKind.AddHandlerAccessorStatement,
                      SyntaxKind.RemoveHandlerAccessorStatement,
                      SyntaxKind.RaiseEventAccessorStatement,
-                     SyntaxKind.ClassStatement,
-                     SyntaxKind.StructureStatement,
-                     SyntaxKind.InterfaceStatement,
-                     SyntaxKind.ModuleStatement,
-                     SyntaxKind.EnumStatement,
                      SyntaxKind.NamespaceStatement
                     Return False
+
+                Case SyntaxKind.SimpleAsClause
+                    If editKind = EditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FunctionStatement) Then
+                        node = node.Parent             ' for attributes on return types of functions
+                    End If
 
                 Case SyntaxKind.EventStatement
                     If node.Parent.IsKind(SyntaxKind.EventBlock) Then
@@ -1289,19 +1290,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return False
                     End If
 
-                Case SyntaxKind.SubStatement       ' interface method
-                    If node.Parent.IsKind(SyntaxKind.SubBlock) Then
+                Case SyntaxKind.Parameter
+                    If editKind = EditKind.Update Then
+                        ' for delegate invoke methods we need to go one step higher, to the delegate itself
+                        Dim parameterSymbol = model.GetDeclaredSymbol(node, cancellationToken)
+                        Dim containingDelegate = TryCast(parameterSymbol.ContainingSymbol, IMethodSymbol)
+                        If containingDelegate IsNot Nothing AndAlso containingDelegate.MethodKind = MethodKind.DelegateInvoke Then
+                            parameterSymbol = containingDelegate.ContainingSymbol
+                        End If
+
+                        symbols = OneOrMany.Create(parameterSymbol)
+                        Return True
+                    End If
+
+                    Return False
+
+                Case SyntaxKind.TypeParameter
+                    If editKind <> EditKind.Update Then
                         Return False
                     End If
 
-                Case SyntaxKind.FunctionStatement  ' interface method
-                    If node.Parent.IsKind(SyntaxKind.FunctionBlock) Then
-                        Return False
-                    End If
-
-                Case SyntaxKind.Parameter,
-                     SyntaxKind.TypeParameter,
-                     SyntaxKind.ImportsStatement,
+                Case SyntaxKind.ImportsStatement,
                      SyntaxKind.NamespaceBlock
                     Return False
 
@@ -1320,7 +1329,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) model.GetDeclaredSymbol(n, cancellationToken)))
                         Return True
                     End If
+
                     node = variableDeclarator.Names(0)
+
+                Case SyntaxKind.FieldDeclaration
+                    If editKind = EditKind.Update Then
+                        ' If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable name
+                        ' Fortunately attributes are shared across all of them, so we don't need to be too fancy
+                        Dim field = CType(node, FieldDeclarationSyntax)
+                        node = field.Declarators.First().Names.First()
+                    End If
+
             End Select
 
             Dim symbol = model.GetDeclaredSymbol(node, cancellationToken)
@@ -1870,7 +1889,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return FeaturesResources.operator_
 
                 Case SyntaxKind.ConstructorBlock
-                    Return If(CType(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.shared_constructor, FeaturesResources.constructor)
+                    Return If(CType(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.Shared_constructor, FeaturesResources.constructor)
 
                 Case SyntaxKind.SubNewStatement
                     Return If(CType(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword), VBFeaturesResources.Shared_constructor, FeaturesResources.constructor)
@@ -2257,11 +2276,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                          SyntaxKind.TypeConstraint,
                          SyntaxKind.TypeParameterList,
                          SyntaxKind.Parameter,
-                         SyntaxKind.Attribute,
-                         SyntaxKind.AttributeList,
                          SyntaxKind.AttributesStatement,
                          SyntaxKind.SimpleAsClause
                         ReportError(RudeEditKind.Insert)
+                        Return
+
+                    Case SyntaxKind.Attribute
+                        ' Only module/assembly attributes are rude
+                        If node.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+
+                        Return
+
+                    Case SyntaxKind.AttributeList
+                        ' Only module/assembly attributes are rude
+                        If node.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+
                         Return
 
                     Case SyntaxKind.ParameterList
@@ -2332,12 +2365,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ' We do not report error here since it will be reported in semantic analysis.
                         Return
 
-                    Case SyntaxKind.AttributeList,
-                         SyntaxKind.Attribute
-                        ' To allow removal of attributes we would need to check if the removed attribute
-                        ' is a pseudo-custom attribute that CLR allows us to change, or if it is a compiler well-know attribute
-                        ' that affects the generated IL.
-                        ReportError(RudeEditKind.Delete)
+                    Case SyntaxKind.AttributeList
+                        ' Only module/assembly attributes are rude edits
+                        If oldNode.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+
+                        Return
+
+                    Case SyntaxKind.Attribute
+                        ' Only module/assembly attributes are rude edits
+                        If oldNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Insert)
+                        End If
+
                         Return
 
                     Case SyntaxKind.TypeParameter,
@@ -2524,13 +2565,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ClassifyUpdate(DirectCast(oldNode, ParameterSyntax), DirectCast(newNode, ParameterSyntax))
                         Return
 
-                    Case SyntaxKind.Attribute
+                    Case SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Update)
                         Return
 
-                    Case SyntaxKind.TypeParameterList,
-                         SyntaxKind.ParameterList,
-                         SyntaxKind.AttributeList
+                    Case SyntaxKind.Attribute
+                        ' Only module/assembly attributes are rude edits
+                        If newNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
+                            ReportError(RudeEditKind.Update)
+                        End If
+
+                        Return
+
+                    Case SyntaxKind.AttributeList,
+                        SyntaxKind.TypeParameterList,
+                        SyntaxKind.ParameterList
                         Return
 
                     Case Else
@@ -2579,8 +2628,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.UnderlyingType, newNode.UnderlyingType))
-                ReportError(RudeEditKind.EnumUnderlyingTypeUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.UnderlyingType, newNode.UnderlyingType) Then
+                    ReportError(RudeEditKind.EnumUnderlyingTypeUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As DelegateStatementSyntax, newNode As DelegateStatementSyntax)
@@ -2600,8 +2651,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                ReportError(RudeEditKind.Renamed)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
+                    ReportError(RudeEditKind.Renamed)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As FieldDeclarationSyntax, newNode As FieldDeclarationSyntax)
@@ -2628,13 +2681,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.ArrayBounds, newNode.ArrayBounds))
-
-                If oldNode.ArrayBounds Is Nothing OrElse
-                    newNode.ArrayBounds Is Nothing OrElse
-                    oldNode.ArrayBounds.Arguments.Count <> newNode.ArrayBounds.Arguments.Count Then
-                    ReportError(RudeEditKind.TypeUpdate)
-                    Return
+                If Not SyntaxFactory.AreEquivalent(oldNode.ArrayBounds, newNode.ArrayBounds) Then
+                    If oldNode.ArrayBounds Is Nothing OrElse
+                        newNode.ArrayBounds Is Nothing OrElse
+                        oldNode.ArrayBounds.Arguments.Count <> newNode.ArrayBounds.Arguments.Count Then
+                        ReportError(RudeEditKind.TypeUpdate)
+                        Return
+                    End If
                 End If
 
                 ' Otherwise only the size of the array changed, which is a legal initializer update
@@ -2870,8 +2923,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer))
-                ReportError(RudeEditKind.InitializerUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer) Then
+                    ReportError(RudeEditKind.InitializerUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ConstructorBlockSyntax, newNode As ConstructorBlockSyntax)
@@ -2889,8 +2944,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As SimpleAsClauseSyntax, newNode As SimpleAsClauseSyntax)
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                ReportError(RudeEditKind.TypeUpdate, newNode.Parent, newNode.Parent)
+                If Not SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type) Then
+                    ReportError(RudeEditKind.TypeUpdate, newNode.Parent, newNode.Parent)
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As TypeParameterSyntax, newNode As TypeParameterSyntax)
@@ -2899,8 +2955,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
-                ReportError(RudeEditKind.VarianceUpdate)
+                If Not SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword) Then
+                    ReportError(RudeEditKind.VarianceUpdate)
+                    Return
+                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ParameterSyntax, newNode As ParameterSyntax)

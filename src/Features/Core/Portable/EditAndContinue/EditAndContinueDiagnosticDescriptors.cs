@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MakeMethodAsync, nameof(FeaturesResources.Making_a_method_async_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_is_not_supported_by_the_runtime));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));

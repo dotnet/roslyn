@@ -463,6 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                                               Return newNode _
                                                   .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected))
                                           End Function
+
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)
         End Function
 
