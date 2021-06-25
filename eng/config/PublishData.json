@@ -204,7 +204,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false
     },
     "main": {
       "nugetKind": [
@@ -215,7 +216,8 @@
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[Validation]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
