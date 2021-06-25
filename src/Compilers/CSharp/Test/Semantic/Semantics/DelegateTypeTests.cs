@@ -73,20 +73,20 @@ static class Utils
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         d = Main;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 13),
-                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(6, 13),
+                // (7,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         d = () => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(7, 13),
+                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         d = delegate () { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(8, 13),
-                // (9,48): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13),
+                // (9,48): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Linq.Expressions.Expression e = () => 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(9, 48));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(9, 48));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
         }
 
@@ -1818,15 +1818,15 @@ static class E
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (7,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         c.M(Main);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(7, 13),
-                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         c.M(() => { });
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(8, 13));
+                // (7,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         c.M(Main);      // C#9: E.M(object x, Action y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(7, 13),
+                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         c.M(() => { }); // C#9: E.M(object x, Action y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13));
 
             // Breaking change from C#9 which binds to E.M.
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
 @"C.M
 C.M
 ");
@@ -1858,12 +1858,12 @@ static class E
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (8,13): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,13): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         c.M(() => 1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(8, 13));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(8, 13));
 
             // Breaking change from C#9 which binds to E.M.
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"C.M");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: @"C.M");
         }
 
         [Fact]
@@ -1899,26 +1899,26 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (14,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FA(F2);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("inferred delegate type").WithLocation(14, 12),
-                // (15,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F2").WithArguments("inferred delegate type", "10.0").WithLocation(14, 12),
+                // (15,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FB(F1);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("inferred delegate type").WithLocation(15, 12),
-                // (18,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F1").WithArguments("inferred delegate type", "10.0").WithLocation(15, 12),
+                // (18,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FA(() => 0);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 0").WithArguments("inferred delegate type").WithLocation(18, 12),
-                // (19,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 0").WithArguments("inferred delegate type", "10.0").WithLocation(18, 12),
+                // (19,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FB(() => { });
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => { }").WithArguments("inferred delegate type").WithLocation(19, 12),
-                // (22,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => { }").WithArguments("inferred delegate type", "10.0").WithLocation(19, 12),
+                // (22,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FA(delegate () { return 0; });
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { return 0; }").WithArguments("inferred delegate type").WithLocation(22, 12),
-                // (23,12): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { return 0; }").WithArguments("inferred delegate type", "10.0").WithLocation(22, 12),
+                // (23,12): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         FB(delegate () { });
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate () { }").WithArguments("inferred delegate type").WithLocation(23, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "delegate () { }").WithArguments("inferred delegate type", "10.0").WithLocation(23, 12));
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
 @"FA(Action)
 FA(Delegate)
 FB(Delegate)
@@ -1954,11 +1954,11 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,11): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,11): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         F(() => string.Empty);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => string.Empty").WithArguments("inferred delegate type").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => string.Empty").WithArguments("inferred delegate type", "10.0").WithLocation(11, 11));
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput:
 @"F(Expression<Func<int>>): () => 0
 F(Expression): () => String.Empty
 ");
