@@ -5,31 +5,31 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
-using System.Runtime.ExceptionServices;
-using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
-    internal sealed class SearchGraphQuery : IGraphQuery
+    internal sealed partial class SearchGraphQuery : IGraphQuery
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly string _searchPattern;
 
         public SearchGraphQuery(
+            string searchPattern,
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            string searchPattern)
+            IAsynchronousOperationListener asyncListener)
         {
             _threadingContext = threadingContext;
             _asyncListener = asyncListener;
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-            var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
+            var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
             var searcher = NavigateToSearcher.Create(
                 solution,
                 _asyncListener,
@@ -52,36 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
 
             return graphBuilder;
-        }
-
-        private class ProgressionNavigateToSearchCallback : INavigateToSearchCallback
-        {
-            private readonly Solution _solution;
-            private readonly IGraphContext _context;
-            private readonly GraphBuilder _graphBuilder;
-
-            public ProgressionNavigateToSearchCallback(Solution solution, IGraphContext context, GraphBuilder graphBuilder)
-            {
-                _solution = solution;
-                _context = context;
-                _graphBuilder = graphBuilder;
-            }
-
-            public void Done(bool isFullyLoaded)
-            {
-                // Do nothing here.  Even though the navigate to search completed, we still haven't passed any
-                // information along to progression.  That will happen in GraphQueryManager.PopulateContextGraphAsync
-            }
-
-            public void ReportProgress(int current, int maximum)
-            {
-                _context.ReportProgress(current, maximum, null);
-            }
-
-            public Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
-            {
-                return _graphBuilder.AddNodeAsync(result, cancellationToken);
-            }
         }
 
         public async Task<GraphBuilder> GetGraphAsync1(Solution solution, IGraphContext context, CancellationToken cancellationToken)

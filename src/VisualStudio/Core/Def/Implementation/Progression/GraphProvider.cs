@@ -59,7 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        internal List<IGraphQuery> GetGraphQueries(IGraphContext context)
+        internal static List<IGraphQuery> GetGraphQueries(
+            IGraphContext context,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
             var graphQueries = new List<IGraphQuery>();
 
@@ -137,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     // is a COM type. Therefore, it's probably best to grab the values we want now
                     // rather than get surprised by COM marshalling later.
                     graphQueries.Add(new SearchGraphQuery(
-                        _threadingContext, _asyncListener, searchParameters.SearchQuery.SearchString));
+                        searchParameters.SearchQuery.SearchString, threadingContext, asyncListener));
                 }
             }
 
@@ -148,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             EnsureInitialized();
 
-            var graphQueries = GetGraphQueries(context);
+            var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
             if (graphQueries.Count > 0)
             {
