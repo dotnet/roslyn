@@ -13958,7 +13958,7 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "Console.WriteLine(\"Hello World\");", CSharpFeaturesResources.global_statement));
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
         }
 
         [Fact]
@@ -14527,6 +14527,48 @@ public class C { }
             // Since each individual statement is a separate update to a separate node, this just validates we correctly
             // only anaylze the things once
             edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_MoveToOtherFile()
+        {
+            var srcA1 = @"
+using System;
+
+Console.WriteLine(1);
+
+public class A
+{
+}";
+            var srcB1 = @"
+using System;
+
+public class B
+{
+}";
+
+            var srcA2 = @"
+using System;
+
+public class A
+{
+}";
+            var srcB2 = @"
+using System;
+
+Console.WriteLine(2);
+
+public class B
+{
+}";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")) }),
+                });
         }
 
         #endregion

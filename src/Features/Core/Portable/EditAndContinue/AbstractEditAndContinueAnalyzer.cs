@@ -2492,6 +2492,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             Contract.ThrowIfFalse(newDeclaration == null);
                                             newDeclaration = GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences[0], cancellationToken);
 
+                                            // If all global statements are moved from one file to another then we'll get insert edits for them
+                                            // so we don't need to do anything for the deletes.
+                                            if (newDeclaration.SyntaxTree != newModel.SyntaxTree)
+                                            {
+                                                continue;
+                                            }
+
                                             // The symbols here are the compiler generated Main method so we don't have nodes to report the edit for
                                             // so we'll just use the last global statement in the file
                                             ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(newDeclaration), diagnostics);
@@ -2567,6 +2574,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else
                                     {
+                                        var diagnosticSpan = GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
+
+                                        // If we got here for a global statement then the actual edit is a delete of the synthesized Main method
+                                        if (IsGlobalStatement(edit.OldNode))
+                                        {
+                                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, new[] { GetDisplayName(edit.OldNode, EditKind.Delete) }));
+                                            continue;
+                                        }
+
                                         // Check if the symbol being deleted is a member of a type or associated with a property or event that's also being deleted.
                                         // If so, skip the member deletion and only report the containing symbol deletion.
                                         var oldContainingSymbol = (oldSymbol as IMethodSymbol)?.AssociatedSymbol ?? oldSymbol.ContainingType;
@@ -2581,7 +2597,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         }
 
                                         // deleting symbol is not allowed
-                                        var diagnosticSpan = GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
 
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.Delete,
@@ -2807,7 +2822,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             editKind = SemanticEditKind.Update;
                                         }
                                     }
-                                    else if (newSymbol.ContainingType != null)
+                                    else if (newSymbol.ContainingType != null && !IsGlobalStatement(edit.NewNode))
                                     {
                                         // The edit actually adds a new symbol into an existing or a new type.
 
@@ -2857,8 +2872,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else
                                     {
-                                        // adds a new top-level type
-                                        Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol);
+                                        // adds a new top-level type, or a global statement where none existed before, which is
+                                        // therefore inserting the <Program>$ type
+                                        Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol || IsGlobalStatement(edit.NewNode));
 
                                         if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
                                         {

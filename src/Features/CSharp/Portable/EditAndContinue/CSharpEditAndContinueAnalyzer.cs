@@ -2277,14 +2277,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (node.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // Global statements can be inserted but only if there is at least one other global statement,
-                        // otherwise this would be an insert of the synthesized entry point itself.
-                        if ((node.Parent as CompilationUnitSyntax)?.Members.OfType<GlobalStatementSyntax>().Take(2).Count() == 1)
-                        {
-                            ReportError(RudeEditKind.Insert);
-                            return;
-                        }
-
                         // An insert of a global statement is actually an update to the synthesized main so we need to check some extra things
                         ClassifyUpdate((GlobalStatementSyntax)node);
                         return;
@@ -2387,14 +2379,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (oldNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // Global statements can be deleted unless they were the only global statement,
-                        // otherwise it would be a delete of the synthesized entry point itself
-                        if ((oldNode.Parent as CompilationUnitSyntax)?.Members.OfType<GlobalStatementSyntax>().Take(2).Count() == 1)
-                        {
-                            ReportError(RudeEditKind.Delete);
-                            return;
-                        }
-
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
