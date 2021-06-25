@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression, diagnostics));
-
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
