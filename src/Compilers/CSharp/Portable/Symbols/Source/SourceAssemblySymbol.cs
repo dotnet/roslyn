@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (fieldValue == (object?)missingValue)
             {
-                data = GetNetModuleDecodedWellKnownAttributeData(noCache: attributeMatchesOpt is not null);
+                data = GetNetModuleDecodedWellKnownAttributeData(reduceCircularity: attributeMatchesOpt is not null);
 
                 if (data != null)
                 {
@@ -333,15 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<CommonAssemblyWellKnownAttributeData, string> s_assemblyKeyContainerGetter =
-            data => data.AssemblyKeyContainerAttributeSetting;
-
         private string AssemblyKeyContainerAttributeSetting
         {
             get
             {
                 // We try to mitigate circularity problems by only actively loading attributes that pass a syntactic check
-                return GetWellKnownAttributeDataStringField(s_assemblyKeyContainerGetter,
+                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyContainerAttributeSetting,
                     WellKnownAttributeData.StringMissingValue, isPossibleAssemblyKeyNameAttribute);
 
                 bool isPossibleAssemblyKeyNameAttribute(AttributeSyntax node)
@@ -354,15 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<CommonAssemblyWellKnownAttributeData, string> s_assemblyKeyFileGetter =
-            data => data.AssemblyKeyFileAttributeSetting;
-
         private string AssemblyKeyFileAttributeSetting
         {
             get
             {
                 // We try to mitigate circularity problems by only actively loading attributes that pass a syntactic check
-                return GetWellKnownAttributeDataStringField(s_assemblyKeyFileGetter,
+                return GetWellKnownAttributeDataStringField(data => data.AssemblyKeyFileAttributeSetting,
                     WellKnownAttributeData.StringMissingValue, isPossibleAssemblyKeyFileAttribute);
 
                 bool isPossibleAssemblyKeyFileAttribute(AttributeSyntax node)
@@ -383,14 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static readonly Func<CommonAssemblyWellKnownAttributeData, string> s_signatureKeyGetter =
-            data => data.AssemblySignatureKeyAttributeSetting;
-
         public string SignatureKey
         {
             get
             {
-                return GetWellKnownAttributeDataStringField(s_signatureKeyGetter,
+                return GetWellKnownAttributeDataStringField(data => data.AssemblySignatureKeyAttributeSetting,
                     missingValue: null, isPossibleAssemblySignatureKeyAttribute);
 
                 bool isPossibleAssemblySignatureKeyAttribute(AttributeSyntax node)
@@ -1379,8 +1370,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return arguments.HasDecodedData ? arguments.DecodedData : null;
         }
 
-        /// <param name="noCache">This is not the final load. When set, we don't check source assembly attributes or produce diagnostics.</param>
-        private void LoadAndValidateNetModuleAttributes(ref CustomAttributesBag<CSharpAttributeData> lazyNetModuleAttributesBag, bool noCache = false)
+        /// <param name="reduceCircularity">This is not the final load. When set, we can take steps to reduce risk of circularity.</param>
+        private void LoadAndValidateNetModuleAttributes(ref CustomAttributesBag<CSharpAttributeData> lazyNetModuleAttributesBag, bool reduceCircularity = false)
         {
             if (_compilation.Options.OutputKind.IsNetModule())
             {
@@ -1399,13 +1390,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     wellKnownData = ValidateAttributeUsageAndDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, diagnostics);
                 }
-                else if (!noCache)
+                else if (!reduceCircularity)
                 {
                     // Compute duplicate source assembly attributes, i.e. attributes with same constructor and arguments, that must not be emitted.
                     var unused = GetUniqueSourceAssemblyAttributes();
                 }
 
-                if (!noCache)
+                if (!reduceCircularity)
                 {
                     // Load type forwarders from modules
                     HashSet<NamedTypeSymbol> forwardedTypes = null;
@@ -1470,7 +1461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (Interlocked.CompareExchange(ref lazyNetModuleAttributesBag, netModuleAttributesBag, null) == null)
                 {
-                    if (!noCache)
+                    if (!reduceCircularity)
                     {
                         this.AddDeclarationDiagnostics(diagnostics);
                     }
@@ -1491,12 +1482,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyNetModuleAttributesBag;
         }
 
-        internal CommonAssemblyWellKnownAttributeData GetNetModuleDecodedWellKnownAttributeData(bool noCache = false)
+        internal CommonAssemblyWellKnownAttributeData GetNetModuleDecodedWellKnownAttributeData(bool reduceCircularity = false)
         {
-            if (noCache)
+            if (reduceCircularity)
             {
                 CustomAttributesBag<CSharpAttributeData> attributesBag = null;
-                LoadAndValidateNetModuleAttributes(ref attributesBag, noCache: true);
+                LoadAndValidateNetModuleAttributes(ref attributesBag, reduceCircularity: true);
                 return (CommonAssemblyWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             }
             else
