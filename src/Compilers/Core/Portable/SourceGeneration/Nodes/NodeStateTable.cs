@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis
 
         public T Single()
         {
-            Debug.Assert(this._states.Length == 1 && this._states[0].Count == 1);
-            return this._states[0].GetItem(0);
+            Debug.Assert((_states.Length == 1 || _states.Length == 2 && _states[0].IsRemoved) && this._states[^1].Count == 1);
+            return this._states[^1].GetItem(0);
         }
 
         public ImmutableArray<T> Batch()
