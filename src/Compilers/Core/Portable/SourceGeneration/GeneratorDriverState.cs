@@ -88,11 +88,13 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            DriverStateTable? stateTable = null)
+            DriverStateTable? stateTable = null,
+            ParseOptions? parseOptions = null,
+            AnalyzerConfigOptionsProvider? optionsProvider = null)
         {
             return new GeneratorDriverState(
-                this.ParseOptions,
-                this.OptionsProvider,
+                parseOptions ?? this.ParseOptions,
+                optionsProvider ?? this.OptionsProvider,
                 sourceGenerators ?? this.Generators,
                 incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,
