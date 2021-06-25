@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         {
             private readonly ImmutableArray<string> _capabilities;
 
-            public DebuggerService(ImmutableArray<string> _capabilities)
+            public DebuggerService(ImmutableArray<string> capabilities)
             {
-                this._capabilities = _capabilities;
+                _capabilities = capabilities;
             }
 
             public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
