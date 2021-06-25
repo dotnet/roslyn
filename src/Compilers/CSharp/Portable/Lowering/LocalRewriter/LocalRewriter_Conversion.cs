@@ -21,10 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RewriteInterpolatedStringConversion(node);
             }
 
-            if (node.ConversionKind is ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression)
+            if (node.ConversionKind is
+                ConversionKind.SwitchExpression or
+                ConversionKind.ConditionalExpression or
+                ConversionKind.ObjectCreation)
             {
-                // Skip through target-typed conditionals and switches
-                Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
+                // Skip through target-typed expressions.
+                Debug.Assert(node.Operand is
+                    BoundConditionalOperator { WasTargetTyped: true } or
+                    BoundConvertedSwitchExpression { WasTargetTyped: true } or
+                    BoundObjectCreationExpression { WasTargetTyped: true });
                 return Visit(node.Operand)!;
             }
 

@@ -7361,7 +7361,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return resultState;
                         }
 
-                    case BoundObjectCreationExpression { WasTargetTyped: true }:
+                    case BoundObjectCreationExpression { WasTargetTyped: true } objectCreation:
+                        {
+                            VisitArguments(
+                                objectCreation,
+                                objectCreation.Arguments,
+                                objectCreation.ArgumentRefKindsOpt,
+                                (MethodSymbol)AsMemberOfType(targetTypeWithNullability.Type, objectCreation.Constructor),
+                                objectCreation.ArgsToParamsOpt,
+                                objectCreation.DefaultArguments,
+                                objectCreation.Expanded,
+                                invokedAsExtensionMethod: false);
+                            return NullableFlowState.NotNull;
+                        }
+
                     case BoundUnconvertedObjectCreationExpression:
                         return NullableFlowState.NotNull;
 

@@ -138,6 +138,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors);
             }
 
+            if (conversion.Kind == ConversionKind.ObjectCreation)
+            {
+                var convertedObjectCreation = ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+                return new BoundConversion(
+                    syntax,
+                    convertedObjectCreation,
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
+                    conversionGroupOpt,
+                    convertedObjectCreation.ConstantValue,
+                    destination,
+                    hasErrors);
+            }
+
             if (conversion.Kind == ConversionKind.InterpolatedString)
             {
                 var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
@@ -164,11 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return source;
                 }
-            }
-
-            if (conversion.IsObjectCreation)
-            {
-                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
             }
 
             if (source.Kind == BoundKind.UnconvertedConditionalOperator)
