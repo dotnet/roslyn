@@ -1779,6 +1779,30 @@ public class C
 
         [Theory]
         [MemberData(nameof(AllProviderParseOptions))]
+        public void AssemblySignatureKeyOnNetModule(CSharpParseOptions parseOptions)
+        {
+            var other = CreateCompilation(@"
+[assembly: System.Reflection.AssemblySignatureKeyAttribute(
+    ""00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"",
+    ""bc6402e37ad723580b576953f40475ceae4b784d3661b90c3c6f5a1f7283388a7880683e0821610bee977f70506bb75584080e01b2ec97483c4d601ce1c981752a07276b420d78594d0ef28f8ec016d0a5b6d56cfc22e9f25a2ed9545942ccbf2d6295b9528641d98776e06a3273ab233271a3c9f53099b4d4e029582a6d5819"")]
+
+public class C
+{
+    static void Goo() {}
+}",
+                options: TestOptions.SigningReleaseModule, parseOptions: parseOptions);
+
+            var comp = CreateCompilation("",
+                references: new[] { other.EmitToImageReference() },
+                options: TestOptions.SigningReleaseDll,
+                parseOptions: parseOptions);
+
+            comp.VerifyDiagnostics();
+            Assert.StartsWith("0024000004", ((SourceAssemblySymbol)comp.Assembly.Modules[1].ContainingAssembly).SignatureKey);
+        }
+
+        [Theory]
+        [MemberData(nameof(AllProviderParseOptions))]
         public void DelaySignItWithOnlyPublicKey(CSharpParseOptions parseOptions)
         {
             var other = CreateCompilation(
