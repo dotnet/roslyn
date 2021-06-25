@@ -69,9 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
-        [WorkItem(527668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527668")]
+        [WorkItem(49000, "https://github.com/dotnet/roslyn/issues/49000")]
         public async Task TestFileScopedNamespace()
         {
+            // This test behavior is incorrect. This should be Namespace.Class.Method.
+            // See the associated WorkItem for details.
             await TestAsync(
 @"namespace Namespace;
 
@@ -81,7 +83,7 @@ class Class
     {
     }$$
 }
-", "Namespace.Class.Method()", 2);
+", "Class.Method()", 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
