@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="incrementalGenerators">The incremental generators to create this driver with</param>
         /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
         public static CSharpGeneratorDriver Create(params IIncrementalGenerator[] incrementalGenerators)
-            => Create(incrementalGenerators.Select(WrapGenerator), additionalTexts: null);
+            => Create(incrementalGenerators.Select(GeneratorExtensions.AsSourceGenerator), additionalTexts: null);
 
         /// <summary>
         /// Creates a new instance of <see cref="CSharpGeneratorDriver"/> with the specified <see cref="ISourceGenerator"/>s and the provided options or default.

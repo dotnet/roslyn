@@ -6418,6 +6418,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6588,6 +6591,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureWithOnAnonymousTypes" xml:space="preserve">
     <value>with on anonymous types</value>
   </data>
+  <data name="IDS_AsyncMethodBuilderOverride" xml:space="preserve">
+    <value>async method builder override</value>
+  </data>
   <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
     <value>positional fields in records</value>
   </data>
@@ -6712,5 +6718,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="HDN_DuplicateWithGlobalUsing_Title" xml:space="preserve">
     <value>The using directive appeared previously as global using</value>
+  </data>
+  <data name="ERR_BuilderAttributeDisallowed" xml:space="preserve">
+    <value>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</value>
   </data>
 </root>

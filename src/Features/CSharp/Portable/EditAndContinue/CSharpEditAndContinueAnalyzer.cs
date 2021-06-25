@@ -1133,6 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                 }
             }
+
             return false;
         }
 
@@ -1145,6 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 isFirstAccessor = list.Accessors[0] == declaration;
                 return true;
             }
+
             return false;
         }
 
@@ -1249,6 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         parameterSymbol = invokeMethodSymbol.ContainingSymbol;
                     }
+
                     return parameterSymbol;
                 }
 
@@ -2298,6 +2301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Insert);
                         }
+
                         return;
 
                     case SyntaxKind.EnumMemberDeclaration:
@@ -2318,6 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Insert);
                         }
+
                         return;
                 }
 
@@ -2409,6 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Delete);
                         }
+
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2427,6 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Delete);
                         }
+
                         return;
                 }
 
@@ -2564,6 +2571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Update);
                         }
+
                         return;
 
                     case SyntaxKind.TypeParameterList:

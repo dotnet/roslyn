@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return;
             }
+
             AddTableSource(_source);
         }
 

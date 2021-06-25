@@ -2558,7 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (returnType.Type.IsGenericTaskType(compilation))
+            if (method.IsAsyncEffectivelyReturningGenericTask(compilation))
             {
                 type = ((NamedTypeSymbol)returnType.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
                 annotations = FlowAnalysisAnnotations.None;

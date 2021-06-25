@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
         private DriverStateTable.Builder GetBuilder(DriverStateTable previous)
         {
-            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10);
             var c = CSharpCompilation.Create("empty");
             var state = new GeneratorDriverState(options,
                     CompilerAnalyzerConfigOptionsProvider.Empty,
