@@ -11,9 +11,6 @@ parameters:
   type: string
   default: default
 
-- name: PRNumber
-  type: string
-  default: default
 
 - name: SignType
   default: real
