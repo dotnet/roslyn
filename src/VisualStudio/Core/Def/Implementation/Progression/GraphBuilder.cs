@@ -819,16 +819,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 }
             }
         }
-
-        public IEnumerable<Tuple<GraphNode, GraphProperty, object>> DeferredPropertySets
-        {
-            get
-            {
-                using (_gate.DisposableWait())
-                {
-                    return _deferredPropertySets.ToArray();
-                }
-            }
-        }
     }
 }
