@@ -86,15 +86,15 @@ End Module
     {
         .param [2] = nullref
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
-                01 00 01 49 00 00
+                01 00 01 49 00 00 // I
             )
         // Method begins at RVA 0x2058
         // Code size 9 (0x9)
         .maxstack 8
 
         IL_0000: nop
-        IL_0001: ldarg.0
-        IL_0002: call void [mscorlib]System.Console::WriteLine(int32)
+        IL_0001: ldarg.1
+        IL_0002: call void [mscorlib]System.Console::WriteLine(string)
         IL_0007: nop
         IL_0008: ret
     } // end of method C::M
@@ -107,7 +107,7 @@ End Module
         <file name="c.vb"><![CDATA[
 Module Program
     Sub Main()
-        C.M(0)
+        C.M(0 + 1)
     End Sub
 End Module
 ]]>
@@ -115,7 +115,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="0").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -1183,6 +1183,63 @@ BC31065: 'Set' parameter cannot be declared 'Optional'.
         Set(<CallerArgumentExpression("value")> Optional value As String = "default")
                                                 ~~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter5()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P(x As String) As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression(""x"")> Optional value As String = ""default"")
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P(""xvalue"") = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC31065: 'Set' parameter cannot be declared 'Optional'.
+        Set(<CallerArgumentExpression("x")> Optional value As String = "default")
+                                              ~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestSetter6()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Class Program
+    Public Property P(x As String) As String
+        Get
+            Return ""Return getter""
+        End Get
+        Set(<CallerArgumentExpression(""x"")> value As String)
+            Console.WriteLine(value)
+        End Set
+    End Property
+
+    Public Shared Sub Main()
+        Dim prog As New Program()
+        prog.P(""xvalue"") = ""New value""
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="New value").VerifyDiagnostics()
         End Sub
 #End Region
     End Class
