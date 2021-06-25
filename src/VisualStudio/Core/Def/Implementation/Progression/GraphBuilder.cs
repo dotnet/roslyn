@@ -695,6 +695,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             var document = result.NavigableItem.Document;
             var project = document.Project;
+
+            // If it doesn't belong to a document or project we can navigate to, then ignore entirely.
             if (document.FilePath == null || project.FilePath == null)
                 return null;
 
@@ -715,14 +717,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 _ => null,
             };
 
+            // If it's not a category that progression understands, then ignore.
             if (category == null)
                 return null;
 
+            // Get or make a node for this symbol's containing document that will act as the parent node in the UI.
             var documentNode = this.AddNodeForDocument(document);
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
-
+            // For purposes of keying this node, just use the display text we will show.  In practice, outside of error
+            // scenarios this will be unique and suitable as an ID (esp. as these names are joined with their parent
+            // document name to form the full ID).
             var label = result.NavigableItem.DisplayTaggedParts.JoinText();
             var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
 
@@ -739,6 +743,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
             symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+
             symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
                 document.FilePath,
                 new Position(span.Start.Line, span.Start.Character),
@@ -772,8 +780,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (groupName == null)
                 return null;
 
-            var accessibility = GlyphExtensions.GetAccessibility(GlyphTags.GetTags(glyph));
-            return IconHelper.GetIconName(groupName, accessibility);
+            return IconHelper.GetIconName(groupName, GlyphExtensions.GetAccessibility(GlyphTags.GetTags(glyph)));
         }
 
         public void ApplyToGraph(Graph graph)
