@@ -1656,6 +1656,9 @@ I agree to all of the foregoing:</value>
   <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
     <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
   </data>
+  <data name="Skip_analyzers_for_implicitly_triggered_builds" xml:space="preserve">
+    <value>Skip analyzers for implicitly triggered builds</value>
+  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
@@ -1746,5 +1749,25 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Overridden_members" xml:space="preserve">
     <value>Overridden members</value>
+  </data>
+  <data name="Value_Tracking" xml:space="preserve">
+    <value>Value Tracking</value>
+    <comment>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</comment>
+  </data>
+  <data name="Calculating" xml:space="preserve">
+    <value>Calculating...</value>
+    <comment>Used in UI to represent progress in the context of loading items. </comment>
+  </data>
+  <data name="Derived_types" xml:space="preserve">
+    <value>Derived types</value>
+  </data>
+  <data name="Implemented_interfaces" xml:space="preserve">
+    <value>Implemented interfaces</value>
+  </data>
+  <data name="Implementing_types" xml:space="preserve">
+    <value>Implementing types</value>
+  </data>
+  <data name="Inherited_interfaces" xml:space="preserve">
+    <value>Inherited interfaces</value>
   </data>
 </root>

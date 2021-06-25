@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private TrackingSession? _session;
         private readonly Workspace _workspace;
-        private readonly IActiveStatementSpanProvider _spanProvider;
 
         /// <summary>
         /// Raised whenever span tracking starts or ends.
@@ -56,12 +55,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public ActiveStatementTrackingService(Workspace workspace)
         {
             _workspace = workspace;
-            _spanProvider = new RemoteEditAndContinueServiceProxy(_workspace);
         }
 
-        public async ValueTask StartTrackingAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask StartTrackingAsync(Solution solution, IActiveStatementSpanProvider spanProvider, CancellationToken cancellationToken)
         {
-            var newSession = new TrackingSession(_workspace, _spanProvider);
+            var newSession = new TrackingSession(_workspace, spanProvider);
             if (Interlocked.CompareExchange(ref _session, newSession, null) != null)
             {
                 newSession.EndTracking();
@@ -152,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 try
                 {
-                    if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(designTimeDocument.DocumentState))
+                    if (!designTimeDocument.DocumentState.SupportsEditAndContinue())
                     {
                         return;
                     }

@@ -249,6 +249,7 @@
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
@@ -314,6 +315,7 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
+                case ErrorCode.HDN_DuplicateWithGlobalUsing:
                     return true;
                 default:
                     return false;

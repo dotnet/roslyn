@@ -1648,6 +1648,7 @@ public class B
                                                                                                      If (symbols.Contains(sc.Symbol)) Then
                                                                                                          Throw New Exception("Duplicate symbol callback")
                                                                                                      End If
+
                                                                                                      sc.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, sc.Symbol.Locations.First()))
                                                                                                  End Sub, SymbolKind.NamedType)
                                                        End Sub)
