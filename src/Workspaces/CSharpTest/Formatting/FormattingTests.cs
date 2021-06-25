@@ -9978,12 +9978,12 @@ record  struct  R(int X);
         public async Task FileScopedNamespace()
         {
             await AssertFormatAsync(
-                @"
+                expected: @"
 namespace NS;
 
 class C { }
 ",
-                @"
+                code: @"
 namespace NS;
 
     class C { }

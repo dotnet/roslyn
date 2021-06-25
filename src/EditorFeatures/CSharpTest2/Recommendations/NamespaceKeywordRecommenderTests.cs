@@ -84,6 +84,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPreviousFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousNamespace_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
