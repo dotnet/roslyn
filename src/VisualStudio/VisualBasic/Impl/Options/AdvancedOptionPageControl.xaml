@@ -249,10 +249,6 @@
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
                               x:Name="ShowInheritanceMargin"
-                              IsThreeState="True"
-                              Checked="ShowInheritanceMargin_Changed"
-                              Unchecked="ShowInheritanceMargin_Changed"
-                              Indeterminate="ShowInheritanceMargin_Changed"
                               Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
                 </StackPanel>
             </GroupBox>

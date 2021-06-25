@@ -77,15 +77,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var solution = project.Solution;
-            var serializedInheritanceMarginItems = ImmutableArray<SerializableInheritanceMarginItem>.Empty;
-            using (Logger.LogBlock(FunctionId.InheritanceMargin_TraverseInheritanceChain, cancellationToken, LogLevel.Information))
-            {
-                serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
-                    solution,
-                    project.Id,
-                    symbolKeyAndLineNumbers,
-                    cancellationToken).ConfigureAwait(false);
-            }
+            var serializedInheritanceMarginItems = await GetInheritanceMemberItemAsync(
+                solution,
+                project.Id,
+                symbolKeyAndLineNumbers,
+                cancellationToken).ConfigureAwait(false);
 
             return await serializedInheritanceMarginItems.SelectAsArrayAsync(
                 (serializedItem, _) => InheritanceMarginItem.ConvertAsync(solution, serializedItem, cancellationToken), cancellationToken).ConfigureAwait(false);
