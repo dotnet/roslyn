@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents.FindDocumentInProjectContext(documentIdentifier);
         }
 
-        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
+        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
         {
             if (documents.Length > 1)
             {
@@ -108,16 +108,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
                     // This branch should be removed when we're using the LSP based navbar in all scenarios.
 
-                    // Lookup the active document and determine if any of the documents from the request URI match.
                     var solution = documents.First().Project.Solution;
-                    var service = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-
-                    var activeDocument = service.GetActiveDocument(solution);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Id == activeDocument?.Id);
-                    if (matchingDocument != null)
-                    {
-                        return matchingDocument;
-                    }
+                    // Lookup which of the linked documents is currently active in the workspace.
+                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                    return solution.GetRequiredDocument(documentIdInCurrentContext);
                 }
             }
 

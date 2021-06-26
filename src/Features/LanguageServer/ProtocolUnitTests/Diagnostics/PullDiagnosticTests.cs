@@ -264,21 +264,21 @@ class B {";
             var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
             var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
-            // Open either of the documents, LSP is just tracking the URI and text.
+            // Open either of the documents via LSP, we're tracking the URI and text.
             await OpenDocumentAsync(testLspServer, csproj1Document);
 
-            // Set the active context to be document from CSProj2
-            var documentTrackingService = (TestDocumentTrackingService)testLspServer.TestWorkspace.Services.GetRequiredService<IDocumentTrackingService>();
-            documentTrackingService.SetActiveDocument(csproj2Document.Id);
+            // This opens all documents in the workspace and ensures buffers are created.
+            testLspServer.TestWorkspace.GetTestDocument(csproj1Document.Id).GetTextBuffer();
 
+            // Set CSProj2 as the active context and get diagnostics.
+            testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj2Document.GetURI());
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
             var vsDiagnostic = (LSP.VSDiagnostic)results.Single().Diagnostics.Single();
             Assert.Equal("CSProj2", vsDiagnostic.Projects.Single().ProjectName);
 
-            // Set the active context to be document from CSProj1
-            documentTrackingService.SetActiveDocument(csproj1Document.Id);
-
+            // Set CSProj1 as the active context and get diagnostics.
+            testLspServer.TestWorkspace.SetDocumentContext(csproj1Document.Id);
             results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
             Assert.Equal(2, results.Single().Diagnostics!.Length);
             Assert.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
