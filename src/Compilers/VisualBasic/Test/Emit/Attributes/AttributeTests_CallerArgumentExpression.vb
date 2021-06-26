@@ -55,8 +55,9 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default-arg>")
             compilation.AssertTheseDiagnostics(
 <expected><![CDATA[
-Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = "<default-arg>")
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
+    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = "<default-arg>")
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
 
