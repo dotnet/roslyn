@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return isPullDiagnosticExperimentEnabled ? DiagnosticMode.Pull : DiagnosticMode.Push;
             }
 
-            private bool IsInCodeSpacesServer()
+            private static bool IsInCodeSpacesServer()
             {
                 // hack until there is an officially supported free-threaded synchronous platform API to ask this question.
                 return Environment.GetEnvironmentVariable("VisualStudioServerMode") == "1";
