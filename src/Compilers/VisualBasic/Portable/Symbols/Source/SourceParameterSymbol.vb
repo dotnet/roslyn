@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If attribute.ConstructorArguments.Single().TryDecodeValue(SpecialType.System_String, parameterName) Then
                         Dim parameters = containingSymbol.GetParameters()
                         For i = 0 To parameters.Length - 1
-                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
+                            If parameters(i).Name.Equals(parameterName, StringComparison.Ordinal) Then
                                 index = i
                                 Exit For
                             End If

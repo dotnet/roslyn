@@ -623,17 +623,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsCallerLineNumber
             {
-                get { return _underlyingParameter.IsCallerLineNumber; }
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
             }
 
             internal override bool IsCallerFilePath
             {
-                get { return _underlyingParameter.IsCallerFilePath; }
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
             }
 
             internal override bool IsCallerMemberName
             {
-                get { return _underlyingParameter.IsCallerMemberName; }
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
             }
 
             internal override int CallerArgumentExpressionParameterIndex

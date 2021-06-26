@@ -13,19 +13,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
             Get
-                Return _originalParam.IsCallerLineNumber
+                ' This parameter cannot be optional. Hence, this property shouldn't be accessed.
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
             Get
-                Return _originalParam.IsCallerMemberName
+                ' This parameter cannot be optional. Hence, this property shouldn't be accessed.
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
-                Return _originalParam.IsCallerFilePath
+                ' This parameter cannot be optional. Hence, this property shouldn't be accessed.
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 

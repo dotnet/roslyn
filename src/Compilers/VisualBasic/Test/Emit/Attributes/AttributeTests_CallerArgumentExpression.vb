@@ -52,7 +52,12 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>")
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = "<default-arg>")
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -84,7 +89,7 @@ End Module
             [opt] string s
         ) cil managed
     {
-        .param [2] = nullref
+        .param [2] = ""default""
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
                 01 00 01 49 00 00 // I
             )
@@ -115,7 +120,7 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
+            CompileAndVerify(compilation, expectedOutput:="default").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>

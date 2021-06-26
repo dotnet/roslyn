@@ -12,19 +12,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
             Get
-                Return _originalParam.IsCallerLineNumber
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
             Get
-                Return _originalParam.IsCallerMemberName
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
             Get
-                Return _originalParam.IsCallerFilePath
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 

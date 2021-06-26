@@ -1544,31 +1544,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
-
-                        Return _clonedFrom.IsCallerLineNumber
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
-
-                        Return _clonedFrom.IsCallerMemberName
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 
                 Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                     Get
-                        If IsComEventParameter Then
-                            Return False
-                        End If
-
-                        Return _clonedFrom.IsCallerFilePath
+                        Throw ExceptionUtilities.Unreachable
                     End Get
                 End Property
 

@@ -47,11 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyHasCallerMemberNameAttribute As ThreeState = ThreeState.Unknown
         Private _lazyHasCallerFilePathAttribute As ThreeState = ThreeState.Unknown
 
+        Private Const UninitializedCallerArgumentExpressionParameterIndex As Integer = Integer.MinValue
+
         ''' <summary>
-        ''' The index of a CallerArgumentExpression. The value -2 means uninitialized, -1 means
+        ''' The index of a CallerArgumentExpression. The value <see cref="UninitializedCallerArgumentExpressionParameterIndex"/> means uninitialized, -1 means
         ''' Not found. Otherwise, the index of the CallerArgumentExpression.
         ''' </summary>
-        Private _lazyCallerArgumentExpressionParameterIndex As Integer = -2
+        Private _lazyCallerArgumentExpressionParameterIndex As Integer = UninitializedCallerArgumentExpressionParameterIndex
 
         Private _lazyIsParamArray As ThreeState
 
@@ -610,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                If _lazyCallerArgumentExpressionParameterIndex = -2 Then
+                If _lazyCallerArgumentExpressionParameterIndex = UninitializedCallerArgumentExpressionParameterIndex Then
                     Debug.Assert(Not _handle.IsNil)
 
                     Dim attribute = PEModule.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute)
@@ -618,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     If attribute.HasValue AndAlso PEModule.TryExtractStringValueFromAttribute(attribute.Handle, parameterName) Then
                         Dim parameters = ContainingSymbol.GetParameters()
                         For i = 0 To parameters.Length - 1
-                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
+                            If parameters(i).Name.Equals(parameterName, StringComparison.Ordinal) Then
                                 _lazyCallerArgumentExpressionParameterIndex = i
                                 Exit For
                             End If
