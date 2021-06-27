@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -36,6 +37,15 @@ namespace Microsoft.CodeAnalysis.Collections
                 return existingList;
 
             return ImmutableSegmentedList<T>.Empty.AddRange(source);
+        }
+
+        /// <inheritdoc cref="ImmutableList.ToImmutableList{TSource}(ImmutableList{TSource}.Builder)"/>
+        public static ImmutableSegmentedList<T> ToImmutableSegmentedList<T>(this ImmutableSegmentedList<T>.Builder builder)
+        {
+            if (builder is null)
+                throw new ArgumentNullException(nameof(builder));
+
+            return builder.ToImmutable();
         }
     }
 }

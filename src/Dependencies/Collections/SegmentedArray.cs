@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
             var copied = 0;
-            foreach (var memory in sourceArray.GetSegments(0, length))
+            foreach (var memory in sourceArray.GetSegments(sourceIndex, length))
             {
                 if (!MemoryMarshal.TryGetArray<T>(memory, out var segment))
                 {
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
+                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: destinationIndex + copied, length: segment.Count);
                 copied += segment.Count;
             }
         }

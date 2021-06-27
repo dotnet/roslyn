@@ -53,6 +53,17 @@ namespace Microsoft.CodeAnalysis.Collections
                 set => ((IList)GetOrCreateMutableList())[index] = value;
             }
 
+            public ref readonly T ItemRef(int index)
+            {
+                // Following trick can reduce the range check by one
+                if ((uint)index >= (uint)ReadOnlyList.Count)
+                {
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                }
+
+                return ref ReadOnlyList._items[index];
+            }
+
             private SegmentedList<T> GetOrCreateMutableList()
             {
                 return _mutableList ??= new SegmentedList<T>(_list._list);
@@ -62,15 +73,20 @@ namespace Microsoft.CodeAnalysis.Collections
                 => GetOrCreateMutableList().Add(item);
 
             public void AddRange(IEnumerable<T> items)
-                => GetOrCreateMutableList().AddRange(items);
+            {
+                if (items is null)
+                    throw new ArgumentNullException(nameof(items));
+
+                GetOrCreateMutableList().AddRange(items);
+            }
 
             public int BinarySearch(T item)
                 => ReadOnlyList.BinarySearch(item);
 
-            public int BinarySearch(T item, IComparer<T> comparer)
+            public int BinarySearch(T item, IComparer<T>? comparer)
                 => ReadOnlyList.BinarySearch(item, comparer);
 
-            public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
+            public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
                 => ReadOnlyList.BinarySearch(index, count, item, comparer);
 
             public void Clear()
@@ -124,10 +140,28 @@ namespace Microsoft.CodeAnalysis.Collections
                 => ReadOnlyList.FindLastIndex(match);
 
             public int FindLastIndex(int startIndex, Predicate<T> match)
-                => ReadOnlyList.FindLastIndex(startIndex, match);
+            {
+                if (startIndex == 0 && Count == 0)
+                {
+                    // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                    // Handle it explicitly to avoid an exception.
+                    return -1;
+                }
+
+                return ReadOnlyList.FindLastIndex(startIndex, match);
+            }
 
             public int FindLastIndex(int startIndex, int count, Predicate<T> match)
-                => ReadOnlyList.FindLastIndex(startIndex, count, match);
+            {
+                if (count == 0 && startIndex == 0 && Count == 0)
+                {
+                    // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                    // Handle it explicitly to avoid an exception.
+                    return -1;
+                }
+
+                return ReadOnlyList.FindLastIndex(startIndex, count, match);
+            }
 
             public void ForEach(Action<T> action)
                 => ReadOnlyList.ForEach(action);
@@ -165,13 +199,40 @@ namespace Microsoft.CodeAnalysis.Collections
                 => ReadOnlyList.LastIndexOf(item);
 
             public int LastIndexOf(T item, int startIndex)
-                => ReadOnlyList.LastIndexOf(item, startIndex);
+            {
+                if (startIndex == 0 && Count == 0)
+                {
+                    // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                    // Handle it explicitly to avoid an exception.
+                    return -1;
+                }
+
+                return ReadOnlyList.LastIndexOf(item, startIndex);
+            }
 
             public int LastIndexOf(T item, int startIndex, int count)
-                => ReadOnlyList.LastIndexOf(item, startIndex, count);
+            {
+                if (count == 0 && startIndex == 0 && Count == 0)
+                {
+                    // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                    // Handle it explicitly to avoid an exception.
+                    return -1;
+                }
+
+                return ReadOnlyList.LastIndexOf(item, startIndex, count);
+            }
 
             public int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
-                => ReadOnlyList.LastIndexOf(item, startIndex, count, equalityComparer);
+            {
+                if (startIndex < 0)
+                    ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                if (count < 0 || count > Count)
+                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
+                if (startIndex - count + 1 < 0)
+                    throw new ArgumentException();
+
+                return ReadOnlyList.LastIndexOf(item, startIndex, count, equalityComparer);
+            }
 
             public bool Remove(T item)
             {

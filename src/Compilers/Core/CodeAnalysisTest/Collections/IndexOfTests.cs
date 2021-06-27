@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://raw.githubusercontent.com/dotnet/runtime/v6.0.0-preview.5.21301.5/src/libraries/System.Collections.Immutable/tests/IndexOfTests.cs
@@ -7,11 +8,14 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public static class IndexOfTests
     {
@@ -20,7 +24,8 @@ namespace System.Collections.Immutable.Tests
             Func<TCollection, int, int> indexOfItem,
             Func<TCollection, int, int, int> indexOfItemIndex,
             Func<TCollection, int, int, int, int> indexOfItemIndexCount,
-            Func<TCollection, int, int, int, IEqualityComparer<int>, int> indexOfItemIndexCountEQ)
+            Func<TCollection, int, int, int, IEqualityComparer<int>?, int> indexOfItemIndexCountEQ)
+            where TCollection : notnull
         {
             var emptyCollection = factory(new int[0]);
             var collection1256 = factory(new[] { 1, 2, 5, 6 });
@@ -42,7 +47,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal(2, indexOfItemIndexCount(collection1256, 5, 1, 2));
 
             // Create a list with contents: 100,101,102,103,104,100,101,102,103,104
-            var list = ImmutableList<int>.Empty.AddRange(Enumerable.Range(100, 5).Concat(Enumerable.Range(100, 5)));
+            var list = ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(100, 5).Concat(Enumerable.Range(100, 5)));
             var bclList = list.ToList();
             Assert.Equal(-1, indexOfItem(factory(list), 6));
             Assert.Equal(2, indexOfItemIndexCountEQ(factory(list), 102, 0, 4, null));
@@ -89,7 +94,7 @@ namespace System.Collections.Immutable.Tests
             Func<TCollection, int, IEqualityComparer<int>, int> lastIndexOfItemEQ,
             Func<TCollection, int, int, int> lastIndexOfItemIndex,
             Func<TCollection, int, int, int, int> lastIndexOfItemIndexCount,
-            Func<TCollection, int, int, int, IEqualityComparer<int>, int> lastIndexOfItemIndexCountEQ)
+            Func<TCollection, int, int, int, IEqualityComparer<int>?, int> lastIndexOfItemIndexCountEQ)
         {
             var emptyCollection = factory(new int[0]);
             var collection1256 = factory(new[] { 1, 2, 5, 6 });
@@ -110,7 +115,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal(-1, lastIndexOfItemIndexCount(emptyCollection, 5, 0, 0));
 
             // Create a list with contents: 100,101,102,103,104,100,101,102,103,104
-            var list = ImmutableList<int>.Empty.AddRange(Enumerable.Range(100, 5).Concat(Enumerable.Range(100, 5)));
+            var list = ImmutableSegmentedList<int>.Empty.AddRange(Enumerable.Range(100, 5).Concat(Enumerable.Range(100, 5)));
             var bclList = list.ToList();
             Assert.Equal(-1, lastIndexOfItem(factory(list), 6));
             Assert.Equal(2, lastIndexOfItemIndexCountEQ(factory(list), 102, 6, 5, null));

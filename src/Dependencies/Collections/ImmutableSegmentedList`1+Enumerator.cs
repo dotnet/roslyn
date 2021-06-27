@@ -11,10 +11,12 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly SegmentedList<T>.Enumerator _enumerator;
+            private readonly SegmentedList<T> _list;
+            private SegmentedList<T>.Enumerator _enumerator;
 
             internal Enumerator(SegmentedList<T> list)
             {
+                _list = list;
                 _enumerator = list.GetEnumerator();
             }
 
@@ -29,7 +31,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 => _enumerator.MoveNext();
 
             public void Reset()
-                => ((IEnumerator<T>)_enumerator).Reset();
+            {
+                // Create a new enumerator, since _enumerator.Reset() will fail for cases where the list was mutated
+                // after enumeration started, and ImmutableSegmentList<T>.Builder allows for this case without error.
+                _enumerator = _list.GetEnumerator();
+            }
         }
     }
 }

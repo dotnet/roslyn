@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal readonly partial struct ImmutableSegmentedList<T> : IImmutableList<T>, IReadOnlyList<T>, IList<T>, IList
+    internal readonly partial struct ImmutableSegmentedList<T> : IImmutableList<T>, IReadOnlyList<T>, IList<T>, IList, IEquatable<ImmutableSegmentedList<T>>
     {
         /// <inheritdoc cref="ImmutableList{T}.Empty"/>
         public static readonly ImmutableSegmentedList<T> Empty = new(new SegmentedList<T>());
@@ -50,6 +50,31 @@ namespace Microsoft.CodeAnalysis.Collections
             set => throw new NotSupportedException();
         }
 
+        public static bool operator ==(ImmutableSegmentedList<T> left, ImmutableSegmentedList<T> right)
+            => left.Equals(right);
+
+        public static bool operator !=(ImmutableSegmentedList<T> left, ImmutableSegmentedList<T> right)
+            => !left.Equals(right);
+
+        public static bool operator ==(ImmutableSegmentedList<T>? left, ImmutableSegmentedList<T>? right)
+            => left.GetValueOrDefault().Equals(right.GetValueOrDefault());
+
+        public static bool operator !=(ImmutableSegmentedList<T>? left, ImmutableSegmentedList<T>? right)
+            => !left.GetValueOrDefault().Equals(right.GetValueOrDefault());
+
+        public ref readonly T ItemRef(int index)
+        {
+            var self = this;
+
+            // Following trick can reduce the range check by one
+            if ((uint)index >= (uint)self.Count)
+            {
+                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+            }
+
+            return ref self._list._items[index];
+        }
+
         public ImmutableSegmentedList<T> Add(T value)
         {
             var self = this;
@@ -73,8 +98,18 @@ namespace Microsoft.CodeAnalysis.Collections
         public ImmutableSegmentedList<T> AddRange(IEnumerable<T> items)
         {
             var self = this;
-            if (self.IsEmpty)
+
+            if (items is ICollection<T> { Count: 0 })
             {
+                return self;
+            }
+            else if (self.IsEmpty)
+            {
+                if (items is ImmutableSegmentedList<T> immutableList)
+                    return immutableList;
+                else if (items is ImmutableSegmentedList<T>.Builder builder)
+                    return builder.ToImmutable();
+
                 var list = new SegmentedList<T>(items);
                 return new ImmutableSegmentedList<T>(list);
             }
@@ -91,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Collections
         public int BinarySearch(T item)
             => _list.BinarySearch(item);
 
-        public int BinarySearch(T item, IComparer<T> comparer)
+        public int BinarySearch(T item, IComparer<T>? comparer)
             => _list.BinarySearch(item, comparer);
 
-        public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
+        public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
             => _list.BinarySearch(index, count, item, comparer);
 
         public ImmutableSegmentedList<T> Clear()
@@ -140,10 +175,32 @@ namespace Microsoft.CodeAnalysis.Collections
             => _list.FindLastIndex(match);
 
         public int FindLastIndex(int startIndex, Predicate<T> match)
-            => _list.FindLastIndex(startIndex, match);
+        {
+            var self = this;
+
+            if (startIndex == 0 && self.IsEmpty)
+            {
+                // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                // Handle it explicitly to avoid an exception.
+                return -1;
+            }
+
+            return self._list.FindLastIndex(startIndex, match);
+        }
 
         public int FindLastIndex(int startIndex, int count, Predicate<T> match)
-            => _list.FindLastIndex(startIndex, count, match);
+        {
+            var self = this;
+
+            if (count == 0 && startIndex == 0 && self.IsEmpty)
+            {
+                // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                // Handle it explicitly to avoid an exception.
+                return -1;
+            }
+
+            return self._list.FindLastIndex(startIndex, count, match);
+        }
 
         public void ForEach(Action<T> action)
             => _list.ForEach(action);
@@ -198,7 +255,25 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
-            => _list.LastIndexOf(item, index, count, equalityComparer);
+        {
+            var self = this;
+
+            if (index < 0)
+                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+            if (count < 0 || count > self.Count)
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
+            if (index - count + 1 < 0)
+                throw new ArgumentException();
+
+            if (count == 0 && index == 0 && self.IsEmpty)
+            {
+                // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
+                // Handle it explicitly to avoid an exception.
+                return -1;
+            }
+
+            return self._list.LastIndexOf(item, index, count, equalityComparer);
+        }
 
         public ImmutableSegmentedList<T> Remove(T value)
         {
@@ -243,7 +318,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items)
         {
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
+
             var self = this;
+
+            if (self.IsEmpty)
+                return self;
 
             Builder? builder = null;
             foreach (var item in items)
@@ -267,7 +348,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer)
         {
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
+
             var self = this;
+
+            if (self.IsEmpty)
+                return self;
 
             Builder? builder = null;
             foreach (var item in items)
@@ -291,10 +378,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedList<T> RemoveRange(int index, int count)
         {
+            var self = this;
+
+            if (count == 0 && index >= 0 && index <= self.Count)
+            {
+                return self;
+            }
+
             // TODO: Optimize this to avoid a Builder allocation
-            // TODO: Optimize this to avoid allocations if no items are removed
             // TODO: Optimize this to share pages prior to the first removed item
-            var builder = ToBuilder();
+            var builder = self.ToBuilder();
             builder.RemoveRange(index, count);
             return builder.ToImmutable();
         }
@@ -412,6 +505,18 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public Builder ToBuilder()
             => new Builder(this);
+
+        public override int GetHashCode()
+            => _list?.GetHashCode() ?? 0;
+
+        public override bool Equals(object? obj)
+        {
+            return obj is ImmutableSegmentedList<T> other
+                && Equals(other);
+        }
+
+        public bool Equals(ImmutableSegmentedList<T> other)
+            => _list == other._list;
 
         public bool TrueForAll(Predicate<T> match)
             => _list.TrueForAll(match);
