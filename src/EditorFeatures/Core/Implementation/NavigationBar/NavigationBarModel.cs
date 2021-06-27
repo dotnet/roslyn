@@ -10,20 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal sealed class NavigationBarModel
     {
         public ImmutableArray<NavigationBarItem> Types { get; }
-
-        /// <summary>
-        /// The VersionStamp of the project when this model was computed.
-        /// </summary>
-        public VersionStamp SemanticVersionStamp { get; }
-
         public INavigationBarItemService ItemService { get; }
 
-        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, VersionStamp semanticVersionStamp, INavigationBarItemService itemService)
+        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, INavigationBarItemService itemService)
         {
             Contract.ThrowIfNull(types);
 
             this.Types = types;
-            this.SemanticVersionStamp = semanticVersionStamp;
             this.ItemService = itemService;
         }
     }
