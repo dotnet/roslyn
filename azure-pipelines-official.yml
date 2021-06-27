@@ -291,7 +291,9 @@ stages:
         vmImage: vs2017-win2016
 
 - stage: insert
-  dependsOn: build
+  dependsOn:
+  - build
+  - publish_using_darc
   displayName: Insert to VS
 
   jobs:
