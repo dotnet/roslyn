@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask = ComputeModelAfterDelayAsync(_modelTask, textSnapshot, modelUpdateDelay, cancellationToken);
             _modelTask.CompletesAsyncOperation(asyncToken);
 
-            StartSelectedItemUpdateTask(delay: 0);
+            StartSelectedItemUpdateTask();
         }
 
         private static async Task<NavigationBarModel> ComputeModelAfterDelayAsync(
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute what item should be selected.
         /// </summary>
-        private void StartSelectedItemUpdateTask(int delay)
+        private void StartSelectedItemUpdateTask()
         {
             AssertIsForeground();
 
@@ -143,19 +144,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var cancellationToken = _selectedItemInfoTaskCancellationSource.Token;
 
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask");
-            var selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, delay, subjectBufferCaretPosition.Value, cancellationToken);
+            var selectedItemInfoTask = DetermineSelectedItemInfoAsync(_modelTask, subjectBufferCaretPosition.Value, cancellationToken);
             selectedItemInfoTask.CompletesAsyncOperation(asyncToken);
         }
 
         private async Task DetermineSelectedItemInfoAsync(
             Task<NavigationBarModel> lastModelTask,
-            int delay,
             SnapshotPoint caretPosition,
             CancellationToken cancellationToken)
         {
             // First wait the delay before doing any other work.  That way if we get canceled due to other events (like
             // the user moving around), we don't end up doing anything, and the next task can take over.
-            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(TaggerConstants.NearImmediateDelay, cancellationToken).ConfigureAwait(false);
 
             var lastModel = await lastModelTask.ConfigureAwait(false);
             if (cancellationToken.IsCancellationRequested)

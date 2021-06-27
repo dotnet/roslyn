@@ -221,13 +221,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay);
+            StartSelectedItemUpdateTask();
         }
 
         private void OnViewFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay);
+            StartSelectedItemUpdateTask();
         }
 
         private void OnDropDownFocused(object? sender, EventArgs e)
