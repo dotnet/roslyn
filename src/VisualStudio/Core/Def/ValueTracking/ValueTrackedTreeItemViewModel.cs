@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }, ThreadingContext.DisposalToken);
         }
 
-        public override void Select()
+        public override void NavigateTo()
         {
             var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService is null)
