@@ -175,13 +175,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                     ? SyntaxFactory.Block(trueStatement)
                     : trueStatement);
 
-            if (falseStatementOpt != null)
+            if (falseStatementOpt != null &&
+                ShouleKeepFalse(ifNode, falseStatementOpt))
             {
                 var elseClause = updatedIf.Else != null
                     ? updatedIf.Else.WithStatement(falseStatementOpt)
                     : SyntaxFactory.ElseClause(falseStatementOpt);
 
                 updatedIf = updatedIf.WithElse(elseClause);
+            }
+            else
+            {
+                updatedIf = updatedIf.WithElse(null);
             }
 
             // If this is multiline, format things after we swap around the if/else.  Because 
@@ -191,6 +196,41 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             return isSingleLine
                 ? updatedIf
                 : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static bool ShouleKeepFalse(IfStatementSyntax ifStatement, StatementSyntax falseStatement)
+        {
+            if (falseStatement is BlockSyntax falseBlock)
+            {
+                // Block false syntax with some statements included.
+                // If there are no statements, it's an empty
+                // block and we can get rid of it.
+                if (falseBlock.Statements.Any())
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                // The statement is not expected to have children, so we know it's fine
+                // to consider this something that needs to be included. Such as 
+                // a return statement, or other similar things for single line if/else.
+                return true;
+            }
+
+            // If the stateements for the else don't pass, we still need to check
+            // if there are comments that should be included. If so, pass them along
+            return ifStatement.Statement switch
+            {
+                BlockSyntax block => block.CloseBraceToken.LeadingTrivia.Any(HasComment),
+                _ => false
+            };
+
+            static bool HasComment(SyntaxTrivia t)
+            {
+                return t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
+                    t.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            }
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
