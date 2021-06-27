@@ -58,6 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
 
+        /// <summary>
+        /// Source of events that should cause us to update the nav bar model with new information.
+        /// </summary>
         private readonly ITaggerEventSource _eventSource;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -116,13 +119,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
             _model_OnlyAccessOnUIThread = _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model;
 
+            // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
+            // snapshot we use.
             _eventSource = new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 asyncListener,
+                // Any time an edit happens, recompute as the nav bar items may have changed.
                 TaggerEventSources.OnTextChanged(subjectBuffer),
+                // Switching what is the active context may change the nav bar contents.
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener));
+                // Many workspace changes may need us to change the items (like options changing, or project renaming).
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                // Once we hook this buffer up to the workspace, then we can start computing the nav bar items.
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
             _eventSource.Changed += OnEventSourceChanged;
             _eventSource.Connect();
         }

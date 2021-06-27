@@ -962,6 +962,11 @@
         <target state="translated">如果有編譯單位包含最上層陳述式，就無法指定 /main。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">在此內容中，無法使用最上層陳述式中宣告的區域變數或區域函式 '{0}'。</target>
@@ -11023,8 +11028,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}' 未實作介面成員 '{1}'。'{2}' 無法隱含地實作非公開成員。</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

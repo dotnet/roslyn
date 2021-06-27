@@ -962,6 +962,11 @@
         <target state="translated">Pokud existuje jednotka kompilace s příkazy nejvyšší úrovně, nedá se zadat /main.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">Místní proměnná nebo místní funkce {0} deklarovaná v příkazu nejvyšší úrovně v tomto kontextu se nedá použít.</target>
@@ -11023,8 +11028,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">{0} neimplementuje člen rozhraní {1}. {2} nemůže implicitně implementovat neveřejný člen rozhraní.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

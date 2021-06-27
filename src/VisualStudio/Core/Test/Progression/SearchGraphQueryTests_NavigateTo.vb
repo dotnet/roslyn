@@ -13,7 +13,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
-    Public Class SearchGraphQueryTests
+    Public Class SearchGraphQueryTests_NavigateTo
         <WpfFact>
         Public Async Function SearchForType() As Task
             Using testState = ProgressionTestState.Create(
@@ -21,28 +21,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 class C { }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 C)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -55,30 +55,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 class C { class F { } }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="F", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("F", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 F)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Private" Label="F"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=(Name=F ParentType=C))" Category="CodeSchema_Class" CodeSchemaProperty_IsPrivate="True" CommonLabel="F" Icon="Microsoft.VisualStudio.Class.Private" Label="F"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Type=C)" Target="(@3 Type=(Name=F ParentType=C))" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 F)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -91,30 +89,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 class C { void M(); }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="M", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("M", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 M())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="M()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=C Member=M)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="M" Icon="Microsoft.VisualStudio.Method.Private" Label="M"/>
-                            <Node Id="(@3 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Type=C)" Target="(@3 Type=C Member=M)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 M())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -132,7 +128,7 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                             <Document FilePath="Z:\Project2.vb">
 Namespace N
     Partial Class C
@@ -140,31 +136,32 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
+                            <Node Id="(@1 @3 C)" Category="CodeSchema_Class" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 C)" Category="Contains"/>
+                            <Link Source="(@1 @3)" Target="(@1 @3 C)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project2.vb"/>
                             <Alias n="3" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="4" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -182,7 +179,7 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                             <Document FilePath="Z:\Project2.vb">
 Namespace N
     Partial Class C
@@ -190,30 +187,28 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="Goo", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Goo", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Goo())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@3 Namespace=N Type=C Member=Goo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Public" Label="Goo"/>
-                            <Node Id="(@3 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@3 Namespace=N Type=C)" Target="(@3 Namespace=N Type=C Member=Goo)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Goo())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -231,7 +226,7 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                             <Document FilePath="Z:\Project2.vb">
 Namespace N
     Partial Class C
@@ -239,35 +234,32 @@ Namespace N
         End Sub
     End Class
 End Namespace
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="Z", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("Z", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 ZBar())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project2.vb"/>
+                            <Node Id="(@1 @3 ZGoo())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo()"/>
                             <Node Id="(@1 @3)" Category="CodeSchema_ProjectItem" Label="Project.vb"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZBar)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZBar" Icon="Microsoft.VisualStudio.Method.Public" Label="ZBar"/>
-                            <Node Id="(@4 Namespace=N Type=C Member=ZGoo)" Category="CodeSchema_Method" CodeSchemaProperty_IsHideBySignature="True" CodeSchemaProperty_IsPublic="True" CommonLabel="ZGoo" Icon="Microsoft.VisualStudio.Method.Public" Label="ZGoo"/>
-                            <Node Id="(@4 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@1 @3)" Target="(@4 Namespace=N Type=C)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZBar)" Category="Contains"/>
-                            <Link Source="(@4 Namespace=N Type=C)" Target="(@4 Namespace=N Type=C Member=ZGoo)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 ZBar())" Category="Contains"/>
+                            <Link Source="(@1 @3)" Target="(@1 @3 ZGoo())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project2.vb"/>
                             <Alias n="3" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="4" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -280,30 +272,28 @@ End Namespace
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 class Dog { void Bark() { } }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Type=Dog Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Type=Dog)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Type=Dog)" Category="Contains"/>
-                            <Link Source="(@3 Type=Dog)" Target="(@3 Type=Dog Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -316,13 +306,14 @@ End Namespace
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 class Dog { void Bark() { } }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="C.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("C.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -340,30 +331,28 @@ End Namespace
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
-                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -376,30 +365,28 @@ End Namespace
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
                             <Document FilePath="Z:\Project.cs">
                                 namespace Animal { class Dog&lt;X&gt; { void Bark() { } } }
-                         </Document>
+                            </Document>
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
+                            <Node Id="(@1 @2 Bark())" Category="CodeSchema_Method" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark()"/>
                             <Node Id="(@1 @2)" Category="CodeSchema_ProjectItem" Label="Project.cs"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Bark" Icon="Microsoft.VisualStudio.Method.Private" Label="Bark"/>
-                            <Node Id="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="Dog&lt;X&gt;" Icon="Microsoft.VisualStudio.Class.Internal" Label="Dog&lt;X&gt;"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 @2)" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Category="Contains"/>
-                            <Link Source="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1))" Target="(@3 Namespace=Animal Type=(Name=Dog GenericParameterCount=1) Member=Bark)" Category="Contains"/>
+                            <Link Source="(@1 @2)" Target="(@1 @2 Bark())" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -416,9 +403,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, True))
                 Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(
-                    New Graph(), New SearchGraphQuery(searchPattern:="A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
+                    New Graph(), New SearchGraphQuery("A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file

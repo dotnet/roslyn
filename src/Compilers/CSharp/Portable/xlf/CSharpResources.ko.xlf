@@ -962,6 +962,11 @@
         <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">이 컨텍스트에서는 최상위 문에 선언된 지역 변수 또는 로컬 함수 '{0}'을(를) 사용할 수 없습니다.</target>
@@ -11022,8 +11027,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) public이 아닌 멤버를 암시적으로 구현할 수 없습니다.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

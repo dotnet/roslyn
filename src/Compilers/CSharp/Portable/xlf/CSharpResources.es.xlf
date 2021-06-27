@@ -962,6 +962,11 @@
         <target state="translated">No se puede especificar /main si hay una unidad de compilación con instrucciones de nivel superior.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">No se puede usar la variable local ni la función local "{0}" declarada en una instrucción de nivel superior en este contexto.</target>
@@ -11023,8 +11028,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">"{0}" no implementa el miembro de interfaz "{1}". "{2}" no puede implementar implícitamente un miembro que no sea público.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

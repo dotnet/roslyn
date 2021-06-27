@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -14,8 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         public NavigationBarModel(ImmutableArray<NavigationBarItem> types, INavigationBarItemService itemService)
         {
-            Contract.ThrowIfNull(types);
-
             this.Types = types;
             this.ItemService = itemService;
         }

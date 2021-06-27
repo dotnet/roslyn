@@ -184,7 +184,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
-            this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
 
             // The misc files workspace needs to be loaded on the UI thread.  This way it will have
             // the appropriate task scheduler to report events on.

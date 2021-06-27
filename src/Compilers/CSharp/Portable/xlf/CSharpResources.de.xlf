@@ -962,6 +962,11 @@
         <target state="translated">"/main" kann nicht angegeben werden, wenn eine Kompilierungseinheit mit Anweisungen der obersten Ebene vorhanden ist.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">Die lokale Variable oder die lokale Funktion "{0}", die in einer Anweisung der obersten Ebene in diesem Kontext deklariert wurde, kann nicht verwendet werden.</target>
@@ -11023,8 +11028,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">Der Schnittstellenmember "{1}" wird von "{0}" nicht implementiert. Ein nicht öffentlicher Member kann von "{2}" nicht implizit implementiert werden.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
