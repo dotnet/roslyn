@@ -219,18 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             }
 
             // If the stateements for the else don't pass, we still need to check
-            // if there are comments that should be included. If so, pass them along
-            return ifStatement.Statement switch
-            {
-                BlockSyntax block => block.CloseBraceToken.LeadingTrivia.Any(HasComment),
-                _ => false
-            };
-
-            static bool HasComment(SyntaxTrivia t)
-            {
-                return t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
-                    t.IsKind(SyntaxKind.SingleLineCommentTrivia);
-            }
+            // if there are comments from the original if that should be included.
+            // If so, pass them along to be copied to the new else block
+            return ifStatement.Statement is BlockSyntax block
+                && block.CloseBraceToken.LeadingTrivia.Any(t => 
+                    t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
+                    t.IsKind(SyntaxKind.SingleLineCommentTrivia));
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)
