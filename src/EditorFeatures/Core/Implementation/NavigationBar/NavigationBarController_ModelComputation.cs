@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 try
                 {
                     await Task.Delay(TaggerConstants.ShortDelay, cancellationToken).ConfigureAwait(false);
-                    return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
+                    return await ComputeModelAsync(textSnapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Computes a model for the given snapshot.
         /// </summary>
-        private static async Task<NavigationBarModel> ComputeModelAsync(
-            NavigationBarModel lastCompletedModel, ITextSnapshot snapshot, CancellationToken cancellationToken)
+        private static async Task<NavigationBarModel> ComputeModelAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
             // Ensure we switch to the threadpool before calling GetDocumentWithFrozenPartialSemantics.  It ensures
             // that any IO that performs is not potentially on the UI thread.
@@ -103,27 +102,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {
-                // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.
-                // the model should be only updated here
-                if (lastCompletedModel != null)
-                {
-                    var semanticVersion = await document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                    if (lastCompletedModel.SemanticVersionStamp == semanticVersion && SpanStillValid(lastCompletedModel, snapshot, cancellationToken))
-                    {
-                        // it looks like we can re-use previous model
-                        return lastCompletedModel;
-                    }
-                }
-
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
                     var items = await languageService.GetItemsAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-                    return new NavigationBarModel(items, version, languageService);
+                    return new NavigationBarModel(items, languageService);
                 }
             }
 
-            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, new VersionStamp(), null);
+            return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, itemService: null);
         }
 
         /// <summary>
