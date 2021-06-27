@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private void StartModelUpdateAndSelectedItemUpdateTasks()
+        private void StartModelUpdateAndSelectedItemUpdateTasksOnUIThread()
         {
             AssertIsForeground();
 

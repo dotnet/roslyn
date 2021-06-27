@@ -7,9 +7,11 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private readonly IAsynchronousOperationListener _asyncListener;
 
         private bool _disconnected = false;
-        private Workspace? _workspace;
 
         /// <summary>
         /// Latest model and selected items produced once <see cref="DetermineSelectedItemInfoAsync"/> completes and
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// just skip doing that as the UI will already know about this.
         /// </summary>
         private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+
+        private readonly ITaggerEventSource _eventSource;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -70,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             presenter.DropDownFocused += OnDropDownFocused;
             presenter.ItemSelected += OnItemSelected;
 
-            subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
-
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(
                 ImmutableArray<NavigationBarItem>.Empty,
@@ -80,70 +81,53 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
 
             _modelTask = Task.FromResult(_latestModelAndSelectedInfo_OnlyAccessOnUIThread.model);
+
+            _eventSource = new CompilationAvailableTaggerEventSource(
+                subjectBuffer,
+                asyncListener,
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+            _eventSource.Changed += OnEventSourceChanged;
+            _eventSource.Connect();
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
         {
-            DisconnectFromWorkspace();
-
             if (newWorkspace != null)
-            {
-                ConnectToWorkspace(newWorkspace);
-            }
+                StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        private void ConnectToWorkspace(Workspace workspace)
+        private void StartModelUpdateAndSelectedItemUpdateTasks()
         {
-            // If we disconnected before the workspace ever connected, just disregard
+            // If we're disconnected , just disregard
             if (_disconnected)
-            {
                 return;
-            }
-
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
             if (IsForeground())
             {
-                ConnectToNewWorkspace();
+                StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
             }
             else
             {
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ConnectToWorkspace));
+                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(StartModelUpdateAndSelectedItemUpdateTasks));
                 Task.Run(async () =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    ConnectToNewWorkspace();
+                    StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
                 }).CompletesAsyncOperation(asyncToken);
-            }
-
-            return;
-
-            void ConnectToNewWorkspace()
-            {
-                // For the first time you open the file, kick off the work to determine the nav bars.
-                StartModelUpdateAndSelectedItemUpdateTasks();
             }
         }
 
-        private void DisconnectFromWorkspace()
+        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
         {
-            if (_workspace != null)
-            {
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace = null;
-            }
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         public void Disconnect()
         {
             AssertIsForeground();
-            DisconnectFromWorkspace();
-
-            _subjectBuffer.PostChanged -= OnSubjectBufferPostChanged;
 
             _presenter.CaretMoved -= OnCaretMoved;
             _presenter.ViewFocused -= OnViewFocused;
@@ -153,69 +137,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             _presenter.Disconnect();
 
+            _eventSource.Changed -= OnEventSourceChanged;
+            _eventSource.Disconnect();
+
             _disconnected = true;
 
             // Cancel off any remaining background work
             _modelTaskCancellationSource.Cancel();
             _selectedItemInfoTaskCancellationSource.Cancel();
-        }
-
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
-        {
-            // We're getting an event for a workspace we already disconnected from
-            if (args.NewSolution.Workspace != _workspace)
-            {
-                return;
-            }
-
-            // If the displayed project is being renamed, retrigger the update
-            if (args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null)
-            {
-                var oldProject = args.OldSolution.GetRequiredProject(args.ProjectId);
-                var newProject = args.NewSolution.GetRequiredProject(args.ProjectId);
-
-                if (oldProject.Name != newProject.Name)
-                {
-                    var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-
-                    if (currentContextDocumentId != null && currentContextDocumentId.ProjectId == args.ProjectId)
-                    {
-                        StartModelUpdateAndSelectedItemUpdateTasks();
-                    }
-                }
-            }
-
-            if (args.Kind == WorkspaceChangeKind.DocumentChanged &&
-                args.OldSolution == args.NewSolution)
-            {
-                var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
-                {
-                    // The context has changed, so update everything.
-                    StartModelUpdateAndSelectedItemUpdateTasks();
-                }
-            }
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
-        {
-            AssertIsForeground();
-            if (args.Solution.Workspace != _workspace)
-                return;
-
-            var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-            if (args.NewActiveContextDocumentId == currentContextDocumentId ||
-                args.OldActiveContextDocumentId == currentContextDocumentId)
-            {
-                // if the active context changed, recompute the types/member as they may be changed as well.
-                StartModelUpdateAndSelectedItemUpdateTasks();
-            }
-        }
-
-        private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
-        {
-            AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         private void OnCaretMoved(object? sender, EventArgs e)
@@ -395,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks();
+            StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
         }
     }
 }
