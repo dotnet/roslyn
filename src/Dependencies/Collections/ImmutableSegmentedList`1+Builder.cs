@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -12,137 +13,268 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         public sealed class Builder : IList<T>, IReadOnlyList<T>, IList
         {
-            private Builder() => throw null!;
+            /// <summary>
+            /// The immutable collection this builder is based on.
+            /// </summary>
+            private ImmutableSegmentedList<T> _list;
 
-            public int Count => throw null!;
+            /// <summary>
+            /// The current mutable collection this builder is operating on. This field is initialized to a copy of
+            /// <see cref="_list"/> the first time a change is made.
+            /// </summary>
+            private SegmentedList<T>? _mutableList;
 
-            bool ICollection<T>.IsReadOnly => throw null!;
+            internal Builder(ImmutableSegmentedList<T> list)
+                => _list = list;
 
-            bool IList.IsFixedSize => throw null!;
+            public int Count => ReadOnlyList.Count;
 
-            bool IList.IsReadOnly => throw null!;
+            private SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
 
-            bool ICollection.IsSynchronized => throw null!;
+            bool ICollection<T>.IsReadOnly => false;
 
-            object ICollection.SyncRoot => throw null!;
+            bool IList.IsFixedSize => false;
+
+            bool IList.IsReadOnly => false;
+
+            bool ICollection.IsSynchronized => false;
+
+            object ICollection.SyncRoot => this;
 
             public T this[int index]
             {
-                get => throw null!;
-                set => throw null!;
+                get => ReadOnlyList[index];
+                set => GetOrCreateMutableList()[index] = value;
             }
 
             object? IList.this[int index]
             {
-                get => throw null!;
-                set => throw null!;
+                get => ((IList)ReadOnlyList)[index];
+                set => ((IList)GetOrCreateMutableList())[index] = value;
             }
 
-            public void Add(T item) => throw null!;
+            private SegmentedList<T> GetOrCreateMutableList()
+            {
+                return _mutableList ??= new SegmentedList<T>(_list._list);
+            }
 
-            public void AddRange(IEnumerable<T> items) => throw null!;
+            public void Add(T item)
+                => GetOrCreateMutableList().Add(item);
 
-            public int BinarySearch(T item) => throw null!;
+            public void AddRange(IEnumerable<T> items)
+                => GetOrCreateMutableList().AddRange(items);
 
-            public int BinarySearch(T item, IComparer<T> comparer) => throw null!;
+            public int BinarySearch(T item)
+                => ReadOnlyList.BinarySearch(item);
 
-            public int BinarySearch(int index, int count, T item, IComparer<T> comparer) => throw null!;
+            public int BinarySearch(T item, IComparer<T> comparer)
+                => ReadOnlyList.BinarySearch(item, comparer);
 
-            public void Clear() => throw null!;
+            public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
+                => ReadOnlyList.BinarySearch(index, count, item, comparer);
 
-            public bool Contains(T item) => throw null!;
+            public void Clear()
+            {
+                if (ReadOnlyList.Count != 0)
+                {
+                    if (_mutableList is null)
+                        _mutableList = new SegmentedList<T>();
+                    else
+                        _mutableList.Clear();
+                }
+            }
 
-            public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Func<T, TOutput> converter) => throw null!;
+            public bool Contains(T item)
+                => ReadOnlyList.Contains(item);
 
-            public void CopyTo(T[] array) => throw null!;
+            public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
+                => new ImmutableSegmentedList<TOutput>(ReadOnlyList.ConvertAll(converter));
 
-            public void CopyTo(T[] array, int arrayIndex) => throw null!;
+            public void CopyTo(T[] array)
+                => ReadOnlyList.CopyTo(array);
 
-            public void CopyTo(int index, T[] array, int arrayIndex, int count) => throw null!;
+            public void CopyTo(T[] array, int arrayIndex)
+                => ReadOnlyList.CopyTo(array, arrayIndex);
 
-            public bool Exists(Predicate<T> match) => throw null!;
+            public void CopyTo(int index, T[] array, int arrayIndex, int count)
+                => ReadOnlyList.CopyTo(index, array, arrayIndex, count);
 
-            public T Find(Predicate<T> match) => throw null!;
+            public bool Exists(Predicate<T> match)
+                => ReadOnlyList.Exists(match);
 
-            public ImmutableSegmentedList<T> FindAll(Predicate<T> match) => throw null!;
+            public T? Find(Predicate<T> match)
+                => ReadOnlyList.Find(match);
 
-            public int FindIndex(Predicate<T> match) => throw null!;
+            public ImmutableSegmentedList<T> FindAll(Predicate<T> match)
+                => new ImmutableSegmentedList<T>(ReadOnlyList.FindAll(match));
 
-            public int FindIndex(int startIndex, Predicate<T> match) => throw null!;
+            public int FindIndex(Predicate<T> match)
+                => ReadOnlyList.FindIndex(match);
 
-            public int FindIndex(int startIndex, int count, Predicate<T> match) => throw null!;
+            public int FindIndex(int startIndex, Predicate<T> match)
+                => ReadOnlyList.FindIndex(startIndex, match);
 
-            public T FindLast(Predicate<T> match) => throw null!;
+            public int FindIndex(int startIndex, int count, Predicate<T> match)
+                => ReadOnlyList.FindIndex(startIndex, count, match);
 
-            public int FindLastIndex(Predicate<T> match) => throw null!;
+            public T? FindLast(Predicate<T> match)
+                => ReadOnlyList.FindLast(match);
 
-            public int FindLastIndex(int startIndex, Predicate<T> match) => throw null!;
+            public int FindLastIndex(Predicate<T> match)
+                => ReadOnlyList.FindLastIndex(match);
 
-            public int FindLastIndex(int startIndex, int count, Predicate<T> match) => throw null!;
+            public int FindLastIndex(int startIndex, Predicate<T> match)
+                => ReadOnlyList.FindLastIndex(startIndex, match);
 
-            public void ForEach(Action<T> action) => throw null!;
+            public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+                => ReadOnlyList.FindLastIndex(startIndex, count, match);
 
-            public Enumerator GetEnumerator() => throw null!;
+            public void ForEach(Action<T> action)
+                => ReadOnlyList.ForEach(action);
 
-            public ImmutableSegmentedList<T> GetRange(int index, int count) => throw null!;
+            public Enumerator GetEnumerator()
+                => new Enumerator(GetOrCreateMutableList());
 
-            public int IndexOf(T item) => throw null!;
+            public ImmutableSegmentedList<T> GetRange(int index, int count)
+            {
+                if (index == 0 && count == Count)
+                    return ToImmutable();
 
-            public int IndexOf(T item, int index) => throw null!;
+                return new ImmutableSegmentedList<T>(ReadOnlyList.GetRange(index, count));
+            }
 
-            public int IndexOf(T item, int index, int count) => throw null!;
+            public int IndexOf(T item)
+                => ReadOnlyList.IndexOf(item);
 
-            public int IndexOf(T item, int index, int count, IEqualityComparer<T> equalityComparer) => throw null!;
+            public int IndexOf(T item, int index)
+                => ReadOnlyList.IndexOf(item, index);
 
-            public void Insert(int index, T item) => throw null!;
+            public int IndexOf(T item, int index, int count)
+                => ReadOnlyList.IndexOf(item, index, count);
 
-            public void InsertRange(int index, IEnumerable<T> items) => throw null!;
+            public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+                => ReadOnlyList.IndexOf(item, index, count, equalityComparer);
 
-            public int LastIndexOf(T item) => throw null!;
+            public void Insert(int index, T item)
+                => GetOrCreateMutableList().Insert(index, item);
 
-            public int LastIndexOf(T item, int startIndex) => throw null!;
+            public void InsertRange(int index, IEnumerable<T> items)
+                => GetOrCreateMutableList().InsertRange(index, items);
 
-            public int LastIndexOf(T item, int startIndex, int count) => throw null!;
+            public int LastIndexOf(T item)
+                => ReadOnlyList.LastIndexOf(item);
 
-            public int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T> equalityComparer) => throw null!;
+            public int LastIndexOf(T item, int startIndex)
+                => ReadOnlyList.LastIndexOf(item, startIndex);
 
-            public bool Remove(T item) => throw null!;
+            public int LastIndexOf(T item, int startIndex, int count)
+                => ReadOnlyList.LastIndexOf(item, startIndex, count);
 
-            public int RemoveAll(Predicate<T> match) => throw null!;
+            public int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
+                => ReadOnlyList.LastIndexOf(item, startIndex, count, equalityComparer);
 
-            public void RemoveAt(int index) => throw null!;
+            public bool Remove(T item)
+            {
+                if (_mutableList is null)
+                {
+                    var index = IndexOf(item);
+                    if (index < 0)
+                        return false;
 
-            public void Reverse() => throw null!;
+                    RemoveAt(index);
+                    return true;
+                }
+                else
+                {
+                    return _mutableList.Remove(item);
+                }
+            }
 
-            public void Reverse(int index, int count) => throw null!;
+            public int RemoveAll(Predicate<T> match)
+                => GetOrCreateMutableList().RemoveAll(match);
 
-            public void Sort() => throw null!;
+            public void RemoveAt(int index)
+                => GetOrCreateMutableList().RemoveAt(index);
 
-            public void Sort(IComparer<T> comparer) => throw null!;
+            public void RemoveRange(int index, int count)
+                => GetOrCreateMutableList().RemoveRange(index, count);
 
-            public void Sort(Comparison<T> comparison) => throw null!;
+            public void Reverse()
+            {
+                if (Count < 2)
+                    return;
 
-            public void Sort(int index, int count, IComparer<T> comparer) => throw null!;
+                GetOrCreateMutableList().Reverse();
+            }
 
-            public ImmutableSegmentedList<T> ToImmutable() => throw null!;
+            public void Reverse(int index, int count)
+                => GetOrCreateMutableList().Reverse(index, count);
 
-            public bool TrueForAll(Predicate<T> match) => throw null!;
+            public void Sort()
+            {
+                if (Count < 2)
+                    return;
 
-            IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
+                GetOrCreateMutableList().Sort();
+            }
 
-            IEnumerator IEnumerable.GetEnumerator() => throw null!;
+            public void Sort(IComparer<T>? comparer)
+            {
+                if (Count < 2)
+                    return;
 
-            int IList.Add(object? value) => throw null!;
+                GetOrCreateMutableList().Sort(comparer);
+            }
 
-            bool IList.Contains(object? value) => throw null!;
+            public void Sort(Comparison<T> comparison)
+            {
+                if (comparison == null)
+                {
+                    ThrowHelper.ThrowArgumentNullException(ExceptionArgument.comparison);
+                }
 
-            int IList.IndexOf(object? value) => throw null!;
+                if (Count < 2)
+                    return;
 
-            void IList.Insert(int index, object? value) => throw null!;
+                GetOrCreateMutableList().Sort(comparison);
+            }
 
-            void IList.Remove(object? value) => throw null!;
+            public void Sort(int index, int count, IComparer<T>? comparer)
+                => GetOrCreateMutableList().Sort(index, count, comparer);
 
-            void ICollection.CopyTo(Array array, int index) => throw null!;
+            public ImmutableSegmentedList<T> ToImmutable()
+            {
+                _list = new ImmutableSegmentedList<T>(ReadOnlyList);
+                _mutableList = null;
+                return _list;
+            }
+
+            public bool TrueForAll(Predicate<T> match)
+                => ReadOnlyList.TrueForAll(match);
+
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+                => GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => GetEnumerator();
+
+            int IList.Add(object? value)
+                => ((IList)GetOrCreateMutableList()).Add(value);
+
+            bool IList.Contains(object? value)
+                => ((IList)ReadOnlyList).Contains(value);
+
+            int IList.IndexOf(object? value)
+                => ((IList)ReadOnlyList).IndexOf(value);
+
+            void IList.Insert(int index, object? value)
+                => ((IList)GetOrCreateMutableList()).Insert(index, value);
+
+            void IList.Remove(object? value)
+                => ((IList)GetOrCreateMutableList()).Remove(value);
+
+            void ICollection.CopyTo(Array array, int index)
+                => ((ICollection)ReadOnlyList).CopyTo(array, index);
         }
     }
 }

@@ -11,15 +11,25 @@ namespace Microsoft.CodeAnalysis.Collections
     {
         public struct Enumerator : IEnumerator<T>
         {
-            public T Current => throw null!;
+            private readonly SegmentedList<T>.Enumerator _enumerator;
 
-            object? IEnumerator.Current => throw null!;
+            internal Enumerator(SegmentedList<T> list)
+            {
+                _enumerator = list.GetEnumerator();
+            }
 
-            public void Dispose() => throw null!;
+            public T Current => _enumerator.Current;
 
-            public bool MoveNext() => throw null!;
+            object? IEnumerator.Current => ((IEnumerator)_enumerator).Current;
 
-            public void Reset() => throw null!;
+            public void Dispose()
+                => _enumerator.Dispose();
+
+            public bool MoveNext()
+                => _enumerator.MoveNext();
+
+            public void Reset()
+                => ((IEnumerator<T>)_enumerator).Reset();
         }
     }
 }

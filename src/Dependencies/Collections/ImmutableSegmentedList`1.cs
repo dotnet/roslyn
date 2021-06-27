@@ -6,189 +6,504 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
     internal readonly partial struct ImmutableSegmentedList<T> : IImmutableList<T>, IReadOnlyList<T>, IList<T>, IList
     {
-        public static readonly ImmutableSegmentedList<T> Empty;
+        /// <inheritdoc cref="ImmutableList{T}.Empty"/>
+        public static readonly ImmutableSegmentedList<T> Empty = new(new SegmentedList<T>());
 
-        ////private ImmutableSegmentedList() => throw null!;
+        private readonly SegmentedList<T> _list;
 
-        public int Count => throw null!;
+        private ImmutableSegmentedList(SegmentedList<T> list)
+            => _list = list;
 
-        public bool IsEmpty => throw null!;
+        public int Count => _list.Count;
 
-        bool ICollection<T>.IsReadOnly => throw null!;
+        /// <inheritdoc cref="ImmutableList{T}.IsEmpty"/>
+        public bool IsEmpty => _list.Count == 0;
 
-        bool IList.IsFixedSize => throw null!;
+        bool ICollection<T>.IsReadOnly => true;
 
-        bool IList.IsReadOnly => throw null!;
+        bool IList.IsFixedSize => true;
 
-        bool ICollection.IsSynchronized => throw null!;
+        bool IList.IsReadOnly => true;
 
-        object ICollection.SyncRoot => throw null!;
+        bool ICollection.IsSynchronized => true;
 
-        public T this[int index] => throw null!;
+        object ICollection.SyncRoot => _list;
+
+        public T this[int index] => _list[index];
 
         T IList<T>.this[int index]
         {
-            get => throw null!;
+            get => _list[index];
             set => throw new NotSupportedException();
         }
 
         object? IList.this[int index]
         {
-            get => throw null!;
+            get => _list[index];
             set => throw new NotSupportedException();
         }
 
-        public ImmutableSegmentedList<T> Add(T value) => throw null!;
-
-        public ImmutableSegmentedList<T> AddRange(IEnumerable<T> items) => throw null!;
-
-        public int BinarySearch(T item) => throw null!;
-
-        public int BinarySearch(T item, IComparer<T> comparer) => throw null!;
-
-        public int BinarySearch(int index, int count, T item, IComparer<T> comparer) => throw null!;
-
-        public ImmutableSegmentedList<T> Clear() => throw null!;
-
-        public bool Contains(T value) => throw null!;
-
-        public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Func<T, TOutput> converter) => throw null!;
-
-        public void CopyTo(T[] array) => throw null!;
-
-        public void CopyTo(T[] array, int arrayIndex) => throw null!;
-
-        public void CopyTo(int index, T[] array, int arrayIndex, int count) => throw null!;
-
-        public bool Exists(Predicate<T> match) => throw null!;
-
-        public T Find(Predicate<T> match) => throw null!;
-
-        public ImmutableSegmentedList<T> FindAll(Predicate<T> match) => throw null!;
-
-        public int FindIndex(Predicate<T> match) => throw null!;
-
-        public int FindIndex(int startIndex, Predicate<T> match) => throw null!;
-
-        public int FindIndex(int startIndex, int count, Predicate<T> match) => throw null!;
-
-        public T FindLast(Predicate<T> match) => throw null!;
-
-        public int FindLastIndex(Predicate<T> match) => throw null!;
-
-        public int FindLastIndex(int startIndex, Predicate<T> match) => throw null!;
-
-        public int FindLastIndex(int startIndex, int count, Predicate<T> match) => throw null!;
-
-        public void ForEach(Action<T> action) => throw null!;
-
-        public Enumerator GetEnumerator() => throw null!;
-
-        public ImmutableSegmentedList<T> GetRange(int index, int count) => throw null!;
-
-        public int IndexOf(T value) => throw null!;
-
-        public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer) => throw null!;
-
-        public ImmutableSegmentedList<T> Insert(int index, T item) => throw null!;
-
-        public ImmutableSegmentedList<T> InsertRange(int index, IEnumerable<T> items) => throw null!;
-
-        public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer) => throw null!;
-
-        public ImmutableSegmentedList<T> Remove(T value) => throw null!;
-
-        public ImmutableSegmentedList<T> Remove(T value, IEqualityComparer<T> equalityComparer) => throw null!;
-
-        public ImmutableSegmentedList<T> RemoveAll(Predicate<T> match) => throw null!;
-
-        public ImmutableSegmentedList<T> RemoveAt(int index) => throw null!;
-
-        public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items) => throw null!;
-
-        public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items, IEqualityComparer<T> equalityComparer) => throw null!;
-
-        public ImmutableSegmentedList<T> RemoveRange(int index, int count) => throw null!;
-
-        public ImmutableSegmentedList<T> Replace(T oldValue, T newValue) => throw null!;
-
-        public ImmutableSegmentedList<T> Replace(T oldValue, T newValue, IEqualityComparer<T> equalityComparer) => throw null!;
-
-        public ImmutableSegmentedList<T> Reverse() => throw null!;
-
-        public ImmutableSegmentedList<T> Reverse(int index, int count) => throw null!;
-
-        public ImmutableSegmentedList<T> SetItem(int index, T value) => throw null!;
-
-        public ImmutableSegmentedList<T> Sort() => throw null!;
-
-        public ImmutableSegmentedList<T> Sort(IComparer<T> comparer) => throw null!;
-
-        public ImmutableSegmentedList<T> Sort(Comparison<T> comparison) => throw null!;
-
-        public ImmutableSegmentedList<T> Sort(int index, int count, IComparer<T> comparer) => throw null!;
-
-        public Builder ToBuilder() => throw null!;
-
-        public bool TrueForAll(Predicate<T> match) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.Clear() => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.Add(T value) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.AddRange(IEnumerable<T> items) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.Insert(int index, T element) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.InsertRange(int index, IEnumerable<T> items) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.Remove(T value, IEqualityComparer<T>? equalityComparer) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.RemoveAll(Predicate<T> match) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.RemoveRange(int index, int count) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.RemoveAt(int index) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.SetItem(int index, T value) => throw null!;
-
-        IImmutableList<T> IImmutableList<T>.Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer) => throw null!;
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null!;
-
-        IEnumerator IEnumerable.GetEnumerator() => throw null!;
-
-        void IList<T>.Insert(int index, T item) => throw new NotSupportedException();
-
-        void IList<T>.RemoveAt(int index) => throw new NotSupportedException();
-
-        void ICollection<T>.Add(T item) => throw new NotSupportedException();
-
-        void ICollection<T>.Clear() => throw new NotSupportedException();
-
-        bool ICollection<T>.Remove(T item) => throw new NotSupportedException();
-
-        int IList.Add(object? value) => throw new NotSupportedException();
-
-        void IList.Clear() => throw new NotSupportedException();
-
-        bool IList.Contains(object? value) => throw null!;
-
-        int IList.IndexOf(object? value) => throw null!;
-
-        void IList.Insert(int index, object? value) => throw new NotSupportedException();
-
-        void IList.Remove(object? value) => throw new NotSupportedException();
-
-        void IList.RemoveAt(int index) => throw new NotSupportedException();
-
-        void ICollection.CopyTo(Array array, int index) => throw null!;
+        public ImmutableSegmentedList<T> Add(T value)
+        {
+            var self = this;
+
+            if (self.IsEmpty)
+            {
+                var list = new SegmentedList<T> { value };
+                return new ImmutableSegmentedList<T>(list);
+            }
+            else
+            {
+                // TODO: Optimize this to avoid a Builder allocation
+                // TODO: Optimize this to share all segments except for the last one
+                // TODO: Only resize the last page the minimum amount necessary
+                var builder = self.ToBuilder();
+                builder.Add(value);
+                return builder.ToImmutable();
+            }
+        }
+
+        public ImmutableSegmentedList<T> AddRange(IEnumerable<T> items)
+        {
+            var self = this;
+            if (self.IsEmpty)
+            {
+                var list = new SegmentedList<T>(items);
+                return new ImmutableSegmentedList<T>(list);
+            }
+            else
+            {
+                // TODO: Optimize this to avoid a Builder allocation
+                // TODO: Optimize this to share all segments except for the last one
+                var builder = self.ToBuilder();
+                builder.AddRange(items);
+                return builder.ToImmutable();
+            }
+        }
+
+        public int BinarySearch(T item)
+            => _list.BinarySearch(item);
+
+        public int BinarySearch(T item, IComparer<T> comparer)
+            => _list.BinarySearch(item, comparer);
+
+        public int BinarySearch(int index, int count, T item, IComparer<T> comparer)
+            => _list.BinarySearch(index, count, item, comparer);
+
+        public ImmutableSegmentedList<T> Clear()
+            => Empty;
+
+        public bool Contains(T value)
+            => _list.Contains(value);
+
+        public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
+            => new ImmutableSegmentedList<TOutput>(_list.ConvertAll(converter));
+
+        public void CopyTo(T[] array)
+            => _list.CopyTo(array);
+
+        public void CopyTo(T[] array, int arrayIndex)
+            => _list.CopyTo(array, arrayIndex);
+
+        public void CopyTo(int index, T[] array, int arrayIndex, int count)
+            => _list.CopyTo(index, array, arrayIndex, count);
+
+        public bool Exists(Predicate<T> match)
+            => _list.Exists(match);
+
+        public T? Find(Predicate<T> match)
+            => _list.Find(match);
+
+        public ImmutableSegmentedList<T> FindAll(Predicate<T> match)
+            => new ImmutableSegmentedList<T>(_list.FindAll(match));
+
+        public int FindIndex(Predicate<T> match)
+            => _list.FindIndex(match);
+
+        public int FindIndex(int startIndex, Predicate<T> match)
+            => _list.FindIndex(startIndex, match);
+
+        public int FindIndex(int startIndex, int count, Predicate<T> match)
+            => _list.FindIndex(startIndex, count, match);
+
+        public T? FindLast(Predicate<T> match)
+            => _list.FindLast(match);
+
+        public int FindLastIndex(Predicate<T> match)
+            => _list.FindLastIndex(match);
+
+        public int FindLastIndex(int startIndex, Predicate<T> match)
+            => _list.FindLastIndex(startIndex, match);
+
+        public int FindLastIndex(int startIndex, int count, Predicate<T> match)
+            => _list.FindLastIndex(startIndex, count, match);
+
+        public void ForEach(Action<T> action)
+            => _list.ForEach(action);
+
+        public Enumerator GetEnumerator()
+            => new(_list);
+
+        public ImmutableSegmentedList<T> GetRange(int index, int count)
+        {
+            var self = this;
+
+            if (index == 0 && count == self.Count)
+                return self;
+
+            return new ImmutableSegmentedList<T>(self._list.GetRange(index, count));
+        }
+
+        public int IndexOf(T value)
+            => _list.IndexOf(value);
+
+        public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+            => _list.IndexOf(item, index, count, equalityComparer);
+
+        public ImmutableSegmentedList<T> Insert(int index, T item)
+        {
+            var self = this;
+
+            if (index == self.Count)
+                return self.Add(item);
+
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to share all segments prior to index
+            // TODO: Only resize the last page the minimum amount necessary
+            var builder = self.ToBuilder();
+            builder.Insert(index, item);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> InsertRange(int index, IEnumerable<T> items)
+        {
+            var self = this;
+
+            if (index == self.Count)
+                return self.AddRange(items);
+
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to share all segments prior to index
+            // TODO: Only resize the last page the minimum amount necessary
+            var builder = self.ToBuilder();
+            builder.InsertRange(index, items);
+            return builder.ToImmutable();
+        }
+
+        public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
+            => _list.LastIndexOf(item, index, count, equalityComparer);
+
+        public ImmutableSegmentedList<T> Remove(T value)
+        {
+            var self = this;
+
+            var index = self.IndexOf(value);
+            if (index < 0)
+                return self;
+
+            return self.RemoveAt(index);
+        }
+
+        public ImmutableSegmentedList<T> Remove(T value, IEqualityComparer<T>? equalityComparer)
+        {
+            var self = this;
+
+            var index = self.IndexOf(value, 0, Count, equalityComparer);
+            if (index < 0)
+                return self;
+
+            return self.RemoveAt(index);
+        }
+
+        public ImmutableSegmentedList<T> RemoveAll(Predicate<T> match)
+        {
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to avoid allocations if no items are removed
+            // TODO: Optimize this to share pages prior to the first removed item
+            var builder = ToBuilder();
+            builder.RemoveAll(match);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> RemoveAt(int index)
+        {
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to share pages prior to the removed item
+            var builder = ToBuilder();
+            builder.RemoveAt(index);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items)
+        {
+            var self = this;
+
+            Builder? builder = null;
+            foreach (var item in items)
+            {
+                var index = builder is null
+                    ? self.IndexOf(item)
+                    : builder.IndexOf(item);
+
+                if (index < 0)
+                    continue;
+
+                builder ??= self.ToBuilder();
+                builder.RemoveAt(index);
+            }
+
+            if (builder is null)
+                return this;
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer)
+        {
+            var self = this;
+
+            Builder? builder = null;
+            foreach (var item in items)
+            {
+                var index = builder is null
+                    ? self.IndexOf(item, 0, Count, equalityComparer)
+                    : builder.IndexOf(item, 0, builder.Count, equalityComparer);
+
+                if (index < 0)
+                    continue;
+
+                builder ??= self.ToBuilder();
+                builder.RemoveAt(index);
+            }
+
+            if (builder is null)
+                return this;
+
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> RemoveRange(int index, int count)
+        {
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to avoid allocations if no items are removed
+            // TODO: Optimize this to share pages prior to the first removed item
+            var builder = ToBuilder();
+            builder.RemoveRange(index, count);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Replace(T oldValue, T newValue)
+        {
+            var self = this;
+
+            var index = self.IndexOf(oldValue);
+            if (index < 0)
+            {
+                throw new ArgumentException(SR.CannotFindOldValue, nameof(oldValue));
+            }
+
+            return self.SetItem(index, newValue);
+        }
+
+        public ImmutableSegmentedList<T> Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer)
+        {
+            var self = this;
+
+            var index = self.IndexOf(oldValue, equalityComparer);
+            if (index < 0)
+            {
+                throw new ArgumentException(SR.CannotFindOldValue, nameof(oldValue));
+            }
+
+            return self.SetItem(index, newValue);
+        }
+
+        public ImmutableSegmentedList<T> Reverse()
+        {
+            var self = this;
+            if (self.Count < 2)
+                return self;
+
+            // TODO: Optimize this to avoid a Builder allocation
+            var builder = self.ToBuilder();
+            builder.Reverse();
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Reverse(int index, int count)
+        {
+            // TODO: Optimize this to avoid a Builder allocation
+            var builder = ToBuilder();
+            builder.Reverse(index, count);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> SetItem(int index, T value)
+        {
+            // TODO: Optimize this to avoid a Builder allocation
+            // TODO: Optimize this to share all pages except the one with 'index'
+            var builder = ToBuilder();
+            builder[index] = value;
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Sort()
+        {
+            var self = this;
+
+            if (self.Count < 2)
+                return self;
+
+            // TODO: Optimize this to avoid a builder allocation
+            // TODO: Optimize this to avoid allocations if the list is already sorted
+            var builder = self.ToBuilder();
+            builder.Sort();
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Sort(IComparer<T>? comparer)
+        {
+            var self = this;
+
+            if (self.Count < 2)
+                return self;
+
+            // TODO: Optimize this to avoid a builder allocation
+            // TODO: Optimize this to avoid allocations if the list is already sorted
+            var builder = self.ToBuilder();
+            builder.Sort(comparer);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Sort(Comparison<T> comparison)
+        {
+            if (comparison == null)
+            {
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.comparison);
+            }
+
+            var self = this;
+
+            if (self.Count < 2)
+                return self;
+
+            // TODO: Optimize this to avoid a builder allocation
+            // TODO: Optimize this to avoid allocations if the list is already sorted
+            var builder = self.ToBuilder();
+            builder.Sort(comparison);
+            return builder.ToImmutable();
+        }
+
+        public ImmutableSegmentedList<T> Sort(int index, int count, IComparer<T>? comparer)
+        {
+            // TODO: Optimize this to avoid a builder allocation
+            // TODO: Optimize this to avoid allocations if the list is already sorted
+            var builder = ToBuilder();
+            builder.Sort(index, count, comparer);
+            return builder.ToImmutable();
+        }
+
+        public Builder ToBuilder()
+            => new Builder(this);
+
+        public bool TrueForAll(Predicate<T> match)
+            => _list.TrueForAll(match);
+
+        IImmutableList<T> IImmutableList<T>.Clear()
+            => Clear();
+
+        IImmutableList<T> IImmutableList<T>.Add(T value)
+            => Add(value);
+
+        IImmutableList<T> IImmutableList<T>.AddRange(IEnumerable<T> items)
+            => AddRange(items);
+
+        IImmutableList<T> IImmutableList<T>.Insert(int index, T element)
+            => Insert(index, element);
+
+        IImmutableList<T> IImmutableList<T>.InsertRange(int index, IEnumerable<T> items)
+            => InsertRange(index, items);
+
+        IImmutableList<T> IImmutableList<T>.Remove(T value, IEqualityComparer<T>? equalityComparer)
+            => Remove(value, equalityComparer);
+
+        IImmutableList<T> IImmutableList<T>.RemoveAll(Predicate<T> match)
+            => RemoveAll(match);
+
+        IImmutableList<T> IImmutableList<T>.RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer)
+            => RemoveRange(items, equalityComparer);
+
+        IImmutableList<T> IImmutableList<T>.RemoveRange(int index, int count)
+            => RemoveRange(index, count);
+
+        IImmutableList<T> IImmutableList<T>.RemoveAt(int index)
+            => RemoveAt(index);
+
+        IImmutableList<T> IImmutableList<T>.SetItem(int index, T value)
+            => SetItem(index, value);
+
+        IImmutableList<T> IImmutableList<T>.Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer)
+            => Replace(oldValue, newValue, equalityComparer);
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            => IsEmpty ? Enumerable.Empty<T>().GetEnumerator() : GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => ((IEnumerable<T>)this).GetEnumerator();
+
+        void IList<T>.Insert(int index, T item)
+            => throw new NotSupportedException();
+
+        void IList<T>.RemoveAt(int index)
+            => throw new NotSupportedException();
+
+        void ICollection<T>.Add(T item)
+            => throw new NotSupportedException();
+
+        void ICollection<T>.Clear()
+            => throw new NotSupportedException();
+
+        bool ICollection<T>.Remove(T item)
+            => throw new NotSupportedException();
+
+        int IList.Add(object? value)
+            => throw new NotSupportedException();
+
+        void IList.Clear()
+            => throw new NotSupportedException();
+
+        bool IList.Contains(object? value)
+        {
+            IList backingList = _list;
+            return backingList.Contains(value);
+        }
+
+        int IList.IndexOf(object? value)
+        {
+            IList backingList = _list;
+            return backingList.IndexOf(value);
+        }
+
+        void IList.Insert(int index, object? value)
+            => throw new NotSupportedException();
+
+        void IList.Remove(object? value)
+            => throw new NotSupportedException();
+
+        void IList.RemoveAt(int index)
+            => throw new NotSupportedException();
+
+        void ICollection.CopyTo(Array array, int index)
+        {
+            IList backingList = _list;
+            backingList.CopyTo(array, index);
+        }
     }
 }

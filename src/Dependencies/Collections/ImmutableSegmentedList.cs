@@ -3,21 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class ImmutableSegmentedList
     {
-        public static ImmutableSegmentedList<T> Create<T>() => throw null!;
+        /// <inheritdoc cref="ImmutableList.Create{T}()"/>
+        public static ImmutableSegmentedList<T> Create<T>()
+            => ImmutableSegmentedList<T>.Empty;
 
-        public static ImmutableSegmentedList<T> Create<T>(T item) => throw null!;
+        /// <inheritdoc cref="ImmutableList.Create{T}(T)"/>
+        public static ImmutableSegmentedList<T> Create<T>(T item)
+            => ImmutableSegmentedList<T>.Empty.Add(item);
 
-        public static ImmutableSegmentedList<T> Create<T>(params T[] items) => throw null!;
+        /// <inheritdoc cref="ImmutableList.Create{T}(T[])"/>
+        public static ImmutableSegmentedList<T> Create<T>(params T[] items)
+            => ImmutableSegmentedList<T>.Empty.AddRange(items);
 
-        public static ImmutableSegmentedList<T>.Builder CreateBuilder<T>() => throw null!;
+        /// <inheritdoc cref="ImmutableList.CreateBuilder{T}()"/>
+        public static ImmutableSegmentedList<T>.Builder CreateBuilder<T>()
+            => ImmutableSegmentedList<T>.Empty.ToBuilder();
 
-        public static ImmutableSegmentedList<T> CreateRange<T>(IEnumerable<T> items) => throw null!;
+        /// <inheritdoc cref="ImmutableList.CreateRange{T}(IEnumerable{T})"/>
+        public static ImmutableSegmentedList<T> CreateRange<T>(IEnumerable<T> items)
+            => ImmutableSegmentedList<T>.Empty.AddRange(items);
 
-        public static ImmutableSegmentedList<T> ToImmutableSegmentedList<T>(this IEnumerable<T> source) => throw null!;
+        /// <inheritdoc cref="ImmutableList.ToImmutableList{TSource}(IEnumerable{TSource})"/>
+        public static ImmutableSegmentedList<T> ToImmutableSegmentedList<T>(this IEnumerable<T> source)
+        {
+            if (source is ImmutableSegmentedList<T> existingList)
+                return existingList;
+
+            return ImmutableSegmentedList<T>.Empty.AddRange(source);
+        }
     }
 }
