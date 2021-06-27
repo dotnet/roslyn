@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private void StartModelUpdateAndSelectedItemUpdateTasks(int modelUpdateDelay)
+        private void StartModelUpdateAndSelectedItemUpdateTasks()
         {
             AssertIsForeground();
 
@@ -49,21 +49,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Enqueue a new computation for the model
             var asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartModelUpdateTask");
-            _modelTask = ComputeModelAfterDelayAsync(_modelTask, textSnapshot, modelUpdateDelay, cancellationToken);
+            _modelTask = ComputeModelAfterDelayAsync(_modelTask, textSnapshot, cancellationToken);
             _modelTask.CompletesAsyncOperation(asyncToken);
 
             StartSelectedItemUpdateTask();
         }
 
         private static async Task<NavigationBarModel> ComputeModelAfterDelayAsync(
-            Task<NavigationBarModel> modelTask, ITextSnapshot textSnapshot, int modelUpdateDelay, CancellationToken cancellationToken)
+            Task<NavigationBarModel> modelTask, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var previousModel = await modelTask.ConfigureAwait(false);
             if (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await Task.Delay(modelUpdateDelay, cancellationToken).ConfigureAwait(false);
+                    await Task.Delay(TaggerConstants.ShortDelay, cancellationToken).ConfigureAwait(false);
                     return await ComputeModelAsync(previousModel, textSnapshot, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
