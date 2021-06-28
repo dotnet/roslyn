@@ -9,11 +9,12 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
-
+        private readonly IGlobalOptionService _optionService;
+        private readonly IExperimentationService _experimentationService;
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
@@ -62,6 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService optionService,
+            IExperimentationService experimentationService,
             [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
@@ -70,6 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
+            _optionService = optionService;
+            _experimentationService = experimentationService;
             ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             UIThreadOperationExecutor = uiThreadOperationExecutor;
@@ -86,11 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // Disable lightbulb points when running under the LSP editor.
             // The LSP client will interface with the editor to display our code actions.
             if (textBuffer.IsInLspEditorContext())
-            {
                 return null;
-            }
 
-            return new SuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            return _optionService.GetOption(SuggestionsOptions.Asynchronous) || _experimentationService.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions)
+                ? new AsyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry)
+                : new SyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
     }
 }

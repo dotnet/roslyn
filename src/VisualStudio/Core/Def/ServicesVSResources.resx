@@ -1770,4 +1770,10 @@ I agree to all of the foregoing:</value>
   <data name="Underline_reassigned_variables" xml:space="preserve">
     <value>Underline reassigned variables</value>
   </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
 </root>

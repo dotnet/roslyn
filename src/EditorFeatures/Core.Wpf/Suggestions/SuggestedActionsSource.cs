@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
+        private abstract partial class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource3
         {
             private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
 
-            public SuggestedActionsSource(
+            protected SuggestedActionsSource(
                 IThreadingContext threadingContext,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 _state.Dispose();
             }
+
+            protected ReferenceCountedDisposable<State> SourceState => _state;
 
             public bool TryGetTelemetryId(out Guid telemetryId)
             {
@@ -182,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
             {
                 var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
                 return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     };
             }
 
-            private static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
+            protected static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetCodeFixesAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -281,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
+            protected static Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync(
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
@@ -446,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
 
-            private TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
+            protected TextSpan? TryGetCodeRefactoringSelection(ReferenceCountedDisposable<State> state, SnapshotSpan range)
             {
                 this.AssertIsForeground();
 

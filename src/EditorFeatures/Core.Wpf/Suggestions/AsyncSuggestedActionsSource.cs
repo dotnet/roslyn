@@ -10,20 +10,32 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class SuggestedActionsSource : ISuggestedActionsSourceExperimental
+        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSourceExperimental
         {
+            public AsyncSuggestedActionsSource(
+                IThreadingContext threadingContext,
+                SuggestedActionsSourceProvider owner,
+                ITextView textView,
+                ITextBuffer textBuffer,
+                ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
+                : base(threadingContext, owner, textView, textBuffer, suggestedActionCategoryRegistry)
+            {
+            }
+
             public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
@@ -31,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 AssertIsForeground();
 
-                using var state = _state.TryAddReference();
+                using var state = SourceState.TryAddReference();
                 if (state is null)
                     yield break;
 

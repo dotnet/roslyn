@@ -42,5 +42,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
         public const string RazorLspEditorFeatureFlag = "Razor.LSP.Editor";
         public const string LspPullDiagnosticsFeatureFlag = "Lsp.PullDiagnostics";
+        public const string AsynchronousQuickActions = "Roslyn.AsynchronousQuickActions";
     }
 }
