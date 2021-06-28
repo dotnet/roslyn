@@ -91,11 +91,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (!caretPosition.HasValue)
                 return;
 
-            // Grab the last computed model while there.
+            // Ensure the latest model is computed and grab it while on the UI thread.
+            await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
             var model = _model_OnlyAccessOnUIThread;
 
             // Jump back to the BG to do any expensive work walking the entire model
             await TaskScheduler.Default;
+
             var currentSelectedItem = ComputeSelectedTypeAndMember(model, caretPosition.Value, cancellationToken);
 
             // Finally, switch back to the UI to update our state and UI.
