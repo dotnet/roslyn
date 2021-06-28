@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
-            = new();
+        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
 
         /// <summary>
         /// Remote service connection. Created on demand when we startup and then
