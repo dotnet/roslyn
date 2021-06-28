@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Implements a struct-based collection of <see cref="Operation"/> nodes. This collection is ordered, but
         /// random access into the collection is not provided. This type is not hardened to 
-        /// <code>default(Enumerable)</code>, and will null reference in these cases.
+        /// <code>default(ChildCollection)</code>, and will null reference in these cases.
         /// </summary>
         [NonDefaultable]
         public readonly partial struct ChildCollection : IReadOnlyCollection<IOperation>
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Implements a struct-based enumerator for <see cref="Operation"/> nodes. This type is not hardened
-            /// to <code>default(Enumerator)</code>, and will null reference in these cases.  Calling <see cref="Current"/> after
+            /// to <code>default(Enumerator)</code>, and will null reference in these cases. Calling <see cref="Current"/> after
             /// <see cref="Enumerator.MoveNext"/> has returned false will throw an <see cref="InvalidOperationException"/>.
             /// </summary>
             [NonDefaultable]

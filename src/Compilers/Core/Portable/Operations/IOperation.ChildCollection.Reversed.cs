@@ -15,13 +15,14 @@ namespace Microsoft.CodeAnalysis
 {
     public partial interface IOperation
     {
-        /// <summary>
-        /// Implements a struct-based collection of <see cref="Operation"/> nodes. This collection is ordered, but
-        /// random access into the collection is not provided. This type is not hardened to 
-        /// <code>default(Enumerable)</code>, and will null reference in these cases.
-        /// </summary>
         public readonly partial struct ChildCollection
         {
+            /// <summary>
+            /// Implements a reverse-order struct-based collection of <see cref="Operation"/> nodes.
+            /// This collection is ordered, but random access into the collection is not provided.
+            /// This type is not hardened to <code>default(Reversed)</code>, and will null reference
+            /// in these cases.
+            /// </summary>
             [NonDefaultable]
             public readonly struct Reversed : IReadOnlyCollection<IOperation>
             {
@@ -61,6 +62,11 @@ namespace Microsoft.CodeAnalysis
                 IEnumerator<IOperation> IEnumerable<IOperation>.GetEnumerator() => this.GetEnumerator();
                 IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
+                /// <summary>
+                /// Implements a reverse-order struct-based enumerator for <see cref="Operation"/> nodes. This type is not hardened
+                /// to <code>default(Enumerator)</code>, and will null reference in these cases. Calling <see cref="Current"/> after
+                /// <see cref="Enumerator.MoveNext"/> has returned false will throw an <see cref="InvalidOperationException"/>.
+                /// </summary>
                 [NonDefaultable]
                 public struct Enumerator : IEnumerator<IOperation>
                 {
