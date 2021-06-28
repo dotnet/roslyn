@@ -281,19 +281,19 @@ record struct Point(int x, int y);
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
                 );
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8)
                 );
 
-            comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1514: { expected
                 // struct Point(int x, int y);
@@ -324,10 +324,10 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
                 );
 
-            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -376,23 +376,23 @@ namespace NS
 
             comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     record struct Point { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(4, 12)
                 );
 
             comp = CreateCompilation(src1);
@@ -2959,7 +2959,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
@@ -3005,7 +3005,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics(
                 // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
                 //     /// <param name="x">Description for <see cref="x"/></param>
@@ -6449,9 +6449,9 @@ public struct B
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (13,16): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,16): error CS8773: Feature 'with on structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         return this with { X = 42 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this with { X = 42 }").WithArguments("with on structs").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "this with { X = 42 }").WithArguments("with on structs", "10.0").WithLocation(13, 16)
                 );
 
             comp = CreateCompilation(src);
@@ -7775,12 +7775,12 @@ public class C
 }";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (9,17): error CS8652: The feature 'with on anonymous types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,17): error CS8773: Feature 'with on anonymous types' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         var b = Identity(a) with { A = Identity(30), B = Identity(40) };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Identity(a) with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Identity(a) with { A = Identity(30), B = Identity(40) }").WithArguments("with on anonymous types", "10.0").WithLocation(9, 17)
                 );
 
-            comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "Identity({ A = 10, B = 20 }) Identity(30) Identity(40) { A = 30, B = 40 }");
             verifier.VerifyIL("C.M", @"
@@ -10098,15 +10098,15 @@ record struct A(int X)
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (8,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(8, 8),
-                // (8,17): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(8, 8),
+                // (8,17): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record struct A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 17)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42");
             verifier.VerifyIL("A.Deconstruct", @"

@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(options, isAnalyzerConfigChange: false));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: false));
         }
 
         /// <summary>
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documents) =>
                 {
                     var newProject = oldProject.AddAnalyzerConfigDocuments(documents);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!, isAnalyzerConfigChange: true));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
                 });
         }
 
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis
                 (oldProject, documentIds, _) =>
                 {
                     var newProject = oldProject.RemoveAnalyzerConfigDocuments(documentIds);
-                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions!, isAnalyzerConfigChange: true));
+                    return (newProject, new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true));
                 });
         }
 
@@ -1495,7 +1495,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(oldProject != newProject);
 
             return ForkProject(newProject,
-                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject.CompilationOptions, isAnalyzerConfigChange: true) : null);
+                newProject.CompilationOptions != null ? new CompilationAndGeneratorDriverTranslationAction.ProjectCompilationOptionsAction(newProject, isAnalyzerConfigChange: true) : null);
         }
 
         /// <summary>
