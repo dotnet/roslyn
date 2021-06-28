@@ -114,16 +114,18 @@ namespace Roslyn.Utilities
                     // No in-flight task.  Kick one off to process these messages a second from now.
                     // We always attach the task to the previous one so that notifications to the ui
                     // follow the same order as the notification the OOP server sent to us.
-                    _updateTask = ContinueAfterDelay();
+                    _updateTask = ContinueAfterDelay(_updateTask);
                     _taskInFlight = true;
                 }
             }
 
             return;
 
-            async Task<TResult?> ContinueAfterDelay()
+            async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
+                await lastTask.ConfigureAwait(false);
+
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
                 // must be on another thread that runs afterwards, can only grab the thread once we release it and will
