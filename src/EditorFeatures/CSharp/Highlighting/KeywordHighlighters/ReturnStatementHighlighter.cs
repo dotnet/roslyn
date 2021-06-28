@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighli
                         if (!child.AsNode().IsReturnableConstruct())
                             HighlightRelatedKeywords(child.AsNode(), spans);
                     }
+
                     break;
             }
         }

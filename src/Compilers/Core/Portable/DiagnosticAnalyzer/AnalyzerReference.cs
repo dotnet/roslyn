@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public virtual ImmutableArray<ISourceGenerator> GetGenerators() => ImmutableArray<ISourceGenerator>.Empty;
 
         /// <summary>
-        /// Gets all the diagnostic generators defined in this assembly reference for the given <paramref name="language"/>.
+        /// Gets all the generators defined in this assembly reference for the given <paramref name="language"/>.
         /// </summary>
         /// <param name="language">Language name.</param>
         public virtual ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray<ISourceGenerator>.Empty;

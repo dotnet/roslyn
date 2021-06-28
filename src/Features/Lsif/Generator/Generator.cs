@@ -195,6 +195,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
+
+                    // Write hover information for the symbol, if edge has not already been added.
+                    // 'textDocument/hover' edge goes from the symbol ResultSet vertex to the hover result
+                    // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
+                    if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
+                    {
+                        // TODO: Can we avoid the WaitAndGetResult_CanCallOnBackground call by adding a sync method to compute hover?
+                        var hover = HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, languageServices, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                        if (hover != null)
+                        {
+                            var hoverResult = new HoverResult(hover, idFactory);
+                            lsifJsonWriter.Write(hoverResult);
+                            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentHoverName, symbolForLinkedResultSetId, hoverResult.GetId(), idFactory));
+                        }
+                    }
                 }
             }
 
