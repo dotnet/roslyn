@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (fieldValue == (object?)missingValue)
             {
-                data = attributeMatchesOpt is null
+                data = (attributeMatchesOpt is null || _lazyNetModuleAttributesBag is not null)
                     ? GetNetModuleDecodedWellKnownAttributeData()
                     : GetLimitedNetModuleDecodedWellKnownAttributeData(attributeMatchesOpt.Value);
 
@@ -1454,8 +1454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var discardedDiagnostics = BindingDiagnosticBag.Discarded;
-
             ImmutableArray<string> netModuleNames;
             ImmutableArray<CSharpAttributeData> attributesFromNetModules = GetNetModuleAttributes(out netModuleNames);
 
@@ -1463,17 +1461,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attributesFromNetModules.Any())
             {
-                wellKnownData = limitedDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, discardedDiagnostics);
+                wellKnownData = limitedDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, attributeMatches);
             }
-
-            discardedDiagnostics.Free();
 
             return (CommonAssemblyWellKnownAttributeData)wellKnownData;
 
             // Similar to ValidateAttributeUsageAndDecodeWellKnownAttributes, but doesn't load assembly-level attributes from source
             // and only decodes 3 specific attributes.
             WellKnownAttributeData limitedDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> attributesFromNetModules,
-                ImmutableArray<string> netModuleNames, BindingDiagnosticBag discardedDiagnostics)
+                ImmutableArray<string> netModuleNames, QuickAttributes attributeMatches)
             {
                 Debug.Assert(attributesFromNetModules.Any());
                 Debug.Assert(netModuleNames.Any());
@@ -1489,9 +1485,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = netModuleAttributesCount - 1; i >= 0; i--)
                 {
                     CSharpAttributeData attribute = attributesFromNetModules[i];
-                    if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], discardedDiagnostics, ref uniqueAttributes))
+                    if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], BindingDiagnosticBag.Discarded, ref uniqueAttributes))
                     {
-                        limitedDecodeWellKnownAttribute(attribute, ref result);
+                        limitedDecodeWellKnownAttribute(attribute, attributeMatches, ref result);
                     }
                 }
 
@@ -1500,19 +1496,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Similar to DecodeWellKnownAttribute but only handles 3 specific attributes and ignores diagnostics.
-            void limitedDecodeWellKnownAttribute(CSharpAttributeData attribute, ref CommonAssemblyWellKnownAttributeData result)
+            void limitedDecodeWellKnownAttribute(CSharpAttributeData attribute, QuickAttributes attributeMatches, ref CommonAssemblyWellKnownAttributeData result)
             {
-                if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
+                if (attributeMatches is QuickAttributes.AssemblySignatureKey &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
                 {
                     result ??= new CommonAssemblyWellKnownAttributeData();
                     result.AssemblySignatureKeyAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
                 }
-                else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyFileAttribute))
+                else if (attributeMatches is QuickAttributes.AssemblyKeyFile &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyFileAttribute))
                 {
                     result ??= new CommonAssemblyWellKnownAttributeData();
                     result.AssemblyKeyFileAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
                 }
-                else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyNameAttribute))
+                else if (attributeMatches is QuickAttributes.AssemblyKeyName &&
+                    attribute.IsTargetAttribute(this, AttributeDescription.AssemblyKeyNameAttribute))
                 {
                     result ??= new CommonAssemblyWellKnownAttributeData();
                     result.AssemblyKeyContainerAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
