@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
-            CancellationToken cancellationToken,
             out PointsToAnalysisResult? pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool performCopyAnalysisIfNotUserConfigured = false,

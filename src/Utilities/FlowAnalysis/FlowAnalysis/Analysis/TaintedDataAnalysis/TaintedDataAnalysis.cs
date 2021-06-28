@@ -30,8 +30,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             DiagnosticDescriptor rule,
             TaintedDataSymbolMap<SourceInfo> taintedSourceInfos,
             TaintedDataSymbolMap<SanitizerInfo> taintedSanitizerInfos,
-            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos,
-            CancellationToken cancellationToken)
+            TaintedDataSymbolMap<SinkInfo> taintedSinkInfos)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, cfg, compilation, InterproceduralAnalysisKind.ContextSensitive);

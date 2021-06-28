@@ -32,10 +32,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             ISymbol owningSymbol,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
             PointsToAnalysisKind defaultPointsToAnalysisKind = PointsToAnalysisKind.PartialWithoutTrackingFieldsAndProperties,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
-            uint defaultMaxInterproceduralMethodCallChain = 1, // By default, we only want to track method calls one level down.
+            uint defaultMaxInterproceduralMethodCallChain = 1,
             bool pessimisticAnalysis = false)
         {
             Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, compilation));

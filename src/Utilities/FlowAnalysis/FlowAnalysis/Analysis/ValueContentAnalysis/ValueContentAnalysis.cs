@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             PointsToAnalysisKind defaultPointsToAnalysisKind,
-            CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true)
         {
             return TryGetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, analyzerOptions, rule,
-                defaultPointsToAnalysisKind, cancellationToken, out var _, out var _, interproceduralAnalysisKind,
-                pessimisticAnalysis);
+                defaultPointsToAnalysisKind, out var _, out var _, interproceduralAnalysisKind, pessimisticAnalysis);
         }
 
         public static ValueContentAnalysisResult? TryGetOrComputeResult(
@@ -46,7 +44,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             PointsToAnalysisKind defaultPointsToAnalysisKind,
-            CancellationToken cancellationToken,
             out CopyAnalysisResult? copyAnalysisResult,
             out PointsToAnalysisResult? pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
