@@ -113,9 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             presenter.ItemSelected += OnItemSelected;
 
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(
-                ImmutableArray<NavigationBarItem>.Empty,
-                itemService: null!);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(ImmutableArray<NavigationBarItem>.Empty, itemService: null!);
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
             _model_OnlyAccessOnUIThread = _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model;
 
