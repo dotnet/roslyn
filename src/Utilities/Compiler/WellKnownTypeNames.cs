@@ -83,14 +83,12 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
         public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
+        public const string NUnitFrameworkInterfacesITestBuilder = "NUnit.Framework.Interfaces.ITestBuilder";
         public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
         public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
         public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
         public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
         public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
-        public const string NUnitFrameworkTestCaseAttribute = "NUnit.Framework.TestCaseAttribute";
-        public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
-        public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
         public const string SystemActivator = "System.Activator";
         public const string SystemAppContext = "System.AppContext";
