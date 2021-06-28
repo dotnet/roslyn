@@ -228,8 +228,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental)</source>
-        <target state="new">Compute Quick Actions asynchronously (experimental)</target>
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">

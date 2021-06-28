@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
         private readonly IGlobalOptionService _optionService;
-        private readonly IExperimentationService _experimentationService;
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
@@ -65,7 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService optionService,
-            IExperimentationService experimentationService,
             [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
@@ -75,7 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             _optionService = optionService;
-            _experimentationService = experimentationService;
             ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             UIThreadOperationExecutor = uiThreadOperationExecutor;
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            return _optionService.GetOption(SuggestionsOptions.Asynchronous) || _experimentationService.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions)
+            return _optionService.GetOption(SuggestionsOptions.Asynchronous)
                 ? new AsyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry)
                 : new SyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
