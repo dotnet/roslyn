@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceDelegateClonedParameterSymbolForBeginAndEndInvoke : SourceClonedParameterSymbol
     {
-        private const int UninitializedArgumentExpressionParameterIndex = int.MinValue;
-        private int _lazyCallerArgumentExpressionParameterIndex = UninitializedArgumentExpressionParameterIndex;
-
-
         internal SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(SourceParameterSymbol originalParam, SourceDelegateMethodSymbol newOwner, int newOrdinal)
             : base(originalParam, newOwner, newOrdinal, suppressOptional: true)
         {
@@ -26,37 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName => _originalParam.IsCallerMemberName;
 
-        internal override int CallerArgumentExpressionParameterIndex
-        {
-            get
-            {
-                if (_originalParam.CallerArgumentExpressionParameterIndex == -1)
-                {
-                    // If original param doesn't have a valid caller argument expression, don't try to recalculate.
-                    // NOTE: Recalculation may result in different behavior if the delegate is declared like:
-                    // delegate void D(string s1, [CallerArgumentExpression("callback")] [Optional] string s2);
-                    // There is no parameter named "callback", however, the BeginInvoke has one.
-                    return _lazyCallerArgumentExpressionParameterIndex = -1;
-                }
-
-                if (_lazyCallerArgumentExpressionParameterIndex != UninitializedArgumentExpressionParameterIndex)
-                {
-                    return _lazyCallerArgumentExpressionParameterIndex;
-                }
-
-                var parameterName = _originalParam.ContainingSymbol.GetParameters()[_originalParam.CallerArgumentExpressionParameterIndex].Name;
-                var parameters = ((SourceDelegateMethodSymbol)ContainingSymbol).Parameters;
-                for (int i = 0; i < parameters.Length; i++)
-                {
-                    if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
-                    {
-                        return _lazyCallerArgumentExpressionParameterIndex = i;
-                    }
-                }
-
-                return _lazyCallerArgumentExpressionParameterIndex = -1;
-            }
-        }
+        // From code review: Could we just return -1 for now and see if anyone would ask us to support the scenarios.
+        internal override int CallerArgumentExpressionParameterIndex => -1;
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
         {
