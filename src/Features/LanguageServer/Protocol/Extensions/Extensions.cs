@@ -88,30 +88,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documents.FindDocumentInProjectContext(documentIdentifier);
         }
 
-        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
         {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
+                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier)
                 {
-                    var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
-
-                    if (matchingDocument != null)
+                    if (vsDocumentIdentifier.ProjectContext != null)
                     {
-                        return matchingDocument;
-                    }
-                }
-                else
-                {
-                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
-                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
+                        var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
+                        var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
 
-                    var solution = documents.First().Project.Solution;
-                    // Lookup which of the linked documents is currently active in the workspace.
-                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
-                    return solution.GetRequiredDocument(documentIdInCurrentContext);
+                        if (matchingDocument != null)
+                        {
+                            return matchingDocument;
+                        }
+                    }
                 }
             }
 
