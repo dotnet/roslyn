@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of syntax nodes.</param>
         /// <param name="separators">A sequence of token to be interleaved between the nodes. The number of tokens must
         /// be one less than the number of nodes.</param>
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode> nodes, IEnumerable<SyntaxToken> separators) where TNode : SyntaxNode
+        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode>? nodes, IEnumerable<SyntaxToken>? separators) where TNode : SyntaxNode
         {
             // Interleave the nodes and the separators.  The number of separators must be equal to or 1 less than the number of nodes or
             // an argument exception is thrown.

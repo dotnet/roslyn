@@ -1353,17 +1353,27 @@ class C
         System.Console.Write((null, () => 2) == default);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
-                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,37): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, () => 1) == (default, default));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
-                // (6,37): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(6, 37),
+                // (6,37): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, () => 1) == (default, default));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => 1").WithArguments("inferred delegate type").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "() => 1").WithArguments("inferred delegate type", "10.0").WithLocation(6, 37),
+                // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
+                //         System.Console.Write((null, () => 2) == default);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                //         System.Console.Write((null, () => 1) == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
                 // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
                 //         System.Console.Write((null, () => 2) == default);
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
@@ -1662,30 +1672,30 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,65): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "x => x").WithArguments("inferred delegate type", "10.0").WithLocation(6, 65),
                 // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,65): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,65): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x => x").WithArguments("inferred delegate type").WithLocation(6, 65),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "x => x").WithArguments("inferred delegate type", "10.0").WithLocation(6, 65),
                 // (6,65): error CS8917: The delegate type could not be inferred.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => x").WithLocation(6, 65),
-                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,73): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
-                // (6,73): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(6, 73),
+                // (6,73): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Main").WithArguments("inferred delegate type").WithLocation(6, 73),
-                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Main").WithArguments("inferred delegate type", "10.0").WithLocation(6, 73),
+                // (6,79): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79),
-                // (6,79): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type", "10.0").WithLocation(6, 79),
+                // (6,79): error CS8773: Feature 'inferred delegate type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         System.Console.Write((null, null, null, null) == (null, x => x, Main, (int i) => { int j = 0; return i + j; }));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type").WithLocation(6, 79));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int i) => { int j = 0; return i + j; }").WithArguments("inferred delegate type", "10.0").WithLocation(6, 79));
             verify(comp);
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -2017,9 +2027,6 @@ public class C
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (null, null)").WithArguments("(<null>, <null>)").WithLocation(6, 13),
-                // (7,22): error CS8652: The feature 'inferred delegate type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         if (null == (() => {}) ) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "() => {}").WithArguments("inferred delegate type").WithLocation(7, 22),
                 // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         if ("" == 1) {}
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)
