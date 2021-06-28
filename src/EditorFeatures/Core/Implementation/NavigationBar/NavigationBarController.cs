@@ -136,6 +136,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _eventSource.Connect();
         }
 
+        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
+        {
+            StartModelUpdateAndSelectedItemUpdateTasks();
+        }
+
         public void Disconnect()
         {
             AssertIsForeground();
@@ -155,11 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Cancel off any remaining background work
             _cancellationTokenSource.Cancel();
-        }
-
-        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
-        {
-            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
