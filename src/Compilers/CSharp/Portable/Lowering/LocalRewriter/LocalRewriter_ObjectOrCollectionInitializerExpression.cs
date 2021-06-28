@@ -183,12 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
-                ref argumentRefKindsOpt,
+                argumentRefKindsOpt,
                 ref rewrittenReceiver,
                 out ArrayBuilder<LocalSymbol>? temps,
-                out BitVector positionsAssignedToTemp,
                 receiverIsArgumentSideEffectSequence: out _);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, positionsAssignedToTemp, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, ref temps, enableCallerInfo: ThreeState.True);
 
             var rewrittenType = VisitType(initializer.Type);
 

@@ -90,10 +90,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     appendCall.Arguments,
                     appendCall.Method,
                     appendCall.ArgsToParamsOpt,
-                    ref argRefKindsOpt,
+                    argRefKindsOpt,
                     ref appendReceiver,
                     out ArrayBuilder<LocalSymbol>? temps,
-                    out BitVector positionsAssignedToTemp,
                     receiverIsArgumentSideEffectSequence: out _);
 
                 var rewrittenAppendCall = MakeArgumentsAndCall(
@@ -108,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     appendCall.ResultKind,
                     appendCall.Type,
                     temps,
-                    positionsAssignedToTemp,
                     appendCall);
 
                 Debug.Assert(usesBoolReturn == (appendCall.Type!.SpecialType == SpecialType.System_Boolean));

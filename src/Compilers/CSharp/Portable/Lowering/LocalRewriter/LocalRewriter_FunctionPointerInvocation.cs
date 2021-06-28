@@ -18,11 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // There are target types so we can have handler conversions, but there are no attributes so contexts cannot
             // be involved.
             AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments, allowConversionsWithNoContext: true);
-            var rewrittenArgs = VisitList(node.Arguments);
-
             MethodSymbol functionPointer = node.FunctionPointer.Signature;
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
-            ArrayBuilder<LocalSymbol>? temps = null;
+            BoundExpression? discardedReceiver = null;
+            var rewrittenArgs = VisitArguments(
+                node.Syntax,
+                node.Arguments,
+                functionPointer,
+                argsToParamsOpt: default,
+                argumentRefKindsOpt,
+                ref discardedReceiver,
+                out ArrayBuilder<LocalSymbol>? temps,
+                receiverIsArgumentSideEffectSequence: out _);
+
             rewrittenArgs = MakeArguments(
                 node.Syntax,
                 rewrittenArgs,
@@ -31,7 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default,
                 ref argumentRefKindsOpt,
                 ref temps,
-                positionsAssignedToTemp: default,
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.False);
 

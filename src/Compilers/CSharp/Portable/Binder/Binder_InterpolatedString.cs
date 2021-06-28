@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If it is optional, then they could otherwise not specify the parameter and that's an error
                             var originalParameterIndex = handlerParameterIndexes[i];
                             var parameter = parameters[originalParameterIndex];
-                            if (parameter.IsOptional || parameter.IsParams)
+                            if (parameter.IsOptional || OverloadResolution.IsValidParamsParameter(parameter))
                             {
                                 // Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.
                                 diagnostics.Add(

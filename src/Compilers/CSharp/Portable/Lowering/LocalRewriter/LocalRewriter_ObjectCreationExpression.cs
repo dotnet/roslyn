@@ -44,10 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Arguments,
                 node.Constructor,
                 node.ArgsToParamsOpt,
-                ref argumentRefKindsOpt,
+                argumentRefKindsOpt,
                 ref receiverDiscard,
                 out ArrayBuilder<LocalSymbol>? tempsBuilder,
-                out BitVector positionsAssignedToTemp,
                 receiverIsArgumentSideEffectSequence: out _);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
@@ -59,8 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
-                ref tempsBuilder,
-                positionsAssignedToTemp);
+                ref tempsBuilder);
 
             BoundExpression rewrittenObjectCreation;
             var temps = tempsBuilder?.ToImmutableAndFree() ?? default;

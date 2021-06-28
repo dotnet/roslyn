@@ -509,8 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType,
-                temps: null,
-                positionsAssignedToTemp: BitVector.Null);
+                temps: null);
         }
     }
 }

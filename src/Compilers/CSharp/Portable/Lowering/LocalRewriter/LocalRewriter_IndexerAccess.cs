@@ -131,10 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments,
                     indexer,
                     argsToParamsOpt,
-                    ref argumentRefKindsOpt,
+                    argumentRefKindsOpt,
                     ref rewrittenReceiver!,
                     out ArrayBuilder<LocalSymbol>? temps,
-                    out BitVector positionsAssignedToTemp,
                     receiverIsArgumentSideEffectSequence: out _);
 
                 rewrittenArguments = MakeArguments(
@@ -145,7 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
                     ref temps,
-                    positionsAssignedToTemp,
                     enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);

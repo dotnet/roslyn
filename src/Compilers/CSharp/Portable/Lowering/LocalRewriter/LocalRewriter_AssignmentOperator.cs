@@ -316,10 +316,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments,
                 property,
                 argsToParamsOpt,
-                ref argumentRefKindsOpt,
+                argumentRefKindsOpt,
                 ref rewrittenReceiver,
                 out ArrayBuilder<LocalSymbol>? argTempsBuilder,
-                out BitVector positionsAssignedToTemp,
                 receiverIsArgumentSideEffectSequence: out _);
 
             arguments = MakeArguments(
@@ -330,7 +329,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
                 ref argTempsBuilder,
-                positionsAssignedToTemp,
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.True);
 
