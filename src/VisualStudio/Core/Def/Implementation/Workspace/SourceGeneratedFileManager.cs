@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// <summary>
             /// A queue used to batch updates to the file.
             /// </summary>
-            private readonly AsyncBatchingDelay _batchingWorkQueue;
+            private readonly AsyncBatchingWorkQueue _batchingWorkQueue;
 
             /// <summary>
             /// The <see cref="IVsWindowFrame"/> of the active window. This may be null if we're in the middle of construction and
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-                _batchingWorkQueue = new AsyncBatchingDelay(
+                _batchingWorkQueue = new AsyncBatchingWorkQueue(
                     TimeSpan.FromSeconds(1),
                     RefreshFileAsync,
                     asyncListener: _fileManager._listener,
@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
                             await newProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false))
                         {
-                            _batchingWorkQueue.RequeueWork();
+                            _batchingWorkQueue.AddWork();
                         }
                     }, _cancellationTokenSource.Token).CompletesAsyncOperation(asyncToken);
                 }

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// A queue to batch up flush requests and ensure that we don't issue then more often than every <see
         /// cref="FlushAllDelayMS"/>.
         /// </summary>
-        private readonly AsyncBatchingDelay _flushQueue;
+        private readonly AsyncBatchingWorkQueue _flushQueue;
 
         private void EnqueueFlushTask()
         {
-            _flushQueue.RequeueWork();
+            _flushQueue.AddWork();
         }
 
         private Task FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
