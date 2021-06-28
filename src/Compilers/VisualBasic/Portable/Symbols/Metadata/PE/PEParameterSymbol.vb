@@ -620,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     If attribute.HasValue AndAlso PEModule.TryExtractStringValueFromAttribute(attribute.Handle, parameterName) Then
                         Dim parameters = ContainingSymbol.GetParameters()
                         For i = 0 To parameters.Length - 1
-                            If parameters(i).Name.Equals(parameterName, StringComparison.Ordinal) Then
+                            If IdentifierComparison.Equals(parameters(i).Name, parameterName) Then
                                 _lazyCallerArgumentExpressionParameterIndex = i
                                 Exit For
                             End If
