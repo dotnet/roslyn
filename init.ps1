@@ -20,6 +20,9 @@
     Per-machine requires elevation and will download and install all SDKs and runtimes to machine-wide locations so all applications can find it.
 .PARAMETER NoPrerequisites
     Skips the installation of prerequisite software (e.g. SDKs, tools).
+.PARAMETER NoNuGetCredProvider
+    Skips the installation of the NuGet credential provider. Useful in pipelines with the `NuGetAuthenticate` task, as a workaround for https://github.com/microsoft/artifacts-credprovider/issues/244.
+    This switch is ignored and installation is skipped when -NoPrerequisites is specified.
 .PARAMETER UpgradePrerequisites
     Takes time to install prerequisites even if they are already present in case they need to be upgraded.
     No effect if -NoPrerequisites is specified.
@@ -35,6 +38,8 @@ Param (
     [Parameter()]
     [switch]$NoPrerequisites,
     [Parameter()]
+    [switch]$NoNuGetCredProvider,
+    [Parameter()]
     [switch]$UpgradePrerequisites,
     [Parameter()]
     [switch]$NoRestore,
@@ -45,7 +50,10 @@ Param (
 $EnvVars = @{}
 
 if (!$NoPrerequisites) {
-    & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
+    if (!$NoNuGetCredProvider) {
+        & "$PSScriptRoot\tools\Install-NuGetCredProvider.ps1" -AccessToken $AccessToken -Force:$UpgradePrerequisites
+    }
+
     & "$PSScriptRoot\tools\Install-DotNetSdk.ps1" -InstallLocality $InstallLocality
     if ($LASTEXITCODE -eq 3010) {
         Exit 3010
