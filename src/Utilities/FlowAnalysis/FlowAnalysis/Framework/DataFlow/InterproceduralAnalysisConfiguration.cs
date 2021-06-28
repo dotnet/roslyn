@@ -43,11 +43,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-#pragma warning disable CA1801 // Review unused parameters - Public API
-#pragma warning disable IDE0060 // Remove unused parameter
-            CancellationToken cancellationToken,
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore CA1801 // Review unused parameters
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         => Create(analyzerOptions, rule, cfg.OriginalOperation.Syntax.SyntaxTree, compilation, defaultInterproceduralAnalysisKind,
@@ -88,11 +83,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-#pragma warning disable CA1801 // Review unused parameters - Public API
-#pragma warning disable IDE0060 // Remove unused parameter
-            CancellationToken cancellationToken,
-#pragma warning restore IDE0060 // Remove unused parameter
-#pragma warning restore CA1801 // Review unused parameters
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         => Create(analyzerOptions, rules, cfg.OriginalOperation, compilation, defaultInterproceduralAnalysisKind,
