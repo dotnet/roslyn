@@ -1181,9 +1181,9 @@ class Program
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (14,4): error CS8652: The feature 'caller argument expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,4): error CS8773: Feature 'caller argument expression' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [My(1+2)]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1+2)").WithArguments("caller argument expression").WithLocation(14, 4));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(1+2)").WithArguments("caller argument expression", "10.0").WithLocation(14, 4));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
