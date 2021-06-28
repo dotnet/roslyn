@@ -147,11 +147,6 @@
         <target state="translated">C#/Visual Basic Tanılama Dili İstemcisi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Calculating">
-        <source>Calculating...</source>
-        <target state="new">Calculating...</target>
-        <note>Used in UI to represent progress in the context of loading items. </note>
-      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Bağımlılar hesaplanıyor...</target>
@@ -247,11 +242,6 @@
         <target state="translated">Geçerli parametre</target>
         <note />
       </trans-unit>
-      <trans-unit id="Derived_types">
-        <source>Derived types</source>
-        <target state="new">Derived types</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
         <target state="translated">Devre dışı</target>
@@ -260,6 +250,11 @@
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Alt+F1 tuşlarına basılırken tüm ipuçlarını görüntüle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -387,11 +382,6 @@
         <target state="translated">Kimlik</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implemented_interfaces">
-        <source>Implemented interfaces</source>
-        <target state="new">Implemented interfaces</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">Uygulanan üyeler</target>
@@ -400,11 +390,6 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">Üyeleri uygulama</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implementing_types">
-        <source>Implementing types</source>
-        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -437,9 +422,9 @@
         <target state="translated">Devralma Marjı (deneysel)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inherited_interfaces">
-        <source>Inherited interfaces</source>
-        <target state="new">Inherited interfaces</target>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -1197,11 +1182,6 @@
         <target state="translated">Değer</target>
         <note />
       </trans-unit>
-      <trans-unit id="Value_Tracking">
-        <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
-        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
-      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Burada atanan değer hiçbir zaman kullanılmadı</target>
@@ -1390,6 +1370,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' ortak olacak şekilde değiştirildi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2416,6 +2401,11 @@ Ek bilgiler: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">Özellik, olay ve metot eklerken, bunları şuraya yerleştir:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

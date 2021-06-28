@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
             Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
 
             var viewSnapshot = TextView.TextSnapshot;
-            var visualSnapshot = TextView.VisualSnapshot;
 
             var viewLines = TextView.TextViewLines;
             if (viewLines == null || viewLines.Count == 0)

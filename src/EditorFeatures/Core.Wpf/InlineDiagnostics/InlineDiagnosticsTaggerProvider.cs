@@ -67,7 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            RoslynDebug.AssertNotNull(diagnostic.DocumentId);
+            if (diagnostic.DocumentId is null)
+            {
+                return null;
+            }
+
             var document = workspace.CurrentSolution.GetRequiredDocument(diagnostic.DocumentId);
             if (document is null)
             {

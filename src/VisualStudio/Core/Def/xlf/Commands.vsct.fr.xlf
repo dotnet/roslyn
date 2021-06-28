@@ -422,21 +422,6 @@
         <target state="translated">Accéder à l'implémentation</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidshowValueTracking|ButtonText">
-        <source>Track Value Source</source>
-        <target state="new">Track Value Source</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidshowValueTracking|CommandName">
-        <source>ShowValueTrackingCommandName</source>
-        <target state="new">ShowValueTrackingCommandName</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
-        <source>ViewEditorConfigSettings</source>
-        <target state="new">ViewEditorConfigSettings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
         <source>Initialize Interactive with Project</source>
         <target state="translated">Initialiser Interactive avec le projet</target>
