@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseNullCheckOverTypeCheck = /*IDE0150*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
