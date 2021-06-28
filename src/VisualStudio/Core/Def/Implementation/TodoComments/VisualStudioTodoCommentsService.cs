@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
-
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos
             = new();
 
@@ -61,11 +62,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
             : base(threadingContext)
         {
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
         }
 
         public void Dispose()
@@ -106,6 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 new AsyncBatchingWorkQueue<DocumentAndComments>(
                     TimeSpan.FromSeconds(1),
                     ProcessTodoCommentInfosAsync,
+                    _asyncListener,
                     cancellationToken));
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);

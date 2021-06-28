@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -68,7 +69,9 @@ namespace IdeBenchmarks
                 .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
 
             var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
-            _storageService = new SQLitePersistentStorageService(_workspace.Options, connectionPoolService, new LocationService());
+            _storageService = new SQLitePersistentStorageService(
+                _workspace.Options, connectionPoolService, new LocationService(),
+                _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace));
 
             var solution = _workspace.CurrentSolution;
             _storage = _storageService.GetStorageWorkerAsync(_workspace, SolutionKey.ToSolutionKey(solution), solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();

@@ -143,6 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
+                    presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
 
