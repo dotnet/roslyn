@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// The threading model for this class is simple: all non-static members are affinitized to the
     /// UI thread.
     /// </remarks>
-    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
+    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
             _eventSource.Changed += OnEventSourceChanged;
             _eventSource.Connect();
+
+            // Kick off initial work to populate the navbars
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
@@ -139,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public void Disconnect()
+        void IDisposable.Dispose()
         {
             AssertIsForeground();
 
@@ -158,11 +161,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             // Cancel off any remaining background work
             _cancellationTokenSource.Cancel();
-        }
-
-        public void SetWorkspace(Workspace? newWorkspace)
-        {
-            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         private void StartModelUpdateAndSelectedItemUpdateTasks()
