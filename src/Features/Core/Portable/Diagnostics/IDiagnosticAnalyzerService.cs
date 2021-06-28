@@ -72,10 +72,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Return up to date diagnostics for the given span for the document
-        ///
-        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet.
-        /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
+        /// <para>
+        /// This can be expensive since it is force analyzing diagnostics if it doesn't have up-to-date one yet. If
+        /// <paramref name="diagnosticId"/> is not null, it gets diagnostics only for this given <paramref
+        /// name="diagnosticId"/> value.
+        /// </para>
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+        /// <param name="range">The span of the document to get diagnostics for.  If null, diagnostics for the entire
+        /// document should be returned.</param>
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
     }
 }

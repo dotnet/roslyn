@@ -292,5 +292,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
             ServicesVSResources.Enable_file_logging_for_diagnostics
+
+        Public ReadOnly Property Option_Skip_analyzers_for_implicitly_triggered_builds As String =
+            ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds
+
+        Public ReadOnly Property Show_inheritance_margin As String =
+            ServicesVSResources.Show_inheritance_margin
+
+        Public ReadOnly Property Inheritance_Margin_experimental As String =
+            ServicesVSResources.Inheritance_Margin_experimental
     End Module
 End Namespace

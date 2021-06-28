@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
         }
 
         public IPersistentStorage GetStorage(Solution solution)
-            => NoOpPersistentStorage.Instance;
+            => NoOpPersistentStorage.GetOrThrow(solution.Options);
 
         public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.Instance);
+            => new(NoOpPersistentStorage.GetOrThrow(solution.Options));
     }
 }

@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     {
                         node = memberBindingExpr.Name;
                     }
+
                     break;
                 case CS1929:
                     var memberAccessName = (node.Parent as MemberAccessExpressionSyntax)?.Name;

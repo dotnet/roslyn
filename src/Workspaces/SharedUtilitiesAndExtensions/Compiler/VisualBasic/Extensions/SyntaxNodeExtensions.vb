@@ -221,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxKind.SingleLineSubLambdaExpression
                     Return True
             End Select
+
             Return False
         End Function
 

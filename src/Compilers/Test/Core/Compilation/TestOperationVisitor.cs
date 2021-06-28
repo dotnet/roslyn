@@ -1309,6 +1309,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
+            //force the existence of IsExhaustive
+            _ = operation.IsExhaustive;
             Assert.NotNull(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
             Assert.Equal(OperationKind.SwitchExpression, operation.Kind);

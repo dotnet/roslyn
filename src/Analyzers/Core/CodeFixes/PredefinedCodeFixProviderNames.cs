@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string PopulateSwitchExpression = nameof(PopulateSwitchExpression);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
+        public const string UseNullCheckOverTypeCheck = nameof(UseNullCheckOverTypeCheck);
         public const string UsePatternMatchingIsAndCastCheckWithoutName = nameof(UsePatternMatchingIsAndCastCheckWithoutName);
         public const string UsePatternMatchingIsAndCastCheck = nameof(UsePatternMatchingIsAndCastCheck);
         public const string UsePatternMatchingAsAndNullCheck = nameof(UsePatternMatchingAsAndNullCheck);

@@ -156,6 +156,21 @@ namespace IOperationGenerator
                 }
             }
 
+            using (_writer = new StreamWriter(File.Open(Path.Combine(_location, "OperationKind.Generated.cs"), FileMode.Create), Encoding.UTF8))
+            {
+                writeHeader();
+                WriteUsing("System");
+                WriteUsing("System.ComponentModel");
+                WriteUsing("Microsoft.CodeAnalysis.FlowAnalysis");
+                WriteUsing("Microsoft.CodeAnalysis.Operations");
+
+                WriteStartNamespace(namespaceSuffix: null);
+
+                WriteOperationKind();
+
+                WriteEndNamespace();
+            }
+
             void writeHeader()
             {
                 WriteLine("// Licensed to the .NET Foundation under one or more agreements.");

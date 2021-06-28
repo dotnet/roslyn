@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
-            actual = actual.Replace("\"", "\"\"");
+            actual = actual.Replace("\"", "\"\"").Replace(" \n", "\n").Replace(" \r", "\r");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine);
             expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
@@ -1941,7 +1941,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
-            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms)");
+            LogString($"{nameof(ISwitchExpressionOperation)} ({operation.Arms.Length} arms, IsExhaustive: {operation.IsExhaustive})");
             LogCommonPropertiesAndNewLine(operation);
             Visit(operation.Value, nameof(operation.Value));
             VisitArray(operation.Arms, nameof(operation.Arms), logElementCount: true);
