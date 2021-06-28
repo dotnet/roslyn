@@ -18,7 +18,7 @@ jobs:
 
 - job: Linux
   pool:
-    vmImage: Ubuntu 18.04
+    vmImage: Ubuntu 20.04
   steps:
   - checkout: self
     clean: true
@@ -43,7 +43,7 @@ jobs:
   - Linux
   - macOS
   pool:
-    vmImage: Ubuntu 18.04
+    vmImage: Ubuntu 20.04
   condition: succeededOrFailed()
   steps:
   - checkout: self
