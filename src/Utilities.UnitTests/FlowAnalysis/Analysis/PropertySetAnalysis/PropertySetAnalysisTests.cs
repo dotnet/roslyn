@@ -92,8 +92,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             dummy,
                             cfg,
                             compilation,
-                            InterproceduralAnalysisKind.ContextSensitive,
-                            cancellationSource.Token));
+                            InterproceduralAnalysisKind.ContextSensitive));
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
                     result.HazardousUsages;
                 try

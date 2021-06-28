@@ -34,7 +34,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             CancellationToken cancellationToken)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, cfg, compilation, InterproceduralAnalysisKind.ContextSensitive, cancellationToken);
+                analyzerOptions, rule, cfg, compilation, InterproceduralAnalysisKind.ContextSensitive);
             return TryGetOrComputeResult(cfg, compilation, containingMethod, analyzerOptions, taintedSourceInfos,
                 taintedSanitizerInfos, taintedSinkInfos, interproceduralAnalysisConfig);
         }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             }
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                   analyzerOptions, rule, cfg, compilation, interproceduralAnalysisKind, cancellationToken, defaultMaxInterproceduralMethodCallChain);
+                   analyzerOptions, rule, cfg, compilation, interproceduralAnalysisKind, defaultMaxInterproceduralMethodCallChain);
             var performCopyAnalysis = analyzerOptions.GetCopyAnalysisOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, defaultValue: false);
             var nullCheckValidationMethods = analyzerOptions.GetNullCheckValidationMethodsOption(rule, topmostBlock.Syntax.SyntaxTree, compilation);
             var pointsToAnalysisKind = analyzerOptions.GetPointsToAnalysisKindOption(rule, topmostBlock.Syntax.SyntaxTree, compilation, defaultPointsToAnalysisKind);
