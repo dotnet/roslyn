@@ -12,32 +12,21 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Roslyn.Utilities
 {
     /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
-    internal class AsyncBatchingWorkQueue : AsyncBatchingWorkQueue<bool>
+    internal class AsyncBatchingWorkQueue : AsyncBatchingWorkQueue<VoidResult>
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
             Func<CancellationToken, Task> processBatchAsync,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
-            : this(delay,
-                   processBatchAsync,
-                   asyncListener: null,
-                   cancellationToken)
+            : base(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
         {
         }
 
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            Func<CancellationToken, Task> processBatchAsync,
-            IAsynchronousOperationListener? asyncListener,
-            CancellationToken cancellationToken)
-            : base(delay, Convert(processBatchAsync), EqualityComparer<bool>.Default, asyncListener, cancellationToken)
-        {
-        }
-
-        private static Func<ImmutableArray<bool>, CancellationToken, Task> Convert(Func<CancellationToken, Task> processBatchAsync)
+        private static Func<ImmutableArray<VoidResult>, CancellationToken, Task> Convert(Func<CancellationToken, Task> processBatchAsync)
             => (items, ct) => processBatchAsync(ct);
 
         public void AddWork()
-            => base.AddWork(true);
+            => base.AddWork(default(VoidResult));
     }
 }

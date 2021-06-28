@@ -12,16 +12,17 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 namespace Roslyn.Utilities
 {
     /// <inheritdoc cref="AsyncBatchingWorkQueue{TItem, TResult}"/>
-    internal class AsyncBatchingWorkQueue<TItem> : AsyncBatchingWorkQueue<TItem, bool>
+    internal class AsyncBatchingWorkQueue<TItem> : AsyncBatchingWorkQueue<TItem, VoidResult>
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
             Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : this(delay,
                    processBatchAsync,
                    equalityComparer: null,
-                   asyncListener: null,
+                   asyncListener,
                    cancellationToken)
         {
         }
@@ -30,17 +31,17 @@ namespace Roslyn.Utilities
             TimeSpan delay,
             Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
-            IAsynchronousOperationListener? asyncListener,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : base(delay, Convert(processBatchAsync), equalityComparer, asyncListener, cancellationToken)
         {
         }
 
-        private static Func<ImmutableArray<TItem>, CancellationToken, Task<bool>> Convert(Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync)
+        private static Func<ImmutableArray<TItem>, CancellationToken, Task<VoidResult>> Convert(Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync)
             => async (items, ct) =>
             {
                 await processBatchAsync(items, ct).ConfigureAwait(false);
-                return true;
+                return default;
             };
 
         public new Task WaitUntilCurrentBatchCompletesAsync()
