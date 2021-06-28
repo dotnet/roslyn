@@ -17,6 +17,142 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestBeginInvoke()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(string s1, string s2)
+    {
+    }
+
+    static string GetString() => null;
+
+    public static void Main()
+    {
+        D d = M;
+        d.BeginInvoke(GetString(), callback: null, @object: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  5
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""GetString()""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestBeginInvoke_ReferringToCallbackParameter()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string callback = nameof(callback);
+    delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(string s1, string s2)
+    {
+    }
+
+    static string GetString() => null;
+
+    public static void Main()
+    {
+        D d = M;
+        d.BeginInvoke(GetString(), callback: null, @object: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation).VerifyDiagnostics(
+                // (29,33): warning CS9005: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
+                //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
+                ).VerifyIL("Program.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  5
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""default""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
+}
+");
+        }
+
         #region CallerArgumentExpression - Invocations
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute()
