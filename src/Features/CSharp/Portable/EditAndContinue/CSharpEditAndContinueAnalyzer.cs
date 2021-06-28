@@ -2630,12 +2630,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(TypeDeclarationSyntax oldNode, TypeDeclarationSyntax newNode)
             {
-                if (oldNode.Kind() != newNode.Kind())
-                {
-                    ReportError(RudeEditKind.TypeKindUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
                 {
                     ReportError(RudeEditKind.Renamed);
@@ -2768,7 +2762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.ImplicitOrExplicitKeyword, newNode.ImplicitOrExplicitKeyword))
                 {
-                    ReportError(RudeEditKind.Renamed);
+                    ReportError(RudeEditKind.ModifiersUpdate);
                     return;
                 }
 

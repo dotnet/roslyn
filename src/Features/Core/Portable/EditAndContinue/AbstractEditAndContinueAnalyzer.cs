@@ -3074,9 +3074,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 rudeEdit = RudeEditKind.ChangingAccessibility;
             }
 
-            if (oldSymbol.IsStatic != newSymbol.IsStatic)
+            if (oldSymbol.IsStatic != newSymbol.IsStatic ||
+                oldSymbol.IsVirtual != newSymbol.IsVirtual ||
+                oldSymbol.IsAbstract != newSymbol.IsAbstract ||
+                oldSymbol.IsOverride != newSymbol.IsOverride)
             {
-                rudeEdit = RudeEditKind.ModifiersUpdate;
+                // Do not report for accessors as the error will be reported on their associated symbol.
+                if (oldSymbol is not IMethodSymbol { AssociatedSymbol: not null })
+                {
+                    rudeEdit = RudeEditKind.ModifiersUpdate;
+                }
             }
 
             if (oldSymbol is IFieldSymbol oldField && newSymbol is IFieldSymbol newField)
@@ -3097,8 +3104,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (oldSymbol is INamedTypeSymbol oldType && newSymbol is INamedTypeSymbol newType)
             {
-                if (oldType.IsRefLikeType != newType.IsRefLikeType ||
-                    oldType.IsReadOnly != newType.IsReadOnly)
+                if (oldType.TypeKind != newType.TypeKind ||
+                    oldType.IsRecord != newType.IsRecord) // TODO: https://github.com/dotnet/roslyn/issues/51874
+                {
+                    rudeEdit = RudeEditKind.TypeKindUpdate;
+                }
+                else if (oldType.IsRefLikeType != newType.IsRefLikeType ||
+                         oldType.IsReadOnly != newType.IsReadOnly)
                 {
                     rudeEdit = RudeEditKind.ModifiersUpdate;
                 }
@@ -3109,6 +3121,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // "readonly" modifier can only be applied on the event itself, not on its accessors.
                 if (oldEvent.AddMethod.IsReadOnly != newEvent.AddMethod.IsReadOnly ||
                     oldEvent.RemoveMethod.IsReadOnly != newEvent.RemoveMethod.IsReadOnly)
+                {
+                    rudeEdit = RudeEditKind.ModifiersUpdate;
+                }
+            }
+
+            // Do not report modifier update if type kind changed.
+            if (rudeEdit == RudeEditKind.None && oldSymbol.IsSealed != newSymbol.IsSealed)
+            {
+                // Do not report for accessors as the error will be reported on their associated symbol.
+                if (oldSymbol is not IMethodSymbol { AssociatedSymbol: not null })
                 {
                     rudeEdit = RudeEditKind.ModifiersUpdate;
                 }
