@@ -153,32 +153,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             return map;
         }
 
-        protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
-            Contract.ThrowIfNull(changedSpanCollection);
-
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
-
             var viewLines = TextView.TextViewLines;
-            if (viewLines == null || viewLines.Count == 0)
-            {
-                return; // nothing to draw on
-            }
-
-            // removing is a separate pass from adding so that new stuff is not removed.
-            if (removeOldTags)
-            {
-                foreach (var changedSpan in changedSpanCollection)
-                {
-                    // is there any effect on the view?
-                    if (viewLines.IntersectsBufferSpan(changedSpan))
-                    {
-                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
-                    }
-                }
-            }
-
             var map = GetSpansOnEachLine(changedSpanCollection);
             foreach (var (lineNum, spanTuple) in map)
             {
@@ -213,8 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
                     {
                         AdornmentLayer.AddAdornment(
-                            // TextRelative because the adornment is positioned relative to the text in the editor
-                            behavior: AdornmentPositioningBehavior.OwnerControlled,
+                            behavior: AdornmentPositioningBehavior.TextRelative,
                             visualSpan: span,
                             tag: tag,
                             adornment: visualElement,

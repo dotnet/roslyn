@@ -20,42 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
         {
         }
-
-        /// <summary>
-        /// MUST BE CALLED ON UI THREAD!!!!   This method touches WPF.
-        /// 
-        /// This is where we apply visuals to the text. 
-        /// 
-        /// It happens when another region of the view becomes visible or there is a change in tags.
-        /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
-        /// </summary>        
-        protected override void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+     
+        protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
-            Contract.ThrowIfNull(changedSpanCollection);
-
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
-
             var viewSnapshot = TextView.TextSnapshot;
-
             var viewLines = TextView.TextViewLines;
-            if (viewLines == null || viewLines.Count == 0)
-            {
-                return; // nothing to draw on
-            }
-
-            // removing is a separate pass from adding so that new stuff is not removed.
-            if (removeOldTags)
-            {
-                foreach (var changedSpan in changedSpanCollection)
-                {
-                    // is there any effect on the view?
-                    if (viewLines.IntersectsBufferSpan(changedSpan))
-                    {
-                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
-                    }
-                }
-            }
 
             foreach (var changedSpan in changedSpanCollection)
             {
