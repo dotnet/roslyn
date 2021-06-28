@@ -1,5 +1,6 @@
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.ColonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp10 = 1000 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.WithExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax

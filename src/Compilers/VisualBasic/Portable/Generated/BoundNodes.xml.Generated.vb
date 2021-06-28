@@ -3758,14 +3758,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundObjectInitializerExpression
         Inherits BoundObjectInitializerExpressionBase
 
-        Public Sub New(syntax As SyntaxNode, createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, createTemporaryLocalForInitialization As Boolean, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectInitializerExpression, syntax, placeholderOpt, initializers, type, hasErrors OrElse placeholderOpt.NonNullAndHasErrors() OrElse initializers.NonNullAndHasErrors())
 
-            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(Not (initializers.IsDefault), "Field 'initializers' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._CreateTemporaryLocalForInitialization = createTemporaryLocalForInitialization
-            Me._Binder = binder
 
             Validate()
         End Sub
@@ -3781,21 +3779,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _Binder As Binder
-        Public ReadOnly Property Binder As Binder
-            Get
-                Return _Binder
-            End Get
-        End Property
-
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectInitializerExpression(Me)
         End Function
 
-        Public Function Update(createTemporaryLocalForInitialization As Boolean, binder As Binder, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundObjectInitializerExpression
-            If createTemporaryLocalForInitialization <> Me.CreateTemporaryLocalForInitialization OrElse binder IsNot Me.Binder OrElse placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
-                Dim result = New BoundObjectInitializerExpression(Me.Syntax, createTemporaryLocalForInitialization, binder, placeholderOpt, initializers, type, Me.HasErrors)
+        Public Function Update(createTemporaryLocalForInitialization As Boolean, placeholderOpt As BoundWithLValueExpressionPlaceholder, initializers As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundObjectInitializerExpression
+            If createTemporaryLocalForInitialization <> Me.CreateTemporaryLocalForInitialization OrElse placeholderOpt IsNot Me.PlaceholderOpt OrElse initializers <> Me.Initializers OrElse type IsNot Me.Type Then
+                Dim result = New BoundObjectInitializerExpression(Me.Syntax, createTemporaryLocalForInitialization, placeholderOpt, initializers, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -4500,14 +4491,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundAsNewLocalDeclarations
         Inherits BoundLocalDeclarationBase
 
-        Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, binder As Binder, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.AsNewLocalDeclarations, syntax, hasErrors OrElse localDeclarations.NonNullAndHasErrors() OrElse initializer.NonNullAndHasErrors())
 
             Debug.Assert(Not (localDeclarations.IsDefault), "Field 'localDeclarations' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initializer IsNot Nothing, "Field 'initializer' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(binder IsNot Nothing, "Field 'binder' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._LocalDeclarations = localDeclarations
             Me._Initializer = initializer
+            Me._Binder = binder
         End Sub
 
 
@@ -4525,14 +4518,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _Binder As Binder
+        Public ReadOnly Property Binder As Binder
+            Get
+                Return _Binder
+            End Get
+        End Property
+
         <DebuggerStepThrough>
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitAsNewLocalDeclarations(Me)
         End Function
 
-        Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression) As BoundAsNewLocalDeclarations
-            If localDeclarations <> Me.LocalDeclarations OrElse initializer IsNot Me.Initializer Then
-                Dim result = New BoundAsNewLocalDeclarations(Me.Syntax, localDeclarations, initializer, Me.HasErrors)
+        Public Function Update(localDeclarations As ImmutableArray(Of BoundLocalDeclaration), initializer As BoundExpression, binder As Binder) As BoundAsNewLocalDeclarations
+            If localDeclarations <> Me.LocalDeclarations OrElse initializer IsNot Me.Initializer OrElse binder IsNot Me.Binder Then
+                Dim result = New BoundAsNewLocalDeclarations(Me.Syntax, localDeclarations, initializer, binder, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -4611,13 +4611,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend MustInherit Class BoundFieldOrPropertyInitializer
         Inherits BoundInitializer
 
-        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
+        Protected Sub New(kind As BoundKind, syntax as SyntaxNode, memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, binderOpt As Binder, Optional hasErrors As Boolean = False)
             MyBase.New(kind, syntax, hasErrors)
 
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._MemberAccessExpressionOpt = memberAccessExpressionOpt
             Me._InitialValue = initialValue
+            Me._BinderOpt = binderOpt
         End Sub
 
 
@@ -4634,13 +4635,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _InitialValue
             End Get
         End Property
+
+        Private ReadOnly _BinderOpt As Binder
+        Public ReadOnly Property BinderOpt As Binder
+            Get
+                Return _BinderOpt
+            End Get
+        End Property
     End Class
 
     Partial Friend NotInheritable Class BoundFieldInitializer
         Inherits BoundFieldOrPropertyInitializer
 
-        Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.FieldInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, binderOpt As Binder, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.FieldInitializer, syntax, memberAccessExpressionOpt, initialValue, binderOpt, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
             Debug.Assert(Not (initializedFields.IsDefault), "Field 'initializedFields' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -4661,9 +4669,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitFieldInitializer(Me)
         End Function
 
-        Public Function Update(initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundFieldInitializer
-            If initializedFields <> Me.InitializedFields OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
-                Dim result = New BoundFieldInitializer(Me.Syntax, initializedFields, memberAccessExpressionOpt, initialValue, Me.HasErrors)
+        Public Function Update(initializedFields As ImmutableArray(Of FieldSymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, binderOpt As Binder) As BoundFieldInitializer
+            If initializedFields <> Me.InitializedFields OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue OrElse binderOpt IsNot Me.BinderOpt Then
+                Dim result = New BoundFieldInitializer(Me.Syntax, initializedFields, memberAccessExpressionOpt, initialValue, binderOpt, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -4674,8 +4682,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundPropertyInitializer
         Inherits BoundFieldOrPropertyInitializer
 
-        Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.PropertyInitializer, syntax, memberAccessExpressionOpt, initialValue, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, binderOpt As Binder, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.PropertyInitializer, syntax, memberAccessExpressionOpt, initialValue, binderOpt, hasErrors OrElse memberAccessExpressionOpt.NonNullAndHasErrors() OrElse initialValue.NonNullAndHasErrors())
 
             Debug.Assert(Not (initializedProperties.IsDefault), "Field 'initializedProperties' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(initialValue IsNot Nothing, "Field 'initialValue' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -4696,9 +4704,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitPropertyInitializer(Me)
         End Function
 
-        Public Function Update(initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression) As BoundPropertyInitializer
-            If initializedProperties <> Me.InitializedProperties OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue Then
-                Dim result = New BoundPropertyInitializer(Me.Syntax, initializedProperties, memberAccessExpressionOpt, initialValue, Me.HasErrors)
+        Public Function Update(initializedProperties As ImmutableArray(Of PropertySymbol), memberAccessExpressionOpt As BoundExpression, initialValue As BoundExpression, binderOpt As Binder) As BoundPropertyInitializer
+            If initializedProperties <> Me.InitializedProperties OrElse memberAccessExpressionOpt IsNot Me.MemberAccessExpressionOpt OrElse initialValue IsNot Me.InitialValue OrElse binderOpt IsNot Me.BinderOpt Then
+                Dim result = New BoundPropertyInitializer(Me.Syntax, initializedProperties, memberAccessExpressionOpt, initialValue, binderOpt, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12421,7 +12429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim placeholderOpt As BoundWithLValueExpressionPlaceholder = DirectCast(Me.Visit(node.PlaceholderOpt), BoundWithLValueExpressionPlaceholder)
             Dim initializers As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Initializers)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.CreateTemporaryLocalForInitialization, node.Binder, placeholderOpt, initializers, type)
+            Return node.Update(node.CreateTemporaryLocalForInitialization, placeholderOpt, initializers, type)
         End Function
 
         Public Overrides Function VisitCollectionInitializerExpression(node As BoundCollectionInitializerExpression) As BoundNode
@@ -12506,7 +12514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAsNewLocalDeclarations(node As BoundAsNewLocalDeclarations) As BoundNode
             Dim localDeclarations As ImmutableArray(Of BoundLocalDeclaration) = Me.VisitList(node.LocalDeclarations)
             Dim initializer As BoundExpression = DirectCast(Me.Visit(node.Initializer), BoundExpression)
-            Return node.Update(localDeclarations, initializer)
+            Return node.Update(localDeclarations, initializer, node.Binder)
         End Function
 
         Public Overrides Function VisitDimStatement(node As BoundDimStatement) As BoundNode
@@ -12522,13 +12530,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitFieldInitializer(node As BoundFieldInitializer) As BoundNode
             Dim memberAccessExpressionOpt As BoundExpression = DirectCast(Me.Visit(node.MemberAccessExpressionOpt), BoundExpression)
             Dim initialValue As BoundExpression = DirectCast(Me.Visit(node.InitialValue), BoundExpression)
-            Return node.Update(node.InitializedFields, memberAccessExpressionOpt, initialValue)
+            Return node.Update(node.InitializedFields, memberAccessExpressionOpt, initialValue, node.BinderOpt)
         End Function
 
         Public Overrides Function VisitPropertyInitializer(node As BoundPropertyInitializer) As BoundNode
             Dim memberAccessExpressionOpt As BoundExpression = DirectCast(Me.Visit(node.MemberAccessExpressionOpt), BoundExpression)
             Dim initialValue As BoundExpression = DirectCast(Me.Visit(node.InitialValue), BoundExpression)
-            Return node.Update(node.InitializedProperties, memberAccessExpressionOpt, initialValue)
+            Return node.Update(node.InitializedProperties, memberAccessExpressionOpt, initialValue, node.BinderOpt)
         End Function
 
         Public Overrides Function VisitParameterEqualsValue(node As BoundParameterEqualsValue) As BoundNode
@@ -13663,7 +13671,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("objectInitializerExpression", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("createTemporaryLocalForInitialization", node.CreateTemporaryLocalForInitialization, Nothing),
-                New TreeDumperNode("binder", node.Binder, Nothing),
                 New TreeDumperNode("placeholderOpt", Nothing, new TreeDumperNode() {Visit(node.PlaceholderOpt, Nothing)}),
                 New TreeDumperNode("initializers", Nothing, From x In node.Initializers Select Visit(x, Nothing)),
                 New TreeDumperNode("type", node.Type, Nothing)
@@ -13786,7 +13793,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitAsNewLocalDeclarations(node As BoundAsNewLocalDeclarations, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("asNewLocalDeclarations", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("localDeclarations", Nothing, From x In node.LocalDeclarations Select Visit(x, Nothing)),
-                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() {Visit(node.Initializer, Nothing)})
+                New TreeDumperNode("initializer", Nothing, new TreeDumperNode() {Visit(node.Initializer, Nothing)}),
+                New TreeDumperNode("binder", node.Binder, Nothing)
             })
         End Function
 
@@ -13805,7 +13813,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New TreeDumperNode("fieldInitializer", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("initializedFields", node.InitializedFields, Nothing),
                 New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() {Visit(node.MemberAccessExpressionOpt, Nothing)}),
-                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {Visit(node.InitialValue, Nothing)})
+                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {Visit(node.InitialValue, Nothing)}),
+                New TreeDumperNode("binderOpt", node.BinderOpt, Nothing)
             })
         End Function
 
@@ -13813,7 +13822,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New TreeDumperNode("propertyInitializer", Nothing, New TreeDumperNode() {
                 New TreeDumperNode("initializedProperties", node.InitializedProperties, Nothing),
                 New TreeDumperNode("memberAccessExpressionOpt", Nothing, new TreeDumperNode() {Visit(node.MemberAccessExpressionOpt, Nothing)}),
-                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {Visit(node.InitialValue, Nothing)})
+                New TreeDumperNode("initialValue", Nothing, new TreeDumperNode() {Visit(node.InitialValue, Nothing)}),
+                New TreeDumperNode("binderOpt", node.BinderOpt, Nothing)
             })
         End Function
 

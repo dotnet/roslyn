@@ -247,6 +247,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                               Assert.Equal(1, diagnostics.Length)
                                                               Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
                                                           End Sub
+
                     source.OnSolutionBuildCompleted()
 
                     Await waiter.ExpeditedWaitAsync()

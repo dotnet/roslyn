@@ -1302,6 +1302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         symbols = OneOrMany.Create(parameterSymbol)
                         Return True
                     End If
+
                     Return False
 
                 Case SyntaxKind.TypeParameter
@@ -1328,6 +1329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) model.GetDeclaredSymbol(n, cancellationToken)))
                         Return True
                     End If
+
                     node = variableDeclarator.Names(0)
 
                 Case SyntaxKind.FieldDeclaration
@@ -2284,6 +2286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         If node.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
+
                         Return
 
                     Case SyntaxKind.AttributeList
@@ -2291,6 +2294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         If node.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
+
                         Return
 
                     Case SyntaxKind.ParameterList
@@ -2366,6 +2370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         If oldNode.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
+
                         Return
 
                     Case SyntaxKind.Attribute
@@ -2373,6 +2378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         If oldNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Insert)
                         End If
+
                         Return
 
                     Case SyntaxKind.TypeParameter,
@@ -2568,6 +2574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         If newNode.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                             ReportError(RudeEditKind.Update)
                         End If
+
                         Return
 
                     Case SyntaxKind.AttributeList,

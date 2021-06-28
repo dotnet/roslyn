@@ -21,15 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbol(node);
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                 if (symbol != null)
                 {
                     var overriddenMember = symbol.GetOverriddenMember();
                     if (overriddenMember != null)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
-                            overriddenMember, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode);
+                            overriddenMember, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode, cancellationToken);
                     }
                 }
             }

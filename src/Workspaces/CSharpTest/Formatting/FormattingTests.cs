@@ -9028,6 +9028,7 @@ class C
                         lines[i] = new string(' ', count: 8) + lines[i];
                     }
                 }
+
                 return string.Join(Environment.NewLine, lines);
             }
 

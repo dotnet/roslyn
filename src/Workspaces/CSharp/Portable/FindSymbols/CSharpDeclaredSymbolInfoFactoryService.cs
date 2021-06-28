@@ -341,6 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             variableDeclarator.Identifier.Span,
                             inheritanceNames: ImmutableArray<string>.Empty));
                     }
+
                     return;
             }
         }

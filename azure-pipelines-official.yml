@@ -2,13 +2,25 @@ resources:
 - repo: self
   clean: true
 
-# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
-# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
-#variables:
-#  SignType: real
-#  SkipTests: false
-#  SkipApplyOptimizationData: false
-#  IbcDrop: 'default'
+parameters:
+- name: IbcDrop
+  type: string
+  default: default
+
+- name: SignType
+  default: real
+  type: string
+  values:
+  - real
+  - test
+
+- name: SkipApplyOptimizationData
+  type: boolean
+  default: false
+
+- name: SkipTests
+  type: boolean
+  default: true
 
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
@@ -30,6 +42,23 @@ variables:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
+  - group: ManagedLanguageSecrets
+
+  - name: BuildConfiguration
+    value: release
+  - name: Roslyn.GitHubEmail
+    value: dotnet-build-bot@microsoft.com
+  - name: Roslyn.GitHubToken
+    value: $(AccessToken-dotnet-build-bot-public-repo)
+  - name: Roslyn.GitHubUserName
+    value: dotnet-build-bot
+
+  - name: Insertion.InsertToolset
+    value: true
+  - name: Insertion.CreateDraftPR
+    value: true
+  - name: Insertion.TitlePrefix
+    value: '[Auto Insertion]'
 
 stages:
 
@@ -37,11 +66,13 @@ stages:
   displayName: Build and Test
 
   jobs:
-  - template: /eng/common/templates/job/onelocbuild.yml
-    parameters:
-      CreatePr: false
-      LclSource: lclFilesfromPackage
-      LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev16.11-vs-deps') }}:
+    - template: /eng/common/templates/job/onelocbuild.yml
+      parameters:
+        MirrorRepo: roslyn
+        MirrorBranch: release/dev16.11-vs-deps
+        LclSource: lclFilesfromPackage
+        LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
   - template: eng/common/templates/jobs/source-build.yml
 
@@ -263,6 +294,86 @@ stages:
         - OfficialBuild
       pool:
         vmImage: vs2017-win2016
+
+- stage: insert
+  dependsOn:
+  - build
+  - publish_using_darc
+  displayName: Insert to VS
+
+  jobs:
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      vmImage: windows-2019
+    steps:
+    - checkout: none
+
+    - task: NuGetCommand@2
+      displayName: 'Install RIT from Azure Artifacts'
+      inputs:
+        command: custom
+        arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+
+    - powershell: |
+        $response = Invoke-RestMethod -Headers @{Authorization = "Bearer $(System.AccessToken)"} "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
+        $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+        $branchData = $response.branches.$branchName
+        if (!$branchData)
+        {
+          Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
+          $branchData = $response.branches.main
+        }
+        if ($null -ne $branchData.insertionCreateDraftPR)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
+        }
+        if ($null -ne $branchData.insertionTitlePrefix)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.TitlePrefix]$($branchData.insertionTitlePrefix)"
+        }
+        if ($null -ne $branchData.insertToolset)
+        {
+          Write-Host "##vso[task.setvariable variable=Insertion.InsertToolset]$($branchData.insertToolset)"
+        }
+
+        Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+        Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
+      displayName: Set Insertion Variables
+
+    - powershell: |
+        mv RoslynTools.VisualStudioInsertionTool.* RIT
+        .\RIT\tools\OneOffInsertion.ps1 `
+          -autoComplete "false" `
+          -buildQueueName "$(Build.DefinitionName)" `
+          -cherryPick "(default)" `
+          -clientId "$(ClientId)" `
+          -clientSecret "$(ClientSecret)" `
+          -componentAzdoUri "$(System.CollectionUri)" `
+          -componentBranchName "$(ComponentBranchName)" `
+          -componentGitHubRepoName "dotnet/roslyn" `
+          -componentName "Roslyn" `
+          -componentProjectName "internal" `
+          -createDraftPR "$(Insertion.CreateDraftPR)" `
+          -defaultValueSentinel "(default)" `
+          -dropPath "(default)" `
+          -insertCore "(default)" `
+          -insertDevDiv "(default)" `
+          -insertionCount "1" `
+          -insertToolset "$(Insertion.InsertToolset)" `
+          -titlePrefix "$(Insertion.TitlePrefix)" `
+          -queueValidation "true" `
+          -requiredValueSentinel "REQUIRED" `
+          -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
+          -specificBuild "$(Build.BuildNumber)" `
+          -updateAssemblyVersions "(default)" `
+          -updateCoreXTLibraries "(default)" `
+          -visualStudioBranchName "$(VSBranchName)" `
+          -writePullRequest "prid.txt" `
+      displayName: 'Run OneOffInsertion.ps1'
+
+    - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
+      displayName: 'Report PR URL'
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml

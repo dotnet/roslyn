@@ -388,6 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     return;
                 }
+
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
 #pragma warning disable CS8604 // Possible null reference argument. (Can ConvertLocalPathToSharedUri return null here?)

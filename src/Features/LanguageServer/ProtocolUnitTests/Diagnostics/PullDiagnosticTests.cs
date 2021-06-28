@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -75,6 +77,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document);
 
             Assert.Empty(results.Single().Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestNoDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOff()
+        {
+            var markup =
+@"class A {";
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Default);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+            await OpenDocumentAsync(testLspServer, document);
+
+            // Ensure we get no diagnostics when feature flag is off.
+            var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
+            testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, false);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document);
+            Assert.Empty(results.Single().Diagnostics);
+        }
+
+        [Fact]
+        public async Task TestDocumentDiagnosticsForOpenFilesIfDefaultAndFeatureFlagOn()
+        {
+            var markup =
+@"class A {";
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Default);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+            await OpenDocumentAsync(testLspServer, document);
+
+            var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
+            testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, true);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document);
+            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
         }
 
         [Fact]
@@ -506,26 +547,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
         }
 
         private TestLspServer CreateTestWorkspaceWithDiagnostics(string markup, BackgroundAnalysisScope scope, bool pullDiagnostics = true)
+            => CreateTestWorkspaceWithDiagnostics(markup, scope, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
+
+        private TestLspServer CreateTestWorkspaceWithDiagnostics(string markup, BackgroundAnalysisScope scope, DiagnosticMode mode)
         {
             var testLspServer = CreateTestLspServer(markup, out _);
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics);
+            InitializeDiagnostics(scope, testLspServer.TestWorkspace, mode);
             return testLspServer;
         }
 
         private TestLspServer CreateTestWorkspaceWithDiagnostics(string[] markups, BackgroundAnalysisScope scope, bool pullDiagnostics = true)
         {
             var testLspServer = CreateTestLspServer(markups, out _);
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics);
+            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
             return testLspServer;
         }
 
-        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestWorkspace workspace, bool pullDiagnostics)
+        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestWorkspace workspace, DiagnosticMode diagnosticMode)
         {
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
                 workspace.Options
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
-                    .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push)));
+                    .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, diagnosticMode)));
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));

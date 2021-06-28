@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
+
             var completionList = new LSP.VSCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
