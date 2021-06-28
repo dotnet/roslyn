@@ -390,8 +390,16 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(3, errors.Length);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1514: { expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 10));
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
@@ -409,8 +417,10 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(2, errors.Length);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 10));
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
