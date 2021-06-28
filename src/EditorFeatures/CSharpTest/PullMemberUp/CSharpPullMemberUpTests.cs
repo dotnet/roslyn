@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
+using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -583,6 +584,677 @@ namespace PushUpTest
         }
     }
 }";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToInterfaceWithoutAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+    bool TestMethod();
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewReturnTypeToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri Test[||]Method()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    Uri TestMethod();
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri TestMethod()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewParamTypeToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    bool TestMethod(Uri endpoint);
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool TestMethod(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullEventToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    event EventHandler TestEvent;
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public event EventHandler TestEvent
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Property
+    {
+        get
+        {
+            var endpoint1 = new Uri(""http://localhost"");
+            var endpoint2 = new Uri(""http://localhost"");
+            return endpoint1.Equals(endpoint2);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public bool TestProperty
+    {
+        get
+        {
+            var endpoint1 = new Uri(""http://localhost"");
+            var endpoint2 = new Uri(""http://localhost"");
+            return endpoint1.Equals(endpoint2);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewParamTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Method(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public bool TestMethod(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public bool TestMethod()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullEventToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullFieldToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri en[||]dpoint = new Uri(""http://localhost"");
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri en[||]dpoint = new Uri(""http://localhost"");
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
             await TestInRegularAndScriptAsync(testText, expected);
         }
 

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -242,6 +243,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
@@ -274,6 +277,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
+
+                    // add import symbol annotations for all the code we may be moving
+                    newDestination = newDestination.WithAdditionalAnnotations(
+                        semanticModel.GetAllDeclaredSymbols(syntax, cancellationToken)
+                        .Select((symbol) =>
+                        {
+                            // prefer the convert because it can handle param and return types
+                            // but use memberType in case of fields/variable declaration.
+                            var type = symbol.ConvertToType(compilation);
+                            if (type.Equals(compilation.ObjectType))
+                            {
+                                type = symbol.GetMemberType();
+                            }
+                            return SymbolAnnotation.Create(type ?? compilation.ObjectType);
+                        }));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
