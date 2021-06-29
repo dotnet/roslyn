@@ -803,8 +803,8 @@ class Goo
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Renamed, "int b", FeaturesResources.parameter));
+            edits.VerifySemantics(active,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Goo..ctor"), preserveLocalVariables: true, options: SemanticEditOption.EmitAllParametersForMethodUpdate) });
         }
 
         [WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")]
