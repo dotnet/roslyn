@@ -219,15 +219,25 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 // if there are comments from the original if that should be included.
                 // If so, pass them along to be copied to the new else block
                 return originalIfStatement.Statement is BlockSyntax block
-                    && block.CloseBraceToken.LeadingTrivia.Any(t =>
-                        t.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                        || t.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                    && BlockHasComment(block);
             }
 
             // The statement is not expected to have children, so we know it's fine
             // to consider this something that needs to be included. Such as 
             // a return statement, or other similar things for single line if/else.
             return true;
+
+            static bool BlockHasComment(BlockSyntax block)
+            {
+                return block.CloseBraceToken.LeadingTrivia.Any(HasCommentTrivia)
+                    || block.OpenBraceToken.TrailingTrivia.Any(HasCommentTrivia);
+            }
+
+            static bool HasCommentTrivia(SyntaxTrivia trivia)
+            {
+                 return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                    || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            }
         }
 
         protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<StatementSyntax> statements)

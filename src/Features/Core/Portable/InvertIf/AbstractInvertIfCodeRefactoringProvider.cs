@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                     {
                         Debug.Assert(subsequentSingleExitPoint is TStatementSyntax);
 
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
 
                 case InvertIfStyle.IfWithoutElse_WithElseClause:
                     {
-                        var currentParent = ifNode.Parent;
+                        var currentParent = ifNode.GetRequiredParent();
                         var statements = GetStatements(currentParent);
                         var index = statements.IndexOf(ifNode);
 
