@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(temps?.Count is null or > 0);
             return visitedArgumentsBuilder.ToImmutableAndFree();
 
-            void ensureTempTrackingSetup([NotNull]ref ArrayBuilder<LocalSymbol>? temps, ref BitVector positionsAssignedToTemp)
+            void ensureTempTrackingSetup([NotNull] ref ArrayBuilder<LocalSymbol>? temps, ref BitVector positionsAssignedToTemp)
             {
                 if (temps == null)
                 {
