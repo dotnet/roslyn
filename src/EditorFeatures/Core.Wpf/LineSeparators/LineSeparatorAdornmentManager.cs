@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (ShouldNotDrawTag(changedSpan, tagMappingSpan))
+                    if (!ShouldDrawTag(changedSpan, tagMappingSpan))
                     {
                         continue;
                     }

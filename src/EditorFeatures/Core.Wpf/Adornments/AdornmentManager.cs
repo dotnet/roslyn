@@ -252,25 +252,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         }
 
-        protected bool ShouldNotDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
         {
             var mappedPoint = GetMappedPoint(snapshotSpan, mappingTagSpan);
             if (mappedPoint is null)
             {
-                return true;
+                return false;
             }
 
             if (!TryMapToSingleSnapshotSpan(mappingTagSpan.Span, TextView.TextSnapshot, out var span))
             {
-                return true;
+                return false;
             }
 
             if (!TextView.TextViewLines.IntersectsBufferSpan(span))
             {
-                return true;
+                return false;
             }
 
-            return false;
+            return true;
         }
 
         protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)

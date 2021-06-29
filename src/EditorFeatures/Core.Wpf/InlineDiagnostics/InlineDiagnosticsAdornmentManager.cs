@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             TextView.ViewportWidthChanged += TextView_ViewportWidthChanged;
         }
 
+        /// <summary>
+        /// Need to remove the tags if they intersect with the editor view, but only if the option
+        /// to place the tags at the end of the editor is selected.
+        /// </summary>
         private void TextView_ViewportWidthChanged(object sender, EventArgs e)
         {
             if (AdornmentLayer is null)
@@ -113,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (ShouldNotDrawTag(changedSpan, tagMappingSpan))
+                    if (!ShouldDrawTag(changedSpan, tagMappingSpan))
                     {
                         continue;
                     }
@@ -122,11 +126,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                     // mappedPoint is known to not be null here because it is checked in the ShouldNotDrawTag method call.
                     var lineNum = mappedPoint!.Value.GetContainingLine().LineNumber;
+
+                    // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
                     if (!map.TryGetValue(lineNum, out var value))
                     {
                         map.Add(lineNum, (tagMappingSpan, changedSpan));
                     }
 
+                    // If the map has a value and the value is not a syntax error, then rewrite the value in the map since
+                    // each line with errors will be ordered by importance
                     if (value.mapTagSpan is not null && value.mapTagSpan.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError)
                     {
                         map[lineNum] = (tagMappingSpan, changedSpan);
@@ -137,6 +145,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             return map;
         }
 
+        /// <summary>
+        /// Iterates through the mapping of line number to span and draws the diagnostic in the appropriate position on the screen,
+        /// as well as adding the tag to the adornment layer.
+        /// </summary>
         protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             var viewLines = TextView.TextViewLines;
@@ -152,11 +164,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.TagID + tag.ErrorType);
                     var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
 
+                    // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
                     var point = tagMappingSpan.Span.Start.GetPoint(spanTuple.snapshotSpan.Snapshot, PositionAffinity.Predecessor);
                     if (point == null)
                     {
                         continue;
                     }
+
                     var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
 
                     var visualElement = graphicsResult.VisualElement;
@@ -171,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                     Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
 
+                    // Only place the diagnostics if the diagnostic would not intersect with the editor window
                     if (lineView.Right < TextView.ViewportWidth - visualElement.DesiredSize.Width)
                     {
                         AdornmentLayer.AddAdornment(
