@@ -2658,25 +2658,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             // if it changed in any way that's not allowed.
                                             ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldDeclaration, newDeclaration, oldSymbol, newSymbol);
 
-                                            // If a node has been inserted but neither old nor new has a body, we can stop processing.
-                                            // The exception to this is explicitly implemented properties that implement positional parameters of
-                                            // records, as even not having an initializer is an "edit", since the compiler generated property would have
-                                            // had one.
-                                            var isRecordPrimaryConstructorParameter = IsRecordPrimaryConstructorParameter(oldDeclaration);
-
                                             var oldBody = TryGetDeclarationBody(oldDeclaration);
-                                            var newBody = TryGetDeclarationBody(newDeclaration);
-                                            if (oldBody == null && newBody == null && !isRecordPrimaryConstructorParameter)
-                                            {
-                                                continue;
-                                            }
-
                                             if (oldBody != null)
                                             {
                                                 // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
                                                 var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree);
                                                 var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                                                 var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                                var newBody = TryGetDeclarationBody(newDeclaration);
 
                                                 // Skip analysis of active statements. We already report rude edit for removal of code containing
                                                 // active statements in the old declaration and don't currently support moving active statements.
@@ -2704,6 +2693,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
                                             var isNewConstructorWithMemberInitializers = IsConstructorWithMemberInitializers(newDeclaration);
                                             var isDeclarationWithInitializer = IsDeclarationWithInitializer(oldDeclaration) || IsDeclarationWithInitializer(newDeclaration);
+                                            var isRecordPrimaryConstructorParameter = IsRecordPrimaryConstructorParameter(oldDeclaration);
 
                                             if (isNewConstructorWithMemberInitializers || isDeclarationWithInitializer || isRecordPrimaryConstructorParameter)
                                             {
@@ -3138,9 +3128,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (rudeEdit != RudeEditKind.None)
             {
-                diagnostics.Add(new RudeEditDiagnostic(rudeEdit,
-                    GetDiagnosticSpan(newDeclaration, EditKind.Update),
-                    arguments: new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
+                var arguments = rudeEdit switch
+                {
+                    RudeEditKind.TypeKindUpdate => Array.Empty<string>(),
+                    _ => new[] { GetDisplayName(newDeclaration, EditKind.Update) }
+                };
+
+                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newDeclaration, EditKind.Update), arguments: arguments));
             }
         }
 
