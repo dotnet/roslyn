@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments);
         protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
         protected abstract bool IsDestructor(IMethodSymbol methodSymbol);
+        protected abstract SyntaxNode GetMethodSyntax(SyntaxNode node);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            var directParentMethodSymbol = semanticModel.GetDeclaredSymbol(expression.Parent, cancellationToken);
+            var methodSyntax = GetMethodSyntax(expression);
+            var directParentMethodSymbol = semanticModel.GetDeclaredSymbol(methodSyntax, cancellationToken);
             if (directParentMethodSymbol is IMethodSymbol)
             {
                 return;

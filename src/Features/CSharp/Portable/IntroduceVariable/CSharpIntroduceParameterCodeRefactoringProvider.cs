@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return false;
         }
 
+        protected override SyntaxNode GetMethodSyntax(SyntaxNode node)
+        {
+            return node.Parent!;
+        }
+
         protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
             => ((ArgumentListSyntax)argumentList).WithArguments(arguments);
     }
