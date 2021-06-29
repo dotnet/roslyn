@@ -6769,7 +6769,7 @@ record CacheContext(string RelativePathBase)" + terminator;
 /// </summary>
 record struct CacheContext(string RelativePathBase)" + terminator;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
                 // /// See also <see cref="InvalidCref"/>.
@@ -6814,7 +6814,7 @@ record CacheContext" + terminator;
 /// </summary>
 record struct CacheContext" + terminator;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp10), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (5,25): warning CS1574: XML comment has cref attribute 'InvalidCref' that could not be resolved
                 // /// See also <see cref="InvalidCref"/>.

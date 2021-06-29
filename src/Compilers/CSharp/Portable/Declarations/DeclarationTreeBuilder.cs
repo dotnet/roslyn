@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = false;
             bool hasReturnWithExpression = false;
             GlobalStatementSyntax firstGlobalStatement = null;
+            bool hasNonEmptyGlobalSatement = false;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             foreach (var member in members)
@@ -75,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var global = (GlobalStatementSyntax)member;
                     firstGlobalStatement ??= global;
                     var topLevelStatement = global.Statement;
+
+                    if (!topLevelStatement.IsKind(SyntaxKind.EmptyStatement))
+                    {
+                        hasNonEmptyGlobalSatement = true;
+                    }
 
                     if (!hasAwaitExpressions)
                     {
@@ -100,7 +106,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap all global statements in a compilation unit into a simple program type:
             if (firstGlobalStatement is object)
             {
-                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression));
+                var diagnostics = ImmutableArray<Diagnostic>.Empty;
+
+                if (!hasNonEmptyGlobalSatement)
+                {
+                    var bag = DiagnosticBag.GetInstance();
+                    bag.Add(ErrorCode.ERR_SimpleProgramIsEmpty, ((EmptyStatementSyntax)firstGlobalStatement.Statement).SemicolonToken.GetLocation());
+                    diagnostics = bag.ToReadOnlyAndFree();
+                }
+
+                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression, diagnostics));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -132,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression)
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
@@ -146,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: ImmutableArray<Diagnostic>.Empty);
+                diagnostics: diagnostics);
         }
 
         /// <summary>
