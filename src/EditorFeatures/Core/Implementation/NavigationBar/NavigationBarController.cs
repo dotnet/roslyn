@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     /// The threading model for this class is simple: all non-static members are affinitized to the
     /// UI thread.
     /// </remarks>
-    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, INavigationBarController
+    internal partial class NavigationBarController : ForegroundThreadAffinitizedObject, IDisposable
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private bool _disconnected = false;
 
         /// <summary>
-        /// Latest model and selected items produced once <see cref="DetermineSelectedItemInfoAsync"/> completes and
-        /// presents the single item to the view.  These can then be read in when the dropdown is expanded and we want
-        /// to show all items.
+        /// Latest model and selected items produced once <see cref="SelectItemAsync"/> completes and presents the
+        /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
+        /// items.
         /// </summary>
         private (NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
 
@@ -57,6 +58,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private readonly ITaggerEventSource _eventSource;
 
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+        /// <summary>
+        /// Queue to batch up work to do to compute the current model.  Used so we can batch up a lot of events and only
+        /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
+        /// type is generic.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel> _computeModelQueue;
+
+        /// <summary>
+        /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
+        /// only compute the selected item once for every batch.
+        /// </summary>
+        private readonly AsyncBatchingWorkQueue _selectItemQueue;
+
         public NavigationBarController(
             IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
@@ -70,6 +86,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
+            _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel>(
+                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
+                ComputeModelAndSelectItemAsync,
+                EqualityComparer<bool>.Default,
+                asyncListener,
+                _cancellationTokenSource.Token);
+
+            _selectItemQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
+                SelectItemAsync,
+                asyncListener,
+                _cancellationTokenSource.Token);
+
             presenter.CaretMoved += OnCaretMoved;
             presenter.ViewFocused += OnViewFocused;
 
@@ -79,8 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(ImmutableArray<NavigationBarItem>.Empty, itemService: null!);
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
-
-            _modelTask = Task.FromResult(_latestModelAndSelectedInfo_OnlyAccessOnUIThread.model);
 
             // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
             // snapshot we use.
@@ -97,33 +124,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
             _eventSource.Changed += OnEventSourceChanged;
             _eventSource.Connect();
-        }
 
-        public void SetWorkspace(Workspace? newWorkspace)
-        {
-            if (newWorkspace != null)
-                StartModelUpdateAndSelectedItemUpdateTasks();
-        }
-
-        private void StartModelUpdateAndSelectedItemUpdateTasks()
-        {
-            // If we're disconnected, just disregard.
-            if (_disconnected)
-                return;
-
-            if (IsForeground())
-            {
-                StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
-            }
-            else
-            {
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(StartModelUpdateAndSelectedItemUpdateTasks));
-                Task.Run(async () =>
-                {
-                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
-                }).CompletesAsyncOperation(asyncToken);
-            }
+            // Kick off initial work to populate the navbars
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
@@ -131,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        public void Disconnect()
+        void IDisposable.Dispose()
         {
             AssertIsForeground();
 
@@ -149,8 +152,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _disconnected = true;
 
             // Cancel off any remaining background work
-            _modelTaskCancellationSource.Cancel();
-            _selectedItemInfoTaskCancellationSource.Cancel();
+            _cancellationTokenSource.Cancel();
+        }
+
+        private void StartModelUpdateAndSelectedItemUpdateTasks()
+        {
+            // If we disconnected already, just disregard
+            if (_disconnected)
+                return;
+
+            // 'true' value is unused.  this just signals to the queue that we have work to do.
+            _computeModelQueue.AddWork(true);
         }
 
         private void OnCaretMoved(object? sender, EventArgs e)
@@ -328,9 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
-            // Have to make sure we come back to the main thread for this.
-            AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
     }
 }
