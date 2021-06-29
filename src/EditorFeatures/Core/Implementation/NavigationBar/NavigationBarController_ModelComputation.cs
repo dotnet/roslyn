@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
         /// </summary>
-        private async Task ComputeModelAndSelectItemAsync(ImmutableArray<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask<NavigationBarModel> ComputeModelAndSelectItemAsync(ImmutableArray<bool> unused, CancellationToken cancellationToken)
         {
             // Jump back to the UI thread to determine what snapshot the user is processing.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -39,12 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            _model_OnlyAccessOnUIThread = model;
-
             // Now, enqueue work to select the right item in this new model.
             StartSelectedItemUpdateTask();
 
-            return;
+            return model;
 
             static async Task<NavigationBarModel> ComputeModelAsync(ITextSnapshot textSnapshot, CancellationToken cancellationToken)
             {
@@ -78,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private void StartSelectedItemUpdateTask()
         {
             // 'true' value is unused.  this just signals to the queue that we have work to do.
-            _selectItemQueue.AddWork(true);
+            _selectItemQueue.AddWork();
         }
 
-        private async Task SelectItemAsync(ImmutableArray<bool> unused, CancellationToken cancellationToken)
+        private async ValueTask SelectItemAsync(CancellationToken cancellationToken)
         {
             // Switch to the UI so we can determine where the user is.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -92,8 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 return;
 
             // Ensure the latest model is computed and grab it while on the UI thread.
-            await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
-            var model = _model_OnlyAccessOnUIThread;
+            var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
 
             // Jump back to the BG to do any expensive work walking the entire model
             await TaskScheduler.Default;

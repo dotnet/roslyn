@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private bool _disconnected = false;
 
         /// <summary>
-        /// The last fully computed model.
-        /// </summary>
-        private NavigationBarModel _model_OnlyAccessOnUIThread;
-
-        /// <summary>
         /// Latest model and selected items produced once <see cref="SelectItemAsync"/> completes and presents the
         /// single item to the view.  These can then be read in when the dropdown is expanded and we want to show all
         /// items.
@@ -70,14 +65,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// compute the model once for every batch.  The <c>bool</c> type parameter isn't used, but is provided as this
         /// type is generic.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool> _computeModelQueue;
+        private readonly AsyncBatchingWorkQueue<bool, NavigationBarModel> _computeModelQueue;
 
         /// <summary>
         /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and
-        /// only compute the selected item once for every batch.  The <c>bool</c> type parameter isn't used, but is
-        /// provided as this type is generic.
+        /// only compute the selected item once for every batch.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<bool> _selectItemQueue;
+        private readonly AsyncBatchingWorkQueue _selectItemQueue;
 
         public NavigationBarController(
             IThreadingContext threadingContext,
@@ -92,17 +86,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
-            _computeModelQueue = new AsyncBatchingWorkQueue<bool>(
+            _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel>(
                 TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
                 ComputeModelAndSelectItemAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 _cancellationTokenSource.Token);
 
-            _selectItemQueue = new AsyncBatchingWorkQueue<bool>(
+            _selectItemQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
                 SelectItemAsync,
-                EqualityComparer<bool>.Default,
                 asyncListener,
                 _cancellationTokenSource.Token);
 
@@ -115,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(ImmutableArray<NavigationBarItem>.Empty, itemService: null!);
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
-            _model_OnlyAccessOnUIThread = _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model;
 
             // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
             // snapshot we use.
