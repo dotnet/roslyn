@@ -451,47 +451,6 @@ class Bad : Bad
     </symbols>
 ");
 
-            // After
-            var v1 = CompileAndVerify(compilation1);
-            v1.VerifyIL("C.F", @"
-{
-    // Code size       13 (0xd)
-    .maxstack  1
-    .locals init (string V_0)
-    IL_0000:  nop
-    IL_0001:  ldarga.s   V_0
-    IL_0003:  call       ""string int.ToString()""
-    IL_0008:  stloc.0
-    IL_0009:  br.s       IL_000b
-    IL_000b:  ldloc.0
-    IL_000c:  ret
-}
-");
-
-            v1.VerifyPdb("C.F", @"
-    <symbols>
-      <files>
-        <file id=""1"" name="""" language=""C#"" />
-      </files>
-      <entryPoint declaringType=""C"" methodName=""Main"" />
-      <methods>
-        <method containingType=""C"" name=""F"" parameterNames=""x"">
-          <customDebugInfo>
-            <forward declaringType=""C"" methodName=""Main"" />
-            <encLocalSlotMap>
-              <slot kind=""21"" offset=""0"" />
-            </encLocalSlotMap>
-          </customDebugInfo>
-          <sequencePoints>
-            <entry offset=""0x0"" startLine=""4"" startColumn=""28"" endLine=""4"" endColumn=""29"" document=""1"" />
-            <entry offset=""0x1"" startLine=""4"" startColumn=""30"" endLine=""4"" endColumn=""50"" document=""1"" />
-            <entry offset=""0xb"" startLine=""4"" startColumn=""51"" endLine=""4"" endColumn=""52"" document=""1"" />
-          </sequencePoints>
-        </method>
-      </methods>
-    </symbols>
-");
-
             diff1.VerifyPdb(new[] { 0x06000002 }, @"
     <symbols>
       <files>
