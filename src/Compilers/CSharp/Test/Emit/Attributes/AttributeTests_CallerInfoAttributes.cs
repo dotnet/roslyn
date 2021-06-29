@@ -65,6 +65,7 @@ class Program
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            // Begin/EndInvoke are not currently supported.
             CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
 {
   // Code size       31 (0x1f)
@@ -73,12 +74,78 @@ class Program
   IL_0001:  ldftn      ""void Program.M(string, string)""
   IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
   IL_000c:  call       ""string Program.GetString()""
-  IL_0011:  ldstr      ""GetString()""
+  IL_0011:  ldstr      ""default""
   IL_0016:  ldnull
   IL_0017:  ldnull
   IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
   IL_001d:  pop
   IL_001e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(ref string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(ref string s1, string s2)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s = string.Empty;
+        d.EndInvoke(ref s, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            // Begin/EndInvoke are not currently supported.
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (string V_0) //s
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(ref string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldsfld     ""string string.Empty""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldnull
+  IL_0015:  callvirt   ""void Program.D.EndInvoke(ref string, System.IAsyncResult)""
+  IL_001a:  ret
 }
 ");
         }
