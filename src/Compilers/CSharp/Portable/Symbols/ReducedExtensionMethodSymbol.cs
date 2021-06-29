@@ -621,6 +621,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override bool IsCallerLineNumber
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override bool IsCallerFilePath
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override bool IsCallerMemberName
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
+            internal override int CallerArgumentExpressionParameterIndex
+            {
+                // ReducedExtensionMethodParameterSymbol is only exposed to semantic model.
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)

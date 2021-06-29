@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var parameters = ContainingSymbol.GetParameters();
                             for (int i = 0; i < parameters.Length; i++)
                             {
-                                if (parameters[i].Name == parameterName)
+                                if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
                                 {
                                     index = i;
                                     break;

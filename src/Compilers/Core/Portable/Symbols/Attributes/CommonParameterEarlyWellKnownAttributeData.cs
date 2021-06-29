@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        // PROTOTYPE(caller-expr): If VB won't be supported, this should be moved into a C#-specific type.
-
         private int _argumentExpressionParameterIndex = -1;
         public int CallerArgumentExpressionParameterIndex
         {

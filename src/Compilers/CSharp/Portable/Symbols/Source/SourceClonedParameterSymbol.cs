@@ -10,6 +10,9 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+
+    // PROTOTYPE(caller-expr): Make SourceClonedParameterSymbol abstract and introduce new specialized types (same as being done in VB).
+
     /// <summary>
     /// Represents a source parameter cloned from another <see cref="SourceParameterSymbol"/>, when they must share attribute data and default constant value.
     /// For example, parameters on a property symbol are cloned to generate parameters on accessors.

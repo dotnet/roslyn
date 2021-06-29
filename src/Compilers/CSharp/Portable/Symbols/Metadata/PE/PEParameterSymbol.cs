@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var parameters = ContainingSymbol.GetParameters();
                     for (int i = 0; i < parameters.Length; i++)
                     {
-                        if (parameters[i].Name == parameterName)
+                        if (parameters[i].Name.Equals(parameterName, StringComparison.Ordinal))
                         {
                             _lazyCallerArgumentExpressionParameterIndex = i;
                             return i;
