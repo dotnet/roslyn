@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Create an empty <see cref="ProjectMap"/>.
         /// </summary>
-        public static ProjectMap Create() => new ProjectMap();
+        public static ProjectMap Create() => new();
 
         /// <summary>
         /// Create a <see cref="ProjectMap"/> populated with the given <see cref="Solution"/>.

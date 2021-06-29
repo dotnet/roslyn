@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<DocumentFileInfo> analyzerConfigDocuments,
             ImmutableArray<ProjectFileReference> projectReferences,
             DiagnosticLog log)
-            => new ProjectFileInfo(
+            => new(
                 isEmpty: false,
                 language,
                 filePath,
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 log);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath, DiagnosticLog log)
-            => new ProjectFileInfo(
+            => new(
                 isEmpty: true,
                 language,
                 filePath,

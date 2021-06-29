@@ -26,14 +26,5 @@ namespace Microsoft.CodeAnalysis.Structure
         public abstract string Language { get; }
 
         public abstract Task<BlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Gets the <see cref="BlockStructure"/> for the provided document. Note that the
-        /// default implementation works by calling into <see cref="GetBlockStructureAsync(Document, CancellationToken)"/>
-        /// and blocking on the async operation. Subclasses should provide more efficient
-        /// implementations that do not block on async operations if possible.
-        /// </summary>
-        public virtual BlockStructure GetBlockStructure(Document document, CancellationToken cancellationToken)
-            => GetBlockStructureAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
     }
 }

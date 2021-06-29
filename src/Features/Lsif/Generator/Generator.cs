@@ -22,12 +22,32 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal sealed class Generator
     {
+        // LSIF generator capabilities. See https://github.com/microsoft/lsif-node/blob/main/protocol/src/protocol.ts#L925 for details.
+        private const bool HoverProvider = true;
+        private const bool DeclarationProvider = false;
+        private const bool DefinitionProvider = true;
+        private const bool ReferencesProvider = true;
+        private const bool TypeDefinitionProvider = false;
+        private const bool DocumentSymbolProvider = false;
+        private const bool FoldingRangeProvider = true;
+        private const bool DiagnosticProvider = false;
+
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
 
-        public Generator(ILsifJsonWriter lsifJsonWriter)
+        private Generator(ILsifJsonWriter lsifJsonWriter)
         {
             _lsifJsonWriter = lsifJsonWriter;
+        }
+
+        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter)
+        {
+            var generator = new Generator(lsifJsonWriter);
+            var capabilitiesVertex = new Capabilities(generator._idFactory,
+                HoverProvider, DeclarationProvider, DefinitionProvider, ReferencesProvider,
+                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider);
+            generator._lsifJsonWriter.Write(capabilitiesVertex);
+            return generator;
         }
 
         public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
@@ -194,6 +214,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         // other symbol.
                         var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
+                    }
+
+                    // Write hover information for the symbol, if edge has not already been added.
+                    // 'textDocument/hover' edge goes from the symbol ResultSet vertex to the hover result
+                    // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
+                    if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
+                    {
+                        // TODO: Can we avoid the WaitAndGetResult_CanCallOnBackground call by adding a sync method to compute hover?
+                        var hover = HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, languageServices, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                        if (hover != null)
+                        {
+                            var hoverResult = new HoverResult(hover, idFactory);
+                            lsifJsonWriter.Write(hoverResult);
+                            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentHoverName, symbolForLinkedResultSetId, hoverResult.GetId(), idFactory));
+                        }
                     }
                 }
             }

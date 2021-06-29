@@ -77,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveIn = nameof(RemoveIn);
         public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
+        public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
         public const string ConvertAnonymousTypeToTuple = nameof(ConvertAnonymousTypeToTuple);
         public const string AddRequiredParentheses = nameof(AddRequiredParentheses);
         public const string AddAccessibilityModifiers = nameof(AddAccessibilityModifiers);
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string PopulateSwitchExpression = nameof(PopulateSwitchExpression);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
+        public const string UseNullCheckOverTypeCheck = nameof(UseNullCheckOverTypeCheck);
         public const string UsePatternMatchingIsAndCastCheckWithoutName = nameof(UsePatternMatchingIsAndCastCheckWithoutName);
         public const string UsePatternMatchingIsAndCastCheck = nameof(UsePatternMatchingIsAndCastCheck);
         public const string UsePatternMatchingAsAndNullCheck = nameof(UsePatternMatchingAsAndNullCheck);

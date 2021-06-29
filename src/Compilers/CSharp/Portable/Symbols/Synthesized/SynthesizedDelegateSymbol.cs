@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor
@@ -124,16 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // if we are given Void type the method returns Void, otherwise its return type is the last type parameter of the delegate:
                 _returnType = voidReturnTypeOpt ?? typeParams.Last();
 
-                var parameters = new ParameterSymbol[typeParams.Length - ((object)voidReturnTypeOpt != null ? 0 : 1)];
-                for (int i = 0; i < parameters.Length; i++)
+                int parameterCount = typeParams.Length - ((object)voidReturnTypeOpt != null ? 0 : 1);
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(parameterCount);
+                for (int i = 0; i < parameterCount; i++)
                 {
                     // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
                     var refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
 
-                    parameters[i] = SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(typeParams[i]), i, refKind);
+                    parameters.Add(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(typeParams[i]), i, refKind));
                 }
 
-                _parameters = parameters.AsImmutableOrNull();
+                _parameters = parameters.ToImmutableAndFree();
             }
 
             public override string Name

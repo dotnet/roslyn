@@ -1495,7 +1495,7 @@ static void Main(string[] args)
             });
 
             using var serverData = await ServerUtil.CreateServer(_logger, compilerServerHost: host);
-            var request = new BuildRequest(1, RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
+            var request = new BuildRequest(RequestLanguage.CSharpCompile, string.Empty, new BuildRequest.Argument[0]);
             var compileTask = serverData.SendAsync(request);
             var response = await compileTask;
             Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);

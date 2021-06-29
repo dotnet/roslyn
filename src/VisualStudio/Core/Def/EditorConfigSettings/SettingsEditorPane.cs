@@ -122,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 {
                     throw new InvalidOperationException("Unable to get formatter settings");
                 }
+
                 var viewModel = new FormattingViewModel(dataProvider, _controlProvider, _tableMangerProvider);
                 return new FormattingSettingsView(viewModel);
             }
@@ -133,6 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 {
                     throw new InvalidOperationException("Unable to get code style settings");
                 }
+
                 var viewModel = new CodeStyleSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
                 return new CodeStyleSettingsView(viewModel);
             }
@@ -240,6 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             {
                 _control.SynchronizeSettings();
             }
+
             return S_OK;
         }
 

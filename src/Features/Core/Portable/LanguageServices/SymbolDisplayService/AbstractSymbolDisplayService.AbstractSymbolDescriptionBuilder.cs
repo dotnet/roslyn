@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitablePrefix();
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
+            protected abstract void AddEnumUnderlyingTypeSeparator();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
             protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
             protected abstract string GetNavigationHint(ISymbol symbol);
@@ -168,11 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.Documentation,
-                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.RemarksDocumentation,
-                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 AddReturnsDocumentationParts(symbol, formatter);
                 AddValueDocumentationParts(symbol, formatter);
@@ -436,7 +437,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
-                    result[group] = parts.ToTaggedText(_getNavigationHint);
+                {
+                    var taggedText = parts.ToTaggedText(_getNavigationHint);
+                    if (group == SymbolDescriptionGroups.MainDescription)
+                    {
+                        // Mark the main description as a code block.
+                        taggedText = taggedText
+                            .Insert(0, new TaggedText(TextTags.CodeBlockStart, string.Empty))
+                            .Add(new TaggedText(TextTags.CodeBlockEnd, string.Empty));
+                    }
+
+                    result[group] = taggedText;
+                }
 
                 return result;
             }
@@ -464,6 +476,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     var allTypeArguments = symbol.GetAllTypeArguments().ToList();
 
                     AddTypeParameterMapPart(allTypeParameters, allTypeArguments);
+                }
+
+                if (symbol.IsEnumType() && symbol.EnumUnderlyingType.SpecialType != SpecialType.System_Int32)
+                {
+                    AddEnumUnderlyingTypeSeparator();
+                    var underlyingTypeDisplayParts = symbol.EnumUnderlyingType.ToDisplayParts(s_descriptionStyle.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
+                    AddToGroup(SymbolDescriptionGroups.MainDescription, underlyingTypeDisplayParts);
                 }
             }
 

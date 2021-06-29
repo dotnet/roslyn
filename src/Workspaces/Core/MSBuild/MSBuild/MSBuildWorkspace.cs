@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
     public sealed class MSBuildWorkspace : Workspace
     {
         // used to serialize access to public methods
-        private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
+        private readonly NonReentrantLock _serializationLock = new();
 
         private readonly MSBuildProjectLoader _loader;
         private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
@@ -268,21 +268,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
         #region Apply Changes
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
-            switch (feature)
-            {
-                case ApplyChangesKind.ChangeDocument:
-                case ApplyChangesKind.AddDocument:
-                case ApplyChangesKind.RemoveDocument:
-                case ApplyChangesKind.AddMetadataReference:
-                case ApplyChangesKind.RemoveMetadataReference:
-                case ApplyChangesKind.AddProjectReference:
-                case ApplyChangesKind.RemoveProjectReference:
-                case ApplyChangesKind.AddAnalyzerReference:
-                case ApplyChangesKind.RemoveAnalyzerReference:
-                    return true;
-                default:
-                    return false;
-            }
+            return feature is
+                ApplyChangesKind.ChangeDocument or
+                ApplyChangesKind.AddDocument or
+                ApplyChangesKind.RemoveDocument or
+                ApplyChangesKind.AddMetadataReference or
+                ApplyChangesKind.RemoveMetadataReference or
+                ApplyChangesKind.AddProjectReference or
+                ApplyChangesKind.RemoveProjectReference or
+                ApplyChangesKind.AddAnalyzerReference or
+                ApplyChangesKind.RemoveAnalyzerReference or
+                ApplyChangesKind.ChangeAdditionalDocument;
         }
 
         private static bool HasProjectFileChanges(ProjectChanges changes)
@@ -331,6 +327,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                                                projectChanges.ProjectId));
                         return;
                     }
+
                     if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var fileLoader))
                     {
                         try
@@ -379,12 +376,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                     return;
                 }
+
                 this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }
 
-        private static Encoding? DetermineEncoding(SourceText text, Document document)
+        protected override void ApplyAdditionalDocumentTextChanged(DocumentId documentId, SourceText text)
+        {
+            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
+            if (document != null)
+            {
+                var encoding = DetermineEncoding(text, document);
+                if (document.FilePath is null)
+                {
+                    var message = string.Format(WorkspaceMSBuildResources.Path_for_additional_document_0_was_null, document.Name);
+                    _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                    return;
+                }
+
+                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                this.OnAdditionalDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
+            }
+        }
+
+        private static Encoding? DetermineEncoding(SourceText text, TextDocument document)
         {
             if (text.Encoding != null)
             {
@@ -422,6 +438,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return;
             }
+
             if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(filePath, out _))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
@@ -517,6 +534,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
+
             _applyChangesProjectFile.AddMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceAdded(projectId, metadataReference);
         }
@@ -531,6 +549,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
                 return;
             }
+
             _applyChangesProjectFile.RemoveMetadataReference(metadataReference, identity);
             this.OnMetadataReferenceRemoved(projectId, metadataReference);
         }
@@ -542,6 +561,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return null;
             }
+
             if (!project.MetadataReferences.Contains(metadataReference))
             {
                 project = project.AddMetadataReference(metadataReference);
@@ -552,6 +572,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 return null;
             }
+
             var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference) as IAssemblySymbol;
             return symbol?.Identity;
         }

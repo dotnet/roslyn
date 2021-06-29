@@ -24,8 +24,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                int.TryParse(value, out var result);
-                return result;
+                if (int.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                return 0;
             }
         }
 
@@ -37,8 +41,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                ulong.TryParse(value, out var result);
-                return result;
+                if (ulong.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                return 0;
             }
         }
 

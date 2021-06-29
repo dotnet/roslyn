@@ -12,6 +12,7 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Debug",
+  [switch]$enableDumps = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -33,12 +34,20 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    New-Item -Path $key -ErrorAction SilentlyContinue
+    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+  }
+
   # Verify no PROTOTYPE marker left in main
   if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
-    Write-Host "Checking no PROTOTYPE markers in compiler source"
-    $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
+    Write-Host "Checking no PROTOTYPE markers in source"
+    $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
-      Write-Host "Found PROTOTYPE markers in compiler source:"
+      Write-Host "Found PROTOTYPE markers in source:"
       Write-Host $prototypes
       throw "PROTOTYPE markers disallowed in compiler source"
     }
@@ -67,5 +76,11 @@ catch [exception] {
   exit 1
 }
 finally {
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    Remove-ItemProperty -Path $key -Name 'DumpType'
+    Remove-ItemProperty -Path $key -Name 'DumpCount'
+    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+  }
   Pop-Location
 }

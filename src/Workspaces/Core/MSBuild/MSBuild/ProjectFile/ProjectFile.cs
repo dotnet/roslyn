@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // from the project's directory.
                 if (normalizedPath.StartsWith(projectDirectory, StringComparison.OrdinalIgnoreCase))
                 {
-                    return normalizedPath.Substring(projectDirectory.Length);
+                    return normalizedPath[projectDirectory.Length..];
                 }
                 else
                 {

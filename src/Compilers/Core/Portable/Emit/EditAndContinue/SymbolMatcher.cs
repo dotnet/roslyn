@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
                 methodImplsAdded: baseline.MethodImplsAdded,
+                customAttributesAdded: baseline.CustomAttributesAdded,
                 tableEntriesAdded: baseline.TableEntriesAdded,
                 blobStreamLengthAdded: baseline.BlobStreamLengthAdded,
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,

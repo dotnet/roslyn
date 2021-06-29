@@ -195,12 +195,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = DeclaringCompilation;
 
             Binder result = new BuckStopsHereBinder(compilation);
-            result = new InContainerBinder(compilation.GlobalNamespace, result, SyntaxNode, inUsing: false);
+            var globalNamespace = compilation.GlobalNamespace;
+            var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
+            var syntaxNode = SyntaxNode;
+            result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));
+            result = new InContainerBinder(globalNamespace, result);
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);
             result = result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None);
 
-            return new ExecutableCodeBinder(SyntaxNode, this, result);
+            return new ExecutableCodeBinder(syntaxNode, this, result);
         }
 
         internal ExecutableCodeBinder GetBodyBinder(bool ignoreAccessibility)
