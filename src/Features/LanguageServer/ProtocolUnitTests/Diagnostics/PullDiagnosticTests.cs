@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
             testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, false);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document);
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
             Assert.Empty(results.Single().Diagnostics);
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
             testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, true);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document);
+            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
         }
 
@@ -605,7 +605,7 @@ class B {";
         private TestLspServer CreateTestWorkspaceFromXml(string xmlMarkup, BackgroundAnalysisScope scope, bool pullDiagnostics = true)
         {
             var testLspServer = CreateXmlTestLspServer(xmlMarkup, out _);
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics);
+            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
             return testLspServer;
         }
 
