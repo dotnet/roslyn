@@ -66,29 +66,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_DontPutOutOrRefOnStruct As String =
             BasicVSResources.Don_t_put_ByRef_on_custom_structure
 
-        Public ReadOnly Property Option_EditorHelp As String
-            Get
-                Return BasicVSResources.Editor_Help
-            End Get
-        End Property
+        Public ReadOnly Property Option_EditorHelp As String =
+            BasicVSResources.Editor_Help
 
-        Public ReadOnly Property Option_EnableEndConstruct As String
-            Get
-                Return BasicVSResources.A_utomatic_insertion_of_end_constructs
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableEndConstruct As String =
+            BasicVSResources.A_utomatic_insertion_of_end_constructs
 
-        Public ReadOnly Property Option_EnableHighlightKeywords As String
-            Get
-                Return BasicVSResources.Highlight_related_keywords_under_cursor
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableHighlightKeywords As String =
+            BasicVSResources.Highlight_related_keywords_under_cursor
 
-        Public ReadOnly Property Option_EnableHighlightReferences As String
-            Get
-                Return BasicVSResources.Highlight_references_to_symbol_under_cursor
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableHighlightReferences As String =
+            BasicVSResources.Highlight_references_to_symbol_under_cursor
+
+        Public ReadOnly Property Option_Quick_Actions As String =
+            ServicesVSResources.Quick_Actions
+
+        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
+            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
 
         Public ReadOnly Property Option_EnableLineCommit As String
             Get
