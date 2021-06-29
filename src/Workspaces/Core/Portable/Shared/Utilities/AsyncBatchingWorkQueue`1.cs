@@ -16,7 +16,7 @@ namespace Roslyn.Utilities
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : this(delay,
@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace Roslyn.Utilities
         {
         }
 
-        private static Func<ImmutableArray<TItem>, CancellationToken, Task<VoidResult>> Convert(Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync)
+        private static Func<ImmutableArray<TItem>, CancellationToken, ValueTask<VoidResult>> Convert(Func<ImmutableArray<TItem>, CancellationToken, ValueTask> processBatchAsync)
             => async (items, ct) =>
             {
                 await processBatchAsync(items, ct).ConfigureAwait(false);

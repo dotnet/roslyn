@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             => Uri.Compare(uri1, uri2, UriComponents.AbsoluteUri, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase));
 
         // internal for testing purposes
-        internal async Task ProcessDiagnosticUpdatedBatchAsync(
+        internal async ValueTask ProcessDiagnosticUpdatedBatchAsync(
             IDiagnosticService? diagnosticService, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             if (diagnosticService == null)

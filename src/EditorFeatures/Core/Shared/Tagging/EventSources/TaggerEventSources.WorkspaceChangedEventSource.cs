@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     processBatchAsync: cancellationToken =>
                     {
                         RaiseChanged();
-                        return Task.CompletedTask;
+                        return ValueTaskFactory.CompletedTask;
                     },
                     asyncListener,
                     CancellationToken.None);

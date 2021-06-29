@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -191,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
                     _openFiles.Add(moniker, openFile);
 
-                    _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None));
+                    _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
 
                     // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
                     var cookie = ((IVsRunningDocumentTable4)_runningDocumentTable).GetDocumentCookie(moniker);
@@ -321,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private string GeneratorDisplayName => _documentIdentity.GeneratorTypeName;
 
-            public async Task RefreshFileAsync(CancellationToken cancellationToken)
+            public async ValueTask RefreshFileAsync(CancellationToken cancellationToken)
             {
                 SourceText? generatedSource = null;
                 var project = _workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);

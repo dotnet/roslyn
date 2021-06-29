@@ -146,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     workspaceKinds: WorkspaceKind.Host));
         }
 
-        private async Task NotifyProjectSystemAsync(
+        private async ValueTask NotifyProjectSystemAsync(
             ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

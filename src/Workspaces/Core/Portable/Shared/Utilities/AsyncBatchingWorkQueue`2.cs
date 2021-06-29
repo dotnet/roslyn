@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
         /// </summary>
-        private readonly Func<ImmutableArray<TItem>, CancellationToken, Task<TResult>> _processBatchAsync;
+        private readonly Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
 
@@ -76,7 +76,7 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, Task<TResult>> processBatchAsync,
+            Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
@@ -159,7 +159,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private Task<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);

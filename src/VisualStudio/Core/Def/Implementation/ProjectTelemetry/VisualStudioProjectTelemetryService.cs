@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task NotifyTelemetryServiceAsync(
+        private async ValueTask NotifyTelemetryServiceAsync(
             ImmutableArray<ProjectTelemetryData> infos, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

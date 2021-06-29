@@ -16,14 +16,14 @@ namespace Roslyn.Utilities
     {
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<CancellationToken, Task> processBatchAsync,
+            Func<CancellationToken, ValueTask> processBatchAsync,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
             : base(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
         {
         }
 
-        private static Func<ImmutableArray<VoidResult>, CancellationToken, Task> Convert(Func<CancellationToken, Task> processBatchAsync)
+        private static Func<ImmutableArray<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
             => (items, ct) => processBatchAsync(ct);
 
         public void AddWork()

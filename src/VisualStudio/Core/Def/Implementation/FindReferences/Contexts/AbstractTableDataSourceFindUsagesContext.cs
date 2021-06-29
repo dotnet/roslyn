@@ -407,7 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
+            private ValueTask UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {
@@ -427,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         _findReferencesWindow.SetProgress(current, maximum);
                 }
 
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
             }
 
             #endregion

@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                     workspaceKinds: WorkspaceKind.Host));
         }
 
-        private Task ProcessTodoCommentInfosAsync(
+        private ValueTask ProcessTodoCommentInfosAsync(
             ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
                 }
             }
 
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
 
         private void AddFilteredInfos(

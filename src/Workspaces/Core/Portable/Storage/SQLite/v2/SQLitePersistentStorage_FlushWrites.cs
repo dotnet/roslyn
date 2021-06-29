@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             _flushQueue.AddWork();
         }
 
-        private Task FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
+        private async ValueTask FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
         {
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            await PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
         }
 
         private Task FlushWritesOnCloseAsync()
