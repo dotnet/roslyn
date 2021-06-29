@@ -34,9 +34,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Protected Overrides Function IsDestructor(methodSymbol As IMethodSymbol) As Boolean
             Return methodSymbol.Name.Equals(WellKnownMemberNames.DestructorName)
         End Function
-
-        Protected Overrides Function GetMethodSyntax(node As SyntaxNode) As SyntaxNode
-            Return node.Parent.Parent
-        End Function
     End Class
 End Namespace

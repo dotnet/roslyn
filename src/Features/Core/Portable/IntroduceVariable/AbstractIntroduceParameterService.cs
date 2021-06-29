@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected abstract SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments);
         protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
         protected abstract bool IsDestructor(IMethodSymbol methodSymbol);
-        protected abstract SyntaxNode GetMethodSyntax(SyntaxNode node);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -71,16 +70,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             // Need to special case for highlighting of method types because they are also "contained" within a method,
-            // but it does not make sense to introduce a parameter in that case. If the direct parent of the expression
-            // is a method, then it should not be able to have a parameter introduced for it.
-            if (expression.Parent is null)
-            {
-                return;
-            }
-
-            var methodSyntax = GetMethodSyntax(expression);
-            var directParentMethodSymbol = semanticModel.GetDeclaredSymbol(methodSyntax, cancellationToken);
-            if (directParentMethodSymbol is IMethodSymbol)
+            // but it does not make sense to introduce a parameter in that case.
+            if (syntaxFacts.IsInNamespaceOrTypeContext(expression))
             {
                 return;
             }
