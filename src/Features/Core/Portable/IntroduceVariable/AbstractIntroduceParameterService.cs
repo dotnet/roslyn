@@ -69,6 +69,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            // Need to special case for highlighting of method types because they are also "contained" within a method,
+            // but it does not make sense to introduce a parameter in that case. If the direct parent of the expression
+            // is a method, then it should not be able to have a parameter introduced for it.
+            if (expression.Parent is null)
+            {
+                return;
+            }
+
+            var directParentMethodSymbol = semanticModel.GetDeclaredSymbol(expression.Parent, cancellationToken);
+            if (directParentMethodSymbol is IMethodSymbol)
+            {
+                return;
+            }
+
             var generator = SyntaxGenerator.GetGenerator(document);
             var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
 

@@ -1775,5 +1775,25 @@ class TestClass
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestHighlightReturnType()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    [|int|] M(int x)
+    {
+        return x;
+    }
+
+    void M1()
+    {
+        M(5);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }
