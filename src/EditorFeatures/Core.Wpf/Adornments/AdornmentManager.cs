@@ -252,6 +252,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         }
 
+        protected bool ShouldNotDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        {
+            var mappedPoint = GetMappedPoint(snapshotSpan, mappingTagSpan);
+            if (mappedPoint is null)
+            {
+                return true;
+            }
+
+            if (!TryMapToSingleSnapshotSpan(mappingTagSpan.Span, TextView.TextSnapshot, out var span))
+            {
+                return true;
+            }
+
+            if (!TextView.TextViewLines.IntersectsBufferSpan(span))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        {
+            var point = mappingTagSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+            if (point == null)
+            {
+                return null;
+            }
+
+            var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
+                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
+            if (mappedPoint == null)
+            {
+                return null;
+            }
+
+            return mappedPoint;
+        }
+
         // Map the mapping span to the visual snapshot. note that as a result of projection
         // topology, originally single span may be mapped into several spans. Visual adornments do
         // not make much sense on disjoint spans. We will not decorate spans that could not make it

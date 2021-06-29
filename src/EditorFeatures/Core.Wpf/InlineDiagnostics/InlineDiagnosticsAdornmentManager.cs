@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
 
             var map = new Dictionary<int, (IMappingTagSpan<InlineDiagnosticsTag> mapTagSpan, SnapshotSpan snapshotSpan)>();
-            var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
             foreach (var changedSpan in changedSpanCollection)
@@ -114,30 +113,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
-                    if (point == null)
+                    if (ShouldNotDrawTag(changedSpan, tagMappingSpan))
                     {
                         continue;
                     }
 
-                    var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
-                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
-                    if (mappedPoint == null)
-                    {
-                        continue;
-                    }
+                    var mappedPoint = GetMappedPoint(changedSpan, tagMappingSpan);
 
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
-                    {
-                        continue;
-                    }
-
-                    if (!viewLines.IntersectsBufferSpan(span))
-                    {
-                        continue;
-                    }
-
-                    var lineNum = mappedPoint.Value.GetContainingLine().LineNumber;
+                    // mappedPoint is known to not be null here because it is checked in the ShouldNotDrawTag method call.
+                    var lineNum = mappedPoint!.Value.GetContainingLine().LineNumber;
                     if (!map.TryGetValue(lineNum, out var value))
                     {
                         map.Add(lineNum, (tagMappingSpan, changedSpan));

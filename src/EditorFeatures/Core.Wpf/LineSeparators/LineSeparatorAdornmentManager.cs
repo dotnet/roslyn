@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
             : base(threadingContext, textView, tagAggregatorFactoryService, asyncListener, adornmentLayerName)
         {
         }
-     
+
         protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             var viewSnapshot = TextView.TextSnapshot;
@@ -37,33 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    // We don't want to draw line separators if they would intersect a collapsed outlining
-                    // region.  So we test if we can map the start of the line separator up to our visual 
-                    // snapshot. If we can't, then we just skip it.
-                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
-                    if (point == null)
+                    if (ShouldNotDrawTag(changedSpan, tagMappingSpan))
                     {
                         continue;
                     }
 
-                    var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
-                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
-                    if (mappedPoint == null)
-                    {
-                        continue;
-                    }
-
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
-                    {
-                        continue;
-                    }
-
-                    if (!viewLines.IntersectsBufferSpan(span))
-                    {
-                        // span is outside of the view so we will not get geometry for it, but may 
-                        // spent a lot of time trying.
-                        continue;
-                    }
+                    TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
 
                     // add the visual to the adornment layer.
                     var geometry = viewLines.GetMarkerGeometry(span);
