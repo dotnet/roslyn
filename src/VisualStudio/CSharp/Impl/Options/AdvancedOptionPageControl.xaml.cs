@@ -137,7 +137,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptions.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptions.ForImplicitObjectCreation, LanguageNames.CSharp);
 
-            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp);
+            // If the option has not been set by the user, check if the option is enabled from experimentation.
+            // If so, default to that. Otherwise default to disabled
+            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () =>
+                experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin) ?? false);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

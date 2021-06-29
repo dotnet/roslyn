@@ -337,6 +337,7 @@ stages:
           Write-Host "##vso[task.setvariable variable=Insertion.InsertToolset]$($branchData.insertToolset)"
         }
 
+        Write-Host "##vso[task.setvariable variable=Insertion.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
         Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
         Write-Host "##vso[task.setvariable variable=VSBranchName]$($branchData.vsBranch)"
       displayName: Set Insertion Variables
@@ -344,7 +345,7 @@ stages:
     - powershell: |
         mv RoslynTools.VisualStudioInsertionTool.* RIT
         .\RIT\tools\OneOffInsertion.ps1 `
-          -autoComplete "false" `
+          -autoComplete "$(Insertion.AutoComplete)" `
           -buildQueueName "$(Build.DefinitionName)" `
           -cherryPick "(default)" `
           -clientId "$(ClientId)" `
