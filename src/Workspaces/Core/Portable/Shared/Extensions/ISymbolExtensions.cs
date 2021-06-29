@@ -425,6 +425,44 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
 
+                // Consider the following code, we want Test<int>.Clone to say "Clones a Test<int>" instead of "Clones a int", thus
+                // we rewrite `typeparamref`s as cref pointing to the correct type:
+                /*
+                    public class Test<T> : ICloneable<Test<T>>
+                    {
+                        /// <inheritdoc/>
+                        public Test<T> Clone() => new();
+                    }
+
+                    /// <summary>A type that has clonable instances.</summary>
+                    /// <typeparam name="T">The type of instances that can be cloned.</typeparam>
+                    public interface ICloneable<T>
+                    {
+                        /// <summary>Clones a <typeparamref name="T"/>.</summary>
+                        public T Clone();
+                    }
+                */
+                // Note: there is no way to cref an instantiated generic type. See https://github.com/dotnet/csharplang/issues/401
+                var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
+                foreach (var typeParameterRef in typeParameterRefs)
+                {
+                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is var typeParamName)
+                    {
+                        var index = symbol.OriginalDefinition.GetAllTypeParameters().IndexOf(p => p.Name == typeParamName.Value);
+                        if (index >= 0)
+                        {
+                            var typeArgs = symbol.GetAllTypeArguments();
+                            if (index < typeArgs.Length)
+                            {
+                                var docId = typeArgs[index].GetDocumentationCommentId();
+                                var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
+                                replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
+                                typeParameterRef.ReplaceWith(replacement);
+                            }
+                        }
+                    }
+                }
+
                 var loadedElements = TrySelectNodes(document, xpathValue);
                 return loadedElements ?? Array.Empty<XNode>();
             }

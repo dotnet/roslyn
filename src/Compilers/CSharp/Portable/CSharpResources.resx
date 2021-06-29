@@ -667,7 +667,7 @@
     <value>Type '{1}' already defines a member called '{0}' with the same parameter types</value>
   </data>
   <data name="ERR_StaticNotVirtual" xml:space="preserve">
-    <value>A static member '{0}' cannot be marked as override, virtual, or abstract</value>
+    <value>A static member cannot be marked as '{0}'</value>
   </data>
   <data name="ERR_OverrideNotNew" xml:space="preserve">
     <value>A member '{0}' marked as override cannot be marked as new or virtual</value>
@@ -1665,7 +1665,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': user-defined conversions to or from a derived type are not allowed</value>
   </data>
   <data name="ERR_IdentityConversion" xml:space="preserve">
-    <value>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</value>
+    <value>User-defined operator cannot convert a type to itself</value>
   </data>
   <data name="ERR_ConversionNotInvolvingContainedType" xml:space="preserve">
     <value>User-defined conversion must convert to or from the enclosing type</value>
@@ -1689,7 +1689,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
   </data>
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
-    <value>Interfaces cannot contain conversion, equality, or inequality operators</value>
+    <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
   </data>
   <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>
@@ -2151,7 +2151,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Invalid type specified as an argument for TypeForwardedTo attribute</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberStatic" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</value>
+    <value>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</value>
   </data>
   <data name="ERR_CloseUnimplementedInterfaceMemberNotPublic" xml:space="preserve">
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is not public.</value>
@@ -3018,6 +3018,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
     <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
+  </data>
+  <data name="ERR_CantConvAnonMethReturnType" xml:space="preserve">
+    <value>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</value>
   </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>
@@ -6074,7 +6077,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
   </data>
   <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</value>
   </data>
   <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
     <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
@@ -6325,6 +6328,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodRefReturnDifference" xml:space="preserve">
     <value>Partial method declarations must have matching ref return values.</value>
   </data>
+  <data name="WRN_PartialMethodTypeDifference" xml:space="preserve">
+    <value>Partial method declarations '{0}' and '{1}' have signature differences.</value>
+  </data>
+  <data name="WRN_PartialMethodTypeDifference_Title" xml:space="preserve">
+    <value>Partial method declarations have signature differences.</value>
+  </data>
   <data name="IDS_TopLevelStatements" xml:space="preserve">
     <value>top-level statements</value>
   </data>
@@ -6408,6 +6417,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -6521,7 +6533,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>extension GetEnumerator</value>
   </data>
   <data name="ERR_UnmanagedCallersOnlyRequiresStatic" xml:space="preserve">
-    <value>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</value>
+    <value>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</value>
     <comment>UnmanagedCallersOnly is not localizable.</comment>
   </data>
   <data name="ERR_InvalidUnmanagedCallersOnlyCallConv" xml:space="preserve">
@@ -6576,6 +6588,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureWithOnStructs" xml:space="preserve">
     <value>with on structs</value>
   </data>
+  <data name="IDS_FeatureWithOnAnonymousTypes" xml:space="preserve">
+    <value>with on anonymous types</value>
+  </data>
+  <data name="IDS_AsyncMethodBuilderOverride" xml:space="preserve">
+    <value>async method builder override</value>
+  </data>
   <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
     <value>positional fields in records</value>
   </data>
@@ -6610,6 +6628,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureLambdaAttributes" xml:space="preserve">
     <value>lambda attributes</value>
   </data>
+  <data name="IDS_FeatureLambdaReturnType" xml:space="preserve">
+    <value>lambda return type</value>
+  </data>
   <data name="IDS_FeatureInferredDelegateType" xml:space="preserve">
     <value>inferred delegate type</value>
   </data>
@@ -6631,6 +6652,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>
+  <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
+    <value>Identifier or a simple member access expected.</value>
+  </data>
+  <data name="IDS_FeatureExtendedPropertyPatterns" xml:space="preserve">
+    <value>extended property patterns</value>
+  </data>
   <data name="IDS_FeatureGlobalUsing" xml:space="preserve">
     <value>global using directive</value>
   </data>
@@ -6639,5 +6666,63 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
     <value>A global using directive must precede all non-global using directives.</value>
+  </data>
+  <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
+    <value>static abstract members in interfaces</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces" xml:space="preserve">
+    <value>Target runtime doesn't support static abstract members in interfaces.</value>
+  </data>
+  <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
+    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</value>
+  </data>
+  <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
+    <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractIncDecSignature" xml:space="preserve">
+    <value>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractIncDecRetType" xml:space="preserve">
+    <value>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</value>
+  </data>
+  <data name="ERR_BadAbstractBinaryOperatorSignature" xml:space="preserve">
+    <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
+  </data>
+  <data name="ERR_BadAbstractStaticMemberAccess" xml:space="preserve">
+    <value>A static abstract interface member can be accessed only on a type parameter.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsAbstractStaticMemberAccess" xml:space="preserve">
+    <value>An expression tree may not contain an access of static abstract interface member</value>
+  </data>
+  <data name="ERR_CloseUnimplementedInterfaceMemberNotStatic" xml:space="preserve">
+    <value>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</value>
+  </data>
+  <data name="ERR_ExplicitImplementationOfOperatorsMustBeStatic" xml:space="preserve">
+    <value>Explicit implementation of a user-defined operator '{0}' must be declared static</value>
+  </data>
+  <data name="ERR_AbstractConversionNotInvolvingContainedType" xml:space="preserve">
+    <value>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</value>
+  </data>
+  <data name="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</value>
+    <comment>UnmanagedCallersOnly is not localizable.</comment>
+  </data>
+  <data name="HDN_DuplicateWithGlobalUsing" xml:space="preserve">
+    <value>The using directive for '{0}' appeared previously as global using</value>
+  </data>
+  <data name="HDN_DuplicateWithGlobalUsing_Title" xml:space="preserve">
+    <value>The using directive appeared previously as global using</value>
+  </data>
+  <data name="ERR_BuilderAttributeDisallowed" xml:space="preserve">
+    <value>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</value>
+  </data>
+  <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
+    <value>At least one top-level statement must be non-empty.</value>
   </data>
 </root>

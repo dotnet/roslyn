@@ -11,6 +11,8 @@ parameters:
 
   SourcesDirectory: $(Build.SourcesDirectory)
   CreatePr: true
+  AutoCompletePr: false
+  UseLfLineEndings: true
   UseCheckedInLocProjectJson: false
   LanguageSet: VS_Main_Languages
   LclSource: lclFilesInRepo
@@ -48,14 +50,17 @@ jobs:
 
     - task: OneLocBuild@2
       displayName: OneLocBuild
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       inputs:
-        locProj: Localize/LocProject.json
+        locProj: eng/Localize/LocProject.json
         outDir: $(Build.ArtifactStagingDirectory)
         lclSource: ${{ parameters.LclSource }}
         lclPackageId: ${{ parameters.LclPackageId }}
         isCreatePrSelected: ${{ parameters.CreatePr }}
-        repoType: ${{ parameters.RepoType }}
-        gitHubPatVariable: "${{ parameters.GithubPat }}"
+        ${{ if eq(parameters.CreatePr, true) }}:
+          isAutoCompletePrSelected: ${{ parameters.AutoCompletePr }}
+          isUseLfLineEndingsSelected: ${{ parameters.UseLfLineEndings }}
         packageSourceAuth: patAuth
         patVariable: ${{ parameters.CeapexPat }}
         ${{ if eq(parameters.RepoType, 'gitHub') }}:
@@ -74,7 +79,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: Publish LocProject.json
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/Localize/'
+        PathtoPublish: '$(Build.SourcesDirectory)/eng/Localize/'
         PublishLocation: Container
         ArtifactName: Loc
       condition: ${{ parameters.condition }}

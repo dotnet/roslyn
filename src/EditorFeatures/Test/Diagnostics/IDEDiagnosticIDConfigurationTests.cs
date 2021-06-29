@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
+                or "IDE1007" or "RemoveUnnecessaryImportsFixable"
                 or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
@@ -402,6 +402,9 @@ dotnet_diagnostic.IDE0110.severity = %value%
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
+# IDE0150
+dotnet_diagnostic.IDE0150.severity = %value%
+
 # IDE1005
 dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -410,9 +413,6 @@ dotnet_diagnostic.IDE1006.severity = %value%
 
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
-
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
@@ -583,9 +583,6 @@ dotnet_diagnostic.IDE1006.severity = %value%
 
 # IDE1007
 dotnet_diagnostic.IDE1007.severity = %value%
-
-# IDE1008
-dotnet_diagnostic.IDE1008.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
@@ -995,6 +992,9 @@ No editorconfig based code style option
 # IDE0130, PreferNamespaceAndFolderMatchStructure
 dotnet_style_namespace_match_folder = true
 
+# IDE0150
+No editorconfig based code style option
+
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
 
@@ -1002,9 +1002,6 @@ csharp_style_conditional_delegate_call = true
 No editorconfig based code style option
 
 # IDE1007
-No editorconfig based code style option
-
-# IDE1008
 No editorconfig based code style option
 
 # IDE2000, AllowMultipleBlankLines
@@ -1211,9 +1208,6 @@ No editorconfig based code style option
 No editorconfig based code style option
 
 # IDE1007
-No editorconfig based code style option
-
-# IDE1008
 No editorconfig based code style option
 
 # IDE0120

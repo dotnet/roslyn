@@ -169,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorSignature bestSignature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(bestSignature.Kind, node, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, bestSignature.Method, bestSignature.ConstrainedToTypeOpt, diagnostics);
 
             if (CheckOverflowAtRuntime)
             {
@@ -177,7 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestSignature.LeftType,
                     bestSignature.RightType,
                     bestSignature.ReturnType,
-                    bestSignature.Method);
+                    bestSignature.Method,
+                    bestSignature.ConstrainedToTypeOpt);
             }
 
             BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
@@ -195,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ReportDiagnosticsIfObsolete(diagnostics, finalConversion, node, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, finalConversion, diagnostics);
             }
 
             if (finalConversion.IsExplicit &&
@@ -223,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion leftConversion = best.LeftConversion;
             ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, leftConversion, diagnostics);
 
             return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftConversion, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
@@ -292,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    CheckRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
+                    CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
                 }
 
                 if (eventSymbol.IsWindowsRuntimeEvent)
@@ -382,6 +386,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasError = true;
                 }
+                else
+                {
+                    Debug.Assert(left.Type is not TypeParameterSymbol);
+                    CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, userDefinedOperator, constrainedToTypeOpt: null, diagnostics);
+                }
+
                 diagnostics.Add(node, useSiteInfo);
             }
 
@@ -392,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: BindToNaturalType(right, diagnostics),
                 constantValueOpt: ConstantValue.NotAvailable,
                 methodOpt: userDefinedOperator,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: Compilation.DynamicType,
                 hasErrors: hasError);
@@ -491,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: no user-defined conversion candidates
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
-                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
+                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
 
             TypeSymbol leftType = left.Type;
@@ -587,6 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             TypeSymbol resultType = signature.ReturnType;
             BoundExpression resultLeft = left;
@@ -619,6 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultRight,
                 resultConstant,
                 signature.Method,
+                signature.ConstrainedToTypeOpt,
                 resultKind,
                 originalUserDefinedOperators,
                 resultType,
@@ -803,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constantValue = FoldBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, SpecialType.System_Boolean, diagnostics);
 
                 // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null,
+                return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null, constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Viable, left, right, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
             }
 
@@ -813,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.HasAnyErrors || right.HasAnyErrors)
             {
                 // NOTE: no candidate user-defined operators.
-                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null,
+                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Empty, left, right, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
             }
 
@@ -871,6 +884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(trueOperator != null && falseOperator != null);
 
+                        _ = CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics) &&
+                            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator, signature.ConstrainedToTypeOpt, diagnostics);
+
                         return new BoundUserDefinedConditionalLogicalOperator(
                             node,
                             resultKind,
@@ -879,6 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             signature.Method,
                             trueOperator,
                             falseOperator,
+                            signature.ConstrainedToTypeOpt,
                             lookupResult,
                             originalUserDefinedOperators,
                             signature.ReturnType);
@@ -886,6 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         Debug.Assert(bothBool);
+                        Debug.Assert(!(signature.Method?.ContainingType?.IsInterface ?? false));
 
                         return new BoundBinaryOperator(
                             node,
@@ -894,6 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             resultRight,
                             ConstantValue.NotAvailable,
                             signature.Method,
+                            signature.ConstrainedToTypeOpt,
                             lookupResult,
                             originalUserDefinedOperators,
                             signature.ReturnType);
@@ -902,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We've already reported the error.
-            return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
+            return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
         }
 
         private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol userDefinedOperator)
@@ -994,8 +1013,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // As mentioned above, we relax this restriction. The types must all be the same.
 
             bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
-            bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType, t, TypeCompareKind.ConsiderEverything2) ||
-                signature.ReturnType.IsNullableType() && TypeSymbol.Equals(signature.ReturnType.GetNullableUnderlyingType(), t, TypeCompareKind.ConsiderEverything2);
+            MethodSymbol definition;
+            bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
+                                        (t.IsInterface && signature.Method.IsAbstract &&
+                                         SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
 
             if (!typesAreSame || !typeMatchesContainer)
             {
@@ -2087,7 +2108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     kind,
                     operand,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     Conversion.NoConversion,
                     Conversion.NoConversion,
                     LookupResultKind.Empty,
@@ -2106,6 +2128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     kind.WithType(UnaryOperatorKind.Dynamic).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                     operand,
                     methodOpt: null,
+                    constrainedToTypeOpt: null,
                     operandConversion: Conversion.NoConversion,
                     resultConversion: Conversion.NoConversion,
                     resultKind: LookupResultKind.Viable,
@@ -2124,7 +2147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     kind,
                     operand,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     Conversion.NoConversion,
                     Conversion.NoConversion,
                     resultKind,
@@ -2136,6 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var signature = best.Signature;
 
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteInfo);
@@ -2150,6 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 ReportDiagnosticsIfObsolete(diagnostics, resultConversion, node, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, resultConversion, diagnostics);
             }
 
             if (!hasErrors && operandType.IsVoidPointer())
@@ -2161,12 +2187,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion operandConversion = best.Conversion;
 
             ReportDiagnosticsIfObsolete(diagnostics, operandConversion, node, hasBaseReceiver: false);
+            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, operandConversion, diagnostics);
 
             return new BoundIncrementOperator(
                 node,
                 signature.Kind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                 operand,
                 signature.Method,
+                signature.ConstrainedToTypeOpt,
                 operandConversion,
                 resultConversion,
                 resultKind,
@@ -2174,6 +2202,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType,
                 hasErrors);
         }
+
+#nullable enable
+        /// <summary>
+        /// Returns false if reported an error, true otherwise.
+        /// </summary>
+        private bool CheckConstraintLanguageVersionAndRuntimeSupportForOperator(SyntaxNode node, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BindingDiagnosticBag diagnostics)
+        {
+            bool result = true;
+
+            if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic)
+            {
+                if (methodOpt.IsAbstract)
+                {
+                    if (constrainedToTypeOpt is not TypeParameterSymbol)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadAbstractStaticMemberAccess, node);
+                        return false;
+                    }
+
+                    if (Compilation.SourceModule != methodOpt.ContainingModule)
+                    {
+                        result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+
+                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, node);
+                            return false;
+                        }
+                    }
+                }
+                else if (methodOpt.Name is WellKnownMemberNames.EqualityOperatorName or WellKnownMemberNames.InequalityOperatorName)
+                {
+                    result = CheckFeatureAvailability(node, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics);
+                }
+            }
+
+            return result;
+        }
+#nullable disable
 
         private BoundExpression BindSuppressNullableWarningExpression(PostfixUnaryExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -2456,6 +2523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note: no candidate user-defined operators.
                 return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
                     methodOpt: null,
+                    constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Empty,
                     type: CreateErrorType(),
                     hasErrors: true);
@@ -2476,6 +2544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand: operand,
                     constantValueOpt: ConstantValue.NotAvailable,
                     methodOpt: null,
+                    constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Viable,
                     type: operand.Type!);
             }
@@ -2491,7 +2560,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     kind,
                     operand,
                     ConstantValue.NotAvailable,
-                    null,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
                     resultKind,
                     originalUserDefinedOperators,
                     CreateErrorType(),
@@ -2503,17 +2573,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
-            var resultMethod = signature.Method;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType.SpecialType, diagnostics);
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
+            CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
             return new BoundUnaryOperator(
                 node,
                 resultOperatorKind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                 resultOperand,
                 resultConstant,
-                resultMethod,
+                signature.Method,
+                signature.ConstrainedToTypeOpt,
                 resultKind,
                 resultType);
         }
@@ -3777,6 +3848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         ReportDiagnosticsIfObsolete(diagnostics, leftConversion, node, hasBaseReceiver: false);
+                        CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, leftConversion, diagnostics);
                     }
 
                     diagnostics.Add(node, useSiteInfo);

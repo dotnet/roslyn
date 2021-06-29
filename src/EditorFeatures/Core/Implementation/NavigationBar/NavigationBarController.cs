@@ -3,23 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
@@ -34,11 +34,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     {
         private readonly INavigationBarPresenter _presenter;
         private readonly ITextBuffer _subjectBuffer;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         private bool _disconnected = false;
-        private Workspace? _workspace;
 
         /// <summary>
         /// Latest model and selected items produced once <see cref="DetermineSelectedItemInfoAsync"/> completes and
@@ -53,17 +52,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
 
+        /// <summary>
+        /// Source of events that should cause us to update the nav bar model with new information.
+        /// </summary>
+        private readonly ITaggerEventSource _eventSource;
+
         public NavigationBarController(
             IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IAsynchronousOperationListener asyncListener)
             : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _asyncListener = asyncListener;
 
             presenter.CaretMoved += OnCaretMoved;
@@ -72,80 +76,64 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             presenter.DropDownFocused += OnDropDownFocused;
             presenter.ItemSelected += OnItemSelected;
 
-            subjectBuffer.PostChanged += OnSubjectBufferPostChanged;
-
             // Initialize the tasks to be an empty model so we never have to deal with a null case.
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(
-                ImmutableArray<NavigationBarItem>.Empty,
-                semanticVersionStamp: default,
-                itemService: null!);
+            _latestModelAndSelectedInfo_OnlyAccessOnUIThread.model = new(ImmutableArray<NavigationBarItem>.Empty, itemService: null!);
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread.selectedInfo = new(typeItem: null, memberItem: null);
 
             _modelTask = Task.FromResult(_latestModelAndSelectedInfo_OnlyAccessOnUIThread.model);
+
+            // Use 'compilation available' as that may produce different results from the initial 'frozen partial'
+            // snapshot we use.
+            _eventSource = new CompilationAvailableTaggerEventSource(
+                subjectBuffer,
+                asyncListener,
+                // Any time an edit happens, recompute as the nav bar items may have changed.
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                // Switching what is the active context may change the nav bar contents.
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+                // Many workspace changes may need us to change the items (like options changing, or project renaming).
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, asyncListener),
+                // Once we hook this buffer up to the workspace, then we can start computing the nav bar items.
+                TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer));
+            _eventSource.Changed += OnEventSourceChanged;
+            _eventSource.Connect();
         }
 
         public void SetWorkspace(Workspace? newWorkspace)
         {
-            DisconnectFromWorkspace();
-
             if (newWorkspace != null)
-            {
-                ConnectToWorkspace(newWorkspace);
-            }
+                StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
-        private void ConnectToWorkspace(Workspace workspace)
+        private void StartModelUpdateAndSelectedItemUpdateTasks()
         {
-            // If we disconnected before the workspace ever connected, just disregard
+            // If we're disconnected, just disregard.
             if (_disconnected)
-            {
                 return;
-            }
-
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-            _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
             if (IsForeground())
             {
-                ConnectToNewWorkspace();
+                StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
             }
             else
             {
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ConnectToWorkspace));
+                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(StartModelUpdateAndSelectedItemUpdateTasks));
                 Task.Run(async () =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-                    ConnectToNewWorkspace();
+                    StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
                 }).CompletesAsyncOperation(asyncToken);
-            }
-
-            return;
-
-            void ConnectToNewWorkspace()
-            {
-                // For the first time you open the file, we'll start immediately
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
             }
         }
 
-        private void DisconnectFromWorkspace()
+        private void OnEventSourceChanged(object? sender, TaggerEventArgs e)
         {
-            if (_workspace != null)
-            {
-                _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
-                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
-                _workspace = null;
-            }
+            StartModelUpdateAndSelectedItemUpdateTasks();
         }
 
         public void Disconnect()
         {
             AssertIsForeground();
-            DisconnectFromWorkspace();
-
-            _subjectBuffer.PostChanged -= OnSubjectBufferPostChanged;
 
             _presenter.CaretMoved -= OnCaretMoved;
             _presenter.ViewFocused -= OnViewFocused;
@@ -155,6 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             _presenter.Disconnect();
 
+            _eventSource.Changed -= OnEventSourceChanged;
+            _eventSource.Disconnect();
+
             _disconnected = true;
 
             // Cancel off any remaining background work
@@ -162,74 +153,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _selectedItemInfoTaskCancellationSource.Cancel();
         }
 
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
-        {
-            // We're getting an event for a workspace we already disconnected from
-            if (args.NewSolution.Workspace != _workspace)
-            {
-                return;
-            }
-
-            // If the displayed project is being renamed, retrigger the update
-            if (args.Kind == WorkspaceChangeKind.ProjectChanged && args.ProjectId != null)
-            {
-                var oldProject = args.OldSolution.GetRequiredProject(args.ProjectId);
-                var newProject = args.NewSolution.GetRequiredProject(args.ProjectId);
-
-                if (oldProject.Name != newProject.Name)
-                {
-                    var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-
-                    if (currentContextDocumentId != null && currentContextDocumentId.ProjectId == args.ProjectId)
-                    {
-                        StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-                    }
-                }
-            }
-
-            if (args.Kind == WorkspaceChangeKind.DocumentChanged &&
-                args.OldSolution == args.NewSolution)
-            {
-                var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                if (currentContextDocumentId != null && currentContextDocumentId == args.DocumentId)
-                {
-                    // The context has changed, so update everything.
-                    StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-                }
-            }
-        }
-
-        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs args)
-        {
-            AssertIsForeground();
-            if (args.Solution.Workspace != _workspace)
-                return;
-
-            var currentContextDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-            if (args.NewActiveContextDocumentId == currentContextDocumentId ||
-                args.OldActiveContextDocumentId == currentContextDocumentId)
-            {
-                // if the active context changed, recompute the types/member as they may be changed as well.
-                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-            }
-        }
-
-        private void OnSubjectBufferPostChanged(object? sender, EventArgs e)
-        {
-            AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: TaggerConstants.MediumDelay);
-        }
-
         private void OnCaretMoved(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.NearImmediateDelay);
+            StartSelectedItemUpdateTask();
         }
 
         private void OnViewFocused(object? sender, EventArgs e)
         {
             AssertIsForeground();
-            StartSelectedItemUpdateTask(delay: TaggerConstants.ShortDelay);
+            StartSelectedItemUpdateTask();
         }
 
         private void OnDropDownFocused(object? sender, EventArgs e)
@@ -301,19 +234,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             if (oldRight != null)
             {
-                newRight = new NavigationBarPresentedItem(oldRight.Text, oldRight.Glyph, oldRight.Spans, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed)
-                {
-                    TrackingSpans = oldRight.TrackingSpans
-                };
+                newRight = new NavigationBarPresentedItem(
+                    oldRight.Text, oldRight.Glyph, oldRight.TrackingSpans, oldRight.NavigationTrackingSpan, oldRight.ChildItems, oldRight.Bolded, oldRight.Grayed || selectedItems.ShowMemberItemGrayed);
                 listOfRight.Add(newRight);
             }
 
             if (oldLeft != null)
             {
-                newLeft = new NavigationBarPresentedItem(oldLeft.Text, oldLeft.Glyph, oldLeft.Spans, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed)
-                {
-                    TrackingSpans = oldLeft.TrackingSpans
-                };
+                newLeft = new NavigationBarPresentedItem(
+                    oldLeft.Text, oldLeft.Glyph, oldLeft.TrackingSpans, oldLeft.NavigationTrackingSpan, listOfRight.ToImmutable(), oldLeft.Bolded, oldLeft.Grayed || selectedItems.ShowTypeItemGrayed);
                 listOfLeft.Add(newLeft);
             }
 
@@ -338,15 +267,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async Task OnItemSelectedAsync(NavigationBarItem item)
         {
             AssertIsForeground();
-            using var waitContext = _waitIndicator.StartWait(
+            using var waitContext = _uiThreadOperationExecutor.BeginExecute(
                 EditorFeaturesResources.Navigation_Bars,
                 EditorFeaturesResources.Refreshing_navigation_bars,
-                allowCancel: true,
+                allowCancellation: true,
                 showProgress: false);
 
             try
             {
-                await ProcessItemSelectionAsync(item, waitContext.CancellationToken).ConfigureAwait(false);
+                await ProcessItemSelectionAsync(item, waitContext.UserCancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -383,31 +312,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
-                    var navBarService = GetNavBarService(document);
+                    var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
                     var snapshot = _subjectBuffer.CurrentSnapshot;
-                    item.Spans = item.TrackingSpans.SelectAsArray(ts => ts.GetSpan(snapshot).Span.ToTextSpan());
                     var view = _presenter.TryGetCurrentView();
 
-                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task below.
-                    await navBarService.NavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true);
+                    // ConfigureAwait(true) as we have to come back to UI thread in order to kick of the refresh task
+                    // below. Note that we only want to refresh if selecting the item had an effect (either navigating
+                    // or generating).  If nothing happened to don't want to refresh.  This is important as some items
+                    // exist in the type list that are only there to show a set a particular set of items in the member
+                    // list.  So selecting such an item should only update the member list, and we do not want a refresh
+                    // to wipe that out.
+                    if (!await navBarService.TryNavigateToItemAsync(document, item, view, snapshot, cancellationToken).ConfigureAwait(true))
+                        return;
                 }
             }
 
             // Now that the edit has been done, refresh to make sure everything is up-to-date.
             // Have to make sure we come back to the main thread for this.
             AssertIsForeground();
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0);
-        }
-
-        private static INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess GetNavBarService(Document document)
-        {
-            // Defer to the legacy service if the language is still using it.  Otherwise use the current ea API.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<INavigationBarItemService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            return legacyService == null
-                ? document.GetRequiredLanguageService<INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess>()
-                : new NavigationBarItemServiceWrapper(legacyService);
+            StartModelUpdateAndSelectedItemUpdateTasksOnUIThread();
         }
     }
 }

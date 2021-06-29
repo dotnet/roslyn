@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpResources.resx">
     <body>
@@ -20,6 +20,11 @@
       <trans-unit id="CannotCreateConstructedFromNongeneric">
         <source>Cannot create constructed generic type from non-generic type.</source>
         <target state="translated">无法从非泛型类型创建构造泛型类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AbstractConversionNotInvolvingContainedType">
+        <source>User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</source>
+        <target state="new">User-defined conversion in an interface must convert to or from a type parameter on the enclosing type constrained to the enclosing type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractEventHasAccessors">
@@ -102,6 +107,36 @@
         <target state="translated">“{0}”不包含“{1}”的公共实例或扩展定义，因此异步 foreach 语句不能作用于“{0}”类型的变量。是否希望使用 "foreach" 而非 "await foreach"?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractBinaryOperatorSignature">
+        <source>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractIncDecRetType">
+        <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
+        <target state="new">The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractIncDecSignature">
+        <source>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
+        <target state="new">The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A static abstract interface member can be accessed only on a type parameter.</source>
+        <target state="new">A static abstract interface member can be accessed only on a type parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
+        <source>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</source>
+        <target state="new">The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">无法在异步 foreach 中使用动态类型集合</target>
@@ -167,6 +202,11 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BuilderAttributeDisallowed">
+        <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
+        <target state="new">The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
@@ -207,6 +247,11 @@
         <target state="translated">“{0}”必须与重写成员“{1}”的“仅 init”匹配</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantConvAnonMethReturnType">
+        <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
+        <target state="new">Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>
@@ -215,6 +260,11 @@
       <trans-unit id="ERR_CloneDisallowedInRecord">
         <source>Members named 'Clone' are disallowed in records.</source>
         <target state="translated">记录中不允许使用名为 "Clone" 的成员。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
+        <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
+        <target state="new">'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -264,22 +314,22 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="translated">默认文本没有目标类型。</target>
+        <target state="translated">default 字面量缺少目标类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
-        <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
+        <target state="translated">默认字面量“default”不能作为模式使用。请使用其他更适合的字面量（如“0”或“null”）。若要匹配任何输入，请使用放弃模式“_”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">变量不能在 "not" 或 "or" 模式中声明。</target>
+        <target state="translated">在“not”或“or”模式中不能声明变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
-        <target state="translated">在 switch 语句中，不允许将放弃模式作为大小写标签。对于放弃模式，使用 "case var _:"；对于名为 "_" 的常量，使用 "case @_:"。</target>
+        <target state="translated">在 switch 语句中，不允许将放弃模式作为 case 标签。请使用“case var _:”以表示放弃模式、使用“case @_:”以定义名为“_”的变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
@@ -337,6 +387,11 @@
         <target state="translated">记录等同性合同属性“{0}”必须具有 get 访问器。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
+        <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
+        <target state="new">Explicit implementation of a user-defined operator '{0}' must be declared static</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允许显示应用 “System.Runtime.CompilerServices.NullableAttribute”。</target>
@@ -360,6 +415,11 @@
       <trans-unit id="ERR_ExpressionTreeCantContainRefStruct">
         <source>Expression tree cannot contain value of ref struct or restricted type '{0}'.</source>
         <target state="translated">表达式树不能包含 ref 结构或受限类型“{0}”的值。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
+        <source>An expression tree may not contain an access of static abstract interface member</source>
+        <target state="new">An expression tree may not contain an access of static abstract interface member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -407,6 +467,11 @@
         <target state="translated">功能“{0}”是实验性的且不受支持；请使用“/features:{1}”来启用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion10">
+        <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">功能“{0}”在 C# 8.0 中不可用。请使用语言版本 {1} 或更高版本。</target>
@@ -444,12 +509,17 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <target state="translated">不支持在属性中使用 "typeof" 函数指针类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">不能使用命名参数调用函数指针。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
+        <target state="new">The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -474,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_HiddenPositionalMember">
         <source>The positional member '{0}' found corresponding to this parameter is hidden.</source>
-        <target state="new">The positional member '{0}' found corresponding to this parameter is hidden.</target>
+        <target state="translated">已隐藏找到的此参数相应位置成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -514,7 +584,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
-        <target state="new">Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</target>
+        <target state="translated">C# {0} 中不支持从包含密封 'Object.ToString' 的记录继承。请使用语言版本 '{1}’ 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitCannotBeReadonly">
@@ -526,6 +596,11 @@
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">接口中的实例属性不能具有初始值设定项。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
+        <source>'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</source>
+        <target state="new">'UnmanagedCallersOnly' method '{0}' cannot implement interface member '{1}' in type '{2}'</target>
+        <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
@@ -554,7 +629,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidModifierForLanguageVersion">
         <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <target state="translated">在 C# {1} 中，修饰符 "{0}" 对此项无效。请使用语言版本 "{2}" 或更高版本。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidNameInSubpattern">
+        <source>Identifier or a simple member access expected.</source>
+        <target state="new">Identifier or a simple member access expected.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
@@ -852,6 +932,16 @@
         <target state="translated">目标运行时不支持对接口的成员使用 "protected"、"protected internal" 或 "private protected" 辅助功能。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces">
+        <source>Target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">Target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support static abstract members in interfaces.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv">
         <source>The target runtime doesn't support extensible or runtime-environment default calling conventions.</source>
         <target state="translated">目标运行时不支持可扩展或运行时环境默认调用约定。</target>
@@ -870,6 +960,11 @@
       <trans-unit id="ERR_SimpleProgramDisallowsMainType">
         <source>Cannot specify /main if there is a compilation unit with top-level statements.</source>
         <target state="translated">如果存在包含顶级语句的编译单元，则不能指定 /main。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
@@ -987,6 +1082,21 @@
         <target state="translated">“{0}”使用 "UnmanagedCallersOnly" 进行特性化，无法转换为委托类型。请获取指向此方法的函数指针。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing">
+        <source>The using directive for '{0}' appeared previously as global using</source>
+        <target state="new">The using directive for '{0}' appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
+        <source>The using directive appeared previously as global using</source>
+        <target state="new">The using directive appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AsyncMethodBuilderOverride">
+        <source>async method builder override</source>
+        <target state="new">async method builder override</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">协变返回</target>
@@ -995,6 +1105,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">弃元</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
+        <source>extended property patterns</source>
+        <target state="new">extended property patterns</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -1017,6 +1132,11 @@
         <target state="new">lambda attributes</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaReturnType">
+        <source>lambda return type</source>
+        <target state="new">lambda return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1029,7 +1149,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
-        <target state="new">sealed ToString in record</target>
+        <target state="translated">记录的密封 ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
+        <source>with on anonymous types</source>
+        <target state="new">with on anonymous types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
@@ -1079,7 +1209,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
         <source>Mixed declarations and expressions in deconstruction</source>
-        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <target state="translated">析构中混用的声明和表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference">
+        <source>Partial method declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial method declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMethodTypeDifference_Title">
+        <source>Partial method declarations have signature differences.</source>
+        <target state="new">Partial method declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
@@ -1148,8 +1288,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.</source>
-        <target state="translated">"UnmanagedCallersOnly" 仅可应用于普通静态方法或静态本地函数。</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
+        <target state="needs-review-translation">"UnmanagedCallersOnly" 仅可应用于普通静态方法或静态本地函数。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -1979,7 +2119,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultLiteral">
         <source>default literal</source>
-        <target state="translated">默认文本</target>
+        <target state="translated">default 字面量</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePrivateProtected">
@@ -2239,7 +2379,7 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
+        <target state="translated">将 null 字面量或可能为 null 的值转换为非 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -2418,22 +2558,22 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
+        <target state="translated">无法将 null 字面量转换为非 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
+        <target state="translated">无法将 null 字面量转换为非 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
         <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
-        <target state="translated">“{1}”中“{0}”形参的可能的 null 引用实参。</target>
+        <target state="translated">“{1}”中的形参“{0}”可能传入 null 引用实参。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument_Title">
         <source>Possible null reference argument.</source>
-        <target state="translated">可能的 null 引用参数。</target>
+        <target state="translated">引用类型参数可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment">
@@ -2443,12 +2583,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
-        <target state="translated">可能的 null 引用赋值。</target>
+        <target state="translated">引用类型赋值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="translated">对象或集合初始值设定项会隐式取消引用可能为 null 的成员“{0}”。</target>
+        <target state="translated">对象或集合初始值设定项会隐式解引用可能为 null 的成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
@@ -2468,12 +2608,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
         <source>Possible null reference return.</source>
-        <target state="translated">可能的 null 引用返回。</target>
+        <target state="translated">可能返回 null 引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn_Title">
         <source>Possible null reference return.</source>
-        <target state="translated">可能的 null 引用返回。</target>
+        <target state="translated">可能返回 null 引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
@@ -2848,12 +2988,12 @@
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="translated">引发的值可为 null。</target>
+        <target state="translated">抛出的值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="translated">引发的值可为 null。</target>
+        <target state="translated">抛出的值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -3522,8 +3662,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">静态成员“{0}”不能标记为 override、virtual 或 abstract</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">静态成员“{0}”不能标记为 override、virtual 或 abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
@@ -3713,7 +3853,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadExceptionType">
         <source>The type caught or thrown must be derived from System.Exception</source>
-        <target state="translated">捕获或抛弃的类型必须从 System.Exception 派生</target>
+        <target state="translated">捕获或抛出的值的类型必须从 System.Exception 派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEmptyThrow">
@@ -3723,7 +3863,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFinallyLeave">
         <source>Control cannot leave the body of a finally clause</source>
-        <target state="translated">控制不能离开 finally 子句主体</target>
+        <target state="translated">控制流不能从 finally 子句中离开</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LabelShadow">
@@ -3918,7 +4058,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
-        <target state="translated">在此背景下使用默认文本无效</target>
+        <target state="translated">在此上下文中不可使用 default 字面量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
@@ -5066,8 +5206,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
-        <source>User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type</source>
-        <target state="translated">用户定义的运算符不能采用封闭类型的对象，也不能转换成封闭类型的对象</target>
+        <source>User-defined operator cannot convert a type to itself</source>
+        <target state="needs-review-translation">用户定义的运算符不能采用封闭类型的对象，也不能转换成封闭类型的对象</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">
@@ -5787,7 +5927,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadEmptyThrowInFinally">
         <source>A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause</source>
-        <target state="translated">在嵌套在最近的封闭 catch 子句内部的 finally 子句内不允许使用不带参数的 throw 语句</target>
+        <target state="translated">最近的封闭 catch 子句内嵌套的 finally 语句中不允许使用不带参数的 throw 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidSpecifier">
@@ -5836,8 +5976,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement an interface member because it is static.</source>
-        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它是静态的。</target>
+        <source>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</source>
+        <target state="needs-review-translation">“{0}”不实现接口成员“{1}”。“{2}”无法实现接口成员，因为它是静态的。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
@@ -6072,7 +6212,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TypelessTupleInAs">
         <source>The first operand of an 'as' operator may not be a tuple literal without a natural type.</source>
-        <target state="translated">"as" 运算符的第一个操作数在没有自然类型的情况下可能不是元组文本。</target>
+        <target state="translated">"as" 运算符的第一个操作数不能是一个没有自然类型的元组字面量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer">
@@ -6107,7 +6247,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsBadCoalesce">
         <source>An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side</source>
-        <target state="translated">表达式树 lambda 不能包含左侧为 null 或默认文本的合并运算符</target>
+        <target state="translated">lambda 表达式树不能包含左侧为 null 或 default 字面量的合并运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentifierExpected">
@@ -6157,7 +6297,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TooManyCharsInConst">
         <source>Too many characters in character literal</source>
-        <target state="translated">字符文本中的字符太多</target>
+        <target state="translated">字符字面量中的字符太多</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidNumber">
@@ -8474,7 +8614,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefLocal">
         <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="needs-review-translation">不能在异步方法或 lambda 表达式中声明“{0}”类型的参数或局部变量</target>
+        <target state="translated">不能在异步方法或异步 lambda 表达式中声明类型“{0}”的参数或局部变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefIterator">
@@ -9594,12 +9734,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="UseLiteralForTokens">
         <source>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.</source>
-        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 可创建字符文本标记。</target>
+        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 来创建字符字面量标记。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLiteralForNumeric">
         <source>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.</source>
-        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 可创建数字文本标记。</target>
+        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 来创建数字字面量标记。</target>
         <note />
       </trans-unit>
       <trans-unit id="ThisMethodCanOnlyBeUsedToCreateTokens">
@@ -10379,7 +10519,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">该程序所使用的用户字符串的合并后长度超出所允许的限制。请尝试减少字符串文本的使用。</target>
+        <target state="translated">该程序中的所有用户字符串在合并后，长度超出限制。请尝试减少字符串字面量的使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -10514,12 +10654,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'new' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"new" 不能与元组类型共同使用。改用元组文本表达式。</target>
+        <target state="translated">"new" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructionVarFormDisallowsSpecificType">
         <source>Deconstruction 'var (...)' form disallows a specific type for 'var'.</source>
-        <target state="translated">析构函数 "var (...)" 窗体驳回 "var" 的特定类型。</target>
+        <target state="translated">“var (...)”形式的解构表达式不允许将“var”替换为某一特定类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleElementNamesAttributeMissing">
@@ -10549,7 +10689,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleLiteral">
         <source>An expression tree may not contain a tuple literal.</source>
-        <target state="translated">表达式树不能包含元组文本。</target>
+        <target state="translated">表达式树不能包含元组字面量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleConversion">
@@ -10878,8 +11018,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="translated">接口不能包含转换、相等或不相等运算符</target>
+        <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
+        <target state="needs-review-translation">接口不能包含转换、相等或不相等运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
@@ -10893,8 +11033,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">“{0}”不实现接口成员“{1}”。“{2}”无法无法隐式实现非公共成员。</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
