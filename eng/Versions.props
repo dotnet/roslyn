@@ -114,7 +114,7 @@
     <MicrosoftServiceHubClientVersion>2.8.2018</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.8.2018</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
-    <MicrosoftVisualStudioCacheVersion>17.0.11-alpha</MicrosoftVisualStudioCacheVersion>
+    <MicrosoftVisualStudioCacheVersion>17.0.13-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioComponentModelHostVersion>
