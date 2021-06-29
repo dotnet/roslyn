@@ -117,8 +117,6 @@ class C
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
 
-                controller.SetWorkspace(workspace)
-
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
                 Dim navbarWaiter = listenerProvider.GetWaiter(FeatureAttribute.NavigationBar)
@@ -185,8 +183,6 @@ End Class
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, baseDocument.GetTextBuffer())
-
-                controller.SetWorkspace(workspace)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider).Value
                 Dim workspaceWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
@@ -324,7 +320,6 @@ End Class
 
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, document.GetTextBuffer())
-                controller.SetWorkspace(workspace)
 
                 mockPresenter.RaiseDropDownFocused()
                 Assert.Equal("VBProj", projectName)
