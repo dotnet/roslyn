@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     appendCall.ArgsToParamsOpt,
                     argRefKindsOpt,
                     ref appendReceiver,
-                    out ArrayBuilder<LocalSymbol>? temps,
-                    receiverIsArgumentSideEffectSequence: out _);
+                    out ArrayBuilder<LocalSymbol>? temps);
 
                 var rewrittenAppendCall = MakeArgumentsAndCall(
                     appendCall.Syntax,

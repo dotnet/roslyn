@@ -306,8 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 argumentRefKinds,
                 ref transformedReceiver!,
-                out ArrayBuilder<LocalSymbol>? argumentTemps,
-                out bool receiverIsSideEffectSequence);
+                out ArrayBuilder<LocalSymbol>? argumentTemps);
 
             if (argumentTemps != null)
             {
@@ -315,15 +314,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentTemps.Free();
             }
 
-            if (receiverIsSideEffectSequence)
+            if (transformedReceiver is BoundSequence receiverSequence)
             {
                 // The receiver is a store/evaluate sequence because it was used as an argument to an interpolated
                 // string handler conversion.
                 // Pick apart the sequence, add the side effects to the containing list of stores, and set the
                 // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
-                var receiverSequence = (BoundSequence)transformedReceiver;
-                Debug.Assert(receiverSequence is { Locals: { IsEmpty: true }, SideEffects: { Length: 1 }, Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp } } });
 
+                temps.AddRange(receiverSequence.Locals);
                 stores.AddRange(receiverSequence.SideEffects);
                 transformedReceiver = receiverSequence.Value;
             }

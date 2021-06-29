@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgsToParamsOpt,
                 argumentRefKindsOpt,
                 ref receiverDiscard,
-                out ArrayBuilder<LocalSymbol>? tempsBuilder,
-                receiverIsArgumentSideEffectSequence: out _);
+                out ArrayBuilder<LocalSymbol>? tempsBuilder);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.

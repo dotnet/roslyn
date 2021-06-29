@@ -318,8 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 argumentRefKindsOpt,
                 ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder,
-                receiverIsArgumentSideEffectSequence: out _);
+                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
 
             arguments = MakeArguments(
                 syntax,

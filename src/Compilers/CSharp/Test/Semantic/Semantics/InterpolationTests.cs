@@ -10167,5 +10167,105 @@ format:
 ",
             };
         }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void DiscardsUsedAsParameters()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+C.M(out _, $""literal"");
+
+public class C
+{
+    public static void M(out int i, [InterpolatedStringHandlerArgument(""i"")]CustomHandler c) 
+    {
+        i = 0;
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, out int i) : this(literalLength, formattedCount)
+    {
+        i = 1;
+    }
+}
+";
+
+            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"literal:literal");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  4
+  .locals init (int V_0,
+                CustomHandler V_1)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.7
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  newobj     ""CustomHandler..ctor(int, int, out int)""
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  ldstr      ""literal""
+  IL_0013:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void C.M(out int, CustomHandler)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void DiscardsUsedAsParameters_DefinedInVB()
+        {
+            var vb = @"
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+Public Class C
+    Public Shared Sub M(<Out> ByRef i As Integer, <InterpolatedStringHandlerArgument(""i"")>c As CustomHandler)
+        Console.WriteLine(i)
+    End Sub
+End Class
+
+<InterpolatedStringHandler>
+Public Structure CustomHandler
+    Public Sub New(literalLength As Integer, formattedCount As Integer, <Out> ByRef i As Integer)
+        i = 1
+    End Sub
+End Structure
+";
+
+            var vbComp = CreateVisualBasicCompilation(new[] { vb, InterpolatedStringHandlerAttributesVB });
+            vbComp.VerifyDiagnostics();
+
+            var code = @"C.M(out _, $"""");";
+
+            var comp = CreateCompilation(code, new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  4
+  .locals init (int V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  newobj     ""CustomHandler..ctor(int, int, out int)""
+  IL_000b:  call       ""void C.M(out int, CustomHandler)""
+  IL_0010:  ret
+}
+");
+        }
     }
 }
