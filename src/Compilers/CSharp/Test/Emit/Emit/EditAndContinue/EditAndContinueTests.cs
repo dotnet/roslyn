@@ -339,7 +339,7 @@ class Bad : Bad
 
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -377,7 +377,7 @@ class Bad : Bad
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2)));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, options: SemanticEditOption.EmitAllParametersForMethodUpdate)));
 
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
