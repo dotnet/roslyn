@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (parameterType.Type.IsNullableType())
                 {
                     convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
-                        valueBeforeConversion, diagnostics, isDefaultParameter: true);
+                        valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
             }
 

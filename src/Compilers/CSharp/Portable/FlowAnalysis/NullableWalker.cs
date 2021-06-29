@@ -8363,9 +8363,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
-                if (node.OperandConversion.IsUserDefined && node.OperandConversion.Method?.ParameterCount == 1)
+                if (node.OperandConversion is BoundConversion operandConversion && operandConversion.Conversion.IsUserDefined && operandConversion.Conversion.Method?.ParameterCount == 1)
                 {
-                    targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnTypeWithAnnotations;
+                    targetTypeOfOperandConversion = operandConversion.Conversion.Method.ReturnTypeWithAnnotations;
                 }
                 else if (incrementOperator is object)
                 {
@@ -8387,7 +8387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultOfOperandConversionType = VisitConversion(
                         conversionOpt: null,
                         node.Operand,
-                        node.OperandConversion,
+                        BoundNode.GetConversion(node.OperandConversion, node.OperandPlaceholder),
                         targetTypeOfOperandConversion,
                         operandType,
                         checkConversion: true,
@@ -8417,7 +8417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultOfIncrementType = VisitConversion(
                     conversionOpt: null,
                     node,
-                    node.ResultConversion,
+                    BoundNode.GetConversion(node.ResultConversion, node.ResultPlaceholder),
                     operandTypeWithAnnotations,
                     resultOfIncrementType,
                     checkConversion: true,

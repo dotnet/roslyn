@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             declTypeOpt.Type,
                             initializerOpt,
                             localDiagnostics,
-                            isRefAssignment: localSymbol.RefKind != RefKind.None);
+                            localSymbol.RefKind != RefKind.None ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
                     }
                 }
             }
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRefAssignment: isRef);
+                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -1761,7 +1761,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements);
         }
 
-        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
+        [Flags]
+        internal enum ConversionForAssignmentFlags
+        {
+            None = 0,
+            DefaultParameter = 1 << 0,
+            RefAssignment = 1 << 1,
+            IncrementAssignment = 1 << 2,
+        }
+
+        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
         {
             Debug.Assert((object)targetType != null);
             Debug.Assert(expression != null);
@@ -1780,10 +1789,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo);
+
+            var conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
+                                 this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteInfo) :
+                                 this.Conversions.ClassifyConversionFromType(expression.Type, targetType, ref useSiteInfo);
+
             diagnostics.Add(expression.Syntax, useSiteInfo);
 
-            if (isRefAssignment)
+            if ((flags & ConversionForAssignmentFlags.RefAssignment) != 0)
             {
                 if (conversion.Kind != ConversionKind.Identity)
                 {
@@ -1800,7 +1813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if someone says "void M(string s = 123) {}". We will report
                 // a special error in the default parameter binder.
 
-                if (!isDefaultParameter)
+                if ((flags & ConversionForAssignmentFlags.DefaultParameter) == 0)
                 {
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }

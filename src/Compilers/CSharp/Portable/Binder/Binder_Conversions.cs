@@ -59,174 +59,193 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
         {
-            RoslynDebug.Assert(source != null);
-            RoslynDebug.Assert((object)destination != null);
-            RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
 
-            if (conversion.IsIdentity)
+            var result = createConversion(syntax, source, conversion, isCast, conversionGroupOpt, wasCompilerGenerated, destination, diagnostics, hasErrors);
+
+            Debug.Assert(result is BoundConversion || (conversion.IsIdentity && ((object)result == source) || source.NeedsToBeConverted()) || hasErrors);
+
+            return result;
+
+            BoundExpression createConversion(
+                SyntaxNode syntax,
+                BoundExpression source,
+                Conversion conversion,
+                bool isCast,
+                ConversionGroup? conversionGroupOpt,
+                bool wasCompilerGenerated,
+                TypeSymbol destination,
+                BindingDiagnosticBag diagnostics,
+                bool hasErrors = false)
             {
-                if (source is BoundTupleLiteral sourceTuple)
+                RoslynDebug.Assert(source != null);
+                RoslynDebug.Assert((object)destination != null);
+                RoslynDebug.Assert(!isCast || conversionGroupOpt != null);
+
+                if (conversion.IsIdentity)
                 {
-                    NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                    if (source is BoundTupleLiteral sourceTuple)
+                    {
+                        NamedTypeSymbol.ReportTupleNamesMismatchesIfAny(destination, sourceTuple, diagnostics);
+                    }
+
+                    // identity tuple and switch conversions result in a converted expression
+                    // to indicate that such conversions are no longer applicable.
+                    source = BindToNaturalType(source, diagnostics);
+                    RoslynDebug.Assert(source.Type is object);
+
+                    // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
+                    // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
+                    if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    {
+                        return source;
+                    }
                 }
 
-                // identity tuple and switch conversions result in a converted expression
-                // to indicate that such conversions are no longer applicable.
-                source = BindToNaturalType(source, diagnostics);
-                RoslynDebug.Assert(source.Type is object);
-
-                // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
-                // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-                if (!isCast && source.Type.Equals(destination, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                if (conversion.IsMethodGroup)
                 {
-                    return source;
+                    return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
                 }
-            }
 
-            if (conversion.IsMethodGroup)
-            {
-                return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
+                ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
-            // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
-            ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
-            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
+                if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
+                {
+                    return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
-            {
-                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.IsStackAlloc)
+                {
+                    return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsStackAlloc)
-            {
-                return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.IsTupleLiteralConversion ||
+                    (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                {
+                    return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsTupleLiteralConversion ||
-                (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
-            {
-                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.Kind == ConversionKind.SwitchExpression)
+                {
+                    var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                    return new BoundConversion(
+                        syntax,
+                        convertedSwitch,
+                        conversion,
+                        CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        convertedSwitch.ConstantValue,
+                        destination,
+                        hasErrors);
+                }
 
-            if (conversion.Kind == ConversionKind.SwitchExpression)
-            {
-                var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                if (conversion.Kind == ConversionKind.ConditionalExpression)
+                {
+                    var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                    return new BoundConversion(
+                        syntax,
+                        convertedConditional,
+                        conversion,
+                        CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        convertedConditional.ConstantValue,
+                        destination,
+                        hasErrors);
+                }
+
+                if (conversion.Kind == ConversionKind.InterpolatedString)
+                {
+                    var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                    source = new BoundInterpolatedString(
+                        unconvertedSource.Syntax,
+                        interpolationData: null,
+                        BindInterpolatedStringParts(unconvertedSource, diagnostics),
+                        unconvertedSource.ConstantValue,
+                        unconvertedSource.Type,
+                        unconvertedSource.HasErrors);
+                }
+
+                if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
+                {
+                    return new BoundConversion(
+                        syntax,
+                        BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
+                        conversion,
+                        @checked: CheckOverflowAtRuntime,
+                        explicitCastInCode: isCast && !wasCompilerGenerated,
+                        conversionGroupOpt,
+                        constantValueOpt: null,
+                        destination);
+                }
+
+                if (source.Kind == BoundKind.UnconvertedSwitchExpression)
+                {
+                    TypeSymbol? type = source.Type;
+                    if (type is null)
+                    {
+                        Debug.Assert(!conversion.Exists);
+                        type = CreateErrorType();
+                        hasErrors = true;
+                    }
+
+                    source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                    {
+                        return source;
+                    }
+                }
+
+                if (conversion.IsObjectCreation)
+                {
+                    return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
+                }
+
+                if (source.Kind == BoundKind.UnconvertedConditionalOperator)
+                {
+                    TypeSymbol? type = source.Type;
+                    if (type is null)
+                    {
+                        Debug.Assert(!conversion.Exists);
+                        type = CreateErrorType();
+                        hasErrors = true;
+                    }
+
+                    source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
+                    {
+                        return source;
+                    }
+                }
+
+                if (conversion.IsUserDefined)
+                {
+                    // User-defined conversions are likely to be represented as multiple
+                    // BoundConversion instances so a ConversionGroup is necessary.
+                    return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
+                }
+
+                ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+                if (conversion.Kind == ConversionKind.DefaultLiteral)
+                {
+                    source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
+                        .WithSuppression(source.IsSuppressed);
+                }
+
                 return new BoundConversion(
                     syntax,
-                    convertedSwitch,
-                    conversion,
-                    CheckOverflowAtRuntime,
-                    explicitCastInCode: isCast && !wasCompilerGenerated,
-                    conversionGroupOpt,
-                    convertedSwitch.ConstantValue,
-                    destination,
-                    hasErrors);
-            }
-
-            if (conversion.Kind == ConversionKind.ConditionalExpression)
-            {
-                var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
-                return new BoundConversion(
-                    syntax,
-                    convertedConditional,
-                    conversion,
-                    CheckOverflowAtRuntime,
-                    explicitCastInCode: isCast && !wasCompilerGenerated,
-                    conversionGroupOpt,
-                    convertedConditional.ConstantValue,
-                    destination,
-                    hasErrors);
-            }
-
-            if (conversion.Kind == ConversionKind.InterpolatedString)
-            {
-                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
-                source = new BoundInterpolatedString(
-                    unconvertedSource.Syntax,
-                    interpolationData: null,
-                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
-                    unconvertedSource.ConstantValue,
-                    unconvertedSource.Type,
-                    unconvertedSource.HasErrors);
-            }
-
-            if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
-            {
-                return new BoundConversion(
-                    syntax,
-                    BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
+                    BindToNaturalType(source, diagnostics),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast && !wasCompilerGenerated,
                     conversionGroupOpt,
-                    constantValueOpt: null,
-                    destination);
+                    constantValueOpt: constantValue,
+                    type: destination,
+                    hasErrors: hasErrors)
+                { WasCompilerGenerated = wasCompilerGenerated };
             }
-
-            if (source.Kind == BoundKind.UnconvertedSwitchExpression)
-            {
-                TypeSymbol? type = source.Type;
-                if (type is null)
-                {
-                    Debug.Assert(!conversion.Exists);
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
-
-                source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
-                {
-                    return source;
-                }
-            }
-
-            if (conversion.IsObjectCreation)
-            {
-                return ConvertObjectCreationExpression(syntax, (BoundUnconvertedObjectCreationExpression)source, isCast, destination, diagnostics);
-            }
-
-            if (source.Kind == BoundKind.UnconvertedConditionalOperator)
-            {
-                TypeSymbol? type = source.Type;
-                if (type is null)
-                {
-                    Debug.Assert(!conversion.Exists);
-                    type = CreateErrorType();
-                    hasErrors = true;
-                }
-
-                source = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
-                if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
-                {
-                    return source;
-                }
-            }
-
-            if (conversion.IsUserDefined)
-            {
-                // User-defined conversions are likely to be represented as multiple
-                // BoundConversion instances so a ConversionGroup is necessary.
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics, hasErrors);
-            }
-
-            ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
-            if (conversion.Kind == ConversionKind.DefaultLiteral)
-            {
-                source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
-                    .WithSuppression(source.IsSuppressed);
-            }
-
-            return new BoundConversion(
-                syntax,
-                BindToNaturalType(source, diagnostics),
-                conversion,
-                @checked: CheckOverflowAtRuntime,
-                explicitCastInCode: isCast && !wasCompilerGenerated,
-                conversionGroupOpt,
-                constantValueOpt: constantValue,
-                type: destination,
-                hasErrors: hasErrors)
-            { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)

@@ -2153,8 +2153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    Conversion.NoConversion,
-                    Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     LookupResultKind.Empty,
                     CreateErrorType(),
                     hasErrors: true);
@@ -2172,8 +2174,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    operandConversion: Conversion.NoConversion,
-                    resultConversion: Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     resultKind: LookupResultKind.Viable,
                     originalUserDefinedOperatorsOpt: default(ImmutableArray<MethodSymbol>),
                     type: operandType,
@@ -2192,8 +2196,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operand,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
-                    Conversion.NoConversion,
-                    Conversion.NoConversion,
+                    operandPlaceholder: null,
+                    operandConversion: null,
+                    resultPlaceholder: null,
+                    resultConversion: null,
                     resultKind,
                     originalUserDefinedOperators,
                     CreateErrorType(),
@@ -2205,20 +2211,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var resultConversion = Conversions.ClassifyConversionFromType(signature.ReturnType, operandType, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
+            var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType);
 
-            bool hasErrors = false;
-            if (!resultConversion.IsImplicit || !resultConversion.IsValid)
+            BoundExpression resultConversion = GenerateConversionForAssignment(operandType, resultPlaceholder, diagnostics, ConversionForAssignmentFlags.IncrementAssignment);
+
+            bool hasErrors = resultConversion.HasErrors;
+
+            if (resultConversion is not BoundConversion)
             {
-                GenerateImplicitConversionError(diagnostics, this.Compilation, node, resultConversion, signature.ReturnType, operandType);
-                hasErrors = true;
-            }
-            else
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, resultConversion, node, hasBaseReceiver: false);
-                CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, resultConversion, diagnostics);
+                Debug.Assert(hasErrors || (object)resultConversion == resultPlaceholder);
+                if ((object)resultConversion != resultPlaceholder)
+                {
+                    resultPlaceholder = null;
+                    resultConversion = null;
+                }
             }
 
             if (!hasErrors && operandType.IsVoidPointer())
@@ -2227,10 +2233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            Conversion operandConversion = best.Conversion;
-
-            ReportDiagnosticsIfObsolete(diagnostics, operandConversion, node, hasBaseReceiver: false);
-            CheckConstraintLanguageVersionAndRuntimeSupportForConversion(node, operandConversion, diagnostics);
+            var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+            var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
 
             return new BoundIncrementOperator(
                 node,
@@ -2238,7 +2242,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operand,
                 signature.Method,
                 signature.ConstrainedToTypeOpt,
+                operandPlaceholder,
                 operandConversion,
+                resultPlaceholder,
                 resultConversion,
                 resultKind,
                 originalUserDefinedOperators,

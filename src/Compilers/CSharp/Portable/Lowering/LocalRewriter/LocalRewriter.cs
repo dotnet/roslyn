@@ -217,8 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (visited != null &&
                 visited != node &&
-                node.Kind != BoundKind.ImplicitReceiver &&
-                node.Kind != BoundKind.ObjectOrCollectionValuePlaceholder)
+                node.Kind is not (BoundKind.ImplicitReceiver or BoundKind.ObjectOrCollectionValuePlaceholder or BoundKind.ValuePlaceholder))
             {
                 if (!CanBePassedByReference(node) && CanBePassedByReference(visited))
                 {
@@ -373,6 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
         }
 
         public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
@@ -1021,6 +1025,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitDeconstructionVariablePendingInference(DeconstructionVariablePendingInference node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
             {
                 Fail(node);
                 return null;

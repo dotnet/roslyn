@@ -385,6 +385,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        public static Conversion GetConversion(BoundExpression? conversion, BoundValuePlaceholder? placeholder)
+        {
+            return conversion switch
+            {
+                null => Conversion.NoConversion,
+                BoundConversion boundConversion => boundConversion.Conversion,
+                BoundValuePlaceholder valuePlaceholder when (object)valuePlaceholder == placeholder => Conversion.Identity,
+                _ => throw ExceptionUtilities.UnexpectedValue(conversion)
+            };
+        }
+
 #if DEBUG
         private class LocalsScanner : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
