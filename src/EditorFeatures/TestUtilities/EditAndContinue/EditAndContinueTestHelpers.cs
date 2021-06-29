@@ -275,6 +275,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Contract.ThrowIfNull(actualSyntaxMap);
                     VerifySyntaxMap(oldRoot, newRoot, expectedSyntaxMap, actualSyntaxMap);
                 }
+
+                // Edit options must match
+                Assert.Equal(expectedSemanticEdit.Options, actualSemanticEdit.Options);
             }
         }
 
