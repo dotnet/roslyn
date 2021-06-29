@@ -124,13 +124,17 @@ namespace Roslyn.Utilities
             async Task<TResult?> ContinueAfterDelay(Task lastTask)
             {
                 using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
-                await lastTask.ConfigureAwait(false);
 
                 // Ensure that we always yield the current thread this is necessary for correctness as we are called
                 // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
                 // must be on another thread that runs afterwards, can only grab the thread once we release it and will
                 // then reset that bool back to false
                 await Task.Yield().ConfigureAwait(false);
+
+                // Ensure we run after the last set of items has been processed.
+                await lastTask.ConfigureAwait(false);
+
+                // Wait the desired length of time until running the next batch.
                 await _asyncListener.Delay(_delay, _cancellationToken).ConfigureAwait(false);
                 return await ProcessNextBatchAsync(_cancellationToken).ConfigureAwait(false);
             }
