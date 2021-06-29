@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 options,
                 exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
                 locationService,
-                exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.Workspace),
+                exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),
                 faultInjector);
 
         [Fact]
