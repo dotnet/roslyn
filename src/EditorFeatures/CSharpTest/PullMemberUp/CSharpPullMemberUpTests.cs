@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
-using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -968,6 +967,59 @@ public class Base
         </Document>
         <Document FilePath = ""File2.cs"">
 using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewNonDeclaredBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+
+public class Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 
 public class Derived : Base
 {

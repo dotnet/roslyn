@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
@@ -280,18 +279,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
                     // add import symbol annotations for all the code we may be moving
                     newDestination = newDestination.WithAdditionalAnnotations(
-                        semanticModel.GetAllDeclaredSymbols(syntax, cancellationToken)
-                        .Select((symbol) =>
-                        {
-                            // prefer the convert because it can handle param and return types
-                            // but use memberType in case of fields/variable declaration.
-                            var type = symbol.ConvertToType(compilation);
-                            if (type.Equals(compilation.ObjectType))
-                            {
-                                type = symbol.GetMemberType();
-                            }
-                            return SymbolAnnotation.Create(type ?? compilation.ObjectType);
-                        }));
+                        syntax.DescendantNodesAndSelf()
+                        .Select((node) => semanticModel.GetTypeInfo(node, cancellationToken).Type)
+                        .Where((type) => type != null &&
+                                !type.IsErrorType())
+                        .Distinct()
+                        .Select((type) => SymbolAnnotation.Create(type)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
