@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Storage
             IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
         {
             _connectionPoolService = connectionPoolService;
-            _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.Workspace);
+            _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

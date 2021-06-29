@@ -71,7 +71,7 @@ namespace IdeBenchmarks
             var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
             _storageService = new SQLitePersistentStorageService(
                 _workspace.Options, connectionPoolService, new LocationService(),
-                _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace));
+                _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage));
 
             var solution = _workspace.CurrentSolution;
             _storage = _storageService.GetStorageWorkerAsync(_workspace, SolutionKey.ToSolutionKey(solution), solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
