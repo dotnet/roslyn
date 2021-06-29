@@ -3067,6 +3067,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         Contract.ThrowIfFalse(editKind is SemanticEditKind.Update or SemanticEditKind.Insert);
 
+                        var editOptions = SemanticEditOption.None;
+
                         if (editKind == SemanticEditKind.Update)
                         {
                             Contract.ThrowIfNull(oldSymbol);
@@ -3075,9 +3077,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             // The only update to the type itself that's supported is an addition or removal of the partial modifier,
                             // which does not have impact on the emitted type metadata.
-                            if (newSymbol is INamedTypeSymbol)
+                            if (newSymbol is INamedTypeSymbol newType)
                             {
-                                continue;
+                                // if this is a delegate type then we need to check for parameter renames
+                                Debug.Assert(oldSymbol is INamedTypeSymbol);
+                                var oldType = (INamedTypeSymbol)oldSymbol;
+                                if (newType.TypeKind == TypeKind.Delegate &&
+                                    !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldType.DelegateInvokeMethod.GetParameters(), newType.DelegateInvokeMethod.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                                {
+                                    editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
                             }
 
                             // The field/property/event itself is being updated. Currently we do not allow any modifiers to be updated.
@@ -3087,11 +3100,36 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 continue;
                             }
 
-                            // The only updates allowed for a parameter or type parameter is an attribute change, but we only need the edit
+                            // The only updates allowed for a type parameter is an attribute change, but we only need the edit
                             // for the containing symbol which will be handled elsewhere.
-                            if (newSymbol is IParameterSymbol or ITypeParameterSymbol)
+                            if (newSymbol is ITypeParameterSymbol)
                             {
                                 continue;
+                            }
+
+                            // If a methods parameters change we need to make sure the right metadata is emitted, so specify an edit option
+                            if (newSymbol is IMethodSymbol &&
+                                !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldSymbol.GetParameters(), newSymbol.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                            {
+                                editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
+                            }
+
+                            // If a parameter is renamed without an edit for its containing method then we need issue one
+                            if (oldSymbol is IParameterSymbol oldParam && newSymbol is IParameterSymbol newParam)
+                            {
+                                if (!processedSymbols.Contains(newParam.ContainingSymbol) &&
+                                    newParam.ContainingSymbol is IMethodSymbol method &&
+                                    method.MethodKind != MethodKind.Constructor &&
+                                    !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldParam.ContainingSymbol.GetParameters(), newParam.ContainingSymbol.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                                {
+                                    editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
+                                    newSymbol = newParam.ContainingSymbol;
+                                }
+                                else
+                                {
+                                    // If this is a parmeter edit due to an attribute change then we would have already logged an edit
+                                    continue;
+                                }
                             }
                         }
 
@@ -3099,7 +3137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
                         // do not need merging accross partial type declarations.
-                        semanticEdits.Add(new SemanticEditInfo(editKind, lazySymbolKey.Value, syntaxMap, syntaxMapTree: null, partialType: null));
+                        semanticEdits.Add(new SemanticEditInfo(editKind, lazySymbolKey.Value, syntaxMap, syntaxMapTree: null, partialType: null, options: editOptions));
                     }
                 }
 
@@ -3162,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
                         // do not need merging accross partial type declarations.
                         var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
-                        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
+                        semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, options: SemanticEditOption.None));
                     }
                 }
 
@@ -3702,8 +3740,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             foreach (var member in GetRecordUpdatedSynthesizedMembers(compilation, recordType))
             {
-                var symbolKey = SymbolKey.Create(member, cancellationToken);
-                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap: null, syntaxMapTree: null, partialType: null));
+                var symbolKey = SymbolKey.Create(member);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap: null, syntaxMapTree: null, partialType: null, options: SemanticEditOption.None));
             }
         }
 
@@ -4139,6 +4177,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         Contract.ThrowIfFalse(isStatic || oldCtor != null);
                     }
 
+                    var editOptions = SemanticEditOption.None;
+                    if (oldCtor is IMethodSymbol &&
+                        newCtor is IMethodSymbol &&
+                        !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldCtor.GetParameters(), newCtor.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                    {
+                        editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
+                    }
+
                     if (oldCtor != null)
                     {
                         AnalyzeSymbolUpdate(oldCtor, newCtor, newDeclaration, capabilities, diagnostics, semanticEdits, syntaxMapToUse, cancellationToken);
@@ -4148,7 +4194,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             newCtorKey,
                             syntaxMapToUse,
                             syntaxMapTree: isPartialEdit ? newSyntaxTree : null,
-                            partialType: isPartialEdit ? SymbolKey.Create(newType, cancellationToken) : null));
+                            partialType: isPartialEdit ? SymbolKey.Create(newType, cancellationToken) : null,
+                            options: editOptions));
                     }
                     else
                     {
@@ -4157,7 +4204,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             newCtorKey,
                             syntaxMap: null,
                             syntaxMapTree: null,
-                            partialType: null));
+                            partialType: null,
+                            options: editOptions));
                     }
                 }
             }
