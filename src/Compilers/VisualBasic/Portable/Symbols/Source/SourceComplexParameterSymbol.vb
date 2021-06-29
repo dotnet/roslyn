@@ -251,6 +251,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+
+                Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
+                If data Is Nothing Then
+                    Return -1
+                End If
+
+                Return data.CallerArgumentExpressionParameterIndex
+            End Get
+        End Property
+
         ''' <summary>
         ''' Is parameter explicitly declared ByRef. Can be different from IsByRef only for
         ''' String parameters of Declare methods.

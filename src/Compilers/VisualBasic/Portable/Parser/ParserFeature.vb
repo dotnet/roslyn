@@ -41,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         UnconstrainedTypeParameterInConditional
         CommentsAfterLineContinuation
         InitOnlySettersUsage
+        CallerArgumentExpression
     End Enum
 
     Friend Module FeatureExtensions
@@ -105,6 +106,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InitOnlySettersUsage
                     Return LanguageVersion.VisualBasic16_9
+
+                Case Feature.CallerArgumentExpression
+                    ' PROTOTYPE(caller-expr): Map to language version matching whatever VS version the feature will be shipped in.
+                    Return LanguageVersion.VisualBasic17
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -179,6 +184,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_CommentsAfterLineContinuation
                 Case Feature.InitOnlySettersUsage
                     Return ERRID.FEATURE_InitOnlySettersUsage
+                Case Feature.CallerArgumentExpression
+                    Return ERRID.FEATURE_CallerArgumentExpression
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

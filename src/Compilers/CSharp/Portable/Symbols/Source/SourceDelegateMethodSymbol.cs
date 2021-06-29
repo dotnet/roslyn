@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _parameters;
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(InitializeParameters)} prior to accessing this property.");
+                return _parameters.NullToEmpty();
             }
         }
 

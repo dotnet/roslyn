@@ -111,6 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
                 If _point.IsInVirtualSpace Then
                     result += _point.VirtualSpaces
                 End If
+
                 Return result
             End Get
         End Property

@@ -139,5 +139,14 @@
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" ExcludeAssets="all"/>
   </ItemGroup>
 
+  <Target Name="_CheckDeploymentTargetVisualStudioVersion"
+		      Condition="'$(DeployExtension)' == 'true' and '$(CreateVsixContainer)' == 'true'"
+          BeforeTargets="DeployVsixExtensionFiles"
+	       	DependsOnTargets="GetVsixDeploymentPath">
+
+    <Error Text="Deployment to Dev17 is not supported in this branch. Use the corresponding *-vs-deps branch." 
+           Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('17.0'))"/>
+  </Target>
+
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 </Project>

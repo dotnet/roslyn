@@ -26,32 +26,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
-        ValueTask<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, string? sourceFilePath, CancellationToken cancellationToken);
-        ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, string? sourceFilePath, CancellationToken cancellationToken);
+        ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
         /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(CancellationToken cancellationToken);
-        ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
+        ValueTask DiscardSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
-        ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
-        /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(CancellationToken cancellationToken);
+        ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
         /// </summary>
-        ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<DocumentId>> BreakStateEnteredAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
-        ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns ids of documents for which diagnostics need to be refreshed in-proc.
+        /// </summary>
+        ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken);
 
-        ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(PinnedSolutionInfo solutionInfo, ManagedInstructionId instructionId, CancellationToken cancellationToken);
-        ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, DebuggingSessionId sessionId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, DocumentId documentId, CancellationToken cancellationToken);
+
+        ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(PinnedSolutionInfo solutionInfo, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
+        ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ManagedInstructionId instructionId, CancellationToken cancellationToken);
         ValueTask OnSourceFileUpdatedAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
     }
 }

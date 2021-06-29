@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         FatalError.ReportAndCatch(new NullTextBufferException(document, text));
                         continue;
                     }
+
                     Contract.ThrowIfNull(textSnapshot.TextBuffer);
 
                     openBuffers.Add(textSnapshot.TextBuffer);

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
@@ -690,6 +691,98 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
+        public async Task<GraphNode> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        {
+            var document = result.NavigableItem.Document;
+            var project = document.Project;
+
+            // If it doesn't belong to a document or project we can navigate to, then ignore entirely.
+            if (document.FilePath == null || project.FilePath == null)
+                return null;
+
+            var category = result.Kind switch
+            {
+                NavigateToItemKind.Class => CodeNodeCategories.Class,
+                NavigateToItemKind.Delegate => CodeNodeCategories.Delegate,
+                NavigateToItemKind.Enum => CodeNodeCategories.Enum,
+                NavigateToItemKind.Interface => CodeNodeCategories.Interface,
+                NavigateToItemKind.Module => CodeNodeCategories.Module,
+                NavigateToItemKind.Structure => CodeNodeCategories.Struct,
+                NavigateToItemKind.Method => CodeNodeCategories.Method,
+                NavigateToItemKind.Property => CodeNodeCategories.Property,
+                NavigateToItemKind.Event => CodeNodeCategories.Event,
+                NavigateToItemKind.Constant or
+                NavigateToItemKind.EnumItem or
+                NavigateToItemKind.Field => CodeNodeCategories.Field,
+                _ => null,
+            };
+
+            // If it's not a category that progression understands, then ignore.
+            if (category == null)
+                return null;
+
+            // Get or make a node for this symbol's containing document that will act as the parent node in the UI.
+            var documentNode = this.AddNodeForDocument(document);
+
+            // For purposes of keying this node, just use the display text we will show.  In practice, outside of error
+            // scenarios this will be unique and suitable as an ID (esp. as these names are joined with their parent
+            // document name to form the full ID).
+            var label = result.NavigableItem.DisplayTaggedParts.JoinText();
+            var id = documentNode.Id.Add(GraphNodeId.GetLiteral(label));
+
+            // If we already have a node that matches this (say there are multiple identical sibling symbols in an error
+            // situation).  We just ignore the second match.
+            var existing = _graph.Nodes.Get(id);
+            if (existing != null)
+                return null;
+
+            var symbolNode = _graph.Nodes.GetOrCreate(id);
+
+            symbolNode.Label = label;
+            symbolNode.AddCategory(category);
+            symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
+            symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
+            symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+
+            symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
+                document.FilePath,
+                new Position(span.Start.Line, span.Start.Character),
+                new Position(span.End.Line, span.End.Character));
+
+            this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode);
+
+            return symbolNode;
+        }
+
+        private static string GetIconString(Glyph glyph)
+        {
+            var groupName = glyph switch
+            {
+                Glyph.ClassPublic or Glyph.ClassProtected or Glyph.ClassPrivate or Glyph.ClassInternal => "Class",
+                Glyph.ConstantPublic or Glyph.ConstantProtected or Glyph.ConstantPrivate or Glyph.ConstantInternal => "Field",
+                Glyph.DelegatePublic or Glyph.DelegateProtected or Glyph.DelegatePrivate or Glyph.DelegateInternal => "Delegate",
+                Glyph.EnumPublic or Glyph.EnumProtected or Glyph.EnumPrivate or Glyph.EnumInternal => "Enum",
+                Glyph.EnumMemberPublic or Glyph.EnumMemberProtected or Glyph.EnumMemberPrivate or Glyph.EnumMemberInternal => "EnumMember",
+                Glyph.ExtensionMethodPublic or Glyph.ExtensionMethodProtected or Glyph.ExtensionMethodPrivate or Glyph.ExtensionMethodInternal => "Method",
+                Glyph.EventPublic or Glyph.EventProtected or Glyph.EventPrivate or Glyph.EventInternal => "Event",
+                Glyph.FieldPublic or Glyph.FieldProtected or Glyph.FieldPrivate or Glyph.FieldInternal => "Field",
+                Glyph.InterfacePublic or Glyph.InterfaceProtected or Glyph.InterfacePrivate or Glyph.InterfaceInternal => "Interface",
+                Glyph.MethodPublic or Glyph.MethodProtected or Glyph.MethodPrivate or Glyph.MethodInternal => "Method",
+                Glyph.ModulePublic or Glyph.ModuleProtected or Glyph.ModulePrivate or Glyph.ModuleInternal => "Module",
+                Glyph.PropertyPublic or Glyph.PropertyProtected or Glyph.PropertyPrivate or Glyph.PropertyInternal => "Property",
+                Glyph.StructurePublic or Glyph.StructureProtected or Glyph.StructurePrivate or Glyph.StructureInternal => "Structure",
+                _ => null,
+            };
+
+            if (groupName == null)
+                return null;
+
+            return IconHelper.GetIconName(groupName, GlyphExtensions.GetAccessibility(GlyphTags.GetTags(glyph)));
+        }
+
         public void ApplyToGraph(Graph graph)
         {
             using (_gate.DisposableWait())
@@ -730,17 +823,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 using (_gate.DisposableWait())
                 {
                     return _createdNodes.ToArray();
-                }
-            }
-        }
-
-        public IEnumerable<Tuple<GraphNode, GraphProperty, object>> DeferredPropertySets
-        {
-            get
-            {
-                using (_gate.DisposableWait())
-                {
-                    return _deferredPropertySets.ToArray();
                 }
             }
         }

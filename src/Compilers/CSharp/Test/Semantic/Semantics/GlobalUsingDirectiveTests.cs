@@ -33,7 +33,19 @@ namespace ns2 {}
 namespace ns3 {}
 namespace ns4 {}
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // global using ns1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns1;").WithArguments("global using directive", "10.0").WithLocation(4, 1),
+                // (6,1): error CS8773: Feature 'global using directive' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // global using ns3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "global using ns3;").WithArguments("global using directive", "10.0").WithLocation(6, 1),
+                // (6,1): error CS8915: A global using directive must precede all non-global using directives.
+                // global using ns3;
+                Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(6, 1)
+                );
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (6,1): error CS9002: A global using directive must precede all non-global using directives.
                 // global using ns3;
                 Diagnostic(ErrorCode.ERR_GlobalUsingOutOfOrder, "global").WithLocation(6, 1)
@@ -52,7 +64,7 @@ global using ns3;
 namespace ns1 {}
 namespace ns3 {}
 ";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
         }
 
         [Fact]
@@ -177,7 +189,7 @@ class Program
     }
 }
 ";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: new[] { comp1Ref });
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe, references: new[] { comp1Ref });
 
             CompileAndVerify(comp2, expectedOutput: @"
 C1
@@ -220,7 +232,7 @@ class Program
     }
 }
 ";
-            var comp3 = CreateCompilation(source3, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: new[] { comp1Ref });
+            var comp3 = CreateCompilation(source3, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe, references: new[] { comp1Ref });
 
             CompileAndVerify(comp3, expectedOutput: @"
 C1
@@ -290,7 +302,7 @@ class Program
     }
 }
 ";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe, references: new[] { comp1Ref });
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular10, options: TestOptions.DebugExe, references: new[] { comp1Ref });
 
             CompileAndVerify(comp2, expectedOutput: @"
 C1
@@ -2538,44 +2550,73 @@ class C2 {}
 
             var expected1 = new[]
             {
-                // (3000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // (3000,14): hidden CS8933: The using directive for 'C2' appeared previously as global using
                 // using static C2;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
             };
 
-            comp2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
+            CompileAndVerify(comp2).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
 
             var comp3 = CreateCompilation(new[] { source3 + source4, source5, source6 }, parseOptions: TestOptions.RegularPreview);
 
-            var expected2 = new[]
-            {
+            CompileAndVerify(comp3).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,21): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // global using static C2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(2000, 21),
+                // (3000,14): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                );
+
+            var comp4 = CreateCompilation(new[] { source3 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp4).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (3000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // using static C2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                );
+
+            var comp5 = CreateCompilation(new[] { source3 + source4 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp5).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
                 // (2000,21): warning CS0105: The using directive for 'C2' appeared previously in this namespace
                 // global using static C2;
                 Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(2000, 21),
                 // (3000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
                 // using static C2;
                 Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
-            };
-
-            comp3.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected2);
-
-            var comp4 = CreateCompilation(new[] { source3 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp4.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
-
-            var comp5 = CreateCompilation(new[] { source3 + source4 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp5.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected2);
+                );
 
             var comp6 = CreateCompilation(new[] { source3, source4, source5, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp6.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected2);
+            CompileAndVerify(comp6).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,21): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // global using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(2000, 21),
+                // (3000,14): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                );
 
             var comp7 = CreateCompilation(new[] { source3 + source5, source4, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp7.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected2);
+            CompileAndVerify(comp7).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,21): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // global using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(2000, 21),
+                // (3000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // using static C2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                );
 
             var comp8 = CreateCompilation(new[] { source5, source3, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp8.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
+            CompileAndVerify(comp8).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
 
             var comp9 = CreateCompilation(new[] { source5, source3, source4, source6 }, parseOptions: TestOptions.RegularPreview);
-            comp9.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected2);
+            CompileAndVerify(comp9).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,21): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // global using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(2000, 21),
+                // (3000,14): hidden CS8933: The using directive for 'C2' appeared previously as global using
+                // using static C2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(3000, 14)
+                );
         }
 
         [Fact]
@@ -2593,16 +2634,16 @@ class C2 {}
 ";
             var comp2 = CreateCompilation(new[] { source2, source3 }, parseOptions: TestOptions.RegularPreview);
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (2000,21): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // (2000,21): hidden CS8933: The using directive for 'C2' appeared previously as global using
                 // global using static C2;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(2000, 21)
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(2000, 21)
                 );
 
             comp2 = CreateCompilation(new[] { source3, source2 }, parseOptions: TestOptions.RegularPreview);
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
-                // (1000,21): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // (1000,21): hidden CS8933: The using directive for 'C2' appeared previously as global using
                 // global using static C2;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(1000, 21)
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(1000, 21)
                 );
         }
 
@@ -2623,9 +2664,9 @@ class C2 {}
 
             var expected = new[]
             {
-                // (1000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // (1000,14): hidden CS8933: The using directive for 'C2' appeared previously as global using
                 // using static C2;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(1000, 14)
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "C2").WithArguments("C2").WithLocation(1000, 14)
             };
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
@@ -2634,7 +2675,165 @@ class C2 {}
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
 
             comp2 = CreateCompilation(source2 + source3, parseOptions: TestOptions.RegularPreview);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (1000,14): warning CS0105: The using directive for 'C2' appeared previously in this namespace
+                // using static C2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "C2").WithArguments("C2").WithLocation(1000, 14)
+                );
+        }
+
+        [Fact]
+        public void UsingConfictWithGlobalUsing_04()
+        {
+            var source3 = @"
+#line 1000
+global using N2;
+";
+            var source4 = @"
+#line 2000
+global using N2;
+";
+            var source5 = @"
+#line 3000
+using N2;
+";
+            var source6 = @"
+namespace N2 { class C2 {} }
+";
+            var comp2 = CreateCompilation(new[] { source3, source5, source6 }, parseOptions: TestOptions.RegularPreview);
+
+            var expected1 = new[]
+            {
+                // (3000,7): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+            };
+
+            CompileAndVerify(comp2).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
+
+            var comp3 = CreateCompilation(new[] { source3 + source4, source5, source6 }, parseOptions: TestOptions.RegularPreview);
+
+            CompileAndVerify(comp3).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // global using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(2000, 14),
+                // (3000,7): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+
+            var comp4 = CreateCompilation(new[] { source3 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp4).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (3000,7): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+
+            var comp5 = CreateCompilation(new[] { source3 + source4 + source5, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp5).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // global using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(2000, 14),
+                // (3000,7): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+
+            var comp6 = CreateCompilation(new[] { source3, source4, source5, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp6).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(2000, 14),
+                // (3000,7): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+
+            var comp7 = CreateCompilation(new[] { source3 + source5, source4, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp7).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(2000, 14),
+                // (3000,7): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+
+            var comp8 = CreateCompilation(new[] { source5, source3, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp8).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
+
+            var comp9 = CreateCompilation(new[] { source5, source3, source4, source6 }, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(comp9).Diagnostics.Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(2000, 14),
+                // (3000,7): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(3000, 7)
+                );
+        }
+
+        [Fact]
+        public void UsingConfictWithGlobalUsing_05()
+        {
+            var source2 = @"
+#line 1000
+global using N2;
+";
+            var source3 = @"
+#line 2000
+global using N2;
+
+namespace N2 { class C2 {} }
+";
+            var comp2 = CreateCompilation(new[] { source2, source3 }, parseOptions: TestOptions.RegularPreview);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (2000,14): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(2000, 14)
+                );
+
+            comp2 = CreateCompilation(new[] { source3, source2 }, parseOptions: TestOptions.RegularPreview);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (1000,14): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(1000, 14)
+                );
+        }
+
+        [Fact]
+        public void UsingConfictWithGlobalUsing_06()
+        {
+            var source2 = @"
+global using N2;
+";
+            var source3 = @"
+#line 1000
+using N2;
+#line default
+
+namespace N2 { class C2 {} }
+";
+            var comp2 = CreateCompilation(new[] { source2, source3 }, parseOptions: TestOptions.RegularPreview);
+
+            var expected = new[]
+            {
+                // (1000,7): hidden CS8933: The using directive for 'N2' appeared previously as global using
+                // using N2;
+                Diagnostic(ErrorCode.HDN_DuplicateWithGlobalUsing, "N2").WithArguments("N2").WithLocation(1000, 7)
+            };
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+
+            comp2 = CreateCompilation(new[] { source3, source2 }, parseOptions: TestOptions.RegularPreview);
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+
+            comp2 = CreateCompilation(source2 + source3, parseOptions: TestOptions.RegularPreview);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDeclarationDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (1000,7): warning CS0105: The using directive for 'N2' appeared previously in this namespace
+                // using N2;
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "N2").WithArguments("N2").WithLocation(1000, 7)
+                );
         }
 
         [Fact]

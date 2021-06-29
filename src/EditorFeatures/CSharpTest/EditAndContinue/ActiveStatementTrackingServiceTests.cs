@@ -155,15 +155,15 @@ class C
             var span21 = new LinePositionSpan(new LinePosition(0, 11), new LinePosition(0, 16));
             var span22 = new LinePositionSpan(new LinePosition(0, 21), new LinePosition(0, 26));
 
-            var encService = new MockEditAndContinueWorkspaceService();
+            var spanProvider = new MockActiveStatementSpanProvider();
 
-            encService.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
+            spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) => ImmutableArray.Create(
                 ImmutableArray.Create(
                     new ActiveStatementSpan(0, span11, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
                     new ActiveStatementSpan(1, span12, ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null)),
                 ImmutableArray<ActiveStatementSpan>.Empty);
 
-            encService.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
+            spanProvider.GetAdjustedActiveStatementSpansImpl = (document, _) => document.Name switch
             {
                 "1.cs" => ImmutableArray.Create(
                     new ActiveStatementSpan(0, span21, ActiveStatementFlags.IsNonLeafFrame, unmappedDocumentId: null),
@@ -189,7 +189,7 @@ class C
             Assert.Same(snapshot1, document1.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot());
             Assert.Same(snapshot2, document2.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot());
 
-            var trackingSession = new ActiveStatementTrackingService.TrackingSession(workspace, encService);
+            var trackingSession = new ActiveStatementTrackingService.TrackingSession(workspace, spanProvider);
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {
@@ -231,7 +231,7 @@ class C
             }
 
             // we are not able to determine active statements in a document:
-            encService.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray<ActiveStatementSpan>.Empty;
+            spanProvider.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
             var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
             AssertEx.Equal(new[]

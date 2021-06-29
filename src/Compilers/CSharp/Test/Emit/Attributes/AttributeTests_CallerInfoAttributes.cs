@@ -1317,9 +1317,9 @@ class Program
 }";
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (14,4): error CS8652: The feature 'caller argument expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,4): error CS8773: Feature 'caller argument expression' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [My(1+2)]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(1+2)").WithArguments("caller argument expression").WithLocation(14, 4));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(1+2)").WithArguments("caller argument expression", "10.0").WithLocation(14, 4));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1440,6 +1440,217 @@ class Program
             Assert.Equal(2, arguments.Length);
             Assert.Equal(3, arguments[0].Value);
             Assert.Equal(0, arguments[1].Value);
+        }
+        #endregion
+
+        #region CallerArgumentExpression - Test various symbols
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestIndexers()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    const string i = nameof(i);
+    public int this[int i, [CallerArgumentExpression(i)] string s = ""<default-arg>""]
+    {
+        get => i;
+        set => Console.WriteLine($""{i}, {s}"");
+    }
+
+    public static void Main()
+    {
+        new Program()[1+  1] = 5;
+        new Program()[2+  2, ""explicit-value""] = 5;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: @"2, 1+  1
+4, explicit-value").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestDelegate()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, ref string s2, out string s3, [CallerArgumentExpression(s1)] string s4 = """");
+
+    static void M(string s1, ref string s2, out string s3, string s4 = """")
+    {
+        s3 = """";
+        Console.WriteLine($""s1: {s1}"");
+        Console.WriteLine($""s2: {s2}"");
+        Console.WriteLine($""s3: {s3}"");
+        Console.WriteLine($""s4: {s4}"");
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s2 = ""s2-arg"";
+        d.Invoke(""s1-arg"", ref s2, out _);
+        //d.EndInvoke(ref s2, out _, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
+s2: s2-arg
+s3: 
+s4: ""s1-arg""").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestDelegate2()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    const string s3 = nameof(s3);
+    delegate void D(string s1, ref string s2, out string s3, [CallerArgumentExpression(s3)] string s4 = """");
+
+    static void M(string s1, ref string s2, out string s3, string s4 = """")
+    {
+        s3 = """";
+        Console.WriteLine($""s1: {s1}"");
+        Console.WriteLine($""s2: {s2}"");
+        Console.WriteLine($""s3: {s3}"");
+        Console.WriteLine($""s4: {s4}"");
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s2 = ""s2-arg"";
+        d.Invoke(""s1-arg"", ref s2, out _);
+        //d.EndInvoke(ref s2, out _, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
+s2: s2-arg
+s3: 
+s4: _").VerifyDiagnostics(); // PROTOTYPE(caller-arg): Should 'out' keyword be included?
+        }
+
+
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestDelegate3()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, ref string s2, out string s3, [CallerArgumentExpression(s1)] string s4 = """");
+
+    static void M(string s1, ref string s2, out string s3, string s4 = """")
+    {
+        s3 = """";
+        Console.WriteLine($""s1: {s1}"");
+        Console.WriteLine($""s2: {s2}"");
+        Console.WriteLine($""s3: {s3}"");
+        Console.WriteLine($""s4: {s4}"");
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s2 = ""s2-arg"";
+        d.EndInvoke(ref s2, out _, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (string V_0, //s2
+                string V_1)
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, ref string, out string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldstr      ""s2-arg""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldnull
+  IL_0017:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
+  IL_001c:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestDelegate4()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    const string s3 = nameof(s3);
+    delegate void D(string s1, ref string s2, out string s3, [CallerArgumentExpression(s3)] string s4 = """");
+
+    static void M(string s1, ref string s2, out string s3, string s4 = """")
+    {
+        s3 = """";
+        Console.WriteLine($""s1: {s1}"");
+        Console.WriteLine($""s2: {s2}"");
+        Console.WriteLine($""s3: {s3}"");
+        Console.WriteLine($""s4: {s4}"");
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s2 = ""s2-arg"";
+        d.EndInvoke(ref s2, out _, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (string V_0, //s2
+                string V_1)
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, ref string, out string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldstr      ""s2-arg""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldnull
+  IL_0017:  callvirt   ""void Program.D.EndInvoke(ref string, out string, System.IAsyncResult)""
+  IL_001c:  ret
+}
+");
         }
         #endregion
 

@@ -1375,7 +1375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
-                    // PROTOTYPE(caller-expr): Do we need to support VB?
 
                     var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
