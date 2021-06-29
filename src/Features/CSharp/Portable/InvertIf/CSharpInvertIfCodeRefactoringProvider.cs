@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                     ? SyntaxFactory.Block(trueStatement)
                     : trueStatement);
 
-            if (ShouleKeepFalse(ifNode, falseStatementOpt))
+            if (ShouldKeepFalse(ifNode, falseStatementOpt))
             {
                 var elseClause = updatedIf.Else != null
                     ? updatedIf.Else.WithStatement(falseStatementOpt)
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
                 : updatedIf.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private static bool ShouleKeepFalse(IfStatementSyntax originalIfStatement, [NotNullWhen(returnValue: true)] StatementSyntax? falseStatement)
+        private static bool ShouldKeepFalse(IfStatementSyntax originalIfStatement, [NotNullWhen(returnValue: true)] StatementSyntax? falseStatement)
         {
             // The original false statement doesn't exist at all
             // then no need to consider keeping it around
