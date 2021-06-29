@@ -987,6 +987,11 @@
         <target state="translated">搜索设置</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
         <target state="translated">选择目标</target>
