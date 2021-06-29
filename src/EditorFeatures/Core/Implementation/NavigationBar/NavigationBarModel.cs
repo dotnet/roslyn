@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
     internal sealed class NavigationBarModel
     {
         public ImmutableArray<NavigationBarItem> Types { get; }
-
         public INavigationBarItemService ItemService { get; }
 
         public NavigationBarModel(ImmutableArray<NavigationBarItem> types, INavigationBarItemService itemService)
