@@ -151,6 +151,59 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke2()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s2 = nameof(s2);
+    delegate void D([CallerArgumentExpression(s2)] [Optional] [DefaultParameterValue(""default"")] ref string s1, string s2);
+
+    static void M(ref string s1, string s2)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s = string.Empty;
+        d.EndInvoke(ref s, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (29,22): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     delegate void D([CallerArgumentExpression(s2)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2);
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestBeginInvoke_ReferringToCallbackParameter()
         {
             string source = @"
