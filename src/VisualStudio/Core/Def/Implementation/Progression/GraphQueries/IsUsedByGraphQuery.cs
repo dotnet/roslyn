@@ -26,13 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                     foreach (var reference in references)
                     {
                         var referencedSymbol = reference.Definition;
-                        var projectId = graphBuilder.GetContextProject(node).Id;
+                        var projectId = graphBuilder.GetContextProject(node, cancellationToken).Id;
 
                         var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
                                                                      .Where(l => l != null && l.IsInSource);
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         foreach (var location in allLocations)
                         {
                             var locationNode = GetLocationNode(location, context, projectId, cancellationToken);
-                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode);
+                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode, cancellationToken);
                         }
                     }
                 }

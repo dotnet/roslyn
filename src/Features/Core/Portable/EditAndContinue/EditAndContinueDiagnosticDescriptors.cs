@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.StackAllocUpdate, nameof(FeaturesResources.Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ExperimentalFeaturesEnabled, nameof(FeaturesResources.Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.AwaitStatementUpdate, nameof(FeaturesResources.Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ChangingVisibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingAccessibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.CapturingVariable, nameof(FeaturesResources.Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.NotCapturingVariable, nameof(FeaturesResources.Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.DeletingCapturedVariable, nameof(FeaturesResources.Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing));

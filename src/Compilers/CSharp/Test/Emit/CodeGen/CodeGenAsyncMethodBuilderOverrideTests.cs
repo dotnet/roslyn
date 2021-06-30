@@ -115,18 +115,18 @@ class C
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (11,25): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,25): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("async method builder override").WithLocation(11, 25),
-                // (14,28): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F").WithArguments("async method builder override", "10.0").WithLocation(11, 25),
+                // (14,28): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "G").WithArguments("async method builder override").WithLocation(14, 28),
-                // (17,37): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "G").WithArguments("async method builder override", "10.0").WithLocation(14, 28),
+                // (17,37): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async method builder override").WithLocation(17, 37)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "M").WithArguments("async method builder override", "10.0").WithLocation(17, 37)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
             var testData = verifier.TestData;
@@ -223,7 +223,7 @@ class C
 
 {AsyncMethodBuilderAttribute}
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
                 // (14,16): warning CS8603: Possible null reference return.
                 //         return default(T); // 1
@@ -521,18 +521,18 @@ static async MyTask<int> M() {{ System.Console.Write(""M ""); await F(); return 
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (9,21): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,21): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // static async MyTask F() { System.Console.Write("F "); await Task.Delay(0); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("async method builder override").WithLocation(9, 21),
-                // (12,24): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "F").WithArguments("async method builder override", "10.0").WithLocation(9, 21),
+                // (12,24): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // static async MyTask<T> G<T>(T t) { System.Console.Write("G "); await Task.Delay(0); return t; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "G").WithArguments("async method builder override").WithLocation(12, 24),
-                // (15,26): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "G").WithArguments("async method builder override", "10.0").WithLocation(12, 24),
+                // (15,26): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // static async MyTask<int> M() { System.Console.Write("M "); await F(); return await G(3); }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("async method builder override").WithLocation(15, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "M").WithArguments("async method builder override", "10.0").WithLocation(15, 26)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F G 3");
             verifier.VerifyDiagnostics();
         }
@@ -765,26 +765,26 @@ return;
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,18): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes", "10.0").WithLocation(6, 18),
                 // (6,84): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(6, 84),
-                // (6,84): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,84): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=>").WithArguments("async method builder override").WithLocation(6, 84),
-                // (8,23): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(6, 84),
+                // (8,23): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes", "10.0").WithLocation(8, 23),
                 // (8,84): error CS8935: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
                 Diagnostic(ErrorCode.ERR_BuilderAttributeDisallowed, "=>").WithLocation(8, 84),
-                // (8,84): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,84): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=>").WithArguments("async method builder override").WithLocation(8, 84)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(8, 84)
                 );
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyEmitDiagnostics(
                 // (6,84): error CS8933: The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async () => { System.Console.Write("F "); await Task.Delay(0); };
@@ -819,27 +819,27 @@ return;
 ";
             var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (6,18): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,18): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async MyTask () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes").WithLocation(6, 18),
-                // (6,81): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder))]").WithArguments("lambda attributes", "10.0").WithLocation(6, 18),
+                // (6,81): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async MyTask () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyTask").WithArguments("lambda return type").WithLocation(6, 81),
-                // (6,91): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "MyTask").WithArguments("lambda return type", "10.0").WithLocation(6, 81),
+                // (6,91): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask> f = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder))] static async MyTask () => { System.Console.Write("F "); await Task.Delay(0); };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=>").WithArguments("async method builder override").WithLocation(6, 91),
-                // (8,23): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(6, 91),
+                // (8,23): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async MyTask<int> () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes").WithLocation(8, 23),
-                // (8,81): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]").WithArguments("lambda attributes", "10.0").WithLocation(8, 23),
+                // (8,81): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async MyTask<int> () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyTask<int>").WithArguments("lambda return type").WithLocation(8, 81),
-                // (8,96): error CS8652: The feature 'async method builder override' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "MyTask<int>").WithArguments("lambda return type", "10.0").WithLocation(8, 81),
+                // (8,96): error CS8773: Feature 'async method builder override' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Func<MyTask<int>> m = [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))] async MyTask<int> () => { System.Console.Write("M "); await f(); return 3; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "=>").WithArguments("async method builder override").WithLocation(8, 96)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "=>").WithArguments("async method builder override", "10.0").WithLocation(8, 96)
                 );
 
-            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
             var verifier = CompileAndVerify(compilation, expectedOutput: "M F 3");
             verifier.VerifyDiagnostics();
         }

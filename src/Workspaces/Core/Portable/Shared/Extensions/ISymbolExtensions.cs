@@ -15,6 +15,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
-                catch
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                 }
             }
@@ -463,27 +464,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var loadedElements = TrySelectNodes(document, xpathValue);
-                if (loadedElements is null)
-                {
-                    return Array.Empty<XNode>();
-                }
-
-                if (loadedElements?.Length > 0)
-                {
-                    // change the current XML file path for nodes contained in the document:
-                    // prototype(inheritdoc): what should the file path be?
-                    var result = RewriteMany(symbol, visitedSymbols, compilation, loadedElements, cancellationToken);
-
-                    // The elements could be rewritten away if they are includes that refer to invalid
-                    // (but existing and accessible) XML files.  If this occurs, behave as if we
-                    // had failed to find any XPath results (as in Dev11).
-                    if (result.Length > 0)
-                    {
-                        return result;
-                    }
-                }
-
-                return null;
+                return loadedElements ?? Array.Empty<XNode>();
             }
             catch (XmlException)
             {
@@ -525,7 +506,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (typeSymbol.TypeKind == TypeKind.Class)
                     {
-                        // prototype(inheritdoc): when does base class take precedence over interface?
+                        // Classes use the base type as the default inheritance candidate. A different target (e.g. an
+                        // interface) can be provided via the 'path' attribute.
                         return typeSymbol.BaseType;
                     }
                     else if (typeSymbol.TypeKind == TypeKind.Interface)

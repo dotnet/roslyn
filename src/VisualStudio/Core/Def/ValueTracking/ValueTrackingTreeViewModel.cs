@@ -87,8 +87,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 SelectedItemFile = SelectedItem?.FileName ?? "";
                 SelectedItemLine = SelectedItem?.LineNumber ?? 0;
                 NotifyPropertyChanged(nameof(ShowDetails));
-
-                SelectedItem?.Select();
             }
 
             if (e.PropertyName == nameof(LoadingCount))

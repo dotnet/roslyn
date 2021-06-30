@@ -1867,7 +1867,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -1917,7 +1917,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
         }
 
         [Fact]

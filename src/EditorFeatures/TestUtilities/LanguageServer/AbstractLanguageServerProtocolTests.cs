@@ -40,6 +40,7 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
             .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
+            .AddParts(typeof(TestExperimentationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]

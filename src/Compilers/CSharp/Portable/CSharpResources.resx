@@ -6077,7 +6077,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
   </data>
   <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
-    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</value>
   </data>
   <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
     <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
@@ -6418,6 +6418,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion9" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 9.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion10" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6718,5 +6721,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_BuilderAttributeDisallowed" xml:space="preserve">
     <value>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</value>
+  </data>
+  <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
+    <value>At least one top-level statement must be non-empty.</value>
   </data>
 </root>

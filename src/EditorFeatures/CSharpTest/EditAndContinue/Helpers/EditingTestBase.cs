@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -33,6 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Iterator,
             ConstructorWithParameters
         }
+
+        public static string GetResource(string keyword)
+            => keyword switch
+            {
+                "class" => FeaturesResources.class_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "interface" => FeaturesResources.interface_,
+                "record" => CSharpFeaturesResources.record_,
+                "record struct" => CSharpFeaturesResources.record_struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(keyword)
+            };
 
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
