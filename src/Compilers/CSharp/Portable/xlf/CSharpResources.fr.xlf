@@ -1057,11 +1057,6 @@
         <target state="translated">ToString scellé dans l’enregistrement</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureSlicePattern">
-        <source>slice pattern</source>
-        <target state="new">slice pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
         <target state="new">with on anonymous types</target>

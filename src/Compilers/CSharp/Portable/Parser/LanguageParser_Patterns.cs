@@ -211,8 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenBracketToken:
                     return this.ParseListPattern(whenIsKeyword);
                 case SyntaxKind.DotDotToken:
-                    return _syntaxFactory.SlicePattern(
-                        CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureSlicePattern),
+                    return _syntaxFactory.SlicePattern(EatToken(),
                         IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, whenIsKeyword) : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
