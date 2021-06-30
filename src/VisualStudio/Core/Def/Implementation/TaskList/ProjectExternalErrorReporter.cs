@@ -96,10 +96,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     }
                 }
 
+                var errorId = GetErrorId(error);
+                var helpLink = DiagnosticProvider.GetHelpLinkForDiagnosticId(_projectId, errorId);
                 projectErrors.Add(GetDiagnosticData(
                     documentId: null,
                     _projectId,
-                    GetErrorId(error),
+                    errorId,
                     error.bstrText,
                     GetDiagnosticSeverity(error),
                     _language,
@@ -112,7 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     originalStartLine: 0,
                     originalStartColumn: 0,
                     originalEndLine: 0,
-                    originalEndColumn: 0));
+                    originalEndColumn: 0,
+                    helpLink: helpLink));
             }
 
             DiagnosticProvider.AddNewErrors(_projectId, projectErrors, documentErrorsMap);
@@ -177,6 +180,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 column = spans[0].iStartIndex;
             }
 
+            var errorId = GetErrorId(error);
+            var helpLink = DiagnosticProvider.GetHelpLinkForDiagnosticId(_projectId, errorId);
+
             // save error line/column (surface buffer location) as mapped line/column so that we can display
             // right location on closed Venus file.
             return GetDiagnosticData(
@@ -195,7 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 originalStartLine: line,
                 originalStartColumn: column,
                 originalEndLine: line,
-                originalEndColumn: column);
+                originalEndColumn: column,
+                helpLink: helpLink);
         }
 
         public int ReportError(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
@@ -240,6 +247,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 documentId = TryGetDocumentId(bstrFileName);
             }
 
+            var helpLink = DiagnosticProvider.GetHelpLinkForDiagnosticId(_projectId, bstrErrorId);
+
             var diagnostic = GetDiagnosticData(
                 documentId,
                 _projectId,
@@ -250,7 +259,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 mappedFilePath: null,
                 iStartLine, iStartColumn, iEndLine, iEndColumn,
                 bstrFileName,
-                iStartLine, iStartColumn, iEndLine, iEndColumn);
+                iStartLine, iStartColumn, iEndLine, iEndColumn,
+                helpLink);
 
             if (documentId == null)
             {
@@ -284,7 +294,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             int originalStartLine,
             int originalStartColumn,
             int originalEndLine,
-            int originalEndColumn)
+            int originalEndColumn,
+            string helpLink)
         {
             return new DiagnosticData(
                 id: errorId,
@@ -312,7 +323,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     mappedStartColumn: mappedStartColumn,
                     mappedEndLine: mappedEndLine,
                     mappedEndColumn: mappedEndColumn),
-                language: language);
+                language: language,
+                helpLink: helpLink);
         }
 
         private static bool IsCompilerDiagnostic(string errorId)

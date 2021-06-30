@@ -151,6 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool IsSupportedDiagnosticId(ProjectId projectId, string id)
             => GetBuildInProgressState()?.IsSupportedDiagnosticId(projectId, id) ?? false;
 
+        public string? GetHelpLinkForDiagnosticId(ProjectId projectId, string id)
+            => GetBuildInProgressState()?.GetHelpLinkUri(projectId, id);
+
         private void OnBuildProgressChanged(InProgressState? state, BuildProgress buildProgress)
         {
             if (state != null)
@@ -839,6 +842,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     return builder.ToImmutable();
                 }
+            }
+
+            internal string? GetHelpLinkUri(ProjectId projectId, string diagnosticId)
+            {
+                var infoCache = _owner._diagnosticService.AnalyzerInfoCache;
+                var project = Solution.GetProject(projectId);
+                if (project is null)
+                {
+                    return null;
+                }
+
+                foreach (var analyzersPerReference in project.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project))
+                {
+                    foreach (var analyzer in analyzersPerReference.Value)
+                    {
+                        var descriptor = infoCache.GetDiagnosticDescriptors(analyzer).FirstOrDefault(d => d.Id == diagnosticId);
+                        if (descriptor is not null)
+                        {
+                            return descriptor.HelpLinkUri;
+                        }
+                    }
+                }
+
+                return null;
             }
 
             private void AddErrors<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, HashSet<DiagnosticData> diagnostics)
