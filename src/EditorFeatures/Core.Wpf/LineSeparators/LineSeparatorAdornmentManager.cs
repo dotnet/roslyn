@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 {
-    internal class LineSeparatorAdornmentManager : AdornmentManager<LineSeparatorTag>
+    internal class LineSeparatorAdornmentManager : AbstractAdornmentManager<LineSeparatorTag>
     {
         public LineSeparatorAdornmentManager(IThreadingContext threadingContext, IWpfTextView textView,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService, IAsynchronousOperationListener asyncListener, string adornmentLayerName)
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
         {
         }
 
-        protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
+        protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;

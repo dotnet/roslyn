@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -68,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 MaxHeight = lineHeight,
                 Margin = new Thickness(1, 0, 5, 0)
             };
-
             var stackPanel = new StackPanel
             {
                 Height = lineHeight,

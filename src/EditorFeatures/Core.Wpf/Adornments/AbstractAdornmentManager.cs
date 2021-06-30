@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.
     /// </summary>
-    internal abstract class AdornmentManager<T> where T : GraphicsTag
+    internal abstract class AbstractAdornmentManager<T> where T : GraphicsTag
     {
-        private readonly object _invalidatedSpansLock = new object();
+        private readonly object _invalidatedSpansLock = new();
 
         private readonly IThreadingContext _threadingContext;
 
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         private List<IMappingSpan> _invalidatedSpans;
 
         /// <summary>View that created us.</summary>
-        protected IWpfTextView TextView { get; }
+        protected readonly IWpfTextView TextView;
 
         /// <summary>Layer where we draw adornments.</summary>
-        protected IAdornmentLayer AdornmentLayer { get; }
+        protected readonly IAdornmentLayer AdornmentLayer;
 
         /// <summary>Aggregator that tells us where to draw.</summary>
-        protected ITagAggregator<T> TagAggregator { get; }
+        protected readonly ITagAggregator<T> TagAggregator;
 
         /// <summary>
         /// MUST BE CALLED ON UI THREAD!!!!   This method touches WPF.
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// It happens when another region of the view becomes visible or there is a change in tags.
         /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
         /// </summary>        
-        protected abstract void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection);
+        protected abstract void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection);
 
-        internal AdornmentManager(
+        internal AbstractAdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 }
             }
 
-            AddAdornmentsToAdornmentLayer(changedSpanCollection);
+            AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
 
         }
 

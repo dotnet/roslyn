@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 {
-    internal class InlineDiagnosticsAdornmentManager : AdornmentManager<InlineDiagnosticsTag>
+    internal class InlineDiagnosticsAdornmentManager : AbstractAdornmentManager<InlineDiagnosticsTag>
     {
         private readonly IClassificationTypeRegistryService _classificationRegistryService;
         private readonly IClassificationFormatMap _formatMap;
@@ -149,13 +149,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// Iterates through the mapping of line number to span and draws the diagnostic in the appropriate position on the screen,
         /// as well as adding the tag to the adornment layer.
         /// </summary>
-        protected override void AddAdornmentsToAdornmentLayer(NormalizedSnapshotSpanCollection changedSpanCollection)
+        protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
             var viewLines = TextView.TextViewLines;
             var map = GetSpansOnEachLine(changedSpanCollection);
-            foreach (var (lineNum, spanTuple) in map)
+            foreach (var (lineNum, (tagMappingSpan, snapshotSpan)) in map)
             {
-                var tagMappingSpan = spanTuple.mapTagSpan;
                 TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
                 var geometry = viewLines.GetMarkerGeometry(span);
                 if (geometry != null)
@@ -165,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
 
                     // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
-                    var point = tagMappingSpan.Span.Start.GetPoint(spanTuple.snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+                    var point = tagMappingSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
                     if (point == null)
                     {
                         continue;
