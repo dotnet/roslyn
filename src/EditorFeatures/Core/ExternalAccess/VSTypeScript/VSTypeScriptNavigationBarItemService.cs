@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -35,26 +37,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
-            Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return ConvertItems(textSnapshot, items);
+            return ConvertItems(items);
         }
 
-        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, ImmutableArray<VSTypescriptNavigationBarItem> items)
-            => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x, textSnapshot));
+        private static ImmutableArray<NavigationBarItem> ConvertItems(ImmutableArray<VSTypescriptNavigationBarItem> items)
+            => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
-            if (item.NavigationTrackingSpan != null)
+            if (item.NavigationSpan != null)
             {
-                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-                navigationService.TryNavigateToPosition(workspace, document.Id, span.Start, virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+                navigationService.TryNavigateToPosition(
+                    workspace, document.Id, item.NavigationSpan.Value.Start,
+                    virtualSpace: 0, options: null, cancellationToken: cancellationToken);
             }
 
             return true;
@@ -65,25 +68,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return true;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item, ITextSnapshot textSnapshot)
+        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item)
         {
             Contract.ThrowIfTrue(item.Spans.IsEmpty);
             return new InternalNavigationBarItem(
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
-                NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans),
-                ConvertItems(textSnapshot, item.ChildItems),
+                item.Spans,
+                ConvertItems(item.ChildItems),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
         }
 
-        private class InternalNavigationBarItem : NavigationBarItem
+        private sealed class InternalNavigationBarItem : NavigationBarItem, IEquatable<InternalNavigationBarItem>
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, spans, spans.First(), childItems, indent, bolded, grayed)
             {
             }
+
+            public override bool Equals(object? obj)
+                => Equals(obj as InternalNavigationBarItem);
+
+            public bool Equals(InternalNavigationBarItem? other)
+                => base.Equals(other);
+
+            public override int GetHashCode()
+                => throw new NotImplementedException();
         }
     }
 }

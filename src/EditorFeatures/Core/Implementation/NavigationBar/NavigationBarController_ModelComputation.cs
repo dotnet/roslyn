@@ -10,8 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 {
                     using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                     {
-                        var items = await itemService.GetItemsAsync(document, textSnapshot, cancellationToken).ConfigureAwait(false);
+                        var items = await itemService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
                         return new NavigationBarModel(items, itemService);
                     }
                 }
@@ -104,6 +102,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // as the user can only see one at a time as they're editing in a document.  However, once we've done this,
             // store the full list of items as well so that if the user expands the dropdown, we can take all those
             // values and shove them in so it appears as if the lists were always fully realized.
+            var (lastModel, lastSelectedItem) = _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
+
+            // If nothing changed, no need to update the presenter.
+            if (Equals(lastModel, model) && Equals(lastSelectedItem, currentSelectedItem))
+                return;
+
             _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (model, currentSelectedItem);
             PushSelectedItemsToPresenter(currentSelectedItem);
         }
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, SnapshotPoint point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, int point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
         {
             T exactItem = null;
             var exactItemStart = 0;
@@ -137,11 +141,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             foreach (var item in items)
             {
-                foreach (var trackingSpan in item.TrackingSpans)
+                foreach (var span in item.Spans)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var span = trackingSpan.GetSpan(point.Snapshot);
                     if (span.Contains(point) || span.End == point)
                     {
                         // This is the item we should show normally. We'll continue looking at other

@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal abstract class NavigationBarItem
+    internal abstract class NavigationBarItem : IEquatable<NavigationBarItem>
     {
         public string Text { get; }
         public Glyph Glyph { get; }
@@ -19,26 +20,25 @@ namespace Microsoft.CodeAnalysis.Editor
         public ImmutableArray<NavigationBarItem> ChildItems { get; }
 
         /// <summary>
-        /// The tracking spans in the owning document corresponding to this nav bar item.  If the user's
-        /// caret enters one of these spans, we'll select that item in the nav bar (except if they're in
-        /// an item's span that is nested within this).  Tracking spans allow us to know where things are
-        /// as the users edits while the computation for the latest items might be going on.
+        /// The spans in the owning document corresponding to this nav bar item.  If the user's caret enters one of
+        /// these spans, we'll select that item in the nav bar (except if they're in an item's span that is nested
+        /// within this).
         /// </summary>
         /// <remarks>This can be empty for items whose location is in another document.</remarks>
-        public ImmutableArray<ITrackingSpan> TrackingSpans { get; }
+        public ImmutableArray<TextSpan> Spans { get; }
 
         /// <summary>
-        /// The tracking span in the owning document corresponding to where to navigate to if the user
-        /// selects this item in the drop down.
+        /// The span in the owning document corresponding to where to navigate to if the user selects this item in the
+        /// drop down.
         /// </summary>
         /// <remarks>This can be <see langword="null"/> for items whose location is in another document.</remarks>
-        public ITrackingSpan? NavigationTrackingSpan { get; }
+        public TextSpan? NavigationSpan { get; }
 
         public NavigationBarItem(
             string text,
             Glyph glyph,
-            ImmutableArray<ITrackingSpan> trackingSpans,
-            ITrackingSpan? navigationTrackingSpan,
+            ImmutableArray<TextSpan> spans,
+            TextSpan? navigationSpan,
             ImmutableArray<NavigationBarItem> childItems = default,
             int indent = 0,
             bool bolded = false,
@@ -46,18 +46,28 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             this.Text = text;
             this.Glyph = glyph;
-            this.TrackingSpans = trackingSpans;
-            this.NavigationTrackingSpan = navigationTrackingSpan;
+            this.Spans = spans;
+            this.NavigationSpan = navigationSpan;
             this.ChildItems = childItems.NullToEmpty();
             this.Indent = indent;
             this.Bolded = bolded;
             this.Grayed = grayed;
         }
 
-        internal static ImmutableArray<ITrackingSpan> GetTrackingSpans(ITextSnapshot textSnapshot, ImmutableArray<TextSpan> spans)
-            => spans.NullToEmpty().SelectAsArray(static (s, ts) => GetTrackingSpan(ts, s), textSnapshot);
+        public abstract override bool Equals(object? obj);
+        public abstract override int GetHashCode();
 
-        internal static ITrackingSpan GetTrackingSpan(ITextSnapshot textSnapshot, TextSpan textSpan)
-            => textSnapshot.CreateTrackingSpan(textSpan.ToSpan(), SpanTrackingMode.EdgeExclusive);
+        public bool Equals(NavigationBarItem? other)
+        {
+            return other != null &&
+                   Text == other.Text &&
+                   Glyph == other.Glyph &&
+                   Bolded == other.Bolded &&
+                   Grayed == other.Grayed &&
+                   Indent == other.Indent &&
+                   ChildItems.SequenceEqual(other.ChildItems) &&
+                   Spans.SequenceEqual(other.Spans) &&
+                   EqualityComparer<TextSpan?>.Default.Equals(NavigationSpan, other.NavigationSpan);
+        }
     }
 }

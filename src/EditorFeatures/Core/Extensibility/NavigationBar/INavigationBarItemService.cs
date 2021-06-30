@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
 
         /// <summary>
         /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
         /// </summary>
-        Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
     }
 }

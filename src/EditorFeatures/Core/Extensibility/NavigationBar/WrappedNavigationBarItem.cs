@@ -2,27 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.NavigationBar;
-using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
     /// <summary>
     /// Implementation of the editor layer <see cref="NavigationBarItem"/> that wraps a feature layer <see cref="RoslynNavigationBarItem"/>
     /// </summary>
-    internal class WrappedNavigationBarItem : NavigationBarItem
+    // We suppress this as this type *does* override ComputeAdditionalHashCodeParts
+    internal sealed class WrappedNavigationBarItem : NavigationBarItem, IEquatable<WrappedNavigationBarItem>
     {
         public readonly RoslynNavigationBarItem UnderlyingItem;
 
-        internal WrappedNavigationBarItem(
-            RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
+        internal WrappedNavigationBarItem(RoslynNavigationBarItem underlyingItem)
             : base(
                   underlyingItem.Text,
                   underlyingItem.Glyph,
-                  GetTrackingSpans(underlyingItem, textSnapshot),
-                  GetNavigationTrackingSpan(underlyingItem, textSnapshot),
-                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v, textSnapshot)),
+                  GetSpans(underlyingItem),
+                  GetNavigationSpan(underlyingItem),
+                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
                   underlyingItem.Grayed)
@@ -30,18 +31,28 @@ namespace Microsoft.CodeAnalysis.Editor
             UnderlyingItem = underlyingItem;
         }
 
-        private static ImmutableArray<ITrackingSpan> GetTrackingSpans(RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
+        private static ImmutableArray<TextSpan> GetSpans(RoslynNavigationBarItem underlyingItem)
         {
             return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? GetTrackingSpans(textSnapshot, symbolItem.Location.InDocumentInfo.Value.spans)
-                : ImmutableArray<ITrackingSpan>.Empty;
+                ? symbolItem.Location.InDocumentInfo.Value.spans
+                : ImmutableArray<TextSpan>.Empty;
         }
 
-        private static ITrackingSpan? GetNavigationTrackingSpan(RoslynNavigationBarItem underlyingItem, ITextSnapshot textSnapshot)
+        private static TextSpan? GetNavigationSpan(RoslynNavigationBarItem underlyingItem)
         {
             return underlyingItem is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null
-                ? GetTrackingSpan(textSnapshot, symbolItem.Location.InDocumentInfo.Value.navigationSpan)
+                ? symbolItem.Location.InDocumentInfo.Value.navigationSpan
                 : null;
         }
+
+        public override bool Equals(object? obj)
+            => Equals(obj as WrappedNavigationBarItem);
+
+        public bool Equals(WrappedNavigationBarItem? other)
+            => base.Equals(other) &&
+               UnderlyingItem.Equals(other.UnderlyingItem);
+
+        public override int GetHashCode()
+            => throw new NotImplementedException();
     }
 }

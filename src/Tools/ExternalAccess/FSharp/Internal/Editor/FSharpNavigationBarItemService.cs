@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -38,24 +39,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
                 ? ImmutableArray<NavigationBarItem>.Empty
-                : ConvertItems(textSnapshot, items);
+                : ConvertItems(items);
         }
 
-        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, IList<FSharpNavigationBarItem> items)
-            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
+        private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.NavigationTrackingSpan != null)
+            if (item.NavigationSpan != null)
             {
-                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
+                var span = item.NavigationSpan.Value;
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
@@ -80,24 +81,33 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextSnapshot textSnapshot)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
         {
             return new InternalNavigationBarItem(
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans.ToImmutableArrayOrEmpty()),
-                ConvertItems(textSnapshot, item.ChildItems),
+                item.Spans.ToImmutableArrayOrEmpty(),
+                ConvertItems(item.ChildItems),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
         }
 
-        private class InternalNavigationBarItem : NavigationBarItem
+        private class InternalNavigationBarItem : NavigationBarItem, IEquatable<InternalNavigationBarItem>
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, spans, spans.First(), childItems, indent, bolded, grayed)
             {
             }
+
+            public override bool Equals(object? obj)
+                => Equals(obj as InternalNavigationBarItem);
+
+            public bool Equals(InternalNavigationBarItem? other)
+                => base.Equals(other);
+
+            public override int GetHashCode()
+                => throw new NotImplementedException();
         }
     }
 }
