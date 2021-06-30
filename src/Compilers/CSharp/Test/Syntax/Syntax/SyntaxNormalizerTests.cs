@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNormalizeExtendedPropertyPattern()
         {
-            var text = "_ = this is[1,2,.. var rest];";
+            var text = "_ = this is[ 1,2,.. var rest ];";
             var expected = @"_ = this is [1, 2, ..var rest];";
             TestNormalizeStatement(text, expected);
         }
