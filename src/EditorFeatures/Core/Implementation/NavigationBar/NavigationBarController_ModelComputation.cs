@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             var model = await ComputeModelAsync(textSnapshot, cancellationToken).ConfigureAwait(false);
 
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             // Now, enqueue work to select the right item in this new model.
             StartSelectedItemUpdateTask();
 
@@ -79,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private async ValueTask SelectItemAsync(CancellationToken cancellationToken)
         {
-            // Switch to the UI so we can determine where the user is.
+            // Switch to the UI so we can determine where the user is and determine the state the last time we updated
+            // the UI.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var currentView = _presenter.TryGetCurrentView();
@@ -87,26 +86,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (!caretPosition.HasValue)
                 return;
 
-            // Ensure the latest model is computed and grab it while on the UI thread.
-            var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
+            var position = caretPosition.Value.Position;
+            var lastPresentedInfo = _lastPresentedInfo;
 
             // Jump back to the BG to do any expensive work walking the entire model
             await TaskScheduler.Default;
 
-            var currentSelectedItem = ComputeSelectedTypeAndMember(model, caretPosition.Value, cancellationToken);
+            // Ensure the latest model is computed.
+            var model = await _computeModelQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(true);
 
-            // Finally, switch back to the UI to update our state and UI.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var currentSelectedItem = ComputeSelectedTypeAndMember(model, position, cancellationToken);
 
             GetProjectItems(out var projectItems, out var selectedProjectItem);
-            if (Equals(model, _lastPresentedInfo.model) &&
-                Equals(currentSelectedItem, _lastPresentedInfo.selectedInfo) &&
-                Equals(selectedProjectItem, _lastPresentedInfo.selectedProjectItem) &&
-                projectItems.SequenceEqual(_lastPresentedInfo.projectItems))
+            if (Equals(model, lastPresentedInfo.model) &&
+                Equals(currentSelectedItem, lastPresentedInfo.selectedInfo) &&
+                Equals(selectedProjectItem, lastPresentedInfo.selectedProjectItem) &&
+                projectItems.SequenceEqual(lastPresentedInfo.projectItems))
             {
                 // Nothing changed, so we can skip presenting these items.
                 return;
             }
+
+            // Finally, switch back to the UI to update our state and UI.
+            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _presenter.PresentItems(
                 projectItems,
@@ -118,10 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _lastPresentedInfo = (projectItems, selectedProjectItem, model, currentSelectedItem);
         }
 
-        internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)
+        internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(
+            NavigationBarModel model, int caretPosition, CancellationToken cancellationToken)
         {
             var (item, gray) = GetMatchingItem(model.Types, caretPosition, model.ItemService, cancellationToken);
-
             if (item == null)
             {
                 // Nothing to show at all
@@ -129,7 +131,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
 
             var rightItem = GetMatchingItem(item.ChildItems, caretPosition, model.ItemService, cancellationToken);
-
             return new NavigationBarSelectedTypeAndMember(item, gray, rightItem.item, rightItem.gray);
         }
 
@@ -138,11 +139,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// positioned after the cursor.
         /// </summary>
         /// <returns>A tuple of the matching item, and if it should be shown grayed.</returns>
-        private static (T item, bool gray) GetMatchingItem<T>(IEnumerable<T> items, int point, INavigationBarItemService itemsService, CancellationToken cancellationToken) where T : NavigationBarItem
+        private static (NavigationBarItem item, bool gray) GetMatchingItem(
+            ImmutableArray<NavigationBarItem> items, int point, INavigationBarItemService itemsService, CancellationToken cancellationToken)
         {
-            T exactItem = null;
+            NavigationBarItem exactItem = null;
             var exactItemStart = 0;
-            T nextItem = null;
+            NavigationBarItem nextItem = null;
             var nextItemStart = int.MaxValue;
 
             foreach (var item in items)
