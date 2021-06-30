@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             return
                 diagnostic.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error &&
-                !string.IsNullOrWhiteSpace(diagnostic.Message) && !diagnostic.IsSuppressed;
+                !string.IsNullOrWhiteSpace(diagnostic.Message) &&
+                !diagnostic.IsSuppressed;
         }
 
         /// <summary>
@@ -87,14 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         {
             if (diagnostic.Severity == DiagnosticSeverity.Error)
             {
-                if (diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
-                {
-                    return EditAndContinueErrorTypeDefinition.Name;
-                }
-                else
-                {
-                    return PredefinedErrorTypeNames.SyntaxError;
-                }
+                return diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue)
+                    ? EditAndContinueErrorTypeDefinition.Name
+                    : PredefinedErrorTypeNames.SyntaxError;
             }
             else if (diagnostic.Severity == DiagnosticSeverity.Warning)
             {

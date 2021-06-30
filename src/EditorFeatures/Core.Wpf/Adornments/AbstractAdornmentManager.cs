@@ -249,7 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
 
             AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
-
         }
 
         protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
