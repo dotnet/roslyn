@@ -86,10 +86,9 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Optimize this to avoid a Builder allocation
                 // TODO: Optimize this to share all segments except for the last one
                 // TODO: Only resize the last page the minimum amount necessary
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.Add(value);
                 return builder.ToImmutable();
             }
@@ -115,9 +114,8 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                // TODO: Optimize this to avoid a Builder allocation
                 // TODO: Optimize this to share all segments except for the last one
-                var builder = self.ToBuilder();
+                var builder = self.ToValueBuilder();
                 builder.AddRange(items);
                 return builder.ToImmutable();
             }
@@ -231,10 +229,9 @@ namespace Microsoft.CodeAnalysis.Collections
             if (index == self.Count)
                 return self.Add(item);
 
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to share all segments prior to index
             // TODO: Only resize the last page the minimum amount necessary
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.Insert(index, item);
             return builder.ToImmutable();
         }
@@ -246,10 +243,9 @@ namespace Microsoft.CodeAnalysis.Collections
             if (index == self.Count)
                 return self.AddRange(items);
 
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to share all segments prior to index
             // TODO: Only resize the last page the minimum amount necessary
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.InsertRange(index, items);
             return builder.ToImmutable();
         }
@@ -299,19 +295,17 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public ImmutableSegmentedList<T> RemoveAll(Predicate<T> match)
         {
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to avoid allocations if no items are removed
             // TODO: Optimize this to share pages prior to the first removed item
-            var builder = ToBuilder();
+            var builder = ToValueBuilder();
             builder.RemoveAll(match);
             return builder.ToImmutable();
         }
 
         public ImmutableSegmentedList<T> RemoveAt(int index)
         {
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to share pages prior to the removed item
-            var builder = ToBuilder();
+            var builder = ToValueBuilder();
             builder.RemoveAt(index);
             return builder.ToImmutable();
         }
@@ -326,22 +320,15 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.IsEmpty)
                 return self;
 
-            Builder? builder = null;
+            var builder = ToValueBuilder();
             foreach (var item in items)
             {
-                var index = builder is null
-                    ? self.IndexOf(item)
-                    : builder.IndexOf(item);
-
+                var index = builder.IndexOf(item);
                 if (index < 0)
                     continue;
 
-                builder ??= self.ToBuilder();
                 builder.RemoveAt(index);
             }
-
-            if (builder is null)
-                return this;
 
             return builder.ToImmutable();
         }
@@ -356,22 +343,15 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.IsEmpty)
                 return self;
 
-            Builder? builder = null;
+            var builder = ToValueBuilder();
             foreach (var item in items)
             {
-                var index = builder is null
-                    ? self.IndexOf(item, 0, Count, equalityComparer)
-                    : builder.IndexOf(item, 0, builder.Count, equalityComparer);
-
+                var index = builder.IndexOf(item, 0, builder.Count, equalityComparer);
                 if (index < 0)
                     continue;
 
-                builder ??= self.ToBuilder();
                 builder.RemoveAt(index);
             }
-
-            if (builder is null)
-                return this;
 
             return builder.ToImmutable();
         }
@@ -385,9 +365,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 return self;
             }
 
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to share pages prior to the first removed item
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.RemoveRange(index, count);
             return builder.ToImmutable();
         }
@@ -424,25 +403,22 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Count < 2)
                 return self;
 
-            // TODO: Optimize this to avoid a Builder allocation
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.Reverse();
             return builder.ToImmutable();
         }
 
         public ImmutableSegmentedList<T> Reverse(int index, int count)
         {
-            // TODO: Optimize this to avoid a Builder allocation
-            var builder = ToBuilder();
+            var builder = ToValueBuilder();
             builder.Reverse(index, count);
             return builder.ToImmutable();
         }
 
         public ImmutableSegmentedList<T> SetItem(int index, T value)
         {
-            // TODO: Optimize this to avoid a Builder allocation
             // TODO: Optimize this to share all pages except the one with 'index'
-            var builder = ToBuilder();
+            var builder = ToValueBuilder();
             builder[index] = value;
             return builder.ToImmutable();
         }
@@ -454,9 +430,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Count < 2)
                 return self;
 
-            // TODO: Optimize this to avoid a builder allocation
             // TODO: Optimize this to avoid allocations if the list is already sorted
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.Sort();
             return builder.ToImmutable();
         }
@@ -468,9 +443,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Count < 2)
                 return self;
 
-            // TODO: Optimize this to avoid a builder allocation
             // TODO: Optimize this to avoid allocations if the list is already sorted
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.Sort(comparer);
             return builder.ToImmutable();
         }
@@ -487,24 +461,25 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Count < 2)
                 return self;
 
-            // TODO: Optimize this to avoid a builder allocation
             // TODO: Optimize this to avoid allocations if the list is already sorted
-            var builder = self.ToBuilder();
+            var builder = self.ToValueBuilder();
             builder.Sort(comparison);
             return builder.ToImmutable();
         }
 
         public ImmutableSegmentedList<T> Sort(int index, int count, IComparer<T>? comparer)
         {
-            // TODO: Optimize this to avoid a builder allocation
             // TODO: Optimize this to avoid allocations if the list is already sorted
-            var builder = ToBuilder();
+            var builder = ToValueBuilder();
             builder.Sort(index, count, comparer);
             return builder.ToImmutable();
         }
 
         public Builder ToBuilder()
             => new Builder(this);
+
+        private ValueBuilder ToValueBuilder()
+            => new ValueBuilder(this);
 
         public override int GetHashCode()
             => _list?.GetHashCode() ?? 0;
