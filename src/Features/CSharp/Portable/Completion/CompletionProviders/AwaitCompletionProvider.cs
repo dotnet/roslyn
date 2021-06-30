@@ -13,10 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -49,10 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var workspace = document.Project.Solution.Workspace;
             var syntaxContext = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-
             if (!syntaxContext.IsAwaitKeywordContext(position))
             {
                 return;
@@ -60,19 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var method = syntaxContext.TargetToken.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
             var shouldMakeContainerAsync = method is not null && !method.GetModifiers().Any(SyntaxKind.AsyncKeyword);
-            context.AddItem(GetCompletionItem(shouldMakeContainerAsync));
-
-            return;
-
-            static CompletionItem GetCompletionItem(bool shouldMakeContainerAsync)
-                => CommonCompletionItem.Create(
-                       displayText: SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
-                       displayTextSuffix: "",
-                       rules: CompletionItemRules.Default,
-                       Glyph.Keyword,
-                       description: RecommendedKeyword.CreateDisplayParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), string.Empty),
-                       inlineDescription: shouldMakeContainerAsync ? CSharpFeaturesResources.Make_container_async : null,
-                       isComplexTextEdit: shouldMakeContainerAsync);
+            var completionItem = CommonCompletionItem.Create(
+                displayText: SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
+                displayTextSuffix: "",
+                rules: CompletionItemRules.Default,
+                Glyph.Keyword,
+                description: RecommendedKeyword.CreateDisplayParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), string.Empty),
+                inlineDescription: shouldMakeContainerAsync ? CSharpFeaturesResources.Make_container_async : null,
+                isComplexTextEdit: shouldMakeContainerAsync);
+            context.AddItem(completionItem);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
@@ -92,10 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
             }
 
-            var documentWithAsyncModifier = document.WithSyntaxRoot(root.ReplaceNode(declaration, AddAsyncModifier(declaration)));
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var builder);
-
-            builder.AddRange(await documentWithAsyncModifier.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false));
+            builder.Add(new TextChange(new TextSpan(GetSpanStart(declaration), 0), "async "));
             builder.Add(new TextChange(item.Span, item.DisplayText));
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -103,37 +93,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionChange.Create(CodeAnalysis.Completion.Utilities.Collapse(newText, builder.ToImmutableArray()));
         }
 
-        private static SyntaxNode AddAsyncModifier(SyntaxNode declaration)
+        /// <summary>
+        /// Gets the span start where async keyword should go.
+        /// </summary>
+        private static int GetSpanStart(SyntaxNode declaration)
         {
-            var asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword).WithTrailingTrivia(SyntaxFactory.Space);
             return declaration switch
             {
-                MethodDeclarationSyntax method => AddAsyncModifier(method, asyncToken),
-                LocalFunctionStatementSyntax local => AddAsyncModifier(local, asyncToken),
-                AnonymousFunctionExpressionSyntax anonymous => AddAsyncModifier(anonymous, asyncToken),
+                MethodDeclarationSyntax method => method.ReturnType.SpanStart,
+                LocalFunctionStatementSyntax local => local.ReturnType.SpanStart,
+                AnonymousMethodExpressionSyntax anonymous => anonymous.DelegateKeyword.SpanStart,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.SpanStart,
+                SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
                 _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
             };
         }
-
-        private static SyntaxNode AddAsyncModifier(MethodDeclarationSyntax method, SyntaxToken asyncToken)
-        {
-            if (method.Modifiers.Any())
-                return method.WithModifiers(method.Modifiers.Add(asyncToken));
-
-            var modifiers = SyntaxFactory.TokenList(asyncToken.WithLeadingTrivia(method.ReturnType.GetLeadingTrivia()));
-            return method.WithModifiers(modifiers).WithReturnType(method.ReturnType.WithoutLeadingTrivia());
-        }
-
-        private static SyntaxNode AddAsyncModifier(LocalFunctionStatementSyntax local, SyntaxToken asyncToken)
-        {
-            if (local.Modifiers.Any())
-                return local.WithModifiers(local.Modifiers.Add(asyncToken));
-
-            var modifiers = SyntaxFactory.TokenList(asyncToken.WithLeadingTrivia(local.ReturnType.GetLeadingTrivia()));
-            return local.WithModifiers(modifiers).WithReturnType(local.ReturnType.WithoutLeadingTrivia());
-        }
-
-        private static SyntaxNode AddAsyncModifier(AnonymousFunctionExpressionSyntax anonymous, SyntaxToken asyncToken)
-            => anonymous.WithoutLeadingTrivia().WithAsyncKeyword(asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
     }
 }
