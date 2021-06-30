@@ -536,28 +536,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            // is [$$1 ]
-            var tokenIsOpenBracket = token.IsKind(SyntaxKind.OpenBracketToken);
-            if (tokenIsOpenBracket)
-            {
-                return true;
-            }
-
-            // is$$[ 1 ]
+            // is$$[1, 2]
             var nextIsOpenBracket = next.IsKind(SyntaxKind.OpenBracketToken);
             if (nextIsOpenBracket)
             {
                 return true;
             }
 
-            // is [ 1$$]
-            var nextIsCloseBracket = next.IsKind(SyntaxKind.CloseBracketToken);
-            if (nextIsCloseBracket)
-            {
-                return true;
-            }
-
-            // is [ 1 ]$$list
+            // is [1, 2]$$list
+            var tokenIsOpenBracket = token.IsKind(SyntaxKind.OpenBracketToken);
             if (tokenIsOpenBracket)
             {
                 return listPattern.Designation is not null;

@@ -373,12 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
-                if (currentToken.Parent.IsKind(SyntaxKind.ListPattern))
-                {
-                    // is [
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
-                else if (previousToken.IsOpenBraceOfAccessorList() ||
+                if (previousToken.IsOpenBraceOfAccessorList() ||
                     previousToken.IsLastTokenOfNode<AccessorDeclarationSyntax>())
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);

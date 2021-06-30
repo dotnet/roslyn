@@ -9978,20 +9978,56 @@ record  struct  R(int X);
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatListPattern()
         {
-            var code = @"class C
+            var code = @"
+class C
 {
     void M() {
 _ = this is[1,2,>=3];
 }
 }";
-            var expectedCode = @"class C
+            await AssertFormatAsync(code: code, expected: @"
+class C
 {
     void M()
     {
-        _ = this is [ 1, 2, >= 3 ];
+        _ = this is [1, 2, >= 3];
     }
-}";
-            await AssertFormatAsync(expectedCode, code);
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1,2,>= 3];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [ 1 , 2 , >= 3 ];
+    }
+}");
         }
 
         [Fact]
@@ -10001,14 +10037,14 @@ _ = this is[1,2,>=3];
             var code = @"class C
 {
     void M() {
-_ = this is[ 0,.. var  rest];
+_ = this is[ 0,.. var  rest ];
 }
 }";
             var expectedCode = @"class C
 {
     void M()
     {
-        _ = this is [ 0, ..var rest ];
+        _ = this is [0, ..var rest];
     }
 }";
             await AssertFormatAsync(expectedCode, code);
@@ -10021,14 +10057,14 @@ _ = this is[ 0,.. var  rest];
             var code = @"class C
 {
     void M() {
-_ = this is[ 0,.. {Count: >0} and var  rest];
+_ = this is[ 0,.. {Count: >0} and var  rest ];
 }
 }";
             var expectedCode = @"class C
 {
     void M()
     {
-        _ = this is [ 0, ..{ Count: > 0 } and var rest ];
+        _ = this is [0, ..{ Count: > 0 } and var rest];
     }
 }";
             await AssertFormatAsync(expectedCode, code);
@@ -10041,14 +10077,14 @@ _ = this is[ 0,.. {Count: >0} and var  rest];
             var code = @"class C
 {
     void M() {
-_ = this is{Count:>0 and var x}and[1,2,3];
+_ = this is{Count:>0 and var x}and[ 1,2,3 ];
 }
 }";
             var expectedCode = @"class C
 {
     void M()
     {
-        _ = this is { Count: > 0 and var x } and [ 1, 2, 3 ];
+        _ = this is { Count: > 0 and var x } and [1, 2, 3];
     }
 }";
             await AssertFormatAsync(expectedCode, code);
