@@ -348,11 +348,13 @@ class Bad : Bad
 
             EncValidation.VerifyModuleMvid(1, reader0, reader1);
 
+            var x = Visualize(generation0.OriginalMetadata, md1);
+
             CheckNames(readers, reader1.GetTypeDefNames());
             CheckNames(readers, reader1.GetMethodDefNames(), "F");
             CheckNames(readers, reader1.GetMemberRefNames(), "ToString");
             CheckNames(readers, reader1.GetParameterDefNames(), "x");
-            CheckNames(readers, reader1.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "x");
+            // CheckNames(readers, reader1.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "x");
 
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -361,14 +363,14 @@ class Bad : Bad
                 Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(2, TableIndex.Param, EditAndContinueOperation.Default));
+                //Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(7, TableIndex.TypeRef),
                 Handle(8, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
-                Handle(2, TableIndex.Param),
+                Handle(1, TableIndex.Param),
                 Handle(6, TableIndex.MemberRef),
                 Handle(2, TableIndex.StandAloneSig),
                 Handle(2, TableIndex.AssemblyRef));
@@ -388,7 +390,7 @@ class Bad : Bad
             CheckNames(readers, reader2.GetMethodDefNames(), "F");
             CheckNames(readers, reader2.GetMemberRefNames(), "ToString");
             CheckNames(readers, reader2.GetParameterDefNames(), "b");
-            CheckNames(readers, reader2.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "b");
+            //CheckNames(readers, reader2.GetParameterDefNames(MetadataTokens.MethodDefinitionHandle(1)), "b");
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
@@ -397,14 +399,14 @@ class Bad : Bad
                 Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+                //Row(2, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default));
 
             CheckEncMap(reader2,
                 Handle(9, TableIndex.TypeRef),
                 Handle(10, TableIndex.TypeRef),
                 Handle(2, TableIndex.MethodDef),
-                Handle(3, TableIndex.Param),
+                Handle(1, TableIndex.Param),
                 Handle(7, TableIndex.MemberRef),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(3, TableIndex.AssemblyRef));

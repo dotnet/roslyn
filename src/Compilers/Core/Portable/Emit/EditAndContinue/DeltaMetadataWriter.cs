@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Emit
         // since we spread these out amongst existing rows, it's not just a contiguous set
         private readonly List<int> _customAttributeEncMapRows;
 
+        private readonly List<int> _paramEncMapRows;
+
         // Keep track of which CustomAttributes rows are added in this and previous deltas, over what is in the
         // original metadata
         private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
@@ -105,6 +107,8 @@ namespace Microsoft.CodeAnalysis.Emit
             _customAttributeParentCounts = new Dictionary<EntityHandle, int>();
             _customAttributeEncMapRows = new List<int>();
             _customAttributesAdded = new Dictionary<EntityHandle, ImmutableArray<int>>();
+
+            _paramEncMapRows = new List<int>();
 
             _assemblyRefIndex = new HeapOrReferenceIndex<AssemblyIdentity>(this, lastRowId: sizes[(int)TableIndex.AssemblyRef]);
             _moduleRefIndex = new HeapOrReferenceIndex<string>(this, lastRowId: sizes[(int)TableIndex.ModuleRef]);
@@ -359,16 +363,16 @@ namespace Microsoft.CodeAnalysis.Emit
         // Parameters are associated with the method through the EncLog table.
         protected override ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef)
         {
-            if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
-            {
-                for (int i = 0; i < _parameterDefList.Count; i++)
-                {
-                    if (SymbolEquivalentEqualityComparer.Instance.Equals(methodDef, _parameterDefList[i].Key))
-                    {
-                        return MetadataTokens.ParameterHandle(i + 1);
-                    }
-                }
-            }
+            //if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
+            //{
+            //    for (int i = 0; i < _parameterDefList.Count; i++)
+            //    {
+            //        if (SymbolEquivalentEqualityComparer.Instance.Equals(methodDef, _parameterDefList[i].Key))
+            //        {
+            //            return MetadataTokens.ParameterHandle(i + 1);
+            //        }
+            //    }
+            //}
 
             return default;
         }
@@ -840,13 +844,31 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var methodDef = _parameterDefList[i].Key;
 
-                metadata.AddEncLogEntry(
-                    entity: MetadataTokens.MethodDefinitionHandle(_methodDefs[methodDef]),
-                    code: EditAndContinueOperation.AddParameter);
+                if (_changes.AlwaysEmitParams(methodDef.GetInternalSymbol()))
+                {
+                    var handle = GetMethodDefinitionHandle(methodDef);
 
-                metadata.AddEncLogEntry(
-                    entity: MetadataTokens.ParameterHandle(parameterFirstId + i),
-                    code: EditAndContinueOperation.Default);
+                    var def = _previousGeneration.OriginalMetadata.MetadataReader.GetMethodDefinition(handle);
+                    var parameters = def.GetParameters();
+                    foreach (var param in parameters)
+                    {
+                        _paramEncMapRows.Add(MetadataTokens.GetRowNumber(param));
+                        metadata.AddEncLogEntry(
+                            entity: param,
+                            code: EditAndContinueOperation.Default);
+                    }
+                }
+                else
+                {
+                    _paramEncMapRows.Add(parameterFirstId + i);
+                    metadata.AddEncLogEntry(
+                        entity: MetadataTokens.MethodDefinitionHandle(_methodDefs[methodDef]),
+                        code: EditAndContinueOperation.AddParameter);
+
+                    metadata.AddEncLogEntry(
+                        entity: MetadataTokens.ParameterHandle(parameterFirstId + i),
+                        code: EditAndContinueOperation.Default);
+                }
             }
         }
 
@@ -1012,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.Emit
             AddDefinitionTokens(tokens, _methodDefs, TableIndex.MethodDef);
             AddDefinitionTokens(tokens, _propertyDefs, TableIndex.Property);
 
-            AddReferencedTokens(tokens, TableIndex.Param, previousSizes, deltaSizes);
+            AddRowNumberTokens(tokens, _paramEncMapRows, TableIndex.Param);
             AddReferencedTokens(tokens, TableIndex.Constant, previousSizes, deltaSizes);
             AddRowNumberTokens(tokens, _customAttributeEncMapRows, TableIndex.CustomAttribute);
             AddReferencedTokens(tokens, TableIndex.DeclSecurity, previousSizes, deltaSizes);
