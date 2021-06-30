@@ -354,6 +354,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
                 result.Add(DiagnosticTag.Unnecessary);
 
+            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
+                result.Add(VSDiagnosticTags.EditAndContinueError);
+
             return result.ToArray();
         }
     }

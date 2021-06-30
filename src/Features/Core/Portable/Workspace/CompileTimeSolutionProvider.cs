@@ -67,7 +67,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 if (designTimeSolution.WorkspaceVersion == _correspondingDesignTimeSolutionVersion)
                 {
                     Contract.ThrowIfNull(_lazyCompileTimeSolution);
-                    return _lazyCompileTimeSolution;
+
+                    // Only re-use when the lazy solution is from the same branch as the requested solution.
+                    if (_lazyCompileTimeSolution.BranchId == designTimeSolution.BranchId)
+                    {
+                        return _lazyCompileTimeSolution;
+                    }
                 }
 
                 using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var configIdsToRemove);
