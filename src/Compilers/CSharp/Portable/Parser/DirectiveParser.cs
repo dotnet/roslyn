@@ -10,7 +10,6 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using System.Reflection;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal class DirectiveParser : SyntaxParser
@@ -87,7 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case SyntaxKind.LineKeyword:
-                    result = this.ParseLineDirective(hash, this.EatContextualToken(contextualKind), isActive);
+                    var lineKeyword = this.EatContextualToken(contextualKind);
+                    result = (this.CurrentToken.Kind == SyntaxKind.OpenParenToken) ?
+                        this.ParseLineSpanDirective(hash, lineKeyword, isActive) :
+                        this.ParseLineDirective(hash, lineKeyword, isActive);
                     break;
 
                 case SyntaxKind.PragmaKeyword:
@@ -369,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     line = this.EatToken();
                     break;
                 default:
-                    line = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_InvalidLineNumber, reportError: isActive);
+                    line = ParseNumericLiteral(reportError: isActive);
                     sawLineButNotFile = true; //assume this is the case until we (potentially) see the file name below
                     if (isActive && !line.IsMissing && line.Kind == SyntaxKind.NumericLiteralToken)
                     {
@@ -395,6 +397,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var end = this.ParseEndOfDirective(ignoreErrors: line.IsMissing || !isActive, afterLineNumber: sawLineButNotFile);
             return SyntaxFactory.LineDirectiveTrivia(hash, id, line, file, end, isActive);
+        }
+
+        private LineSpanDirectiveTriviaSyntax ParseLineSpanDirective(SyntaxToken hash, SyntaxToken lineKeyword, bool isActive)
+        {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
+            if (isActive)
+            {
+                lineKeyword = CheckFeatureAvailability(lineKeyword, MessageID.IDS_FeatureLineSpanDirective);
+            }
+
+            bool reportError = isActive;
+            var start = ParseLineDirectivePosition(ref reportError);
+
+            var minus = EatToken(SyntaxKind.MinusToken, reportError: reportError);
+            if (minus.IsMissing) reportError = false;
+
+            var end = ParseLineDirectivePosition(ref reportError);
+            var characterOffset = (reportError && CurrentToken.Kind == SyntaxKind.NumericLiteralToken) ? this.EatToken() : null;
+
+            var file = EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_MissingPPFile, reportError: reportError);
+            if (file.IsMissing) reportError = false;
+
+            var endOfDirective = this.ParseEndOfDirective(ignoreErrors: !reportError);
+            return SyntaxFactory.LineSpanDirectiveTrivia(hash, lineKeyword, start, minus, end, characterOffset, file, endOfDirective, isActive);
+        }
+
+        private LineDirectivePositionSyntax ParseLineDirectivePosition(ref bool reportError)
+        {
+            var openParen = EatToken(SyntaxKind.OpenParenToken, reportError);
+            if (openParen.IsMissing) reportError = false;
+
+            var line = ParseNumericLiteral(reportError);
+            if (line.IsMissing) reportError = false;
+
+            var comma = EatToken(SyntaxKind.CommaToken, reportError);
+            if (comma.IsMissing) reportError = false;
+
+            var character = ParseNumericLiteral(reportError);
+            if (character.IsMissing) reportError = false;
+
+            var closeParen = EatToken(SyntaxKind.CloseParenToken, reportError);
+            if (closeParen.IsMissing) reportError = false;
+
+            return SyntaxFactory.LineDirectivePosition(openParen, line, comma, character, closeParen);
+        }
+
+        private SyntaxToken ParseNumericLiteral(bool reportError)
+        {
+            return this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_InvalidLineNumber, reportError: reportError);
         }
 
         private DirectiveTriviaSyntax ParseReferenceDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)

@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // Add all active #line directives under trivia into the list, in source code order.
         protected override bool ShouldAddDirective(DirectiveTriviaSyntax directive)
         {
-            return directive.IsActive && directive.Kind() == SyntaxKind.LineDirectiveTrivia;
+            return directive.IsActive && (directive.Kind() is SyntaxKind.LineDirectiveTrivia or SyntaxKind.LineSpanDirectiveTrivia);
         }
 
         // Given a directive and the previous entry, create a new entry.
         protected override LineMappingEntry GetEntry(DirectiveTriviaSyntax directiveNode, SourceText sourceText, LineMappingEntry previous)
         {
             Debug.Assert(ShouldAddDirective(directiveNode));
-            var directive = (LineDirectiveTriviaSyntax)directiveNode;
+            var directive = (LineOrSpanDirectiveTriviaSyntax)directiveNode;
 
             // Get line number of NEXT line, hence the +1.
             var directiveLineNumber = sourceText.Lines.IndexOf(directive.SpanStart) + 1;
@@ -36,54 +36,112 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // The default for the current entry does the same thing as the previous entry, except
             // resetting hidden.
             var unmappedLine = directiveLineNumber;
-            var mappedLine = previous.MappedLine + directiveLineNumber - previous.UnmappedLine;
-            var mappedPathOpt = previous.MappedPathOpt;
-            PositionState state = PositionState.Unmapped;
 
             // Modify the current entry based on the directive.
-            SyntaxToken lineToken = directive.Line;
-            if (!lineToken.IsMissing)
+            switch (directive)
             {
-                switch (lineToken.Kind())
-                {
-                    case SyntaxKind.HiddenKeyword:
-                        state = PositionState.Hidden;
-                        break;
-
-                    case SyntaxKind.DefaultKeyword:
-                        mappedLine = unmappedLine;
-                        mappedPathOpt = null;
-                        state = PositionState.Unmapped;
-                        break;
-
-                    case SyntaxKind.NumericLiteralToken:
-                        // skip both the mapped line and the filename if the line number is not valid
-                        if (!lineToken.ContainsDiagnostics)
+                case LineDirectiveTriviaSyntax lineDirective:
+                    {
+                        SyntaxToken lineToken = lineDirective.Line;
+                        if (!lineToken.IsMissing)
                         {
-                            object? value = lineToken.Value;
-                            if (value is int)
+                            switch (lineToken.Kind())
                             {
-                                // convert one-based line number into zero-based line number
-                                mappedLine = ((int)value) - 1;
+                                case SyntaxKind.HiddenKeyword:
+                                    return new LineMappingEntry(unmappedLine, unmappedLine, mappedPathOpt: null, PositionState.Hidden);
+                                case SyntaxKind.DefaultKeyword:
+                                    break;
+                                case SyntaxKind.NumericLiteralToken:
+                                    // skip both the mapped line and the filename if the line number is not valid
+                                    if (!lineToken.ContainsDiagnostics)
+                                    {
+                                        tryGetOneBasedNumericLiteralValue(lineToken, out int mappedLine);
+                                        tryGetStringLiteralValue(directive.File, out var mappedPathOpt);
+                                        return new LineMappingEntry(unmappedLine, mappedLine, mappedPathOpt, PositionState.Remapped);
+                                    }
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(lineToken);
                             }
-
-                            if (directive.File.Kind() == SyntaxKind.StringLiteralToken)
-                            {
-                                mappedPathOpt = (string?)directive.File.Value;
-                            }
-
-                            state = PositionState.Remapped;
                         }
+                    }
+                    break;
 
-                        break;
-                }
+                case LineSpanDirectiveTriviaSyntax spanDirective:
+                    {
+                        if (tryGetPosition(spanDirective.Start, isEnd: false, out var mappedStart) &&
+                            tryGetPosition(spanDirective.End, isEnd: true, out var mappedEnd) &&
+                            tryGetOptionalCharacterOffset(spanDirective.CharacterOffset, out int? characterOffset) &&
+                            tryGetStringLiteralValue(spanDirective.File, out var mappedPathOpt))
+                        {
+                            return new LineMappingEntry(unmappedLine, new LinePositionSpan(mappedStart, mappedEnd), characterOffset, mappedPathOpt);
+                        }
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(directive);
             }
 
-            return new LineMappingEntry(
-                unmappedLine,
-                mappedLine,
-                mappedPathOpt,
-                state);
+            return new LineMappingEntry(unmappedLine, unmappedLine, mappedPathOpt: null, PositionState.Unmapped);
+
+            static bool tryGetOneBasedNumericLiteralValue(in SyntaxToken token, out int value)
+            {
+                if (!token.IsMissing &&
+                    token.Kind() == SyntaxKind.NumericLiteralToken &&
+                    token.Value is int tokenValue)
+                {
+                    // convert one-based line number into zero-based line number
+                    value = tokenValue - 1;
+                    return true;
+                }
+                value = 0;
+                return false;
+            }
+
+            static bool tryGetStringLiteralValue(in SyntaxToken token, out string? value)
+            {
+                if (token.Kind() == SyntaxKind.StringLiteralToken)
+                {
+                    value = (string?)token.Value;
+                    return true;
+                }
+                value = null;
+                return false;
+            }
+
+            // returns false on error
+            static bool tryGetOptionalCharacterOffset(in SyntaxToken token, out int? value)
+            {
+                if (!token.IsMissing)
+                {
+                    if (token.Kind() == SyntaxKind.None)
+                    {
+                        value = null;
+                        return true;
+                    }
+                    else if (tryGetOneBasedNumericLiteralValue(token, out int literalValue))
+                    {
+                        value = literalValue;
+                        return true;
+                    }
+                }
+                value = 0;
+                return false;
+            }
+
+            // returns false on error
+            static bool tryGetPosition(LineDirectivePositionSyntax syntax, bool isEnd, out LinePosition position)
+            {
+                if (tryGetOneBasedNumericLiteralValue(syntax.Line, out int line) &&
+                    tryGetOneBasedNumericLiteralValue(syntax.Character, out int character))
+                {
+                    position = new LinePosition(line, isEnd ? character + 1 : character);
+                    return true;
+                }
+                position = default;
+                return false;
+            }
         }
 
         protected override LineMappingEntry InitializeFirstEntry()
