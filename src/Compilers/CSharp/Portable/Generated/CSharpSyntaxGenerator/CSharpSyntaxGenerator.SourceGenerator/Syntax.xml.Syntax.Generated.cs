@@ -3271,6 +3271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private SyntaxNode? attributeLists;
+        private TypeSyntax? returnType;
         private ParameterListSyntax? parameterList;
         private BlockSyntax? block;
         private ExpressionSyntax? expressionBody;
@@ -3291,31 +3292,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
+        public TypeSyntax? ReturnType => GetRed(ref this.returnType, 2);
+
         /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
-        public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 2)!;
+        public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
         /// <summary>SyntaxToken representing equals greater than.</summary>
-        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>
         /// BlockSyntax node representing the body of the lambda.
         /// Only one of Block or ExpressionBody will be non-null.
         /// </summary>
-        public override BlockSyntax? Block => GetRed(ref this.block, 4);
+        public override BlockSyntax? Block => GetRed(ref this.block, 5);
 
         /// <summary>
         /// ExpressionSyntax node representing the body of the lambda.
         /// Only one of Block or ExpressionBody will be non-null.
         /// </summary>
-        public override ExpressionSyntax? ExpressionBody => GetRed(ref this.expressionBody, 5);
+        public override ExpressionSyntax? ExpressionBody => GetRed(ref this.expressionBody, 6);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
-                2 => GetRed(ref this.parameterList, 2)!,
-                4 => GetRed(ref this.block, 4),
-                5 => GetRed(ref this.expressionBody, 5),
+                2 => GetRed(ref this.returnType, 2),
+                3 => GetRed(ref this.parameterList, 3)!,
+                5 => GetRed(ref this.block, 5),
+                6 => GetRed(ref this.expressionBody, 6),
                 _ => null,
             };
 
@@ -3323,20 +3327,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => this.attributeLists,
-                2 => this.parameterList,
-                4 => this.block,
-                5 => this.expressionBody,
+                2 => this.returnType,
+                3 => this.parameterList,
+                5 => this.block,
+                6 => this.expressionBody,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -3345,16 +3350,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override LambdaExpressionSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
-        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithReturnType(TypeSyntax? returnType) => Update(this.AttributeLists, this.Modifiers, returnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
         internal override LambdaExpressionSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParenthesizedLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));

@@ -13,11 +13,6 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
         /// <summary>
-        /// Gets an uninitialized generator state
-        /// </summary>
-        internal static GeneratorState Uninitialized;
-
-        /// <summary>
         /// Creates a new generator state that just contains information
         /// </summary>
         public GeneratorState(GeneratorInfo info)
@@ -59,6 +54,7 @@ namespace Microsoft.CodeAnalysis
 
         private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
         {
+            this.Initialized = true;
             this.PostInitTrees = postInitTrees;
             this.InputNodes = inputNodes;
             this.OutputNodes = outputNodes;
@@ -67,6 +63,8 @@ namespace Microsoft.CodeAnalysis
             this.Diagnostics = diagnostics;
             this.Exception = exception;
         }
+
+        internal bool Initialized { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
 

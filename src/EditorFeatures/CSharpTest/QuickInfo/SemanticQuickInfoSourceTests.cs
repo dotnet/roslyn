@@ -6862,6 +6862,46 @@ void $$M(int x, int y) { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels1()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <inheritdoc cref=""M()""/>
+void M(int x) { }
+
+/// <inheritdoc cref=""M(int)""/>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocTwoLevels2()
+        {
+            var markup =
+@"
+/// <summary>Summary documentation</summary>
+/// <remarks>Remarks documentation</remarks>
+void M() { }
+
+/// <summary><inheritdoc cref=""M()""/></summary>
+void M(int x) { }
+
+/// <summary><inheritdoc cref=""M(int)""/></summary>
+void $$M(int x, int y) { }";
+
+            await TestInClassAsync(markup,
+                MainDescription("void C.M(int x, int y)"),
+                Documentation("Summary documentation"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocWithTypeParamRef()
         {
             var markup =
@@ -7335,6 +7375,50 @@ public class Student : Person { public Student() : $$base(0) { } }
                 MainDescription($"({FeaturesResources.local_variable}) string? x"));
         }
 
+        [WorkItem(53135, "https://github.com/dotnet/roslyn/issues/53135")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestDocumentationCData()
+        {
+            var markup =
+@"using I$$ = IGoo;
+/// <summary>
+/// summary for interface IGoo
+/// <code><![CDATA[
+/// List<string> y = null;
+/// ]]></code>
+/// </summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(@"summary for interface IGoo
+
+List<string> y = null;"));
+        }
+
+        [WorkItem(37503, "https://github.com/dotnet/roslyn/issues/37503")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DoNotNormalizeWhitespaceForCode()
+        {
+            var markup =
+@"using I$$ = IGoo;
+/// <summary>
+/// Normalize    this, and <c>Also        this</c>
+/// <code>
+/// line 1
+/// line     2
+/// </code>
+/// </summary>
+interface IGoo {  }";
+
+            await TestAsync(markup,
+                MainDescription("interface IGoo"),
+                Documentation(@"Normalize this, and Also this
+
+line 1
+line     2"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestStaticAbstract_ImplicitImplementation()
         {
@@ -7472,6 +7556,46 @@ class C1_1 : I1
                 code,
                 MainDescription("void C1_1.M1()"),
                 Documentation("Summary text"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_01()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class Program
+{
+    System.Delegate D = bo$$ol () => true;
+}",
+                MainDescription("struct System.Boolean"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_02()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A
+{
+    struct B { }
+    System.Delegate D = A.B$$ () => null;
+}",
+                MainDescription("struct A.B"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoLambdaReturnType_03()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"class A<T>
+{
+}
+struct B
+{
+    System.Delegate D = A<B$$> () => null;
+}",
+                MainDescription("struct B"));
         }
     }
 }

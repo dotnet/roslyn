@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ExtendedPropertySubpattern_01()
         {
-            UsingExpression(@"e is { a.b.c: p }");
+            UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular10);
             verify();
 
             UsingExpression(@"e is { a.b.c: p }", TestOptions.Regular9,
-                    // (1,8): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // e is { a.b.c: p }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "a.b.c").WithArguments("extended property patterns").WithLocation(1, 8));
+                // (1,8): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // e is { a.b.c: p }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a.b.c").WithArguments("extended property patterns", "10.0").WithLocation(1, 8));
             verify();
 
             void verify()

@@ -19,7 +19,7 @@ namespace Roslyn.Utilities
     /// along to be worked on.  Rounds of processing happen serially, only starting up after a
     /// previous round has completed.
     /// </summary>
-    internal class AsyncBatchingWorkQueue<TItem>
+    internal class AsyncBatchingWorkQueue<TItem, TResult>
     {
         /// <summary>
         /// Delay we wait after finishing the processing of one batch and starting up on then.
@@ -34,8 +34,8 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
         /// </summary>
-        private readonly Func<ImmutableArray<TItem>, CancellationToken, Task> _processBatchAsync;
-        private readonly IAsynchronousOperationListener? _asyncListener;
+        private readonly Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
 
         #region protected by lock
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         /// Task kicked off to do the next batch of processing of <see cref="_nextBatch"/>. These
         /// tasks form a chain so that the next task only processes when the previous one completes.
         /// </summary>
-        private Task _updateTask = Task.CompletedTask;
+        private Task<TResult?> _updateTask = Task.FromResult(default(TResult));
 
         /// <summary>
         /// Whether or not there is an existing task in flight that will process the current batch
@@ -76,23 +76,9 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
-            CancellationToken cancellationToken)
-            : this(delay,
-                   processBatchAsync,
-                   equalityComparer: null,
-                   asyncListener: null,
-                   cancellationToken)
-        {
-        }
-
-        /// <param name="processBatchAsync">Callback to add the new items to the current batch.  It is legal to mutate
-        /// the current batch (for example, clearing the batch or deduplicating)</param>
-        public AsyncBatchingWorkQueue(
-            TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, Task> processBatchAsync,
+            Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
-            IAsynchronousOperationListener? asyncListener,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
         {
             _delay = delay;
@@ -122,11 +108,35 @@ namespace Roslyn.Utilities
             {
                 // add our work to the set we'll process in the next batch.
                 AddItemsToBatch(items);
-                TryKickOffNextBatchTask();
+
+                if (!_taskInFlight)
+                {
+                    // No in-flight task.  Kick one off to process these messages a second from now.
+                    // We always attach the task to the previous one so that notifications to the ui
+                    // follow the same order as the notification the OOP server sent to us.
+                    _updateTask = ContinueAfterDelay(_updateTask);
+                    _taskInFlight = true;
+                }
+            }
+
+            return;
+
+            async Task<TResult?> ContinueAfterDelay(Task lastTask)
+            {
+                using var _ = _asyncListener.BeginAsyncOperation(nameof(AddWork));
+                await lastTask.ConfigureAwait(false);
+
+                // Ensure that we always yield the current thread this is necessary for correctness as we are called
+                // inside a lock that _taskInFlight to true.  We must ensure that the work to process the next batch
+                // must be on another thread that runs afterwards, can only grab the thread once we release it and will
+                // then reset that bool back to false
+                await Task.Yield().ConfigureAwait(false);
+                await _asyncListener.Delay(_delay, _cancellationToken).ConfigureAwait(false);
+                return await ProcessNextBatchAsync(_cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public Task WaitUntilCurrentBatchCompletesAsync()
+        public Task<TResult?> WaitUntilCurrentBatchCompletesAsync()
         {
             lock (_gate)
                 return _updateTask;
@@ -149,42 +159,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        private void TryKickOffNextBatchTask()
-        {
-            Debug.Assert(Monitor.IsEntered(_gate));
-
-            if (!_taskInFlight)
-            {
-                // No in-flight task.  Kick one off to process these messages a second from now.
-                // We always attach the task to the previous one so that notifications to the ui
-                // follow the same order as the notification the OOP server sent to us.
-                if (_asyncListener is object)
-                {
-                    var token = _asyncListener.BeginAsyncOperation(nameof(TryKickOffNextBatchTask));
-
-                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                        _ => ProcessNextBatchAsync(_cancellationToken),
-                        _cancellationToken,
-                        (int)_delay.TotalMilliseconds,
-                        _asyncListener,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default).CompletesAsyncOperation(token);
-                }
-                else
-                {
-                    _updateTask = _updateTask.ContinueWithAfterDelayFromAsync(
-                        _ => ProcessNextBatchAsync(_cancellationToken),
-                        _cancellationToken,
-                        (int)_delay.TotalMilliseconds,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default);
-                }
-
-                _taskInFlight = true;
-            }
-        }
-
-        private Task ProcessNextBatchAsync(CancellationToken cancellationToken)
+        private ValueTask<TResult> ProcessNextBatchAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);

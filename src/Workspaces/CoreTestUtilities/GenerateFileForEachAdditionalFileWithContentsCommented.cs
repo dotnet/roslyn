@@ -25,13 +25,10 @@ namespace Roslyn.Test.Utilities
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterExecutionPipeline(context =>
-            {
-                context.RegisterSourceOutput(context.AdditionalTextsProvider, (context, additionalText) =>
-                    context.AddSource(
-                        GetGeneratedFileName(additionalText.Path),
-                        GenerateSourceForAdditionalFile(additionalText, context.CancellationToken)));
-            });
+            context.RegisterSourceOutput(context.AdditionalTextsProvider, (context, additionalText) =>
+                context.AddSource(
+                    GetGeneratedFileName(additionalText.Path),
+                    GenerateSourceForAdditionalFile(additionalText, context.CancellationToken)));
         }
 
         private SourceText GenerateSourceForAdditionalFile(AdditionalText file, CancellationToken cancellationToken)

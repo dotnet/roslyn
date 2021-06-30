@@ -1777,6 +1777,7 @@ namespace QueryPattern
             If highlight = "" Then
                 Return definition
             End If
+
             Dim searchStartPosition As Integer = 0
             Dim searchFound As Integer
             For i As Integer = 0 To index
@@ -1785,11 +1786,13 @@ namespace QueryPattern
                     Exit For
                 End If
             Next
+
             If searchFound >= 0 Then
                 definition = definition.Insert(searchFound + highlight.Length, "|]")
                 definition = definition.Insert(searchFound, "[|")
                 Return definition
             End If
+
             Throw New InvalidOperationException("Highlight not found")
         End Function
 

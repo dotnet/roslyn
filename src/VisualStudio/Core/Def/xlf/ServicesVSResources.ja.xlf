@@ -987,6 +987,11 @@
         <target state="translated">検索設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
         <target state="translated">宛先の選択</target>
@@ -1060,6 +1065,11 @@
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">継承の余白を表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="new">Skip analyzers for implicitly triggered builds</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">

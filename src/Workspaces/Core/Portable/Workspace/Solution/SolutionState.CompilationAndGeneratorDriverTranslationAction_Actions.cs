@@ -4,10 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -51,10 +53,10 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class TouchAdditionalDocumentAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly TextDocumentState _oldState;
-                private readonly TextDocumentState _newState;
+                private readonly AdditionalDocumentState _oldState;
+                private readonly AdditionalDocumentState _newState;
 
-                public TouchAdditionalDocumentAction(TextDocumentState oldState, TextDocumentState newState)
+                public TouchAdditionalDocumentAction(AdditionalDocumentState oldState, AdditionalDocumentState newState)
                 {
                     _oldState = oldState;
                     _newState = newState;
@@ -78,13 +80,10 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    var oldText = AdditionalTextWithState.FromState(_oldState);
-                    var newText = AdditionalTextWithState.FromState(_newState);
+                    var oldText = _oldState.AdditionalText;
+                    var newText = _newState.AdditionalText;
 
-                    // TODO: have the compiler add an API for replacing an additional text
-                    // https://github.com/dotnet/roslyn/issues/54087
-                    return generatorDriver.RemoveAdditionalTexts(ImmutableArray.Create(oldText))
-                                          .AddAdditionalTexts(ImmutableArray.Create(newText));
+                    return generatorDriver.ReplaceAdditionalText(oldText, newText);
                 }
             }
 
@@ -169,10 +168,8 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_isParseOptionChange)
                     {
-                        // TODO: update the existing generator driver; the compiler needs to add an API for that.
-                        // In the mean time, drop it and we'll recreate it from scratch.
-                        // https://github.com/dotnet/roslyn/issues/54087
-                        return null;
+                        RoslynDebug.AssertNotNull(_state.ParseOptions);
+                        return generatorDriver.WithUpdatedParseOptions(_state.ParseOptions);
                     }
                     else
                     {
@@ -185,18 +182,19 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class ProjectCompilationOptionsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly CompilationOptions _options;
+                private readonly ProjectState _state;
                 private readonly bool _isAnalyzerConfigChange;
 
-                public ProjectCompilationOptionsAction(CompilationOptions options, bool isAnalyzerConfigChange)
+                public ProjectCompilationOptionsAction(ProjectState state, bool isAnalyzerConfigChange)
                 {
-                    _options = options;
+                    _state = state;
                     _isAnalyzerConfigChange = isAnalyzerConfigChange;
                 }
 
                 public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    return Task.FromResult(oldCompilation.WithOptions(_options));
+                    RoslynDebug.AssertNotNull(_state.CompilationOptions);
+                    return Task.FromResult(oldCompilation.WithOptions(_state.CompilationOptions));
                 }
 
                 // Updating the options of a compilation doesn't require us to reparse trees, so we can use this to update
@@ -207,10 +205,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (_isAnalyzerConfigChange)
                     {
-                        // TODO: update the existing generator driver; the compiler needs to add an API for that.
-                        // In the mean time, drop it and we'll recreate it from scratch.
-                        // https://github.com/dotnet/roslyn/issues/54087
-                        return null;
+                        return generatorDriver.WithUpdatedAnalyzerConfigOptions(_state.AnalyzerOptions.AnalyzerConfigOptionsProvider);
                     }
                     else
                     {
@@ -285,9 +280,9 @@ namespace Microsoft.CodeAnalysis
 
             internal sealed class AddAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public AddAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public AddAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -299,15 +294,15 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
+                    return generatorDriver.AddAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
 
             internal sealed class RemoveAdditionalDocumentsAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<TextDocumentState> _additionalDocuments;
+                private readonly ImmutableArray<AdditionalDocumentState> _additionalDocuments;
 
-                public RemoveAdditionalDocumentsAction(ImmutableArray<TextDocumentState> additionalDocuments)
+                public RemoveAdditionalDocumentsAction(ImmutableArray<AdditionalDocumentState> additionalDocuments)
                 {
                     _additionalDocuments = additionalDocuments;
                 }
@@ -319,7 +314,7 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(AdditionalTextWithState.FromState));
+                    return generatorDriver.RemoveAdditionalTexts(_additionalDocuments.SelectAsArray(static documentState => documentState.AdditionalText));
                 }
             }
         }

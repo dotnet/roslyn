@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGeneratorsForAllLanguages();
-            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
 
             AssertEx.SetEqual(new[]
             {
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.CSharp);
 
-            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
             AssertEx.SetEqual(new[]
             {
                 "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var generators = reference.GetGenerators(LanguageNames.VisualBasic);
 
-            var typeNames = generators.Select(g => GeneratorDriver.GetGeneratorType(g).FullName);
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
             AssertEx.SetEqual(new[]
             {
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
@@ -436,7 +436,7 @@ public class Generator : ISourceGenerator
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
 
-            var csharpGenerators = reference.GetGenerators(LanguageNames.CSharp).Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
+            var csharpGenerators = reference.GetGenerators(LanguageNames.CSharp).Select(g => g.GetGeneratorType().FullName).ToArray();
             Assert.Equal(10, csharpGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", csharpGenerators[0]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", csharpGenerators[1]);
@@ -449,7 +449,7 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", csharpGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", csharpGenerators[9]);
 
-            var vbGenerators = reference.GetGenerators(LanguageNames.VisualBasic).Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
+            var vbGenerators = reference.GetGenerators(LanguageNames.VisualBasic).Select(g => g.GetGeneratorType().FullName).ToArray();
             Assert.Equal(5, vbGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", vbGenerators[0]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", vbGenerators[1]);
@@ -458,7 +458,7 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", vbGenerators[4]);
 
             // generators load in language order (C#, F#, VB), and *do not* include duplicates
-            var allGenerators = reference.GetGeneratorsForAllLanguages().Select(g => GeneratorDriver.GetGeneratorType(g).FullName).ToArray();
+            var allGenerators = reference.GetGeneratorsForAllLanguages().Select(g => g.GetGeneratorType().FullName).ToArray();
             Assert.Equal(12, allGenerators.Length);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", allGenerators[0]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", allGenerators[1]);

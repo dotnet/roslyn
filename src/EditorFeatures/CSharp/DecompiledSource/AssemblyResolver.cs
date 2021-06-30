@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 {
                     Log(CSharpEditorResources.WARN_Version_mismatch_Expected_0_Got_1, name.Version, assemblies[0].Identity.Version);
                 }
+
                 return MakePEFile(assemblies[0]);
             }
 

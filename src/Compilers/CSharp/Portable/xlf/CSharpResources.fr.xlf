@@ -202,6 +202,11 @@
         <target state="translated">Erreur de syntaxe de ligne de commande : '{0}' est une valeur non valide pour l'option '{1}'. La valeur doit se présenter sous la forme '{2}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BuilderAttributeDisallowed">
+        <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
+        <target state="new">The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
@@ -240,6 +245,11 @@
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="translated">'{0}' doit correspondre par initialisation uniquement au membre substitué '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantConvAnonMethReturnType">
+        <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
+        <target state="new">Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -455,6 +465,11 @@
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">La fonctionnalité '{0}' est expérimentale et non prise en charge. Utilisez '/features:{1}' pour l'activer.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion10">
+        <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -947,6 +962,11 @@
         <target state="translated">Impossible de spécifier /main s'il existe une unité de compilation avec des instructions de niveau supérieur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">Impossible d'utiliser une variable locale ou une fonction locale '{0}' déclarée dans une instruction de niveau supérieur dans ce contexte.</target>
@@ -1062,6 +1082,21 @@
         <target state="translated">'{0}' est attribué avec 'UnmanagedCallersOnly' et ne peut pas être converti en type délégué. Obtenez un pointeur de fonction vers cette méthode.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing">
+        <source>The using directive for '{0}' appeared previously as global using</source>
+        <target state="new">The using directive for '{0}' appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
+        <source>The using directive appeared previously as global using</source>
+        <target state="new">The using directive appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AsyncMethodBuilderOverride">
+        <source>async method builder override</source>
+        <target state="new">async method builder override</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">retours covariants</target>
@@ -1095,6 +1130,11 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaReturnType">
+        <source>lambda return type</source>
+        <target state="new">lambda return type</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -10988,8 +11028,8 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}' n'implémente pas le membre d'interface '{1}'. '{2}' ne peut pas implémenter implicitement un membre non public.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

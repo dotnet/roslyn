@@ -76,6 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
             If nameToken.IsBracketed() AndAlso Not newName.StartsWith("[") Then
                 newName = "[" + newName + "]"
             End If
+
             Return SyntaxFactory.Identifier(newName).WithTriviaFrom(nameToken)
         End Function
     End Class

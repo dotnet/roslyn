@@ -202,6 +202,11 @@
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BuilderAttributeDisallowed">
+        <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
+        <target state="new">The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
         <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
@@ -240,6 +245,11 @@
       <trans-unit id="ERR_CantChangeInitOnlyOnOverride">
         <source>'{0}' must match by init-only of overridden member '{1}'</source>
         <target state="translated">'{0}'은(는) 재정의된 멤버 '{1}'의 초기화 전용으로 일치해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CantConvAnonMethReturnType">
+        <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
+        <target state="new">Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
@@ -455,6 +465,11 @@
       <trans-unit id="ERR_FeatureIsExperimental">
         <source>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</source>
         <target state="translated">기능 '{0}'은(는) 실험적이며 지원되지 않습니다. 사용하도록 설정하려면 '/features:{1}'을(를) 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion10">
+        <source>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -947,6 +962,11 @@
         <target state="translated">최상위 문이 포함된 컴파일 단위가 있으면 /main을 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SimpleProgramIsEmpty">
+        <source>At least one top-level statement must be non-empty.</source>
+        <target state="new">At least one top-level statement must be non-empty.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement">
         <source>Cannot use local variable or local function '{0}' declared in a top-level statement in this context.</source>
         <target state="translated">이 컨텍스트에서는 최상위 문에 선언된 지역 변수 또는 로컬 함수 '{0}'을(를) 사용할 수 없습니다.</target>
@@ -1062,6 +1082,21 @@
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing">
+        <source>The using directive for '{0}' appeared previously as global using</source>
+        <target state="new">The using directive for '{0}' appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="HDN_DuplicateWithGlobalUsing_Title">
+        <source>The using directive appeared previously as global using</source>
+        <target state="new">The using directive appeared previously as global using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_AsyncMethodBuilderOverride">
+        <source>async method builder override</source>
+        <target state="new">async method builder override</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">공변(covariant) 반환</target>
@@ -1095,6 +1130,11 @@
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
         <target state="new">lambda attributes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLambdaReturnType">
+        <source>lambda return type</source>
+        <target state="new">lambda return type</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -10987,8 +11027,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="translated">'{0}'은(는) 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) public이 아닌 멤버를 암시적으로 구현할 수 없습니다.</target>
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member in C# {3}. Please use language version '{4}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MostSpecificImplementationIsNotFound">

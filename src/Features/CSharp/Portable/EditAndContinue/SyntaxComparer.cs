@@ -626,6 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         return Label.AttributeList;
                     }
+
                     break;
 
                 case SyntaxKind.Attribute:
@@ -635,6 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         isLeaf = true;
                         return Label.Attribute;
                     }
+
                     break;
             }
 
@@ -1265,6 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(argument.Expression, ref result);
                     }
+
                     return;
 
                 default:
@@ -1287,6 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         GetLocalNames(variableDesignation, ref result);
                     }
+
                     return;
 
                 case SyntaxKind.DiscardDesignation:
