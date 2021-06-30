@@ -14,17 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
-                         list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) <= 1 &&
+                         input.Type.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
+                         list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) == (list.HasSlice ? 1 : 0) &&
                          list.LengthProperty is not null);
 
             var syntax = list.Syntax;
             var subpatterns = list.Subpatterns;
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
-            output = input = MakeConvertToType(input, list.Syntax, input.Type.StrippedType(), isExplicitTest: false, tests);
+            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
 
-            if (list.LengthProperty is null)
+            if (list.HasAnyErrors)
             {
-                Debug.Assert(list.HasAnyErrors);
                 tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
             }
             else if (list.HasSlice &&
@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                Debug.Assert(list.LengthProperty is not null);
+
                 var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, input);
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
