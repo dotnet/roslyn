@@ -204,11 +204,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Pattern is not null)
             {
                 TypeSymbol sliceType;
-                if (inputType.IsSZArray())
+                if (inputType.IsErrorType())
+                {
+                    hasErrors = true;
+                    sliceType = CreateErrorType();
+                }
+                else if (inputType.IsSZArray())
                 {
                     sliceType = inputType;
                 }
-                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, out _, diagnostics))
+                else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: false, out indexerAccess, out Symbol? patternSymbol, lengthProperty: out _, diagnostics))
                 {
                     if (patternSymbol is MethodSymbol method)
                     {
@@ -224,9 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors = true;
-                    if (!inputType.IsErrorType())
-                        diagnostics.Add(ErrorCode.ERR_UnsupportedTypeForSlicePattern, node.Location, inputType.ToDisplayString());
                     sliceType = CreateErrorType();
+                    Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForSlicePattern, node, inputType);
                 }
 
                 // PROTOTYPE(list-patterns) ExternalScope?
@@ -278,8 +282,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol elementType;
             BoundIndexerAccess? indexerAccess = null;
             PropertySymbol? indexerSymbol = null;
-            PropertySymbol? lengthProperty;
-            if (inputType.IsSZArray())
+            PropertySymbol? lengthProperty = null;
+            if (inputType.IsErrorType())
+            {
+                hasErrors = true;
+                elementType = CreateErrorType();
+            }
+            else if (inputType.IsSZArray())
             {
                 elementType = ((ArrayTypeSymbol)inputType).ElementType;
                 lengthProperty = (PropertySymbol?)((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, diagnostics, syntax: node))?.AssociatedSymbol;
@@ -301,32 +310,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 hasErrors = true;
-                if (!inputType.IsErrorType())
-                    Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
                 elementType = CreateErrorType();
+                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
 
-            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(node.Patterns, inputType, elementType, permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
             TypeSymbol narrowedType = inputType.StrippedType();
+            ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
+                node.Patterns, inputType: narrowedType, elementType: elementType,
+                permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
+
             BindPatternDesignation(
-                node.Designation, TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated), inputValEscape, permitDesignations, node, diagnostics,
-                ref hasErrors, out Symbol? variableSymbol, out BoundExpression? variableAccess);
-            return new BoundListPattern(node, subpatterns, sawSlice, lengthProperty, indexerAccess, indexerSymbol, variableSymbol, variableAccess, inputType, narrowedType: narrowedType, hasErrors);
+                node.Designation,
+                declType: TypeWithAnnotations.Create(narrowedType, NullableAnnotation.NotAnnotated),
+                inputValEscape, permitDesignations, typeSyntax: null, diagnostics, ref hasErrors,
+                out Symbol? variableSymbol, out BoundExpression? variableAccess);
+
+            return new BoundListPattern(
+                syntax: node, subpatterns: subpatterns, hasSlice: sawSlice, lengthProperty: lengthProperty,
+                indexerAccess: indexerAccess, indexerSymbol: indexerSymbol, variable: variableSymbol,
+                variableAccess: variableAccess, inputType: inputType, narrowedType: narrowedType, hasErrors: hasErrors);
         }
 
         private bool TryPerformPatternIndexerLookup(
-            SyntaxNode syntax, TypeSymbol receiverType, bool argIsIndex,
+            SyntaxNode syntax,
+            TypeSymbol receiverType,
+            bool argIsIndex,
             out BoundIndexerAccess? indexerAccess,
             out Symbol? patternSymbol,
             [NotNullWhen(true)] out PropertySymbol? lengthProperty,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(!receiverType.IsErrorType());
+
             indexerAccess = null;
             patternSymbol = null;
-            bool found;
+            lengthProperty = null;
 
+            bool found;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var bindingDiagnostics = BindingDiagnosticBag.Create(diagnostics);
+            var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             TypeSymbol argType = Compilation.GetWellKnownType(argIsIndex ? WellKnownType.System_Index : WellKnownType.System_Range);
             var lookupResult = LookupResult.GetInstance();
             if (!argType.IsErrorType())
@@ -350,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(symbol.IsIndexer());
                         indexerGroup.Add((PropertySymbol)symbol);
                     }
+                    lookupResult.Clear();
 
                     var analyzedArguments = AnalyzedArguments.GetInstance();
                     analyzedArguments.Arguments.Add(new BoundIndexOrRangeIndexerPatternValuePlaceholder(syntax, argType));
@@ -357,26 +380,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression boundAccess = BindIndexerOrIndexedPropertyAccess(syntax, receiver, indexerGroup, analyzedArguments, bindingDiagnostics);
                     switch (boundAccess)
                     {
-                        case BoundIndexerAccess { ResultKind: LookupResultKind.Viable, Indexer: { GetMethod: { } getMethod } } boundIndexerAccess when IsAccessible(getMethod, ref useSiteInfo):
-                            lookupResult.Clear();
-                            if (!TryLookupLengthOrCount(receiverType, lookupResult, out lengthProperty, ref useSiteInfo))
-                                goto default;
-                            ReportDiagnosticsIfObsolete(diagnostics, lengthProperty, syntax, hasBaseReceiver: false);
-                            // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
-                            Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
-                            indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);
-                            _ = GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
-                            found = true;
-                            break;
-                        case BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess:
-                            patternSymbol = boundIndexOrRangePatternIndexerAccess.PatternSymbol;
-                            lengthProperty = boundIndexOrRangePatternIndexerAccess.LengthOrCountProperty;
-                            found = true;
-                            break;
-                        default:
-                            lengthProperty = null;
+                        case BoundIndexerAccess boundIndexerAccess:
+                            if (boundIndexerAccess.ResultKind == LookupResultKind.Viable &&
+                                boundIndexerAccess.Indexer.GetMethod is { } getMethod &&
+                                IsAccessible(getMethod, ref useSiteInfo) &&
+                                TryLookupLengthOrCount(receiverType, lookupResult, out lengthProperty, ref useSiteInfo))
+                            {
+                                // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
+                                Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
+                                ReportDiagnosticsIfObsolete(diagnostics, lengthProperty, syntax, hasBaseReceiver: false);
+                                GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
+                                indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);
+                                found = true;
+                                break;
+                            }
                             found = false;
                             break;
+
+                        case BoundIndexOrRangePatternIndexerAccess boundIndexOrRangePatternIndexerAccess:
+                            lengthProperty = boundIndexOrRangePatternIndexerAccess.LengthOrCountProperty;
+                            patternSymbol = boundIndexOrRangePatternIndexerAccess.PatternSymbol;
+                            found = true;
+                            break;
+
+                        case var v:
+                            throw ExceptionUtilities.UnexpectedValue(v.Kind);
                     }
                     analyzedArguments.Free();
                     indexerGroup.Free();
@@ -393,6 +421,7 @@ done:
             if (found)
             {
                 Debug.Assert(indexerAccess is not null ^ patternSymbol is not null);
+                Debug.Assert(lengthProperty is not null);
                 // At this point we have succeeded to bind a viable indexer,
                 // report additional binding diagnostics that we have seen so far
                 diagnostics.AddRange(bindingDiagnostics);
@@ -793,7 +822,7 @@ done:
             TypeWithAnnotations declType,
             uint inputValEscape,
             bool permitDesignations,
-            SyntaxNode? typeSyntax,
+            TypeSyntax? typeSyntax,
             BindingDiagnosticBag diagnostics,
             ref bool hasErrors,
             out Symbol? variableSymbol,
@@ -821,7 +850,7 @@ done:
                         hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                         if (!hasErrors)
-                            hasErrors = CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? designation);
+                            hasErrors = CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? (SyntaxNode)designation);
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
