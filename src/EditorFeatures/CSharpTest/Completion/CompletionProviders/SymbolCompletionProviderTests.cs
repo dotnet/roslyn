@@ -8070,6 +8070,23 @@ class A
             await VerifyItemIsAbsentAsync(markup, "value");
         }
 
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConditionalAccessNullableIsUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt?.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Day");
+            await VerifyItemIsAbsentAsync(markup, "value");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CompletionAfterConditionalIndexing()
         {

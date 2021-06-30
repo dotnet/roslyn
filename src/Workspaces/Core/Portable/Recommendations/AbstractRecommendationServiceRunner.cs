@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         {
             var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
             return symbols.IsDefault
-                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility)
+                ? GetMemberSymbols(parameter.Type.RemoveNullableIfPresent(), position, excludeInstance: false, useBaseReferenceAccessibility)
                 : symbols;
         }
 
