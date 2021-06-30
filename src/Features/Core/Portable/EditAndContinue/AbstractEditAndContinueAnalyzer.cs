@@ -3083,7 +3083,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 Debug.Assert(oldSymbol is INamedTypeSymbol);
                                 var oldType = (INamedTypeSymbol)oldSymbol;
                                 if (newType.TypeKind == TypeKind.Delegate &&
-                                    !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldType.DelegateInvokeMethod.GetParameters(), newType.DelegateInvokeMethod.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                                    !ParametersAreEqual(oldType.DelegateInvokeMethod, newType.DelegateInvokeMethod))
                                 {
                                     editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
                                 }
@@ -3109,7 +3109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             // If a methods parameters change we need to make sure the right metadata is emitted, so specify an edit option
                             if (newSymbol is IMethodSymbol &&
-                                !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldSymbol.GetParameters(), newSymbol.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                                !ParametersAreEqual(oldSymbol, newSymbol))
                             {
                                 editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
                             }
@@ -3120,7 +3120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 if (!processedSymbols.Contains(newParam.ContainingSymbol) &&
                                     newParam.ContainingSymbol is IMethodSymbol method &&
                                     method.MethodKind != MethodKind.Constructor &&
-                                    !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldParam.ContainingSymbol.GetParameters(), newParam.ContainingSymbol.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                                    !ParametersAreEqual(oldParam.ContainingSymbol, newParam.ContainingSymbol))
                                 {
                                     editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
                                     newSymbol = newParam.ContainingSymbol;
@@ -4180,7 +4180,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var editOptions = SemanticEditOption.None;
                     if (oldCtor is IMethodSymbol &&
                         newCtor is IMethodSymbol &&
-                        !System.Linq.ImmutableArrayExtensions.SequenceEqual(oldCtor.GetParameters(), newCtor.GetParameters(), comparer: SymbolEquivalenceComparer.Instance))
+                        !ParametersAreEqual(oldCtor, newCtor))
                     {
                         editOptions = SemanticEditOption.EmitAllParametersForMethodUpdate;
                     }
@@ -5128,6 +5128,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         #endregion
 
         #region Helpers 
+
+        private static bool ParametersAreEqual(ISymbol? oldSymbol, ISymbol? newSymbol)
+        {
+            if (oldSymbol is null || newSymbol is null)
+            {
+                return false;
+            }
+
+            return oldSymbol.GetParameters().SequenceEqual(newSymbol.GetParameters(), comparer: s_assemblyEqualityComparer.ParameterEquivalenceComparer);
+        }
 
         private static SyntaxNode? TryGetNode(SyntaxNode root, int position)
             => root.FullSpan.Contains(position) ? root.FindToken(position).Parent : null;
