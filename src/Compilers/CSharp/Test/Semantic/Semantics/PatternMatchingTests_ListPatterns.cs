@@ -1761,10 +1761,11 @@ class D
         [Fact]
         public void ListPattern_Symbols_01()
         {
-            var source =
-@"class X
+            var source = @"
+#nullable enable
+class X
 {
-    public void Test(string[] strings, int[] integers)
+    public void Test(string[]? strings, int[] integers)
     {
         _ = strings is [var element1] list1a;
         _ = strings is [..var slice1] list1b;
@@ -1785,24 +1786,24 @@ class D
             var nodes = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>();
             Assert.Collection(nodes,
                 d => verify(d, "element1", "string?", "string"),
-                d => verify(d, "list1a", "string[]", "string[]"),
+                d => verify(d, "list1a", "string[]?", "string[]"),
                 d => verify(d, "slice1", "string[]?", "string[]"),
-                d => verify(d, "list1b", "string[]", "string[]"),
+                d => verify(d, "list1b", "string[]?", "string[]"),
 
                 d => verify(d, "element2", "int", "int"),
-                d => verify(d, "list2a", "int[]", "int[]"),
+                d => verify(d, "list2a", "int[]?", "int[]"),
                 d => verify(d, "slice2", "int[]?", "int[]"),
-                d => verify(d, "list2b", "int[]", "int[]"),
+                d => verify(d, "list2b", "int[]?", "int[]"),
 
                 d => verify(d, "element3", "string", "string"),
-                d => verify(d, "list3a", "string[]", "string[]"),
+                d => verify(d, "list3a", "string[]?", "string[]"),
                 d => verify(d, "slice3", "string[]", "string[]"),
-                d => verify(d, "list3b", "string[]", "string[]"),
+                d => verify(d, "list3b", "string[]?", "string[]"),
 
                 d => verify(d, "element4", "int", "int"),
-                d => verify(d, "list4a", "int[]", "int[]"),
+                d => verify(d, "list4a", "int[]?", "int[]"),
                 d => verify(d, "slice4", "int[]", "int[]"),
-                d => verify(d, "list4b", "int[]", "int[]")
+                d => verify(d, "list4b", "int[]?", "int[]")
             );
 
             void verify(SyntaxNode designation, string syntax, string declaredType, string type)

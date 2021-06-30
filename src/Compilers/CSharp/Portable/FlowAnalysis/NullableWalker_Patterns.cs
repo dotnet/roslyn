@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSlicePattern(BoundSlicePattern node)
         {
+            Visit(node.Pattern);
             return null;
         }
 
