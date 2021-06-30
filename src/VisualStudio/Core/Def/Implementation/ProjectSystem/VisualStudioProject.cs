@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
             var projectState = solutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
-            foreach (var documentState in projectState.DocumentStates.States)
+            foreach (var (_, documentState) in projectState.DocumentStates.States)
             {
                 if (documentState.TryGetSyntaxTree(out _))
                 {

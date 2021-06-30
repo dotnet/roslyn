@@ -260,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     {
                         return true;
                     }
+
                     if (currentNode is ExpressionSyntax ||
                         currentNode is ArgumentSyntax ||
                         currentNode is ArgumentListSyntax ||

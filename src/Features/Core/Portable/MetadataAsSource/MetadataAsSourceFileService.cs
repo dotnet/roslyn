@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
             if (project == null)

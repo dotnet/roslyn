@@ -64,17 +64,14 @@ namespace IdeBenchmarks
 
             // Explicitly choose the sqlite db to test.
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
+                .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
 
             var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
-            _storageService = new SQLitePersistentStorageService(connectionPoolService, new LocationService());
+            _storageService = new SQLitePersistentStorageService(_workspace.Options, connectionPoolService, new LocationService());
 
             var solution = _workspace.CurrentSolution;
             _storage = _storageService.GetStorageWorkerAsync(_workspace, SolutionKey.ToSolutionKey(solution), solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
-            if (_storage == NoOpPersistentStorage.Instance)
-            {
-                throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
-            }
 
             Console.WriteLine("Storage type: " + _storage.GetType());
             _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();

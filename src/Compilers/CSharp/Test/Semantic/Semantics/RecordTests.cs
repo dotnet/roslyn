@@ -282,12 +282,12 @@ record class Point(int x, int y);
 
             comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record class Point(int x, int y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "class").WithArguments("record structs").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "class").WithArguments("record structs", "10.0").WithLocation(2, 8)
                 );
 
-            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -852,7 +852,7 @@ public partial record class C
     public int P2 { get; set; } = X;
 }
 ";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */).VerifyDiagnostics();
         }
 
@@ -1106,7 +1106,7 @@ record C(int X, int X)
 record class C(int X, int X)
 {
 }";
-            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (2,27): error CS0100: The parameter name 'X' is a duplicate
                 // record class C(int X, int X)
@@ -1247,9 +1247,9 @@ record C1(object O1)
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(1, 17),
-                // (1,21): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,21): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record C(object P1, object P2, object P3, object P4)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object P2").WithArguments("positional fields in records").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object P2").WithArguments("positional fields in records", "10.0").WithLocation(1, 21),
                 // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(object P1, object P2, object P3, object P4)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
@@ -1261,7 +1261,7 @@ record C1(object O1)
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(6, 9)
                 );
 
-            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (1,17): error CS0102: The type 'C' already contains a definition for 'P1'
                 // record C(object P1, object P2, object P3, object P4)
@@ -1667,7 +1667,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(src, expectedOutput: "True", parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(src, expectedOutput: "True", parseOptions: TestOptions.Regular10);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C..ctor()", @"
@@ -2765,9 +2765,9 @@ class C : Base<S>
 }";
             var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,13): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,13): error CS8773: Feature 'with on structs' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t with { X = 2, Property = 3 }").WithArguments("with on structs").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "t with { X = 2, Property = 3 }").WithArguments("with on structs", "10.0").WithLocation(11, 13),
                 // (11,22): error CS0117: 'U' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
@@ -2776,7 +2776,7 @@ class C : Base<S>
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("U", "Property").WithLocation(11, 29)
                 );
 
-            comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (11,22): error CS0117: 'U' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
@@ -5988,7 +5988,7 @@ record C1
 record C2 : C1;
 ";
 
-            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.Regular10 : TestOptions.Regular9, options: TestOptions.DebugExe);
             if (usePreview)
             {
                 comp.VerifyEmitDiagnostics();
@@ -5997,9 +5997,9 @@ record C2 : C1;
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public sealed override string ToString() => throw null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35)
+                    // (7,35): error CS8773: Feature 'sealed ToString in record' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //     public sealed override string ToString() => "C1";
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ToString").WithArguments("sealed ToString in record", "10.0").WithLocation(7, 35)
                     );
             }
         }
@@ -7376,7 +7376,7 @@ public record B : A {
             var comp = CreateCompilationWithIL(
                 new[] { source, IsExternalInitTypeDefinition },
                 ilSource: ilSource,
-                parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+                parseOptions: usePreview ? TestOptions.Regular10 : TestOptions.Regular9);
             if (usePreview)
             {
                 comp.VerifyEmitDiagnostics();
@@ -7385,9 +7385,9 @@ public record B : A {
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,1): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9.0. Please use language version 'preview' or greater.
-                    // record B : A
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(5, 15)
+                    // (5,15): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9.0. Please use language version '10.0' or greater.
+                    // public record B : A {
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "10.0").WithLocation(5, 15)
                     );
             }
         }
@@ -7425,7 +7425,7 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.Regular10 : TestOptions.Regular9);
             if (usePreview)
             {
                 comp.VerifyEmitDiagnostics();
@@ -7433,9 +7433,9 @@ record C1
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,35): error CS8773: Feature 'sealed ToString in record' is not available in C# 9.0. Please use language version 10.0 or greater.
                     //     public sealed override string ToString() => throw null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(4, 35)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ToString").WithArguments("sealed ToString in record", "10.0").WithLocation(4, 35)
                     );
             }
         }
@@ -10044,9 +10044,9 @@ class Program
                 // (7,21): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(7, 21),
-                // (7,24): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,24): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record B(int X, int Y, int Z) : A
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int Z").WithArguments("positional fields in records").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int Z").WithArguments("positional fields in records", "10.0").WithLocation(7, 24),
                 // (7,28): warning CS8907: Parameter 'Z' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(int X, int Y, int Z) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Z").WithArguments("Z").WithLocation(7, 28));
@@ -10905,9 +10905,9 @@ record C(object P)
                 // (1,17): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(1, 17),
-                // (1,21): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,21): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record B(object P1, object P2, object P3, object P4) : A
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object P2").WithArguments("positional fields in records").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object P2").WithArguments("positional fields in records", "10.0").WithLocation(1, 21),
                 // (1,28): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
                 // record B(object P1, object P2, object P3, object P4) : A
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(1, 28),
@@ -14556,9 +14556,9 @@ record C(int X)
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (4,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,10): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // record C(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(4, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(4, 10),
                 // (4,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(int X)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(4, 14),
@@ -14567,7 +14567,7 @@ record C(int X)
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("C.X").WithLocation(6, 9)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,14): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record C(int X)
@@ -15827,7 +15827,7 @@ record B(int X, int Y)
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: usePreview ? TestOptions.Regular10 : TestOptions.Regular9);
             if (usePreview)
             {
                 comp.VerifyDiagnostics(
@@ -15845,15 +15845,15 @@ record B(int X, int Y) : A
             else
             {
                 comp.VerifyDiagnostics(
-                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
-                    //     public sealed override bool Equals(object other) => false;
-                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                    // (5,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public sealed override string ToString() => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(5, 35),
                     // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                     //     public sealed override int GetHashCode() => 0;
                     Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                    // (5,35): error CS8773: Feature 'sealed ToString in record' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    //     public sealed override string ToString() => null;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ToString").WithArguments("sealed ToString in record", "10.0").WithLocation(5, 35),
+                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                    //     public sealed override bool Equals(object other) => false;
+                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
                     // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                     // record B(int X, int Y) : A
                     Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
@@ -18809,7 +18809,7 @@ record B : A;
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,8): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
@@ -18836,7 +18836,7 @@ sealed record A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,15): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,15): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // sealed record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
                 // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
@@ -20706,7 +20706,7 @@ record A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,8): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // (2,8): error CS0736: 'A' does not implement instance interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement the interface member because it is static.
                 // record A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 8),
                 // (4,24): error CS8872: 'A.Equals(A)' must allow overriding because the containing record is not sealed.
@@ -28054,7 +28054,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
             comp.VerifyDiagnostics();
 
             var cMember = comp.GetMember<NamedTypeSymbol>("C");
@@ -28972,12 +28972,12 @@ record A(int X)
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (8,10): error CS8652: The feature 'positional fields in records' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // record A(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int X").WithArguments("positional fields in records").WithLocation(8, 10)
+                    // (8,10): error CS8773: Feature 'positional fields in records' is not available in C# 9.0. Please use language version 10.0 or greater.
+                    // record A(int X)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int X").WithArguments("positional fields in records", "10.0").WithLocation(8, 10)
                 );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "42 - 42");
             verifier.VerifyIL("A.Deconstruct", @"

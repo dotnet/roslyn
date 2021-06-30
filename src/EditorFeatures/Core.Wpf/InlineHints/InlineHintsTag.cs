@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -94,8 +95,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var taggedText = await _hint.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (!taggedText.IsDefaultOrEmpty)
                 {
-                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(
-                        taggedText, document, _threadingContext, _streamingPresenter);
+                    var context = new IntellisenseQuickInfoBuilderContext(document, _threadingContext, _streamingPresenter);
+                    return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(taggedText, context);
                 }
             }
 

@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     {
                         descriptionBuilder.AddLineBreak();
                     }
+
                     descriptionBuilder.AddRange(description);
                 }
             }

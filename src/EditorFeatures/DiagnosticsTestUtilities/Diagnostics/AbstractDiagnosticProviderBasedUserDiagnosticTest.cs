@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     return true;
                 }
             }
+
             return false;
         }
 
