@@ -45,6 +45,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.VisualStudio.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests", "src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests\Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy.IntegrationTests.csproj", "{CE32D863-E8C3-461F-80C7-32D0B0853217}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Extensibility.Testing.SupportFiles", "src\ref\Microsoft.VisualStudio.Extensibility.Testing.SupportFiles.csproj", "{2AB12422-5A12-4FC3-A392-A49461A3894C}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests.Shared.projitems*{346081a2-a088-4486-94b3-b586bd6fd888}*SharedItemsImports = 5
@@ -117,6 +119,10 @@ Global
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CE32D863-E8C3-461F-80C7-32D0B0853217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AB12422-5A12-4FC3-A392-A49461A3894C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AB12422-5A12-4FC3-A392-A49461A3894C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AB12422-5A12-4FC3-A392-A49461A3894C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AB12422-5A12-4FC3-A392-A49461A3894C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
