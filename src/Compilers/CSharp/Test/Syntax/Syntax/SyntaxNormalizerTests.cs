@@ -153,10 +153,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestNormalizeExtendedPropertyPattern()
+        public void TestNormalizeListPattern()
         {
             var text = "_ = this is[ 1,2,.. var rest ];";
             var expected = @"_ = this is [1, 2, ..var rest];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_TrailingComma()
+        {
+            var text = "_ = this is[ 1,2, 3,];";
+            var expected = @"_ = this is [1, 2, 3, ];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_EmptyList()
+        {
+            var text = "_ = this is[];";
+            var expected = @"_ = this is [];";
             TestNormalizeStatement(text, expected);
         }
 
