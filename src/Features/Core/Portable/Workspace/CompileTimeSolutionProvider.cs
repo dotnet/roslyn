@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Cached compile time solution for a forked branch.  This is used primarily by LSP cases where
         /// we fork the workspace solution and request diagnostics for the forked solution.
         /// </summary>
-        private (int DesignTimeSolutionVersion, Solution CompileTimeSolution)? _forkedBranchCompileTimeCache;
+        private (int DesignTimeSolutionVersion, Solution CompileTimeSolution)? _forkedBranchCompileTimeSolutionCache;
 
         public CompileTimeSolutionProvider(Workspace workspace)
         {
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                     lock (_gate)
                     {
                         _primaryBranchCompileTimeSolutionCache = null;
-                        _forkedBranchCompileTimeCache = null;
+                        _forkedBranchCompileTimeSolutionCache = null;
                     }
                 }
             };
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // If the design time solution is for the primary branch, retrieve the last cached solution for it.
             // Otherwise this is a forked solution, so retrieve the last forked compile time solution we calculated.
-            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeSolutionCache : _forkedBranchCompileTimeCache;
+            var cachedCompileTimeSolution = designTimeSolution.BranchId == _workspace.PrimaryBranchId ? _primaryBranchCompileTimeSolutionCache : _forkedBranchCompileTimeSolutionCache;
 
             // Verify that the design time solution has not changed since the last calculated compile time solution and that
             // the design time solution branch matches the cached instance.
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
             else
             {
-                _forkedBranchCompileTimeCache = (designTimeSolution.WorkspaceVersion, compileTimeSolution);
+                _forkedBranchCompileTimeSolutionCache = (designTimeSolution.WorkspaceVersion, compileTimeSolution);
             }
         }
     }
