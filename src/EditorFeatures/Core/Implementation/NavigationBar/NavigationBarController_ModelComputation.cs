@@ -98,18 +98,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             // Finally, switch back to the UI to update our state and UI.
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Update the UI to show *just* the type/member that was selected.  We don't need it to know about all items
-            // as the user can only see one at a time as they're editing in a document.  However, once we've done this,
-            // store the full list of items as well so that if the user expands the dropdown, we can take all those
-            // values and shove them in so it appears as if the lists were always fully realized.
-            var (lastModel, lastSelectedItem) = _latestModelAndSelectedInfo_OnlyAccessOnUIThread;
-
-            // If nothing changed, no need to update the presenter.
-            if (Equals(lastModel, model) && Equals(lastSelectedItem, currentSelectedItem))
+            GetProjectItems(out var projectItems, out var selectedProjectItem);
+            if (Equals(model, _lastPresentedInfo.model) &&
+                Equals(currentSelectedItem, _lastPresentedInfo.selectedInfo) &&
+                Equals(selectedProjectItem, _lastPresentedInfo.selectedProjectItem) &&
+                projectItems.SequenceEqual(_lastPresentedInfo.projectItems))
+            {
+                // Nothing changed, so we can skip presenting these items.
                 return;
+            }
 
-            _latestModelAndSelectedInfo_OnlyAccessOnUIThread = (model, currentSelectedItem);
-            PushSelectedItemsToPresenter(currentSelectedItem);
+            _presenter.PresentItems(
+                projectItems,
+                selectedProjectItem,
+                model.Types,
+                currentSelectedItem.TypeItem,
+                currentSelectedItem.MemberItem);
+
+            _lastPresentedInfo = (projectItems, selectedProjectItem, model, currentSelectedItem);
         }
 
         internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(NavigationBarModel model, SnapshotPoint caretPosition, CancellationToken cancellationToken)
