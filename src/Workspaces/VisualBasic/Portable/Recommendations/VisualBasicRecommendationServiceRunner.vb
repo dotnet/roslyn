@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, position, excludeInstance)) _
                     .ToImmutableArray()
             Else
-                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility)
+                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility, unwrapNullable:=False)
             End If
 
             If excludeShared Then
