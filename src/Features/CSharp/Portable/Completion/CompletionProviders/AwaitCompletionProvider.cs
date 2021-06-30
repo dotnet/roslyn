@@ -103,7 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 MethodDeclarationSyntax method => method.ReturnType.SpanStart,
                 LocalFunctionStatementSyntax local => local.ReturnType.SpanStart,
                 AnonymousMethodExpressionSyntax anonymous => anonymous.DelegateKeyword.SpanStart,
-                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.ParameterList.SpanStart,
+                // If we have an explicit lambda return type, async should go just before it. Otherwise, it should go before parameter list.
+                // static [|async|] (a) => ....
+                // static [|async|] ExplicitReturnType (a) => ....
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => (parenthesizedLambda.ReturnType as SyntaxNode ?? parenthesizedLambda.ParameterList).SpanStart,
                 SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
                 _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
             };

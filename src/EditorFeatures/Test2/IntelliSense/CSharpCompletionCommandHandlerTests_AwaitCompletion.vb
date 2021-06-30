@@ -285,6 +285,41 @@ public class C
         End Function
 
         <WpfFact>
+        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression_ExplicitType() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> c = static Task (a) => { $$ };
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> c = static async Task (a) => { await };
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
