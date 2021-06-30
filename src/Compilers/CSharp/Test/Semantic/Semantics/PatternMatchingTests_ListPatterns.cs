@@ -1766,17 +1766,17 @@ class D
 {
     public void Test(string[] strings, int[] integers)
     {
-        _ = strings is [var element1];
-        _ = strings is [..var slice1];
+        _ = strings is [var element1] list1a;
+        _ = strings is [..var slice1] list1b;
 
-        _ = integers is [var element2];
-        _ = integers is [..var slice2];
+        _ = integers is [var element2] list2a;
+        _ = integers is [..var slice2] list2b;
 
-        _ = strings is [string element3];
-        _ = strings is [..string[] slice3];
+        _ = strings is [string element3] list3a;
+        _ = strings is [..string[] slice3] list3b;
 
-        _ = integers is [int element4];
-        _ = integers is [..int[] slice4];
+        _ = integers is [int element4] list4a;
+        _ = integers is [..int[] slice4] list4b;
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
@@ -1784,22 +1784,30 @@ class D
             var tree = compilation.SyntaxTrees[0];
             var nodes = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>();
             Assert.Collection(nodes,
-                d => verify(d, "var element1", "string?", "string"),
-                d => verify(d, "var slice1", "string[]?", "string[]"),
+                d => verify(d, "element1", "string?", "string"),
+                d => verify(d, "list1a", "string[]", "string[]"),
+                d => verify(d, "slice1", "string[]?", "string[]"),
+                d => verify(d, "list1b", "string[]", "string[]"),
 
-                d => verify(d, "var element2", "int", "int"),
-                d => verify(d, "var slice2", "int[]?", "int[]"),
+                d => verify(d, "element2", "int", "int"),
+                d => verify(d, "list2a", "int[]", "int[]"),
+                d => verify(d, "slice2", "int[]?", "int[]"),
+                d => verify(d, "list2b", "int[]", "int[]"),
 
-                d => verify(d, "string element3", "string", "string"),
-                d => verify(d, "string[] slice3", "string[]", "string[]"),
+                d => verify(d, "element3", "string", "string"),
+                d => verify(d, "list3a", "string[]", "string[]"),
+                d => verify(d, "slice3", "string[]", "string[]"),
+                d => verify(d, "list3b", "string[]", "string[]"),
 
-                d => verify(d, "int element4", "int", "int"),
-                d => verify(d, "int[] slice4", "int[]", "int[]")
+                d => verify(d, "element4", "int", "int"),
+                d => verify(d, "list4a", "int[]", "int[]"),
+                d => verify(d, "slice4", "int[]", "int[]"),
+                d => verify(d, "list4b", "int[]", "int[]")
             );
 
             void verify(SyntaxNode designation, string syntax, string declaredType, string type)
             {
-                Assert.Equal(syntax, designation.Parent.ToString());
+                Assert.Equal(syntax, designation.ToString());
                 var model = compilation.GetSemanticModel(tree);
                 var symbol = model.GetDeclaredSymbol(designation);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);

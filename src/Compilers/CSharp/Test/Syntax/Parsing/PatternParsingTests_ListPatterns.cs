@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             UsingExpression(@"c is [[],] v", TestOptions.Regular9,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
+                // c is [[],]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[],] v").WithArguments("list pattern").WithLocation(1, 6),
                 // (1,7): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is [[]]
+                // c is [[],]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("list pattern").WithLocation(1, 7));
             verify();
 
@@ -148,6 +148,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ListPattern_04()
+        {
+            UsingExpression(@"c is ()[]",
+                // (1,1): error CS1073: Unexpected token '['
+                // c is ()[]
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "c is ()").WithArguments("[").WithLocation(1, 1));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PositionalPatternClause);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ListPattern_05()
+        {
+            UsingExpression(@"c is {}[]",
+                // (1,1): error CS1073: Unexpected token '['
+                // c is {}[]
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "c is {}").WithArguments("[").WithLocation(1, 1));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void SlicePattern_01()
         {
             UsingExpression(@"c is [..]");
@@ -155,11 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             UsingExpression(@"c is [..]", TestOptions.Regular9,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is {..}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..]").WithArguments("list pattern").WithLocation(1, 6),
-                // (1,7): error CS8652: The feature 'slice pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is {..}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..").WithArguments("slice pattern").WithLocation(1, 7));
+                // c is [..]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..]").WithArguments("list pattern").WithLocation(1, 6));
             verify();
 
             void verify()
