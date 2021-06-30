@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (inputType.IsErrorType())
                 {
                     hasErrors = true;
-                    sliceType = CreateErrorType();
+                    sliceType = inputType;
                 }
                 else if (inputType.IsSZArray())
                 {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.IsErrorType())
             {
                 hasErrors = true;
-                elementType = CreateErrorType();
+                elementType = inputType;
             }
             else if (inputType.IsSZArray())
             {
