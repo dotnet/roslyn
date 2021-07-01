@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -48,12 +49,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = treeB.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().ToImmutableArray();
+            var statements = GetStatementsAndExpressionBodies(treeB);
             var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
             var expectedTextSpans = new[]
             {
                 (@"B1();", @"[|A2(); A3();|]"),
                 (@"A2();", @"[|A2(); A3();|]"),
+                (@"A3();", @"[|A3();|]"),
+                (@"B4();", @"[|//123|]"),
+                (@"B5();", @"[|0|]"),
+            };
+            AssertEx.Equal(expectedTextSpans, actualTextSpans);
+        }
+
+        [Fact]
+        public void LineSpanDirective_MultiLine()
+        {
+            string sourceA =
+@"         A1(); A2(); A3(); //123
+//4567890
+//ABCDEF
+".NormalizeLineEndings();
+            var textA = SourceText.From(sourceA);
+
+            string sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#line (1, 16) - (5, 26) 15 ""a.cs""
+        B1(); A2(); A3(); B4();
+        B5();
+    }
+}
+".NormalizeLineEndings();
+
+            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "b.cs");
+            treeB.GetDiagnostics().Verify();
+
+            var actualLineMappings = GetLineMappings(treeB);
+            var expectedLineMappings = new[]
+            {
+                "(0,0)-(3,7) -> : (0,0)-(3,7)",
+                "(5,0)-(9,0),14 -> a.cs: (0,15)-(4,26)",
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+            var statements = GetStatementsAndExpressionBodies(treeB);
+            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+            var expectedTextSpans = new[]
+            {
+                (@"B1();", @"[|A2(); A3(); //123
+//4567890
+//ABCDEF
+|]".NormalizeLineEndings()),
+                (@"A2();", @"[|A2(); A3(); //123
+//4567890
+//ABCDEF
+|]".NormalizeLineEndings()),
                 (@"A3();", @"[|A3();|]"),
                 (@"B4();", @"[|//123|]"),
                 (@"B5();", @"[|0|]"),
@@ -99,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = treeB.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().ToImmutableArray();
+            var statements = GetStatementsAndExpressionBodies(treeB);
             var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
             var expectedTextSpans = new[]
             {
@@ -112,10 +165,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(expectedTextSpans, actualTextSpans);
         }
 
-        // 5. Razor: block constructs
+        // 2. Character offset
         [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
-        public void LineSpanDirective_Example5()
+        public void LineSpanDirective_Example2()
+        {
+            string sourceA =
+@"@page ""/""
+@F(() => 1+1,
+   () => 2+2
+)".NormalizeLineEndings();
+            var textA = SourceText.From(sourceA);
+
+            string sourceB =
+@"#line hidden
+class Page
+{
+void Render()
+{
+#line (2,2)-(4,1) 16 ""page.razor"" // spanof('F(...)')
+  _builder.Add(F(() => 1+1,       // 5
+   () => 2+2                      // 6
+));                               // 7
+#line hidden
+}
+}".NormalizeLineEndings();
+
+            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+            treeB.GetDiagnostics().Verify();
+
+            var actualLineMappings = GetLineMappings(treeB);
+            var expectedLineMappings = new[]
+            {
+                "(1,0)-(4,3) -> : (0,0)-(0,0)",
+                "(6,0)-(8,40),15 -> page.razor: (1,1)-(3,1)",
+                "(10,0)-(11,1) -> : (0,0)-(0,0)",
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+            var statements = GetStatementsAndExpressionBodies(treeB);
+            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+            var expectedTextSpans = new[]
+            {
+                (@"_builder.Add(F(() => 1+1,       // 5...", @"[|F(() => 1+1,
+   () => 2+2
+)|]".NormalizeLineEndings()),
+                (@"1+1", @"[|1+1|]"),
+                (@"2+2", @"[|2+2|]"),
+            };
+            AssertEx.Equal(expectedTextSpans, actualTextSpans);
+        }
+
+        // 3. Razor: Single-line span
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+        [Fact]
+        public void LineSpanDirective_Example3()
+        {
+            string sourceA =
+@"@page ""/""
+Time: @DateTime.Now
+".NormalizeLineEndings();
+            var textA = SourceText.From(sourceA);
+
+            string sourceB =
+@"#line hidden
+class Page
+{
+void Render()
+{
+  _builder.Add(""Time:"");
+#line (2,8)-(2,19) 15 ""page.razor"" // spanof('DateTime.Now')
+  _builder.Add(DateTime.Now);
+#line hidden
+}
+}".NormalizeLineEndings();
+
+            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+            treeB.GetDiagnostics().Verify();
+
+            var actualLineMappings = GetLineMappings(treeB);
+            var expectedLineMappings = new[]
+            {
+                "(1,0)-(5,26) -> : (0,0)-(0,0)",
+                "(7,0)-(7,31),14 -> page.razor: (1,7)-(1,19)",
+                "(9,0)-(10,1) -> : (0,0)-(0,0)",
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+            var statements = GetStatementsAndExpressionBodies(treeB);
+            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+            var expectedTextSpans = new[]
+            {
+                (@"_builder.Add(""Time:"");", @"[||]"),
+                (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
+            };
+            AssertEx.Equal(expectedTextSpans, actualTextSpans);
+        }
+
+        // 5i. Razor: block constructs
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+        [Fact]
+        public void LineSpanDirective_Example5i()
         {
             string sourceA =
 @"@Html.Helper(() =>
@@ -160,7 +310,7 @@ class Page
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
 
-            var statements = treeB.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().ToImmutableArray();
+            var statements = GetStatementsAndExpressionBodies(treeB);
             var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
             var expectedTextSpans = new[]
             {
@@ -172,6 +322,27 @@ class Page
                 (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
             };
             AssertEx.Equal(expectedTextSpans, actualTextSpans);
+        }
+
+        private static ImmutableArray<SyntaxNode> GetStatementsAndExpressionBodies(SyntaxTree tree)
+        {
+            var builder = ArrayBuilder<SyntaxNode>.GetInstance();
+            foreach (var syntax in tree.GetRoot().DescendantNodesAndSelf())
+            {
+                switch (syntax)
+                {
+                    case ExpressionStatementSyntax:
+                        builder.Add(syntax);
+                        break;
+                    case ParenthesizedLambdaExpressionSyntax lambda:
+                        builder.AddIfNotNull(lambda.ExpressionBody);
+                        break;
+                    case SimpleLambdaExpressionSyntax lambda:
+                        builder.AddIfNotNull(lambda.ExpressionBody);
+                        break;
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private static ImmutableArray<string> GetLineMappings(SyntaxTree tree)
