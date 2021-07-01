@@ -30,6 +30,26 @@ variables:
     value: $(System.AccessToken)
 
 stages:
+- stage: update
+  displayName: Update Build Number
+
+  jobs:
+  - job: update
+    displayName: Update Build Number
+    pool:
+      vmImage: windows-2019
+    steps:
+    - checkout: none
+    - powershell: |
+        # Build number is in the format of YYYYMMDD.R
+        $buildNumber = "$(Build.BuildNumber)"
+        $buildNumberYYYYMMDD = $buildNumber.Substring(0, 8)
+        $buildNumberRev = [int]($buildNumber.Substring(9))
+        $updatedBuildNumber = $buildNumberYYYYMMDD + '.' + ($buildNumberRev + 90)
+        Write-Host "Setting BuildNumber to $updatedBuildNumber"
+        Write-Host "##vso[build.updatebuildnumber]$updatedBuildNumber"
+      displayName: Update Build Number
+
 - stage: build
   displayName: Build and Test
 
