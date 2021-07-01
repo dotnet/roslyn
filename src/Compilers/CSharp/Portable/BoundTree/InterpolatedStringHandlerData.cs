@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(construction is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression or BoundBadExpression);
             Debug.Assert(!placeholders.IsDefault);
-            // Only the last placeholder should be the out parameter.
+            // Only the last placeholder may be the out parameter.
             Debug.Assert(placeholders.IsEmpty || placeholders.AsSpan()[..^1].All(item => item.ArgumentIndex != BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter));
             BuilderType = builderType;
             Construction = construction;

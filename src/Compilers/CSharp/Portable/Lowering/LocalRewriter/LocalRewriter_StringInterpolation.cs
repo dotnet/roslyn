@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
         {
             Debug.Assert(node.InterpolationData is { Construction: not null });
-            Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundStringInsert { Value: BoundCall }));
+            Debug.Assert(node.Parts.All(static p => p is BoundCall));
             var data = node.InterpolationData.Value;
             var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // PROTOTYPE(interp-string): Support dynamic creation
-            // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool handlerIsValid);
+            // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
             var construction = (BoundObjectCreationExpression)data.Construction;
 
             BoundLocal? appendShouldProceedLocal = null;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(construction.ArgumentRefKindsOpt[^1] == RefKind.Out);
 
                 BoundInterpolatedStringArgumentPlaceholder trailingParameter = data.ArgumentPlaceholders[^1];
-                TypeSymbol localType = trailingParameter.Type!;
+                TypeSymbol localType = trailingParameter.Type;
                 Debug.Assert(localType.SpecialType == SpecialType.System_Boolean);
                 var outLocal = _factory.SynthesizedLocal(localType);
                 appendShouldProceedLocal = _factory.Local(outLocal);
@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argRefKindsOpt = appendCall.ArgumentRefKindsOpt;
 
                 var rewrittenArguments = VisitArguments(
-                    appendCall.Syntax,
                     appendCall.Arguments,
                     appendCall.Method,
                     appendCall.ArgsToParamsOpt,
@@ -108,8 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     temps,
                     appendCall);
 
-                Debug.Assert(usesBoolReturn == (appendCall.Type!.SpecialType == SpecialType.System_Boolean));
+                Debug.Assert(usesBoolReturn == (rewrittenAppendCall.Type!.SpecialType == SpecialType.System_Boolean));
                 resultExpressions.Add(rewrittenAppendCall);
+            }
+
+            if (appendShouldProceedLocal is not null)
+            {
+                RemovePlaceholderReplacement(data.ArgumentPlaceholders[^1]);
             }
 
             if (usesBoolReturn)
@@ -128,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 resultExpressions.Clear();
-                resultExpressions.Add(handlerConstructionAssignment);
 
                 Debug.Assert(currentExpression != null);
 
@@ -136,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     appendShouldProceedLocal is not null
                         ? ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol)
                         : ImmutableArray<LocalSymbol>.Empty,
-                    resultExpressions.ToImmutableAndClear(),
+                    ImmutableArray.Create<BoundExpression>(handlerConstructionAssignment),
                     currentExpression);
 
                 resultExpressions.Add(sequence);
@@ -150,10 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // appendShouldProceedLocal && sequence
                 var appendAnd = _factory.LogicalAnd(appendShouldProceedLocal, appendCallsSequence);
-
-                BoundExpression result = appendAnd;
-
-                result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
+                var result = _factory.Sequence(ImmutableArray.Create(appendShouldProceedLocal.LocalSymbol), resultExpressions.ToImmutableAndClear(), appendAnd);
 
                 resultExpressions.Add(result);
             }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         [Conditional("DEBUG")]
-        private void AssertNoImplicitInterpolatedStringHandlerConversions(ImmutableArray<BoundExpression> arguments, bool allowConversionsWithNoContext = false)
+        private static void AssertNoImplicitInterpolatedStringHandlerConversions(ImmutableArray<BoundExpression> arguments, bool allowConversionsWithNoContext = false)
         {
             if (allowConversionsWithNoContext)
             {

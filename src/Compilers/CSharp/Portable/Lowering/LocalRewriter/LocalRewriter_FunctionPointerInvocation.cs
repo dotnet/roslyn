@@ -22,13 +22,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             BoundExpression? discardedReceiver = null;
             var rewrittenArgs = VisitArguments(
-                node.Syntax,
                 node.Arguments,
                 functionPointer,
                 argsToParamsOpt: default,
-                argumentRefKindsOpt,
-                ref discardedReceiver,
-                out ArrayBuilder<LocalSymbol>? temps);
+                argumentRefKindsOpt: argumentRefKindsOpt,
+                rewrittenReceiver: ref discardedReceiver,
+                temps: out ArrayBuilder<LocalSymbol>? temps);
 
             rewrittenArgs = MakeArguments(
                 node.Syntax,
@@ -44,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenExpression != null);
             node = node.Update(rewrittenExpression, rewrittenArgs, argumentRefKindsOpt, node.ResultKind, node.Type);
 
-            if (temps?.Count is null or 0)
+            if (temps.Count == 0)
             {
-                temps?.Free();
+                temps.Free();
                 return node;
             }
 

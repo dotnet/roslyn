@@ -10267,5 +10267,166 @@ End Structure
 }
 ");
         }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        public void DisallowedInExpressionTrees()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<CustomHandler>> expr = () => $"""";
+";
+
+            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+
+            var comp = CreateCompilation(new[] { code, handler }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,46): error CS9014: An expression tree may not contain an interpolated string handler conversion.
+                // Expression<Func<CustomHandler>> expr = () => $"";
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, @"$""""").WithLocation(5, 46)
+            );
+        }
+
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [CombinatorialData]
+        public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M(1, $"""", $"""");
+
+public class C
+{
+    public static void M(int i, [InterpolatedStringHandlerArgument(""i"")] CustomHandler c1, [InterpolatedStringHandlerArgument(""c1"")] CustomHandler c2) => Console.WriteLine(c2.ToString());
+}
+
+public partial class CustomHandler
+{
+    private int i;    
+    public CustomHandler(int literalLength, int formattedCount, int i" + (validityParameter ? ", out bool success" : "") + @") : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine(""i:"" + i.ToString());
+        this.i = i;
+        " + (validityParameter ? "success = true;" : "") + @"
+    }
+    public CustomHandler(int literalLength, int formattedCount, CustomHandler c" + (validityParameter ? ", out bool success" : "") + @") : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine(""c.i:"" + c.i.ToString());
+        " + (validityParameter ? "success = true;" : "") + @"
+    }
+}";
+
+            var handler = GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp, expectedOutput: "c.i:1");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => (useBoolReturns, validityParameter) switch
+            {
+                (useBoolReturns: false, validityParameter: false) => @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  5
+  .locals init (int V_0,
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  newobj     ""CustomHandler..ctor(int, int, int)""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.1
+  IL_0010:  newobj     ""CustomHandler..ctor(int, int, CustomHandler)""
+  IL_0015:  call       ""void C.M(int, CustomHandler, CustomHandler)""
+  IL_001a:  ret
+}
+",
+                (useBoolReturns: false, validityParameter: true) => @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  6
+  .locals init (int V_0,
+                CustomHandler V_1,
+                bool V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldloca.s   V_2
+  IL_0008:  newobj     ""CustomHandler..ctor(int, int, int, out bool)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldloc.1
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  newobj     ""CustomHandler..ctor(int, int, CustomHandler, out bool)""
+  IL_0019:  call       ""void C.M(int, CustomHandler, CustomHandler)""
+  IL_001e:  ret
+}
+",
+                (useBoolReturns: true, validityParameter: false) => @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  5
+  .locals init (int V_0,
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  newobj     ""CustomHandler..ctor(int, int, int)""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.1
+  IL_0010:  newobj     ""CustomHandler..ctor(int, int, CustomHandler)""
+  IL_0015:  call       ""void C.M(int, CustomHandler, CustomHandler)""
+  IL_001a:  ret
+}
+",
+                (useBoolReturns: true, validityParameter: true) => @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  6
+  .locals init (int V_0,
+                CustomHandler V_1,
+                bool V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldloca.s   V_2
+  IL_0008:  newobj     ""CustomHandler..ctor(int, int, int, out bool)""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  ldloc.1
+  IL_0012:  ldloca.s   V_2
+  IL_0014:  newobj     ""CustomHandler..ctor(int, int, CustomHandler, out bool)""
+  IL_0019:  call       ""void C.M(int, CustomHandler, CustomHandler)""
+  IL_001e:  ret
+}
+",
+            };
+        }
     }
 }

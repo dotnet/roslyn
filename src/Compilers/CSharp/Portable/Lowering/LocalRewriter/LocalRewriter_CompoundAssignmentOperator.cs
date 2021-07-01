@@ -300,7 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
 
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
-                syntax,
                 indexerAccess.Arguments,
                 indexer,
                 argsToParamsOpt,

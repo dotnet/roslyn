@@ -179,7 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The receiver for a collection initializer is already a temp, so we don't need to preserve any additional temp stores beyond this method.
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
-                syntax,
                 initializer.Arguments,
                 addMethod,
                 initializer.ArgsToParamsOpt,
@@ -200,12 +199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                Debug.Assert(temps?.Count is null or 0);
-                temps?.Free();
+                Debug.Assert(temps.Count == 0);
+                temps.Free();
                 return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, defaultArguments: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
             }
 
-            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps?.ToImmutableAndFree() ?? default);
+            return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, argumentRefKindsOpt, initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps.ToImmutableAndFree());
         }
 
         // Rewrite object initializer member assignments and add them to the result.

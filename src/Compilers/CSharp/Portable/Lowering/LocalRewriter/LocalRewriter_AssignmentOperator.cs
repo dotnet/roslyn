@@ -312,7 +312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             arguments = VisitArguments(
-                syntax,
                 arguments,
                 property,
                 argsToParamsOpt,
@@ -331,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: false,
                 enableCallerInfo: ThreeState.True);
 
-            var argTemps = argTempsBuilder?.ToImmutableAndFree() ?? default;
+            var argTemps = argTempsBuilder.ToImmutableAndFree();
 
             if (used)
             {

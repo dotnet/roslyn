@@ -283,43 +283,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversionDiagnostics?.Free();
 
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
-            int constructorArgumentLength = 2 + additionalConstructorArguments.Length;
+            int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(constructorArgumentLength);
-            populateArguments(unconvertedInterpolatedString.Syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
 
             var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance(constructorArgumentLength);
             refKindsBuilder.Add(RefKind.None);
             refKindsBuilder.Add(RefKind.None);
             refKindsBuilder.AddRange(additionalConstructorRefKinds);
 
-            var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+            // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
+            // because we want to track that we're using the type no matter what.
+            var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
+            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType);
+            var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
+            refKindsBuilder.Add(RefKind.Out);
+            populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+
             BoundExpression constructorCall;
-            BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics);
-            if (nonOutConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
+            var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+            var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics);
+            if (outConstructorCall is not BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
             {
                 // MakeConstructorInvocation can call CoerceArguments on the builder if overload resolution succeeded ignoring accessibility, which
                 // could still end up not succeeding, and that would end up changing the arguments. So we want to clear and repopulate.
                 argumentsBuilder.Clear();
 
-                // Try again with an out parameter. Note that we intentionally use `diagnostics` for resolving System.Boolean, because we want to
-                // track that we're using the type no matter what.
-                var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
-                var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType);
-                var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
-                populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+                // Try again without an out parameter.
+                populateArguments(unconvertedInterpolatedString.Syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+                refKindsBuilder.RemoveLast();
 
-                refKindsBuilder.Add(RefKind.Out);
+                var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: outConstructorDiagnostics);
+                BoundExpression nonOutConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, nonOutConstructorDiagnostics);
 
-                var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: nonOutConstructorDiagnostics);
-                var outConstructorCall = MakeConstructorInvocation(interpolatedStringHandlerType, argumentsBuilder, refKindsBuilder, unconvertedInterpolatedString.Syntax, outConstructorDiagnostics);
-
-                if (outConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
+                if (nonOutConstructorCall is BoundObjectCreationExpression { ResultKind: LookupResultKind.Viable })
                 {
                     // We successfully bound the out version, so set all the final data based on that binding
-                    constructorCall = outConstructorCall;
-                    diagnostics.AddRangeAndFree(outConstructorDiagnostics);
-                    nonOutConstructorDiagnostics.Free();
-                    additionalConstructorArguments = outConstructorAdditionalArguments;
+                    constructorCall = nonOutConstructorCall;
+                    diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
+                    outConstructorDiagnostics.Free();
                 }
                 else
                 {
@@ -354,14 +355,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
                             diagnostics.AddRangeAndFree(outConstructorDiagnostics);
                             break;
-
                     }
                 }
             }
             else
             {
-                diagnostics.AddRangeAndFree(nonOutConstructorDiagnostics);
-                constructorCall = nonOutConstructorCall;
+                diagnostics.AddRangeAndFree(outConstructorDiagnostics);
+                constructorCall = outConstructorCall;
+                additionalConstructorArguments = outConstructorAdditionalArguments;
             }
 
             argumentsBuilder.Free();

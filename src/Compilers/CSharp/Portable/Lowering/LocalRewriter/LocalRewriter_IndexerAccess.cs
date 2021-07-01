@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(getMethod is not null);
 
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
-                    syntax,
                     arguments,
                     indexer,
                     argsToParamsOpt,
@@ -147,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 
-                if (temps?.Count is null or 0)
+                if (temps.Count == 0)
                 {
-                    temps?.Free();
+                    temps.Free();
                     return call;
                 }
                 else

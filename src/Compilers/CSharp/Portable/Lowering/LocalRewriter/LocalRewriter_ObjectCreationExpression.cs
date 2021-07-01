@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
             ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
-                node.Syntax,
                 node.Arguments,
                 node.Constructor,
                 node.ArgsToParamsOpt,
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref tempsBuilder);
 
             BoundExpression rewrittenObjectCreation;
-            var temps = tempsBuilder?.ToImmutableAndFree() ?? default;
+            var temps = tempsBuilder.ToImmutableAndFree();
 
             if (_inExpressionLambda)
             {
