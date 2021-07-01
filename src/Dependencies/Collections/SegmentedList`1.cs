@@ -845,19 +845,20 @@ namespace Microsoft.CodeAnalysis.Collections
         //
         public int LastIndexOf(T item, int index, int count)
         {
-            if ((Count != 0) && (index < 0))
+            if (_size == 0)
+            {
+                // Special case for empty list
+                return -1;
+            }
+
+            if (index < 0)
             {
                 ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
             }
 
-            if ((Count != 0) && (count < 0))
+            if (count < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
-            }
-
-            if (_size == 0)
-            {  // Special case for empty list
-                return -1;
             }
 
             if (index >= _size)
@@ -875,19 +876,20 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public int LastIndexOf(T item, int index, int count, IEqualityComparer<T>? comparer)
         {
-            if ((Count != 0) && (index < 0))
+            if (_size == 0)
+            {
+                // Special case for empty list
+                return -1;
+            }
+
+            if (index < 0)
             {
                 ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
             }
 
-            if ((Count != 0) && (count < 0))
+            if (count < 0)
             {
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
-            }
-
-            if (_size == 0)
-            {  // Special case for empty list
-                return -1;
             }
 
             if (index >= _size)
