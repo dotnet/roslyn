@@ -180,10 +180,10 @@ namespace System.Runtime.InteropServices
 
 class Program
 {
-    const string s2 = nameof(s2);
-    delegate void D([CallerArgumentExpression(s2)] [Optional] [DefaultParameterValue(""default"")] ref string s1, string s2);
+    const string s5 = nameof(s5);
+    delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue(""default"")] ref string s1, string s2, string s3, string s4, string s5);
 
-    static void M(ref string s1, string s2)
+    static void M(ref string s1, string s2, string s3, string s4, string s5)
     {
     }
 
@@ -199,7 +199,7 @@ class Program
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                 // (29,22): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
-                //     delegate void D([CallerArgumentExpression(s2)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2);
+                //     delegate void D([CallerArgumentExpression(s4)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22));
         }
 
