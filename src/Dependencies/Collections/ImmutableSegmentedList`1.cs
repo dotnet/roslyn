@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool operator !=(ImmutableSegmentedList<T>? left, ImmutableSegmentedList<T>? right)
             => !left.GetValueOrDefault().Equals(right.GetValueOrDefault());
 
+        /// <inheritdoc cref="ImmutableList{T}.ItemRef(int)"/>
         public ref readonly T ItemRef(int index)
         {
             var self = this;
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return ref self._list._items[index];
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Add(T)"/>
         public ImmutableSegmentedList<T> Add(T value)
         {
             var self = this;
@@ -94,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.AddRange(IEnumerable{T})"/>
         public ImmutableSegmentedList<T> AddRange(IEnumerable<T> items)
         {
             var self = this;
@@ -121,57 +124,73 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.BinarySearch(T)"/>
         public int BinarySearch(T item)
             => _list.BinarySearch(item);
 
+        /// <inheritdoc cref="ImmutableList{T}.BinarySearch(T, IComparer{T}?)"/>
         public int BinarySearch(T item, IComparer<T>? comparer)
             => _list.BinarySearch(item, comparer);
 
+        /// <inheritdoc cref="ImmutableList{T}.BinarySearch(int, int, T, IComparer{T}?)"/>
         public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
             => _list.BinarySearch(index, count, item, comparer);
 
+        /// <inheritdoc cref="ImmutableList{T}.Clear()"/>
         public ImmutableSegmentedList<T> Clear()
             => Empty;
 
         public bool Contains(T value)
             => _list.Contains(value);
 
+        /// <inheritdoc cref="ImmutableList{T}.ConvertAll{TOutput}(Func{T, TOutput})"/>
         public ImmutableSegmentedList<TOutput> ConvertAll<TOutput>(Converter<T, TOutput> converter)
             => new ImmutableSegmentedList<TOutput>(_list.ConvertAll(converter));
 
+        /// <inheritdoc cref="ImmutableList{T}.CopyTo(T[])"/>
         public void CopyTo(T[] array)
             => _list.CopyTo(array);
 
         public void CopyTo(T[] array, int arrayIndex)
             => _list.CopyTo(array, arrayIndex);
 
+        /// <inheritdoc cref="ImmutableList{T}.CopyTo(int, T[], int, int)"/>
         public void CopyTo(int index, T[] array, int arrayIndex, int count)
             => _list.CopyTo(index, array, arrayIndex, count);
 
+        /// <inheritdoc cref="ImmutableList{T}.Exists(Predicate{T})"/>
         public bool Exists(Predicate<T> match)
             => _list.Exists(match);
 
+        /// <inheritdoc cref="ImmutableList{T}.Find(Predicate{T})"/>
         public T? Find(Predicate<T> match)
             => _list.Find(match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindAll(Predicate{T})"/>
         public ImmutableSegmentedList<T> FindAll(Predicate<T> match)
             => new ImmutableSegmentedList<T>(_list.FindAll(match));
 
+        /// <inheritdoc cref="ImmutableList{T}.FindIndex(Predicate{T})"/>
         public int FindIndex(Predicate<T> match)
             => _list.FindIndex(match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindIndex(int, Predicate{T})"/>
         public int FindIndex(int startIndex, Predicate<T> match)
             => _list.FindIndex(startIndex, match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindIndex(int, int, Predicate{T})"/>
         public int FindIndex(int startIndex, int count, Predicate<T> match)
             => _list.FindIndex(startIndex, count, match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindLast(Predicate{T})"/>
         public T? FindLast(Predicate<T> match)
             => _list.FindLast(match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindLastIndex(Predicate{T})"/>
         public int FindLastIndex(Predicate<T> match)
             => _list.FindLastIndex(match);
 
+        /// <inheritdoc cref="ImmutableList{T}.FindLastIndex(int, Predicate{T})"/>
         public int FindLastIndex(int startIndex, Predicate<T> match)
         {
             var self = this;
@@ -186,6 +205,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self._list.FindLastIndex(startIndex, match);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.FindLastIndex(int, int, Predicate{T})"/>
         public int FindLastIndex(int startIndex, int count, Predicate<T> match)
         {
             var self = this;
@@ -200,12 +220,15 @@ namespace Microsoft.CodeAnalysis.Collections
             return self._list.FindLastIndex(startIndex, count, match);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.ForEach(Action{T})"/>
         public void ForEach(Action<T> action)
             => _list.ForEach(action);
 
+        /// <inheritdoc cref="ImmutableList{T}.GetEnumerator()"/>
         public Enumerator GetEnumerator()
             => new(_list);
 
+        /// <inheritdoc cref="ImmutableList{T}.GetRange(int, int)"/>
         public ImmutableSegmentedList<T> GetRange(int index, int count)
         {
             var self = this;
@@ -222,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public int IndexOf(T item, int index, int count, IEqualityComparer<T>? equalityComparer)
             => _list.IndexOf(item, index, count, equalityComparer);
 
+        /// <inheritdoc cref="ImmutableList{T}.Insert(int, T)"/>
         public ImmutableSegmentedList<T> Insert(int index, T item)
         {
             var self = this;
@@ -236,6 +260,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.InsertRange(int, IEnumerable{T})"/>
         public ImmutableSegmentedList<T> InsertRange(int index, IEnumerable<T> items)
         {
             var self = this;
@@ -271,6 +296,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self._list.LastIndexOf(item, index, count, equalityComparer);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Remove(T)"/>
         public ImmutableSegmentedList<T> Remove(T value)
         {
             var self = this;
@@ -282,6 +308,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self.RemoveAt(index);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Remove(T, IEqualityComparer{T}?)"/>
         public ImmutableSegmentedList<T> Remove(T value, IEqualityComparer<T>? equalityComparer)
         {
             var self = this;
@@ -293,6 +320,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self.RemoveAt(index);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.RemoveAll(Predicate{T})"/>
         public ImmutableSegmentedList<T> RemoveAll(Predicate<T> match)
         {
             // TODO: Optimize this to avoid allocations if no items are removed
@@ -302,6 +330,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.RemoveAt(int)"/>
         public ImmutableSegmentedList<T> RemoveAt(int index)
         {
             // TODO: Optimize this to share pages prior to the removed item
@@ -310,6 +339,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.RemoveRange(IEnumerable{T})"/>
         public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items)
         {
             if (items is null)
@@ -333,6 +363,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.RemoveRange(IEnumerable{T}, IEqualityComparer{T}?)"/>
         public ImmutableSegmentedList<T> RemoveRange(IEnumerable<T> items, IEqualityComparer<T>? equalityComparer)
         {
             if (items is null)
@@ -356,6 +387,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.RemoveRange(int, int)"/>
         public ImmutableSegmentedList<T> RemoveRange(int index, int count)
         {
             var self = this;
@@ -371,6 +403,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Replace(T, T)"/>
         public ImmutableSegmentedList<T> Replace(T oldValue, T newValue)
         {
             var self = this;
@@ -384,6 +417,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self.SetItem(index, newValue);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Replace(T, T, IEqualityComparer{T}?)"/>
         public ImmutableSegmentedList<T> Replace(T oldValue, T newValue, IEqualityComparer<T>? equalityComparer)
         {
             var self = this;
@@ -397,6 +431,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return self.SetItem(index, newValue);
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Reverse()"/>
         public ImmutableSegmentedList<T> Reverse()
         {
             var self = this;
@@ -408,6 +443,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Reverse(int, int)"/>
         public ImmutableSegmentedList<T> Reverse(int index, int count)
         {
             var builder = ToValueBuilder();
@@ -415,6 +451,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.SetItem(int, T)"/>
         public ImmutableSegmentedList<T> SetItem(int index, T value)
         {
             // TODO: Optimize this to share all pages except the one with 'index'
@@ -423,6 +460,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Sort()"/>
         public ImmutableSegmentedList<T> Sort()
         {
             var self = this;
@@ -436,6 +474,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Sort(IComparer{T}?)"/>
         public ImmutableSegmentedList<T> Sort(IComparer<T>? comparer)
         {
             var self = this;
@@ -449,6 +488,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Sort(Comparison{T})"/>
         public ImmutableSegmentedList<T> Sort(Comparison<T> comparison)
         {
             if (comparison == null)
@@ -467,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.Sort(int, int, IComparer{T}?)"/>
         public ImmutableSegmentedList<T> Sort(int index, int count, IComparer<T>? comparer)
         {
             // TODO: Optimize this to avoid allocations if the list is already sorted
@@ -475,6 +516,7 @@ namespace Microsoft.CodeAnalysis.Collections
             return builder.ToImmutable();
         }
 
+        /// <inheritdoc cref="ImmutableList{T}.ToBuilder()"/>
         public Builder ToBuilder()
             => new Builder(this);
 
@@ -493,6 +535,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public bool Equals(ImmutableSegmentedList<T> other)
             => _list == other._list;
 
+        /// <inheritdoc cref="ImmutableList{T}.TrueForAll(Predicate{T})"/>
         public bool TrueForAll(Predicate<T> match)
             => _list.TrueForAll(match);
 
