@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
             var model = await ComputeModelAsync(textSnapshot, cancellationToken).ConfigureAwait(false);
 
+            SetTextVersion(model, textSnapshot);
+
             // Now, enqueue work to select the right item in this new model.
             StartSelectedItemUpdateTask();
 
@@ -58,12 +60,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                     {
                         var items = await itemService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-                        return new NavigationBarModel(items, itemService);
+                        return new NavigationBarModel(itemService, items);
                     }
                 }
 
-                return new NavigationBarModel(ImmutableArray<NavigationBarItem>.Empty, itemService: null);
+                return new NavigationBarModel(itemService: null, ImmutableArray<NavigationBarItem>.Empty);
             }
+        }
+
+        private static void SetTextVersion(NavigationBarModel model, ITextSnapshot textSnapshot)
+        {
+            foreach (var item in model.Types)
+                SetTextVersion(item, textSnapshot);
+        }
+
+        private static void SetTextVersion(NavigationBarItem item, ITextSnapshot textSnapshot)
+        {
+            item.TextVersion = textSnapshot.Version;
+
+            foreach (var child in item.ChildItems)
+                SetTextVersion(child, textSnapshot);
         }
 
         /// <summary>

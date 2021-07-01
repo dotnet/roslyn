@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
         }
 
-        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken);
+        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
         {
@@ -32,15 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
         }
 
-        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
-            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, cancellationToken);
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textSnapshot, cancellationToken);
 
         protected async Task NavigateToSymbolItemAsync(
-            Document document, NavigationBarItem item, SymbolItem symbolItem, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, SymbolItem symbolItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
-            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(document, item, symbolItem, cancellationToken).ConfigureAwait(false);
+            var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(
+                document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
 
             // Ensure we're back on the UI thread before either navigating or showing a failure message.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -66,21 +68,23 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             Document document,
             NavigationBarItem item,
             SymbolItem symbolItem,
+            ITextSnapshot textSnapshot,
             CancellationToken cancellationToken)
         {
             // If the item points to a location in this document, then just determine the current location
             // of that item and go directly to it.
-            if (item.NavigationSpan != null)
+            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            if (navigationSpan != null)
             {
-                return Task.FromResult((document.Id, item.NavigationSpan.Value.Start, 0));
+                return Task.FromResult((document.Id, navigationSpan.Value.Start, 0));
             }
             else
             {
                 // Otherwise, the item pointed to a location in another document.  Just return the position we
                 // computed and stored for it.
                 Contract.ThrowIfNull(symbolItem.Location.OtherDocumentInfo);
-                var (documentId, navigationSpan) = symbolItem.Location.OtherDocumentInfo.Value;
-                return Task.FromResult((documentId, navigationSpan.Start, 0));
+                var (documentId, span) = symbolItem.Location.OtherDocumentInfo.Value;
+                return Task.FromResult((documentId, span.Start, 0));
             }
         }
 

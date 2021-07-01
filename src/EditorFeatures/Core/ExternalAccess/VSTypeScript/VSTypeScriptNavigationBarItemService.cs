@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,16 +46,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            if (item.NavigationSpan != null)
+            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            if (navigationSpan != null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
                 navigationService.TryNavigateToPosition(
-                    workspace, document.Id, item.NavigationSpan.Value.Start,
+                    workspace, document.Id, navigationSpan.Value.Start,
                     virtualSpace: 0, options: null, cancellationToken: cancellationToken);
             }
 

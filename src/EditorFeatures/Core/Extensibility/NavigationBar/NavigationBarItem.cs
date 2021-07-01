@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -34,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <remarks>This can be <see langword="null"/> for items whose location is in another document.</remarks>
         public TextSpan? NavigationSpan { get; }
 
+        internal ITextVersion TextVersion { get; set; } = null!;
+
         public NavigationBarItem(
             string text,
             Glyph glyph,
@@ -52,6 +57,15 @@ namespace Microsoft.CodeAnalysis.Editor
             this.Indent = indent;
             this.Bolded = bolded;
             this.Grayed = grayed;
+        }
+
+        public TextSpan? TryGetNavigationSpan(ITextSnapshot textSnapshot)
+        {
+            if (this.NavigationSpan == null)
+                return null;
+
+            return this.TextVersion.CreateTrackingSpan(this.NavigationSpan.Value.ToSpan(), SpanTrackingMode.EdgeExclusive)
+                                   .GetSpan(textSnapshot).Span.ToTextSpan();
         }
 
         public abstract override bool Equals(object? obj);

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
         /// </summary>
-        Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigationBar
         {
         }
 
-        protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, CancellationToken cancellationToken)
+        protected override async Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
-            await NavigateToSymbolItemAsync(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, cancellationToken).ConfigureAwait(false);
+            await NavigateToSymbolItemAsync(document, item, (RoslynNavigationBarItem.SymbolItem)item.UnderlyingItem, textSnapshot, cancellationToken).ConfigureAwait(false);
             return true;
         }
     }

@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 {
     internal sealed class NavigationBarModel : IEquatable<NavigationBarModel>
     {
-        public ImmutableArray<NavigationBarItem> Types { get; }
         public INavigationBarItemService ItemService { get; }
+        public ImmutableArray<NavigationBarItem> Types { get; }
 
-        public NavigationBarModel(ImmutableArray<NavigationBarItem> types, INavigationBarItemService itemService)
+        public NavigationBarModel(INavigationBarItemService itemService, ImmutableArray<NavigationBarItem> types)
         {
-            this.Types = types;
-            this.ItemService = itemService;
+            ItemService = itemService;
+            Types = types;
         }
 
         public override bool Equals(object? obj)

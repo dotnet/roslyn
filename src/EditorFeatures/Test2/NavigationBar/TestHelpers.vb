@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim items = Await service.GetItemsAsync(document, Nothing)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-                Dim model As New NavigationBarModel(items.ToImmutableArray(), service)
+                Dim model As New NavigationBarModel(service, items.ToImmutableArray())
                 Dim selectedItems = NavigationBarController.ComputeSelectedTypeAndMember(model, New SnapshotPoint(hostDocument.GetTextBuffer().CurrentSnapshot, hostDocument.CursorPosition.Value), Nothing)
 
                 Dim isCaseSensitive = document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive
@@ -111,6 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
 
             Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
+                Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
                 Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
@@ -122,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     sourceDocument,
                     rightItem,
                     DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
+                    snapshot,
                     cancellationToken:=Nothing)
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)

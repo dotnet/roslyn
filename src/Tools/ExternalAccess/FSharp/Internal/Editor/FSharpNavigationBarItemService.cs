@@ -51,12 +51,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (item.NavigationSpan != null)
+            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            if (navigationSpan != null)
             {
-                var span = item.NavigationSpan.Value;
+                var span = navigationSpan.Value;
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 

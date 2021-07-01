@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -40,9 +39,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 document As Document,
                 item As NavigationBarItem,
                 symbolItem As SymbolItem,
+                textSnapshot As ITextSnapshot,
                 cancellationToken As CancellationToken) As Task(Of (documentId As DocumentId, position As Integer, virtualSpace As Integer))
 
-            Dim navigationLocation = Await MyBase.GetNavigationLocationAsync(document, item, symbolItem, cancellationToken).ConfigureAwait(False)
+            Dim navigationLocation = Await MyBase.GetNavigationLocationAsync(
+                document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(False)
 
             Dim destinationDocument = document.Project.Solution.GetDocument(navigationLocation.documentId)
 
@@ -60,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
         End Function
 
         Protected Overrides Async Function TryNavigateToItemAsync(
-                document As Document, item As WrappedNavigationBarItem, textView As ITextView, cancellationToken As CancellationToken) As Task(Of Boolean)
+                document As Document, item As WrappedNavigationBarItem, textView As ITextView, textSnapshot As ITextSnapshot, cancellationToken As CancellationToken) As Task(Of Boolean)
             Dim underlying = item.UnderlyingItem
 
             Dim generateCodeItem = TryCast(underlying, AbstractGenerateCodeItem)
@@ -69,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Await GenerateCodeForItemAsync(document, generateCodeItem, textView, cancellationToken).ConfigureAwait(False)
                 Return True
             ElseIf symbolItem IsNot Nothing Then
-                Await NavigateToSymbolItemAsync(document, item, symbolItem, cancellationToken).ConfigureAwait(False)
+                Await NavigateToSymbolItemAsync(document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(False)
                 Return True
             End If
 

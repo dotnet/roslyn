@@ -215,11 +215,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             }
         }
 
-        /// <summary>
-        /// Process the selection of an item synchronously inside a wait context.
-        /// </summary>
-        /// <param name="item">The selected item.</param>
-        /// <param name="cancellationToken">A cancellation token from the wait context.</param>
         private async Task ProcessItemSelectionAsync(NavigationBarItem item, CancellationToken cancellationToken)
         {
             AssertIsForeground();
@@ -239,7 +234,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             {
                 // When navigating, just use the partial semantics workspace.  Navigation doesn't need the fully bound
                 // compilations to be created, and it can save us a lot of costly time building skeleton assemblies.
-                var document = _subjectBuffer.CurrentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+                var textSnapshot = _subjectBuffer.CurrentSnapshot;
+                var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document != null)
                 {
                     var navBarService = document.GetRequiredLanguageService<INavigationBarItemService>();
@@ -251,8 +247,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     // exist in the type list that are only there to show a set a particular set of items in the member
                     // list.  So selecting such an item should only update the member list, and we do not want a refresh
                     // to wipe that out.
-                    if (!await navBarService.TryNavigateToItemAsync(document, item, view, cancellationToken).ConfigureAwait(true))
+                    if (!await navBarService.TryNavigateToItemAsync(
+                            document, item, view, textSnapshot, cancellationToken).ConfigureAwait(true))
+                    {
                         return;
+                    }
                 }
             }
 
