@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 var t = Task.Delay(delay, cancellationToken);
                 if (t.IsCompleted)
                 {
-                    return t.Status == TaskStatus.RanToCompletion ?
-                        SpecializedTasks.True :
-                        Task.FromCanceled<bool>(cancellationToken);
+                    return t.Status == TaskStatus.RanToCompletion
+                        ? SpecializedTasks.True
+                        : Task.FromCanceled<bool>(cancellationToken);
                 }
 
                 return t.ContinueWith(
