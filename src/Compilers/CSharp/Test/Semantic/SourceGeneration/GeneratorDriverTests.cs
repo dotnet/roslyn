@@ -1928,5 +1928,73 @@ class C { }
             // replace it with null, and check that it throws
             Assert.Throws<ArgumentNullException>(() => driver.ReplaceAdditionalText(additionalText1, null!));
         }
+
+        [Fact]
+        public void Replaced_Input_Is_Treated_As_Modified()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            InMemoryAdditionalText additionalText = new InMemoryAdditionalText("path.txt", "abc");
+
+            List<string?> additionalTextPaths = new List<string?>();
+            List<string?> additionalTextsContents = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var texts = ctx.AdditionalTextsProvider;
+                var paths = texts.Select((t, _) => t?.Path);
+                var contents = texts.Select((t, _) => t?.GetText()?.ToString());
+
+                ctx.RegisterSourceOutput(paths, (spc, p) => { additionalTextPaths.Add(p); });
+                ctx.RegisterSourceOutput(contents, (spc, p) => { additionalTextsContents.Add(p); });
+            }));
+
+            // run the generator once and check we saw the additional file
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, additionalTexts: new[] { additionalText });
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal("path.txt", additionalTextPaths[0]);
+
+            Assert.Equal(1, additionalTextsContents.Count);
+            Assert.Equal("abc", additionalTextsContents[0]);
+
+            // re-run and check nothing else got added
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal(1, additionalTextsContents.Count);
+
+            // now, update the additional text, but keep the path the same
+            additionalTextPaths.Clear();
+            additionalTextsContents.Clear();
+            var secondText = new InMemoryAdditionalText("path.txt", "def");
+            driver = driver.ReplaceAdditionalText(additionalText, secondText);
+
+            // run, and check that only the contents got re-run
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(additionalTextPaths);
+
+            Assert.Equal(1, additionalTextsContents.Count);
+            Assert.Equal("def", additionalTextsContents[0]);
+
+            // now replace the text with a different path, but the same text
+            additionalTextPaths.Clear();
+            additionalTextsContents.Clear();
+            var thirdText = new InMemoryAdditionalText("path2.txt", "def");
+            driver = driver.ReplaceAdditionalText(secondText, thirdText);
+
+            // run, and check that only the paths got re-run
+            driver = driver.RunGenerators(compilation);
+
+            Assert.Equal(1, additionalTextPaths.Count);
+            Assert.Equal("path2.txt", additionalTextPaths[0]);
+
+            Assert.Empty(additionalTextsContents);
+        }
     }
 }
