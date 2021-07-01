@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return GetDiagnosticData(
                 documentId,
                 _projectId,
-                GetErrorId(error),
+                errorId,
                 message: error.bstrText,
                 GetDiagnosticSeverity(error),
                 _language,
