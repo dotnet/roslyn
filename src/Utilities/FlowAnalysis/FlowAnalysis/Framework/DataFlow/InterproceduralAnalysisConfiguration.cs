@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -43,11 +42,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-            CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         => Create(analyzerOptions, rule, cfg.OriginalOperation.Syntax.SyntaxTree, compilation, defaultInterproceduralAnalysisKind,
-                cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
+                defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
 
         private static InterproceduralAnalysisConfiguration Create(
             AnalyzerOptions analyzerOptions,
@@ -55,27 +53,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             SyntaxTree tree,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-            CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
-            var kind = analyzerOptions.GetInterproceduralAnalysisKindOption(rule, tree, compilation, defaultInterproceduralAnalysisKind, cancellationToken);
+            var kind = analyzerOptions.GetInterproceduralAnalysisKindOption(rule, tree, compilation, defaultInterproceduralAnalysisKind);
 
             var maxInterproceduralMethodCallChain = analyzerOptions.GetUnsignedIntegralOptionValue(
                 optionName: EditorConfigOptionNames.MaxInterproceduralMethodCallChain,
                 rule: rule,
                 tree,
                 compilation,
-                defaultValue: defaultMaxInterproceduralMethodCallChain,
-                cancellationToken: cancellationToken);
+                defaultValue: defaultMaxInterproceduralMethodCallChain);
 
             var maxInterproceduralLambdaOrLocalFunctionCallChain = analyzerOptions.GetUnsignedIntegralOptionValue(
                 optionName: EditorConfigOptionNames.MaxInterproceduralLambdaOrLocalFunctionCallChain,
                 rule: rule,
                 tree,
                 compilation,
-                defaultValue: defaultMaxInterproceduralLambdaOrLocalFunctionCallChain,
-                cancellationToken: cancellationToken);
+                defaultValue: defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
 
             return new InterproceduralAnalysisConfiguration(
                 kind, maxInterproceduralMethodCallChain, maxInterproceduralLambdaOrLocalFunctionCallChain);
@@ -87,11 +82,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ControlFlowGraph cfg,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-            CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         => Create(analyzerOptions, rules, cfg.OriginalOperation, compilation, defaultInterproceduralAnalysisKind,
-                cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
+                defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
 
         internal static InterproceduralAnalysisConfiguration Create(
             AnalyzerOptions analyzerOptions,
@@ -99,7 +93,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             IOperation operation,
             Compilation compilation,
             InterproceduralAnalysisKind defaultInterproceduralAnalysisKind,
-            CancellationToken cancellationToken,
             uint defaultMaxInterproceduralMethodCallChain = DefaultMaxInterproceduralMethodCallChain,
             uint defaultMaxInterproceduralLambdaOrLocalFunctionCallChain = DefaultMaxInterproceduralLambdaOrLocalFunctionCallChain)
         {
@@ -110,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             foreach (var rule in rules)
             {
                 var interproceduralAnalysisConfig = Create(analyzerOptions, rule, tree, compilation, defaultInterproceduralAnalysisKind,
-                    cancellationToken, defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
+                    defaultMaxInterproceduralMethodCallChain, defaultMaxInterproceduralLambdaOrLocalFunctionCallChain);
                 maxKind = (InterproceduralAnalysisKind)Math.Max((int)maxKind, (int)interproceduralAnalysisConfig.InterproceduralAnalysisKind);
                 maxMethodCallChain = Math.Max(maxMethodCallChain, interproceduralAnalysisConfig.MaxInterproceduralMethodCallChain);
                 maxLambdaorLocalFunctionCallChain = Math.Max(maxLambdaorLocalFunctionCallChain, interproceduralAnalysisConfig.MaxInterproceduralLambdaOrLocalFunctionCallChain);
