@@ -77,11 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             }
                         }
 
-                        return new LineMappingEntry(
-                            unmappedLine,
-                            mappedLine,
-                            mappedPathOpt,
-                            state);
+                        return new LineMappingEntry(unmappedLine, mappedLine, mappedPathOpt, state);
                     }
 
                 case LineSpanDirectiveTriviaSyntax spanDirective:
