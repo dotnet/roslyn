@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMember, destination))
+            var memberPullerService = document.GetRequiredLanguageService<IMembersPullerService>();
+            var allActions = allDestinations.Select(destination => memberPullerService.TryComputeCodeAction(document, selectedMember, destination))
                 .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, _service))
                 .ToImmutableArray();
 

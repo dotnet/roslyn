@@ -9,24 +9,23 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal static class MembersPuller
+    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax> : IMembersPullerService
+        where TUsingOrAliasSyntax : SyntaxNode
     {
-        /// <summary>
-        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error, it will return null.
-        /// </summary>
-        public static CodeAction TryComputeCodeAction(
+        public CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
             INamedTypeSymbol destination)
@@ -43,14 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
         }
 
-        /// <summary>
-        /// Return the changed solution if all changes in pullMembersUpOptions are applied.
-        /// </summary>
-        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
-        public static Task<Solution> PullMembersUpAsync(
-            Document document,
-            PullMembersUpOptions pullMembersUpOptions,
-            CancellationToken cancellationToken)
+        public Task<Solution> PullMembersUpAsync(
+             Document document,
+             PullMembersUpOptions pullMembersUpOptions,
+             CancellationToken cancellationToken)
         {
             if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
             {
@@ -65,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination);
             }
         }
+
+        protected abstract Task<ImmutableArray<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
 
         private static IMethodSymbol FilterOutNonPublicAccessor(IMethodSymbol getterOrSetter)
         {
@@ -233,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private static async Task<Solution> PullMembersIntoClassAsync(
+        private async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
             Solution solution,
@@ -243,7 +240,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
@@ -277,15 +273,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    // add import symbol annotations for all the code we may be moving
-                    newDestination = newDestination.WithAdditionalAnnotations(
-                        syntax.DescendantNodesAndSelf()
-                        .Select((node) => semanticModel.GetTypeInfo(node, cancellationToken).Type)
-                        .Where((type) => type != null &&
-                                !type.IsErrorType())
-                        .Distinct()
-                        .Select((type) => SymbolAnnotation.Create(type)));
-
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
                         originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
@@ -310,8 +297,39 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => newDestination);
+
+            // add imports by combining source and destination imports, then taking out unneccessary
+            // imports that we don't need from the destination. If source and destination are the same document
+            // or have the same imports, this doesn't do anything
+            var destinationDocument = destinationEditor.GetChangedDocument();
+            var sourceImports = await GetImportsAsync(document, cancellationToken).ConfigureAwait(false);
+            var destinationImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+            var addImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+            var semanticModel = await destinationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            destinationDocument = destinationDocument.WithSyntaxRoot(addImportsService.AddImports(
+                semanticModel.Compilation,
+                destinationEditor.GetChangedRoot(),
+                null,
+                sourceImports,
+                destinationEditor.Generator,
+                options.PlaceSystemNamespaceFirst,
+                document.CanAddImportsInHiddenRegions(),
+                cancellationToken));
+
+            var removeImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
+            destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(destinationDocument, (node) => !destinationImports.Contains(node), cancellationToken).ConfigureAwait(false);
+
+            destinationDocument = await Formatting.Formatter.OrganizeImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+
+            destinationDocument = destinationDocument.WithSyntaxRoot(
+                EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+
             return solutionEditor.GetChangedSolution();
         }
+
+        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
 
         private static ISymbol MakeAbstractVersion(ISymbol member)
         {

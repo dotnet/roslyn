@@ -917,6 +917,55 @@ public class Derived : Base
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithoutDuplicatingUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
@@ -1023,6 +1072,268 @@ using System.Linq;
 
 public class Derived : Base
 {
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithOverlappingUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedBaseUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedDerivedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public int TestMethod()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+    using System.Linq;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+    }
 }
         </Document>
     </Project>
