@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor
             Workspace workspace,
             DocumentId documentId,
             string language)
-                : base(text, glyph,
+                : base(textVersion: null, text, glyph,
                        spans: ImmutableArray<TextSpan>.Empty,
                        navigationSpan: null,
                        childItems: ImmutableArray<NavigationBarItem>.Empty,

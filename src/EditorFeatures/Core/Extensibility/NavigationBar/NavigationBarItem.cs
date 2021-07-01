@@ -37,9 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <remarks>This can be <see langword="null"/> for items whose location is in another document.</remarks>
         public TextSpan? NavigationSpan { get; }
 
-        internal ITextVersion TextVersion { get; set; } = null!;
+        internal ITextVersion? TextVersion { get; }
 
         public NavigationBarItem(
+            ITextVersion? textVersion,
             string text,
             Glyph glyph,
             ImmutableArray<TextSpan> spans,
@@ -49,26 +50,24 @@ namespace Microsoft.CodeAnalysis.Editor
             bool bolded = false,
             bool grayed = false)
         {
-            this.Text = text;
-            this.Glyph = glyph;
-            this.Spans = spans;
-            this.NavigationSpan = navigationSpan;
-            this.ChildItems = childItems.NullToEmpty();
-            this.Indent = indent;
-            this.Bolded = bolded;
-            this.Grayed = grayed;
+            TextVersion = textVersion;
+            Text = text;
+            Glyph = glyph;
+            Spans = spans;
+            NavigationSpan = navigationSpan;
+            ChildItems = childItems.NullToEmpty();
+            Indent = indent;
+            Bolded = bolded;
+            Grayed = grayed;
         }
 
-        public TextSpan? TryGetNavigationSpan(ITextSnapshot textSnapshot)
+        public TextSpan? TryGetNavigationSpan(ITextVersion textVersion)
         {
             if (this.NavigationSpan == null)
                 return null;
 
-            if (this.TextVersion == null)
-                return this.NavigationSpan.Value;
-
-            return this.TextVersion.CreateTrackingSpan(this.NavigationSpan.Value.ToSpan(), SpanTrackingMode.EdgeExclusive)
-                                   .GetSpan(textSnapshot).Span.ToTextSpan();
+            return this.TextVersion!.CreateTrackingSpan(this.NavigationSpan.Value.ToSpan(), SpanTrackingMode.EdgeExclusive)
+                                    .GetSpan(textVersion).ToTextSpan();
         }
 
         public abstract override bool Equals(object? obj);

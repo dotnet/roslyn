@@ -23,26 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
         }
 
-        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
             var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
-            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v));
+            return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v));
         }
 
-        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
-            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textSnapshot, cancellationToken);
+        public Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken)
+            => TryNavigateToItemAsync(document, (WrappedNavigationBarItem)item, textView, textVersion, cancellationToken);
 
         protected async Task NavigateToSymbolItemAsync(
-            Document document, NavigationBarItem item, SymbolItem symbolItem, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, SymbolItem symbolItem, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
 
             var (documentId, position, virtualSpace) = await GetNavigationLocationAsync(
-                document, item, symbolItem, textSnapshot, cancellationToken).ConfigureAwait(false);
+                document, item, symbolItem, textVersion, cancellationToken).ConfigureAwait(false);
 
             // Ensure we're back on the UI thread before either navigating or showing a failure message.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             Document document,
             NavigationBarItem item,
             SymbolItem symbolItem,
-            ITextSnapshot textSnapshot,
+            ITextVersion textVersion,
             CancellationToken cancellationToken)
         {
             // If the item points to a location in this document, then just determine the current location
             // of that item and go directly to it.
-            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            var navigationSpan = item.TryGetNavigationSpan(textVersion);
             if (navigationSpan != null)
             {
                 return Task.FromResult((document.Id, navigationSpan.Value.Start, 0));

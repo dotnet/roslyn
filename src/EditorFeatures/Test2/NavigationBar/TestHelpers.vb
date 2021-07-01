@@ -35,9 +35,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 workspace.CanApplyChangeDocument = workspaceSupportsChangeDocument
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim actualItems = Await service.GetItemsAsync(document, Nothing)
+                Dim actualItems = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 AssertEqual(expectedItems, actualItems, document.GetLanguageService(Of ISyntaxFactsService)().IsCaseSensitive)
             End Using
@@ -52,9 +53,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 rightItemGrayed As Boolean) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
-                Dim items = Await service.GetItemsAsync(document, Nothing)
+                Dim items = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim model As New NavigationBarModel(service, items.ToImmutableArray())
@@ -83,10 +85,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 expectedText As XElement) As Tasks.Task
             Using workspace = TestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim snapshot = (Await document.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = document.GetLanguageService(Of INavigationBarItemService)()
 
-                Dim items = Await service.GetItemsAsync(document, Nothing)
+                Dim items = Await service.GetItemsAsync(document, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = selectRightItem(leftItem.ChildItems)
@@ -114,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)
-                Dim items = Await service.GetItemsAsync(sourceDocument, Nothing)
+                Dim items = Await service.GetItemsAsync(sourceDocument, snapshot.Version, Nothing)
 
                 Dim leftItem = items.Single(Function(i) i.Text = leftItemToSelectText)
                 Dim rightItem = leftItem.ChildItems.Single(Function(i) i.Text = rightItemToSelectText)
@@ -123,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     sourceDocument,
                     rightItem,
                     DirectCast(DirectCast(rightItem, WrappedNavigationBarItem).UnderlyingItem, RoslynNavigationBarItem.SymbolItem),
-                    snapshot,
+                    snapshot.Version,
                     cancellationToken:=Nothing)
 
                 Dim expectedNavigationDocument = workspace.Documents.Single(Function(doc) doc.CursorPosition.HasValue)

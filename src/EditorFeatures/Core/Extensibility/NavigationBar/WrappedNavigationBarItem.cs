@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -17,13 +18,14 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         public readonly RoslynNavigationBarItem UnderlyingItem;
 
-        internal WrappedNavigationBarItem(RoslynNavigationBarItem underlyingItem)
+        internal WrappedNavigationBarItem(ITextVersion textVersion, RoslynNavigationBarItem underlyingItem)
             : base(
+                  textVersion,
                   underlyingItem.Text,
                   underlyingItem.Glyph,
                   GetSpans(underlyingItem),
                   GetNavigationSpan(underlyingItem),
-                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(v)),
+                  underlyingItem.ChildItems.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v)),
                   underlyingItem.Indent,
                   underlyingItem.Bolded,
                   underlyingItem.Grayed)

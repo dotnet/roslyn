@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -36,19 +35,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         }
 
         public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
-            Document document, CancellationToken cancellationToken)
+            Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return ConvertItems(items);
+            return ConvertItems(items, textVersion);
         }
 
-        private static ImmutableArray<NavigationBarItem> ConvertItems(ImmutableArray<VSTypescriptNavigationBarItem> items)
-            => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x));
+        private static ImmutableArray<NavigationBarItem> ConvertItems(ImmutableArray<VSTypescriptNavigationBarItem> items, ITextVersion textVersion)
+            => items.SelectAsArray(x => !x.Spans.IsEmpty, x => ConvertToNavigationBarItem(x, textVersion));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
-            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            var navigationSpan = item.TryGetNavigationSpan(textVersion);
             if (navigationSpan != null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -68,34 +67,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             return true;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item)
+        private static NavigationBarItem ConvertToNavigationBarItem(VSTypescriptNavigationBarItem item, ITextVersion textVersion)
         {
             Contract.ThrowIfTrue(item.Spans.IsEmpty);
-            return new InternalNavigationBarItem(
+            return new SimpleNavigationBarItem(
+                textVersion,
                 item.Text,
                 VSTypeScriptGlyphHelpers.ConvertTo(item.Glyph),
                 item.Spans,
-                ConvertItems(item.ChildItems),
+                item.Spans.First(),
+                ConvertItems(item.ChildItems, textVersion),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
-        }
-
-        private sealed class InternalNavigationBarItem : NavigationBarItem, IEquatable<InternalNavigationBarItem>
-        {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, spans.First(), childItems, indent, bolded, grayed)
-            {
-            }
-
-            public override bool Equals(object? obj)
-                => Equals(obj as InternalNavigationBarItem);
-
-            public bool Equals(InternalNavigationBarItem? other)
-                => base.Equals(other);
-
-            public override int GetHashCode()
-                => throw new NotImplementedException();
         }
     }
 }

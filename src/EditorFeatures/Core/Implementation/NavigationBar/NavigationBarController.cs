@@ -218,13 +218,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async Task ProcessItemSelectionAsync(NavigationBarItem item, CancellationToken cancellationToken)
         {
             AssertIsForeground();
-            if (item is NavigationBarPresentedItem)
-            {
-                // Presented items are not navigable, but they may be selected due to a race
-                // documented in Bug #1174848. Protect all INavigationBarItemService implementers
-                // from this by ignoring these selections here.
-                return;
-            }
 
             if (item is NavigationBarProjectItem projectItem)
             {
@@ -248,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     // list.  So selecting such an item should only update the member list, and we do not want a refresh
                     // to wipe that out.
                     if (!await navBarService.TryNavigateToItemAsync(
-                            document, item, view, textSnapshot, cancellationToken).ConfigureAwait(true))
+                            document, item, view, textSnapshot.Version, cancellationToken).ConfigureAwait(true))
                     {
                         return;
                     }

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -39,22 +38,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null
                 ? ImmutableArray<NavigationBarItem>.Empty
-                : ConvertItems(items);
+                : ConvertItems(items, textVersion);
         }
 
-        private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items)
-            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x));
+        private static ImmutableArray<NavigationBarItem> ConvertItems(IList<FSharpNavigationBarItem> items, ITextVersion textVersion)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textVersion));
 
         public async Task<bool> TryNavigateToItemAsync(
-            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            var navigationSpan = item.TryGetNavigationSpan(textSnapshot);
+            var navigationSpan = item.TryGetNavigationSpan(textVersion);
             if (navigationSpan != null)
             {
                 var span = navigationSpan.Value;
@@ -82,33 +81,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextVersion textVersion)
         {
-            return new InternalNavigationBarItem(
+            var spans = item.Spans.ToImmutableArrayOrEmpty();
+            return new SimpleNavigationBarItem(
+                textVersion,
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                item.Spans.ToImmutableArrayOrEmpty(),
-                ConvertItems(item.ChildItems),
+                spans,
+                spans.First(),
+                ConvertItems(item.ChildItems, textVersion),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
-        }
-
-        private class InternalNavigationBarItem : NavigationBarItem, IEquatable<InternalNavigationBarItem>
-        {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, spans.First(), childItems, indent, bolded, grayed)
-            {
-            }
-
-            public override bool Equals(object? obj)
-                => Equals(obj as InternalNavigationBarItem);
-
-            public bool Equals(InternalNavigationBarItem? other)
-                => base.Equals(other);
-
-            public override int GetHashCode()
-                => throw new NotImplementedException();
         }
     }
 }
