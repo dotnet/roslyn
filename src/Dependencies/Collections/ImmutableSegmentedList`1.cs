@@ -126,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var self = this;
 
-            // Following trick can reduce the range check by one
-            if ((uint)index >= (uint)self.Count)
+            // Following trick can reduce the number of range comparison operations by one
+            if (unchecked((uint)index) >= (uint)self.Count)
             {
                 ThrowHelper.ThrowArgumentOutOfRange_IndexException();
             }

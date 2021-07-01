@@ -69,7 +69,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
             private SegmentedList<T> GetOrCreateMutableList()
             {
-                return _mutableList ??= new SegmentedList<T>(_list._list);
+                if (_mutableList is null)
+                {
+                    var originalList = RoslynImmutableInterlocked.InterlockedExchange(ref _list, default);
+                    if (originalList.IsDefault)
+                        throw new InvalidOperationException($"Unexpected concurrent access to {GetType()}");
+
+                    _mutableList = new SegmentedList<T>(originalList._list);
+                }
+
+                return _mutableList;
             }
 
             public void Add(T item)
@@ -97,9 +106,14 @@ namespace Microsoft.CodeAnalysis.Collections
                 if (ReadOnlyList.Count != 0)
                 {
                     if (_mutableList is null)
+                    {
                         _mutableList = new SegmentedList<T>();
+                        _list = default;
+                    }
                     else
+                    {
                         _mutableList.Clear();
+                    }
                 }
             }
 
