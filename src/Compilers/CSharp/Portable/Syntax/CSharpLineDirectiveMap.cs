@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                 case LineSpanDirectiveTriviaSyntax spanDirective:
+                    if (!spanDirective.HasErrors)
                     {
                         LinePosition mappedStart = default;
                         LinePosition mappedEnd = default;
@@ -94,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         {
                             return new LineMappingEntry(unmappedLine, new LinePositionSpan(mappedStart, mappedEnd), characterOffset, mappedPathOpt);
                         }
-
-                        return new LineMappingEntry(unmappedLine, unmappedLine, mappedPathOpt: null, PositionState.Unmapped);
                     }
+
+                    return new LineMappingEntry(unmappedLine, unmappedLine, mappedPathOpt: null, PositionState.Unmapped);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(directive);

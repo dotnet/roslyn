@@ -677,6 +677,16 @@
         <target state="translated">'{1}'을(를) 반환하려면 반복기 블록이 있는 '{0}' 메서드가 '비동기'여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidSpan">
+        <source>The #line directive span is invalid</source>
+        <target state="new">The #line directive span is invalid</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
+        <source>The #line directive value is missing or out of range</source>
+        <target state="new">The #line directive value is missing or out of range</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">함수 포인터 '{1}'과(와) 일치하는 '{0}'에 대한 오버로드가 없습니다.</target>

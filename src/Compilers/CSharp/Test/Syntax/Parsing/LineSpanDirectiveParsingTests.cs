@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (";
 
             UsingLineDirective(source, options: null,
-                // (1,8): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,8): error CS8938: The #line directive value is missing or out of range
                 // #line (
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "").WithLocation(1, 8));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -385,9 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1,";
 
             UsingLineDirective(source, options: null,
-                // (1,10): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,10): error CS8938: The #line directive value is missing or out of range
                 // #line (1,
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "").WithLocation(1, 10));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -533,9 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (";
 
             UsingLineDirective(source, options: null,
-                // (1,17): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,17): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "").WithLocation(1, 17));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -607,9 +607,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (3,";
 
             UsingLineDirective(source, options: null,
-                // (1,19): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,19): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (3,
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "").WithLocation(1, 19));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -776,9 +776,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (, 2) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,8): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,8): error CS8938: The #line directive value is missing or out of range
                 // #line (, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, ",").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ",").WithLocation(1, 8));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -850,9 +850,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, ) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,11): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,11): error CS8938: The #line directive value is missing or out of range
                 // #line (1, ) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, ")").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ")").WithLocation(1, 11));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -998,9 +998,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,17): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,17): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, ",").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ",").WithLocation(1, 17));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1072,9 +1072,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (3, ) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,20): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,20): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (3, ) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, ")").WithLocation(1, 20));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, ")").WithLocation(1, 20));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1146,9 +1146,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line ('1', 2) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,8): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,8): error CS8938: The #line directive value is missing or out of range
                 // #line ('1', 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "'").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "'").WithLocation(1, 8));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1183,9 +1183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, ""2"") - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,11): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,11): error CS8938: The #line directive value is missing or out of range
                 // #line (1, "2") - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, @"""2""").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, @"""2""").WithLocation(1, 11));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1220,9 +1220,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (0b11, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,18): error CS1003: Syntax error, ',' expected
+                // (1,17): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (0b11, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b11").WithArguments(",", "").WithLocation(1, 18));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 17));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1257,9 +1257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (3, 0x04) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,21): error CS1026: ) expected
+                // (1,20): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (3, 0x04) "file.cs"
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x04").WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 20));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1294,9 +1294,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (null, 2) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,8): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,8): error CS8938: The #line directive value is missing or out of range
                 // #line (null, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "null").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "null").WithLocation(1, 8));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1331,9 +1331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, true) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,11): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,11): error CS8938: The #line directive value is missing or out of range
                 // #line (1, true) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "true").WithLocation(1, 11));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "true").WithLocation(1, 11));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1368,9 +1368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (1, 2) - (int, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,17): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,17): error CS8938: The #line directive value is missing or out of range
                 // #line (1, 2) - (int, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "int").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "int").WithLocation(1, 17));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1516,9 +1516,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"#line (-1, 2) - (3, 4) ""file.cs""";
 
             UsingLineDirective(source, options: null,
-                // (1,8): error CS1576: The line number specified for #line directive is missing or invalid
+                // (1,8): error CS8938: The #line directive value is missing or out of range
                 // #line (-1, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_InvalidLineNumber, "-").WithLocation(1, 8));
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "-").WithLocation(1, 8));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1552,7 +1552,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = @"#line (0, 0) - (0, 0) 0 ""file.cs""";
 
-            UsingLineDirective(source, options: null);
+            UsingLineDirective(source, options: null,
+                // (1,8): error CS8938: The #line directive value is missing or out of range
+                // #line (0, 0) - (0, 0) 0 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 8),
+                // (1,11): error CS8938: The #line directive value is missing or out of range
+                // #line (0, 0) - (0, 0) 0 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 11),
+                // (1,17): error CS8938: The #line directive value is missing or out of range
+                // #line (0, 0) - (0, 0) 0 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 17),
+                // (1,20): error CS8938: The #line directive value is missing or out of range
+                // #line (0, 0) - (0, 0) 0 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 20),
+                // (1,23): error CS8938: The #line directive value is missing or out of range
+                // #line (0, 0) - (0, 0) 0 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "0").WithLocation(1, 23));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1576,6 +1591,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.NumericLiteralToken, "0");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvalidValue_03()
+        {
+            string source = @"#line (16707565, 65536) - (16707565, 65536) 65536 ""file.cs""";
+
+            UsingLineDirective(source, options: null);
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "16707565");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "65536");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "16707565");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "65536");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "65536");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void InvalidValue_04()
+        {
+            string source = @"#line (16707566, 65537) - (16707566, 65537) 65537 ""file.cs""";
+
+            UsingLineDirective(source, options: null,
+                // (1,8): error CS8938: The #line directive value is missing or out of range
+                // #line (16707566, 65537) - (16707566, 65537) 65537 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "16707566").WithLocation(1, 8),
+                // (1,18): error CS8938: The #line directive value is missing or out of range
+                // #line (16707566, 65537) - (16707566, 65537) 65537 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "65537").WithLocation(1, 18),
+                // (1,28): error CS8938: The #line directive value is missing or out of range
+                // #line (16707566, 65537) - (16707566, 65537) 65537 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "16707566").WithLocation(1, 28),
+                // (1,38): error CS8938: The #line directive value is missing or out of range
+                // #line (16707566, 65537) - (16707566, 65537) 65537 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "65537").WithLocation(1, 38),
+                // (1,45): error CS8938: The #line directive value is missing or out of range
+                // #line (16707566, 65537) - (16707566, 65537) 65537 "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveInvalidValue, "65537").WithLocation(1, 45));
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "16707566");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "65537");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "16707566");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "65537");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.NumericLiteralToken, "65537");
                 N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
                 N(SyntaxKind.EndOfDirectiveToken);
             }

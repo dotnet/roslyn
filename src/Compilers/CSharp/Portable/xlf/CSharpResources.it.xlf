@@ -677,6 +677,16 @@
         <target state="translated">Il metodo '{0}' con un blocco iteratore deve essere 'async' per restituire '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidSpan">
+        <source>The #line directive span is invalid</source>
+        <target state="new">The #line directive span is invalid</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
+        <source>The #line directive value is missing or out of range</source>
+        <target state="new">The #line directive value is missing or out of range</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nessun overload per '{0}' corrisponde al puntatore a funzione '{1}'</target>

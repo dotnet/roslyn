@@ -114,6 +114,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(expectedTextSpans, actualTextSpans);
         }
 
+        [Fact]
+        public void InvalidSpans()
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+#line (10, 20) - (10, 20) ""A""
+        F();
+#line (10, 20) - (10, 19) ""B""
+        F();
+#line (10, 20) - (9, 20) ""C""
+        F();
+#line (10, 20) - (11, 19) ""D""
+        F();
+    }
+    static void F() { }
+}";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            tree.GetDiagnostics().Verify();
+
+            var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics();
+
+            var actualLineMappings = GetLineMappings(tree);
+            var expectedLineMappings = new[]
+            {
+                "(0,0)-(3,7) -> : (0,0)-(3,7)",
+                "(5,0)-(9,0),14 -> a.cs: (0,15)-(4,26)",
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+        }
+
         // 1. First and subsequent spans
         [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
         [Fact]
@@ -258,6 +293,61 @@ void Render()
             {
                 (@"_builder.Add(""Time:"");", @"[||]"),
                 (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
+            };
+            AssertEx.Equal(expectedTextSpans, actualTextSpans);
+        }
+
+        // 4. Razor: Multi-line span
+        [WorkItem(4747, "https://github.com/dotnet/csharplang/issues/4747")]
+        [Fact]
+        public void LineSpanDirective_Example4()
+        {
+            string sourceA =
+@"@page ""/""
+@JsonToHtml(@""
+{
+  """"key1"""": """"value1"""",
+  """"key2"""": """"value2""""
+}"")".NormalizeLineEndings();
+            var textA = SourceText.From(sourceA);
+
+            string sourceB =
+@"#line hidden
+class Page
+{
+void Render()
+{
+#line (2,2)-(6,3) 16 ""page.razor"" // spanof('JsonToHtml(...)')
+  _builder.Add(JsonToHtml(@""
+{
+  """"key1"""": """"value1"""",
+  """"key2"""": """"value2""""
+}""));
+#line hidden
+}
+}".NormalizeLineEndings();
+
+            var treeB = SyntaxFactory.ParseSyntaxTree(sourceB, path: "page.razor.g.cs");
+            treeB.GetDiagnostics().Verify();
+
+            var actualLineMappings = GetLineMappings(treeB);
+            var expectedLineMappings = new[]
+            {
+                "(1,0)-(4,3) -> : (0,0)-(0,0)",
+                "(6,0)-(10,7),15 -> page.razor: (1,1)-(5,3)",
+                "(12,0)-(13,1) -> : (0,0)-(0,0)",
+            };
+            AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+            var statements = GetStatementsAndExpressionBodies(treeB);
+            var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));
+            var expectedTextSpans = new[]
+            {
+                (@"_builder.Add(JsonToHtml(@""...", @"[|JsonToHtml(@""
+{
+  """"key1"""": """"value1"""",
+  """"key2"""": """"value2""""
+}"")|]".NormalizeLineEndings()),
             };
             AssertEx.Equal(expectedTextSpans, actualTextSpans);
         }

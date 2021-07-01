@@ -359,6 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        private const int MaxLineValue = 0xfeefed;
+        private const int MaxCharacterValue = 0x10000;
+
         private DirectiveTriviaSyntax ParseLineDirective(SyntaxToken hash, SyntaxToken id, bool isActive)
         {
             SyntaxToken line;
@@ -371,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     line = this.EatToken();
                     break;
                 default:
-                    line = ParseNumericLiteral(reportError: isActive);
+                    line = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_InvalidLineNumber, reportError: isActive);
                     sawLineButNotFile = true; //assume this is the case until we (potentially) see the file name below
                     if (isActive && !line.IsMissing && line.Kind == SyntaxKind.NumericLiteralToken)
                     {
@@ -379,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             line = this.AddError(line, ErrorCode.ERR_InvalidLineNumber);
                         }
-                        else if ((int)line.Value > 0xfeefed)
+                        else if ((int)line.Value > MaxLineValue)
                         {
                             line = this.AddError(line, ErrorCode.WRN_TooManyLinesForDebugger);
                         }
@@ -415,7 +418,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (minus.IsMissing) reportError = false;
 
             var end = ParseLineDirectivePosition(ref reportError);
-            var characterOffset = (reportError && CurrentToken.Kind == SyntaxKind.NumericLiteralToken) ? this.EatToken() : null;
+            var characterOffset = (CurrentToken.Kind == SyntaxKind.NumericLiteralToken) ?
+                ParseLineDirectiveNumericLiteral(ref reportError, minValue: 1, maxValue: MaxCharacterValue) :
+                null;
 
             var file = EatToken(SyntaxKind.StringLiteralToken, ErrorCode.ERR_MissingPPFile, reportError: reportError);
             if (file.IsMissing) reportError = false;
@@ -429,14 +434,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openParen = EatToken(SyntaxKind.OpenParenToken, reportError);
             if (openParen.IsMissing) reportError = false;
 
-            var line = ParseNumericLiteral(reportError);
-            if (line.IsMissing) reportError = false;
+            var line = ParseLineDirectiveNumericLiteral(ref reportError, minValue: 1, maxValue: MaxLineValue);
 
             var comma = EatToken(SyntaxKind.CommaToken, reportError);
             if (comma.IsMissing) reportError = false;
 
-            var character = ParseNumericLiteral(reportError);
-            if (character.IsMissing) reportError = false;
+            var character = ParseLineDirectiveNumericLiteral(ref reportError, minValue: 1, maxValue: MaxCharacterValue);
 
             var closeParen = EatToken(SyntaxKind.CloseParenToken, reportError);
             if (closeParen.IsMissing) reportError = false;
@@ -444,9 +447,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.LineDirectivePosition(openParen, line, comma, character, closeParen);
         }
 
-        private SyntaxToken ParseNumericLiteral(bool reportError)
+        private SyntaxToken ParseLineDirectiveNumericLiteral(ref bool reportError, int minValue, int maxValue)
         {
-            return this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_InvalidLineNumber, reportError: reportError);
+            var token = this.EatToken(SyntaxKind.NumericLiteralToken, ErrorCode.ERR_LineSpanDirectiveInvalidValue, reportError: reportError);
+            if (token.IsMissing)
+            {
+                reportError = false;
+            }
+            else if (token.Kind == SyntaxKind.NumericLiteralToken)
+            {
+                int value = (int)token.Value;
+                if (value < minValue || value > maxValue)
+                {
+                    token = this.AddError(token, ErrorCode.ERR_LineSpanDirectiveInvalidValue);
+                    reportError = false;
+                }
+            }
+            return token;
         }
 
         private DirectiveTriviaSyntax ParseReferenceDirective(SyntaxToken hash, SyntaxToken keyword, bool isActive, bool isFollowingToken)
