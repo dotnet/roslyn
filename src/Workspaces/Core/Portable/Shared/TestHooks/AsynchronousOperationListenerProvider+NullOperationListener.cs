@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 var t = Task.Delay(delay, cancellationToken);
                 if (t.IsCompleted)
                 {
+                    // Avoid ContinueWith overheads for a 0 delay or if race conditions resulted
+                    // in the delay task being complete by the time we checked.
                     return t.Status == TaskStatus.RanToCompletion
                         ? SpecializedTasks.True
                         : Task.FromCanceled<bool>(cancellationToken);
