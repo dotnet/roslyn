@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
@@ -21,7 +22,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Fact]
         public void GlobalPropertyIsGeneratedIfEmpty()
         {
-            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig();
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                FileName = GetTestFilePath()
+            };
             configTask.Execute();
 
             var result = configTask.ConfigFileContents;
@@ -37,7 +41,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 }
+                PropertyItems = new[] { property1, property2 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -56,7 +61,8 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = new[] { item1 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -78,7 +84,8 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = new[] { item1, item2, item3 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -107,7 +114,8 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = new[] { item1, item2, item3 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -134,7 +142,8 @@ build_metadata.Compile.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2 }
+                MetadataItems = new[] { item1, item2 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -155,7 +164,8 @@ build_metadata.AdditionalFile.ToRetrieve = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = new[] { item1 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -177,7 +187,8 @@ build_metadata.Compile.ToRetrieve =
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = new[] { item1, item2, item3 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -203,7 +214,8 @@ build_metadata.Compile.ToRetrieve =
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
                 MetadataItems = new[] { item1, item2, item3, item4 },
-                PropertyItems = new[] { property1, property2 }
+                PropertyItems = new[] { property1, property2 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -234,7 +246,8 @@ build_metadata.AdditionalFiles.ToRetrieve = ghi789
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2, item3 }
+                MetadataItems = new[] { item1, item2, item3 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
             var result = configTask.ConfigFileContents;
@@ -268,7 +281,8 @@ build_metadata.Compile.ToRetrieve = abc123
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1, item2 }
+                MetadataItems = new[] { item1, item2 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -311,7 +325,8 @@ values
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                PropertyItems = new[] { property1, property2 }
+                PropertyItems = new[] { property1, property2 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -339,7 +354,8 @@ build_property.Property2 = def456
 
             GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
             {
-                MetadataItems = new[] { item1 }
+                MetadataItems = new[] { item1 },
+                FileName = GetTestFilePath()
             };
             configTask.Execute();
 
@@ -350,6 +366,13 @@ build_property.Property2 = def456
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
 ", result);
+        }
+
+        private static ITaskItem GetTestFilePath([CallerMemberName] string callerName = "")
+        {
+            string executingLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)?.Replace('\\', '/') ?? string.Empty;
+            string path = $"{executingLocation}/{callerName}.GenerateMSBuildEditorConfig.editorconfig";
+            return new TaskItem(path);
         }
     }
 }

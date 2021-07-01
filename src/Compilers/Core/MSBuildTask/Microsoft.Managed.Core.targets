@@ -186,14 +186,10 @@
     <!-- Transform the collected properties and items into an editor config file -->
     <GenerateMSBuildEditorConfig
       PropertyItems="@(_GeneratedEditorConfigProperty)"
-      MetadataItems="@(_GeneratedEditorConfigMetadata)">
-
-      <Output TaskParameter="ConfigFileContents"
-          PropertyName="_GeneratedEditorConfigFileContent" />
+      MetadataItems="@(_GeneratedEditorConfigMetadata)"
+      FileName="$(GeneratedMSBuildEditorConfigFile)">
     </GenerateMSBuildEditorConfig>
 
-    <!-- Write the output to the generated file, if it's changed -->
-    <WriteLinesToFile Lines="$(_GeneratedEditorConfigFileContent)" File="$(GeneratedMSBuildEditorConfigFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
   </Target>
 
   <!--

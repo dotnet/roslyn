@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -38,6 +39,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </remarks>
     public sealed class GenerateMSBuildEditorConfig : Task
     {
+        /// <remarks>
+        /// Although this task does its own writing to disk, this
+        /// output parameter is here for testing purposes.
+        /// </remarks>
         [Output]
         public string ConfigFileContents { get; set; }
 
@@ -47,11 +52,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] PropertyItems { get; set; }
 
+        [Required]
+        public ITaskItem FileName { get; set; }
+
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
             PropertyItems = Array.Empty<ITaskItem>();
+            FileName = new TaskItem();
         }
 
         public override bool Execute()
@@ -98,7 +107,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             ConfigFileContents = builder.ToString();
-            return true;
+            return WriteMSBuildEditorConfig();
+        }
+
+        public bool WriteMSBuildEditorConfig()
+        {
+            try
+            {
+                if (File.Exists(FileName.ItemSpec))
+                {
+                    string existingContents = File.ReadAllText(FileName.ItemSpec);
+                    if (existingContents.Length == ConfigFileContents.Length)
+                    {
+                        if (existingContents.Equals(ConfigFileContents))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                File.WriteAllText(FileName.ItemSpec, ConfigFileContents, encoding);
+                return true;
+            }
+            catch (IOException ex)
+            {
+                Log.LogErrorFromException(ex);
+                return false;
+            }
         }
 
         /// <remarks>
