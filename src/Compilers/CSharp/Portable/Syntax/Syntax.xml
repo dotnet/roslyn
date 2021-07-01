@@ -4737,7 +4737,7 @@
   </Node>
   <AbstractNode Name="LineOrSpanDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
     <Field Name="LineKeyword" Type="SyntaxToken" />
-    <Field Name="File" Type="SyntaxToken" />
+    <Field Name="File" Type="SyntaxToken" Optional="true" />
   </AbstractNode>
   <Node Name="LineDirectiveTriviaSyntax" Base="LineOrSpanDirectiveTriviaSyntax">
     <Kind Name="LineDirectiveTrivia"/>

@@ -77,12 +77,17 @@ namespace Microsoft.CodeAnalysis
 
         private static LinePositionSpan TranslateEnhancedLineDirectiveSpan(in LineMappingEntry entry, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
         {
+            // A span starting on the first line, at or before 'UnmappedCharacterOffset' is
+            // mapped to the entire 'MappedSpan', regardless of the size of the unmapped span,
+            // even if the unmapped span ends before 'UnmappedCharacterOffset'.
             if (unmappedStartPos.Line == entry.UnmappedLine &&
                 unmappedStartPos.Character <= entry.UnmappedCharacterOffset.GetValueOrDefault())
             {
                 return entry.MappedSpan;
             }
 
+            // A span starting on the first line after 'UnmappedCharacterOffset', or starting on
+            // a subseqent line, is mapped to a span of corresponding size.
             return new LinePositionSpan(translatePosition(entry, unmappedStartPos), translatePosition(entry, unmappedEndPos));
 
             static LinePosition translatePosition(in LineMappingEntry entry, LinePosition unmapped)
@@ -90,7 +95,7 @@ namespace Microsoft.CodeAnalysis
                 return new LinePosition(
                     unmapped.Line - entry.UnmappedLine + entry.MappedSpan.Start.Line,
                     unmapped.Line == entry.UnmappedLine ?
-                        entry.MappedSpan.Start.Character + Math.Max(unmapped.Character - entry.UnmappedCharacterOffset.GetValueOrDefault(), 0) :
+                        entry.MappedSpan.Start.Character + unmapped.Character - entry.UnmappedCharacterOffset.GetValueOrDefault() :
                         unmapped.Character);
             }
         }

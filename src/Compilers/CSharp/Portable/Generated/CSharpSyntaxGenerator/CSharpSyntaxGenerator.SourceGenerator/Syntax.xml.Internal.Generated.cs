@@ -32227,7 +32227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public abstract SyntaxToken LineKeyword { get; }
 
-        public abstract SyntaxToken File { get; }
+        public abstract SyntaxToken? File { get; }
     }
 
     internal sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
