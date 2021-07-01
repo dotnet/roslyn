@@ -1565,9 +1565,6 @@ class X
                 // (9,40): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //             case [ not {} y, .. not {} z ] x: _ = (x, y, z); break;
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "z").WithLocation(9, 40),
-                // (9,52): error CS0165: Use of unassigned local variable 'x'
-                //             case [ not {} y, .. not {} z ] x: _ = (x, y, z); break;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 52),
                 // (9,55): error CS0165: Use of unassigned local variable 'y'
                 //             case [ not {} y, .. not {} z ] x: _ = (x, y, z); break;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 55),
