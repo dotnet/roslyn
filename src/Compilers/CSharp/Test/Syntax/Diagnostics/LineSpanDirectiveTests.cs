@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 (@"A();", @"[|A();B(|]"),
                 (@"B(              // 4...", @"[|B(
-);|]"),
+);|]".NormalizeLineEndings()),
                 (@"C();", @"[|C();|]"),
                 (@"D();", @"[|D();|]"),
             };
@@ -168,7 +168,7 @@ class Page
 {
     <p>Hello World</p>
     @DateTime.Now
-})|]"),
+})|]".NormalizeLineEndings()),
                 (@"_builder.Add(DateTime.Now);", @"[|DateTime.Now|]"),
             };
             AssertEx.Equal(expectedTextSpans, actualTextSpans);
