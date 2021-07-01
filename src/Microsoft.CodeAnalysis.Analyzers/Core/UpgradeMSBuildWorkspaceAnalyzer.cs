@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new(
             DiagnosticIds.UpgradeMSBuildWorkspaceRuleId,
             s_localizableTitle,
             s_localizableMessage,

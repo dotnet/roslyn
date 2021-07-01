@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class SourceTextExtensions
+    internal static partial class SourceTextExtensions
     {
         public static bool OverlapsHiddenPosition(
             this SourceText text,

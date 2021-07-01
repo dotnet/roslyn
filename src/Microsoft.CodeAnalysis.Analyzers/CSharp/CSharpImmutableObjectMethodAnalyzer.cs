@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new(
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,

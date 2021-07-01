@@ -19,8 +19,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <summary>
         /// Cached information if the specified symbol is a Asp.Net Core Controller: (compilation) -> ((class symbol) -> (is Controller))
         /// </summary>
-        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation =
-            new BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>>();
+        private static readonly BoundedCacheWithFactory<Compilation, ConcurrentDictionary<INamedTypeSymbol, bool>> s_classIsControllerByCompilation = new();
 
         /// <summary>
         /// Statically constructs.
@@ -34,6 +33,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
 
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
+
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.MicrosoftAspNetCoreHttpHttpRequest,
+                isInterface: false,
+                taintedProperties: new string[] {
+                    "Body",
+                    "ContentType",
+                    "Cookies",
+                    "Form",
+                    "Headers",
+                    "Host",
+                    "Method",
+                    "Path",
+                    "PathBase",
+                    "Protocol",
+                    "Query",
+                    "QueryString",
+                    "RouteValues",
+                    "Scheme",
+                },
+                taintedMethods: new string[] {
+                    "ReadFormAsync",
+                });
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
                 WellKnownTypeNames.SystemWebHttpServerUtility,
@@ -89,6 +111,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                         if (methodSymbol.DeclaredAccessibility != Accessibility.Public
                             || methodSymbol.IsConstructor()
                             || methodSymbol.IsStatic
+                            || methodSymbol.MethodKind != MethodKind.Ordinary
                             || methodSymbol.HasDerivedMethodAttribute(wellKnownTypeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreMvcNonActionAttribute)))
                         {
                             return false;

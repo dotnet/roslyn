@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// It tracks <see cref="_lazyPredicateDataMap"/>, which contains the true/false <see cref="PerEntityPredicatedAnalysisData"/> for every predicated <see cref="AnalysisEntity"/>, and
     /// <see cref="IsReachableBlockData"/>, which tracks if the current data is for a reachable code path based on the predicate analysis.
     /// Predicate analysis data is used to improve the preciseness of analysis when we can apply the <see cref="PerEntityPredicatedAnalysisData.TruePredicatedData"/> or <see cref="PerEntityPredicatedAnalysisData.FalsePredicatedData"/>
-    /// on the control flow paths where the corresonding <see cref="AnalysisEntity"/> is known to have <see langword="true"/> or <see langword="false"/> value respectively.
+    /// on the control flow paths where the corresponding <see cref="AnalysisEntity"/> is known to have <see langword="true"/> or <see langword="false"/> value respectively.
     /// </summary>
     public abstract partial class PredicatedAnalysisData<TKey, TValue> : AbstractAnalysisData
     {
-#pragma warning disable CA2213 // Disposable fields should be disposed - https://github.com/dotnet/roslyn-analyzers/issues/2182
         private DictionaryAnalysisData<AnalysisEntity, PerEntityPredicatedAnalysisData>? _lazyPredicateDataMap;
-#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected PredicatedAnalysisData()
         {
@@ -416,7 +414,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return false;
             }
 
-            return dict1.Keys.All(key => dict2.TryGetValue(key, out TValue value2) &&
+            return dict1.Keys.All(key => dict2.TryGetValue(key, out var value2) &&
                                          EqualityComparer<TValue>.Default.Equals(dict1[key], value2));
         }
 

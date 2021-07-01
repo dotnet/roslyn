@@ -82,6 +82,15 @@ namespace Analyzer.Utilities.Extensions
         }
 
         public static Diagnostic CreateDiagnostic(
+            this ISymbol symbol,
+            DiagnosticDescriptor rule,
+            ImmutableDictionary<string, string?>? properties,
+            params object[] args)
+        {
+            return symbol.Locations.CreateDiagnostic(rule, properties, args);
+        }
+
+        public static Diagnostic CreateDiagnostic(
             this Location location,
             DiagnosticDescriptor rule,
             params object[] args)

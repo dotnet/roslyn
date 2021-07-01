@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -15,12 +15,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             public int Index { get; }
 
-            protected override void ComputeHashCodeParts(Action<int> addPart)
+            protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
             {
-                addPart(Index.GetHashCode());
-                addPart(nameof(ConstantValueIndex).GetHashCode());
+                hashCode.Add(Index.GetHashCode());
+                hashCode.Add(nameof(ConstantValueIndex).GetHashCode());
             }
-#pragma warning restore CA1307 // Specify StringComparison
+
+            protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AbstractIndex> obj)
+            {
+                var other = (ConstantValueIndex)obj;
+                return Index.GetHashCode() == other.Index.GetHashCode();
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 # Microsoft.CodeAnalysis.BannedApiAnalyzers
 
-## [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): Do not used banned APIs
+## [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): Do not used banned APIs
 
 The symbol has been marked as banned in this project, and an alternate should be used instead.
 
@@ -12,7 +12,7 @@ The symbol has been marked as banned in this project, and an alternate should be
 |CodeFix|False|
 ---
 
-## [RS0031](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): The list of banned symbols contains a duplicate
+## [RS0031](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md): The list of banned symbols contains a duplicate
 
 The list of banned symbols contains a duplicate.
 

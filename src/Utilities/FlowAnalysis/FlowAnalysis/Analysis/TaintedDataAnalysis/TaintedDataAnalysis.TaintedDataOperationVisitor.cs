@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -119,7 +120,27 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             {
                 if (this.DataFlowAnalysisContext.SourceInfos.IsSourceParameter(parameter, WellKnownTypeProvider))
                 {
-                    return TaintedDataAbstractValue.CreateTainted(parameter, parameter.DeclaringSyntaxReferences[0].GetSyntax(), this.OwningSymbol);
+                    // Location of the parameter, so we can track where the tainted data appears in code.
+                    // The parameter itself may not have any DeclaringSyntaxReferences, e.g. 'value' inside property setters.
+                    SyntaxNode parameterSyntaxNode;
+                    if (!parameter.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else if (!parameter.ContainingSymbol.DeclaringSyntaxReferences.IsEmpty)
+                    {
+                        parameterSyntaxNode = parameter.ContainingSymbol.DeclaringSyntaxReferences[0].GetSyntax();
+                    }
+                    else
+                    {
+                        // Unless there are others, the only case we have for parameters being tainted data sources is inside
+                        // ASP.NET Core MVC controller action methods (see WebInputSources.cs), so those parameters should
+                        // always be declared somewhere.
+                        Debug.Fail("Can we have a tainted data parameter with no syntax references?");
+                        return ValueDomain.UnknownOrMayBeValue;
+                    }
+
+                    return TaintedDataAbstractValue.CreateTainted(parameter, parameterSyntaxNode, this.OwningSymbol);
                 }
 
                 return ValueDomain.UnknownOrMayBeValue;
@@ -412,6 +433,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return baseValue;
             }
 
+            public override TaintedDataAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
+            {
+                // Always invoke base visit.
+                TaintedDataAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
+                if (taintedArguments.Any())
+                {
+                    ProcessTaintedDataEnteringInvocationOrCreation(lambda.Symbol, taintedArguments, originalOperation);
+                }
+
+                return baseValue;
+            }
+
             /// <summary>
             /// Computes abstract value for out or ref arguments when not performing interprocedural analysis.
             /// </summary>
@@ -467,7 +502,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 IArrayCreationOperation? arrayCreationOperation = operation.GetAncestor<IArrayCreationOperation>(OperationKind.ArrayCreation);
                 if (arrayCreationOperation?.Type is IArrayTypeSymbol arrayTypeSymbol
-                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol)
+                    && this.DataFlowAnalysisContext.SourceInfos.IsSourceConstantArrayOfType(arrayTypeSymbol, operation)
                     && operation.ElementValues.All(s => GetValueContentAbstractValue(s).IsLiteralState))
                 {
                     TaintedDataAbstractValue taintedDataAbstractValue = TaintedDataAbstractValue.CreateTainted(arrayTypeSymbol, arrayCreationOperation.Syntax, this.OwningSymbol);

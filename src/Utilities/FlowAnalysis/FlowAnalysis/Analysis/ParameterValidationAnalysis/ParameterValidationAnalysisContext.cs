@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         }
 
         public ParameterValidationAnalysisContext WithTrackHazardousParameterUsages()
-            => new ParameterValidationAnalysisContext(
+            => new(
                 ValueDomain, WellKnownTypeProvider, ControlFlowGraph,
                 OwningSymbol, AnalyzerOptions, NullCheckValidationMethodNames,
                 InterproceduralAnalysisConfiguration, PessimisticAnalysis,
@@ -98,10 +98,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
         public bool IsNullCheckValidationMethod(IMethodSymbol method)
             => NullCheckValidationMethodNames.Contains(method);
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(TrackHazardousParameterUsages.GetHashCode());
-            addPart(NullCheckValidationMethodNames.GetHashCode());
+            hashCode.Add(TrackHazardousParameterUsages.GetHashCode());
+            hashCode.Add(NullCheckValidationMethodNames.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<ParameterValidationAnalysisData, ParameterValidationAnalysisContext, ParameterValidationAnalysisResult, ParameterValidationAbstractValue> obj)
+        {
+            var other = (ParameterValidationAnalysisContext)obj;
+            return TrackHazardousParameterUsages.GetHashCode() == other.TrackHazardousParameterUsages.GetHashCode()
+                && NullCheckValidationMethodNames.GetHashCode() == other.NullCheckValidationMethodNames.GetHashCode();
         }
     }
 }

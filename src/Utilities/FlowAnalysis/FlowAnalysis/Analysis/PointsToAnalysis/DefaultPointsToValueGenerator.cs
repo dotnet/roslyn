@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 {
                     return PointsToAbstractValue.Undefined;
                 }
-                else if (!analysisEntity.Type.IsReferenceTypeOrNullableValueType())
+                else if (analysisEntity.Type.IsNonNullableValueType())
                 {
                     return PointsToAbstractValue.NoLocation;
                 }

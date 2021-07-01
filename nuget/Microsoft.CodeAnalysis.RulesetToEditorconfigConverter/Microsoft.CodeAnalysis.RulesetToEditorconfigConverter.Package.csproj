@@ -12,7 +12,8 @@
     <PackageTags>Roslyn CodeAnalysis Ruleset EditorConfig Compiler FxCop CSharp VB VisualBasic Syntax Semantics</PackageTags>
     <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
 	  <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
-    
+    <IsShippingPackage>true</IsShippingPackage>
+
 	  <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
   

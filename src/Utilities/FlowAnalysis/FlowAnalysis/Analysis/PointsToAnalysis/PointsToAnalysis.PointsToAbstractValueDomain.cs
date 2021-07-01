@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         /// </summary>
         private class PointsToAbstractValueDomain : AbstractValueDomain<PointsToAbstractValue>
         {
-            public static PointsToAbstractValueDomain Default = new PointsToAbstractValueDomain();
+            public static PointsToAbstractValueDomain Default = new();
             private readonly SetAbstractDomain<AbstractLocation> _locationsDomain = SetAbstractDomain<AbstractLocation>.Default;
             private readonly SetAbstractDomain<IOperation> _lValueCapturesDomain = SetAbstractDomain<IOperation>.Default;
 

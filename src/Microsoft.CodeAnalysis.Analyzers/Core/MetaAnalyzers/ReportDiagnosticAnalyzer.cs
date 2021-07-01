@@ -13,8 +13,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class ReportDiagnosticAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax, TVariableDeclaratorSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    public abstract class ReportDiagnosticAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax, TVariableDeclaratorSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
+        where TStructDeclarationSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor InvalidReportDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor InvalidReportDiagnosticRule = new(
             DiagnosticIds.InvalidReportDiagnosticRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected abstract ReportDiagnosticCompilationAnalyzer GetAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
 
-        protected abstract class ReportDiagnosticCompilationAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
+        protected abstract class ReportDiagnosticCompilationAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TInvocationExpressionSyntax>
         {
             private readonly ImmutableHashSet<INamedTypeSymbol> _contextTypes;
             private readonly INamedTypeSymbol _diagnosticType;
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private ImmutableDictionary<INamedTypeSymbol, ImmutableArray<IFieldSymbol>> _supportedDescriptorFieldsMap;
 
-            public ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            protected ReportDiagnosticCompilationAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _contextTypes = contextTypes;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                         .OfType<IPropertySymbol>()
                         .FirstOrDefault(p => p.OverriddenProperty != null &&
                             p.OverriddenProperty.Equals(supportedDiagnosticBaseProperty));
-                    if (supportedDiagnosticsProperty != null && supportedDiagnosticsProperty.GetMethod != null)
+                    if (supportedDiagnosticsProperty?.GetMethod != null)
                     {
                         SyntaxReference syntaxRef = supportedDiagnosticsProperty.GetMethod.DeclaringSyntaxReferences.FirstOrDefault();
                         if (syntaxRef != null)
@@ -193,9 +194,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return builder.ToImmutable();
             }
 
-            protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, SemanticModel semanticModel)
+            protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax syntaxNode, SemanticModel semanticModel)
             {
-                ISymbol symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
+                ISymbol symbol = semanticModel.GetSymbolInfo(syntaxNode, symbolContext.CancellationToken).Symbol;
                 if (symbol == null ||
                     symbol.Kind != SymbolKind.Method ||
                     !symbol.Name.Equals(DiagnosticWellKnownNames.ReportDiagnosticName, StringComparison.OrdinalIgnoreCase) ||
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     return;
                 }
 
-                IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(invocation);
+                IEnumerable<SyntaxNode>? arguments = GetArgumentExpressions(syntaxNode);
                 if (arguments?.HasExactly(1) == true)
                 {
                     SyntaxNode argument = arguments.First();
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 if (descriptorFields.Length == 1 &&
                                     !_supportedDescriptorFieldsMap[(INamedTypeSymbol)symbolContext.Symbol].Contains(descriptorFields[0]))
                                 {
-                                    Diagnostic diagnostic = Diagnostic.Create(InvalidReportDiagnosticRule, invocation.GetLocation(), descriptorFields[0].Name);
+                                    Diagnostic diagnostic = syntaxNode.CreateDiagnostic(InvalidReportDiagnosticRule, descriptorFields[0].Name);
                                     symbolContext.ReportDiagnostic(diagnostic);
                                 }
                             }

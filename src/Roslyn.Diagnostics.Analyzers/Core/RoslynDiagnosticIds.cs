@@ -52,9 +52,12 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string AvoidOptSuffixForNullableEnableCodeRuleId = "RS0046";
         public const string NamedTypeFullNameNotNullSuppressionRuleId = "RS0047";
         public const string PublicApiFileMissing = "RS0048";
+        public const string TemporaryArrayAsRefRuleId = "RS0049";
 
-        public const string WrapStatementsRuleId = "RS0100";
-        public const string BlankLinesRuleId = "RS0101";
-        public const string BracePlacementRuleId = "RS0102";
+        public const string RemovedApiIsNotActuallyRemovedRuleId = "RS0050";
+
+        //public const string WrapStatementsRuleId = "RS0100"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
+        //public const string BlankLinesRuleId = "RS0101"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
+        //public const string BracePlacementRuleId = "RS0102"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
     }
 }

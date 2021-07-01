@@ -24,9 +24,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.NamedTypeFullNameNotNullSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static readonly SuppressionDescriptor CS8600Rule = new SuppressionDescriptor(Id, CS8600, s_localizableJustification);
-        internal static readonly SuppressionDescriptor CS8603Rule = new SuppressionDescriptor(Id, CS8603, s_localizableJustification);
-        internal static readonly SuppressionDescriptor CS8604Rule = new SuppressionDescriptor(Id, CS8604, s_localizableJustification);
+        internal static readonly SuppressionDescriptor CS8600Rule = new(Id, CS8600, s_localizableJustification);
+        internal static readonly SuppressionDescriptor CS8603Rule = new(Id, CS8603, s_localizableJustification);
+        internal static readonly SuppressionDescriptor CS8604Rule = new(Id, CS8604, s_localizableJustification);
 
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } = ImmutableArray.Create(CS8600Rule, CS8603Rule, CS8604Rule);
 

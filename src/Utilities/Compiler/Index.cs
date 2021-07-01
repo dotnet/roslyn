@@ -48,10 +48,10 @@ namespace System
         }
 
         /// <summary>Create an Index pointing at first element.</summary>
-        public static Index Start => new Index(0);
+        public static Index Start => new(0);
 
         /// <summary>Create an Index pointing at beyond last element.</summary>
-        public static Index End => new Index(~0);
+        public static Index End => new(~0);
 
         /// <summary>Create an Index from the start at the position indicated by the value.</summary>
         /// <param name="value">The index value from the start.</param>
@@ -118,8 +118,8 @@ namespace System
         }
 
         /// <summary>Indicates whether the current Index object is equal to another object of the same type.</summary>
-        /// <param name="value">An object to compare with this object</param>
-        public override bool Equals(object? value) => value is Index index && _value == index._value;
+        /// <param name="obj">An object to compare with this object</param>
+        public override bool Equals(object? obj) => obj is Index index && _value == index._value;
 
         /// <summary>Indicates whether the current Index object is equal to another Index object.</summary>
         /// <param name="other">An object to compare with this object</param>

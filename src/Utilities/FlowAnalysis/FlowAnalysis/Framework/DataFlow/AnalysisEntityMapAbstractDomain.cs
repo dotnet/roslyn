@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// </summary>
     public abstract class AnalysisEntityMapAbstractDomain<TValue> : MapAbstractDomain<AnalysisEntity, TValue>
     {
-        private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new Func<AnalysisEntity, bool>(_ => true);
-        private static readonly Func<PointsToAbstractValue, bool> s_defaultIsTrackedPointsToValue = new Func<PointsToAbstractValue, bool>(_ => true);
+        private static readonly Func<AnalysisEntity, bool> s_defaultIsTrackedEntity = new(_ => true);
+        private static readonly Func<PointsToAbstractValue, bool> s_defaultIsTrackedPointsToValue = new(_ => true);
 
         private readonly Func<AnalysisEntity, bool> _isTrackedEntity;
         private readonly Func<PointsToAbstractValue, bool> _isTrackedPointsToValue;
@@ -70,7 +70,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 #endif
         }
 
+#pragma warning disable CA1725 // Parameter names should match base declaration
         public override DictionaryAnalysisData<AnalysisEntity, TValue> Merge(DictionaryAnalysisData<AnalysisEntity, TValue> map1, DictionaryAnalysisData<AnalysisEntity, TValue> map2)
+#pragma warning restore CA1725 // Parameter names should match base declaration
         {
             AssertValidAnalysisData(map1);
             AssertValidAnalysisData(map2);

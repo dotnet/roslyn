@@ -25,7 +25,9 @@ namespace Test.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
+#pragma warning disable CA5386 // Avoid hardcoding SecurityProtocolType value
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+#pragma warning restore CA5386 // Avoid hardcoding SecurityProtocolType value
                 }
             }
 
@@ -33,15 +35,11 @@ namespace Test.Utilities
             {
             }
 
-            protected override Project ApplyCompilationOptions(Project project)
+            protected override ParseOptions CreateParseOptions()
             {
-                var newProject = base.ApplyCompilationOptions(project);
-
-                var parseOptions = newProject.ParseOptions!.WithFeatures(
-                    newProject.ParseOptions.Features.Concat(
-                        new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
-
-                return newProject.WithParseOptions(parseOptions);
+                var parseOptions = base.CreateParseOptions();
+                return parseOptions.WithFeatures(parseOptions.Features.Concat(
+                    new[] { new KeyValuePair<string, string>("flow-analysis", "true") }));
             }
         }
     }

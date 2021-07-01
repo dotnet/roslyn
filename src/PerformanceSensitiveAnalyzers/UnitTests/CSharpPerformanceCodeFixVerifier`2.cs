@@ -86,7 +86,14 @@ namespace Roslyn.Utilities
                         ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
                     },
                 },
-                FixedCode = fixedSource,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        fixedSource,
+                        ("PerformanceSensitiveAttribute.cs", PerformanceSensitiveAttributeSource)
+                    },
+                },
             };
 
             test.ExpectedDiagnostics.AddRange(expected);

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#nullable disable warnings
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -132,9 +134,9 @@ namespace Analyzer.Utilities.Extensions
                 return false;
             }
 
-            // If the class inherits from another object, or implements some interface, presumably the user meant for the class to be instanciated. This
+            // If the class inherits from another object, or implements some interface, presumably the user meant for the class to be instantiated. This
             // will also bail out if the user inherits from an empty interface, typically used as a marker of some kind. We assume that if _any_ interface
-            // is inherited, the user meant to instanciate the type.
+            // is inherited, the user meant to instantiate the type.
             if (symbol.BaseType == null || symbol.BaseType.SpecialType != SpecialType.System_Object || !symbol.AllInterfaces.IsDefaultOrEmpty)
             {
                 return false;

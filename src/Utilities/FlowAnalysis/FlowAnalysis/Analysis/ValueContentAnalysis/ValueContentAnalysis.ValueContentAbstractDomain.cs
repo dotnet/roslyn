@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         /// </summary>
         private sealed class ValueContentAbstractValueDomain : AbstractValueDomain<ValueContentAbstractValue>
         {
-            public static ValueContentAbstractValueDomain Default = new ValueContentAbstractValueDomain();
+            public static ValueContentAbstractValueDomain Default = new();
 
             private ValueContentAbstractValueDomain() { }
 

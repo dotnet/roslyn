@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableTitleNotDiagnosticAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ClassIsNotDiagnosticAnalyzerTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableMessageNotDiagnosticAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ClassIsNotDiagnosticAnalyzerMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor Rule = new(
             DiagnosticIds.TypeIsNotDiagnosticAnalyzerRuleId,
             s_localizableTitleNotDiagnosticAnalyzer,
             s_localizableMessageNotDiagnosticAnalyzer,

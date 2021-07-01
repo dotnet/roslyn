@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NuspecPackageId>Microsoft.CodeAnalysis.Metrics</NuspecPackageId>
@@ -12,6 +13,7 @@
     <PackageTags>Roslyn CodeAnalysis CodeMetrics Metrics Compiler CSharp VB VisualBasic Syntax Semantics</PackageTags>
     <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
 	  <GeneratePackagePropsFile>false</GeneratePackagePropsFile>
+    <IsShippingPackage>true</IsShippingPackage>
 	  <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
   

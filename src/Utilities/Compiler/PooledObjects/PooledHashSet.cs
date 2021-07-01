@@ -7,9 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-#pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.PooledHashSet<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
-#pragma warning disable CA2237 // Add [Serializable] to PooledHashSet as this type implements ISerializable
 
 namespace Analyzer.Utilities.PooledObjects
 {
@@ -61,8 +59,7 @@ namespace Analyzer.Utilities.PooledObjects
 
         // global pool
         private static readonly ObjectPool<PooledHashSet<T>> s_poolInstance = CreatePool();
-        private static readonly ConcurrentDictionary<IEqualityComparer<T>, ObjectPool<PooledHashSet<T>>> s_poolInstancesByComparer
-            = new ConcurrentDictionary<IEqualityComparer<T>, ObjectPool<PooledHashSet<T>>>();
+        private static readonly ConcurrentDictionary<IEqualityComparer<T>, ObjectPool<PooledHashSet<T>>> s_poolInstancesByComparer = new();
 
         // if someone needs to create a pool;
         public static ObjectPool<PooledHashSet<T>> CreatePool(IEqualityComparer<T>? comparer = null)

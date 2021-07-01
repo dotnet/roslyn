@@ -8,7 +8,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     {
         private sealed class TaintedDataAbstractValueDomain : AbstractValueDomain<TaintedDataAbstractValue>
         {
-            public static readonly TaintedDataAbstractValueDomain Default = new TaintedDataAbstractValueDomain();
+            public static readonly TaintedDataAbstractValueDomain Default = new();
 
             public override TaintedDataAbstractValue UnknownOrMayBeValue => TaintedDataAbstractValue.NotTainted;
 

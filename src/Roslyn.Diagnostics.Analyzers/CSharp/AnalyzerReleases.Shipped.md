@@ -1,6 +1,7 @@
 ## Release 3.3.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0038 | RoslynDiagnosticsMaintainability | Warning | PreferNullLiteral

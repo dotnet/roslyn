@@ -13,7 +13,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// </summary>
         private class PropertySetAbstractValueDomain : AbstractValueDomain<PropertySetAbstractValue>
         {
-            public static PropertySetAbstractValueDomain Default = new PropertySetAbstractValueDomain();
+            public static PropertySetAbstractValueDomain Default = new();
 
             private PropertySetAbstractValueDomain() { }
 

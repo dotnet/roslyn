@@ -11,5 +11,11 @@ namespace Analyzer.Utilities.Extensions
             key = pair.Key;
             value = pair.Value;
         }
+
+        public static KeyValuePair<TKey?, TValue?> AsNullable<TKey, TValue>(this KeyValuePair<TKey, TValue> pair)
+        {
+            // This conversion is safe
+            return pair!;
+        }
     }
 }

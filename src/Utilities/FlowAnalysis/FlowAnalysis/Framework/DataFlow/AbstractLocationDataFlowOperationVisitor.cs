@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AbstractLocation, TAbstractAnalysisValue> analysisData)
-            => new DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue>(analysisData);
+            => new(analysisData);
         protected static DictionaryAnalysisData<AbstractLocation, TAbstractAnalysisValue> GetEmptyAnalysisDataHelper()
             => GetClonedAnalysisDataHelper(ImmutableDictionary<AbstractLocation, TAbstractAnalysisValue>.Empty);
 

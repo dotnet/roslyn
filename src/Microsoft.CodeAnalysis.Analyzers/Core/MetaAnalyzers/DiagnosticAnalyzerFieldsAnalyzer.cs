@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    public abstract class DiagnosticAnalyzerFieldsAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax, TTypeSyntax, TVariableTypeDeclarationSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
+        where TStructDeclarationSyntax : SyntaxNode
         where TFieldDeclarationSyntax : SyntaxNode
         where TTypeSyntax : SyntaxNode
         where TVariableTypeDeclarationSyntax : SyntaxNode
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
         private static readonly string s_operationTypeFullName = typeof(IOperation).FullName;
 
-        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return new FieldsAnalyzer(compilationType, symbolType, operationType, attributeUsageAttribute, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
-        private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax>
+        private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TStructDeclarationSyntax, TFieldDeclarationSyntax>
         {
             private readonly INamedTypeSymbol _compilationType;
             private readonly INamedTypeSymbol _symbolType;
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             private static void ReportDiagnostic(ITypeSymbol type, TTypeSyntax typeSyntax, SymbolAnalysisContext context)
             {
-                Diagnostic diagnostic = Diagnostic.Create(DoNotStorePerCompilationDataOntoFieldsRule, typeSyntax.GetLocation(), type.ToDisplayString());
+                Diagnostic diagnostic = typeSyntax.CreateDiagnostic(DoNotStorePerCompilationDataOntoFieldsRule, type.ToDisplayString());
                 context.ReportDiagnostic(diagnostic);
             }
         }
