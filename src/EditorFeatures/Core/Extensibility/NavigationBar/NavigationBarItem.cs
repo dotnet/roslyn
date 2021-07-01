@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor
             if (this.NavigationSpan == null)
                 return null;
 
+            if (this.TextVersion == null)
+                return this.NavigationSpan.Value;
+
             return this.TextVersion.CreateTrackingSpan(this.NavigationSpan.Value.ToSpan(), SpanTrackingMode.EdgeExclusive)
                                    .GetSpan(textSnapshot).Span.ToTextSpan();
         }
