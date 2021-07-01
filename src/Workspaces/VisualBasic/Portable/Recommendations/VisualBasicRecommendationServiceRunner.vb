@@ -277,13 +277,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
-            Dim unwrapNullable = False
-            If _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
-                Dim type = container.GetSymbolType()
-                If type?.OriginalDefinition?.SpecialType = SpecialType.System_Nullable_T Then
-                    unwrapNullable = True
-                End If
-            End If
+            ' On null conditional access, members of T for a Nullable(Of T) should be recommended
+            Dim unwrapNullable = _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken)
 
             ' No completion on types/namespace after conditional access
             If leftExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) AndAlso
