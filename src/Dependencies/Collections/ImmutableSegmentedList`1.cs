@@ -11,6 +11,63 @@ using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
+    /// <summary>
+    /// Represents a segmented list that is immutable; meaning it cannot be changed once it is created.
+    /// </summary>
+    /// <remarks>
+    /// <para>There are different scenarios best for <see cref="ImmutableSegmentedList{T}"/> and others
+    /// best for <see cref="ImmutableList{T}"/>.</para>
+    ///
+    /// <para>The following table summarizes the performance characteristics of
+    /// <see cref="ImmutableSegmentedList{T}"/>:</para>
+    /// 
+    /// <list type="table">
+    ///   <item>
+    ///     <description>Operation</description>
+    ///     <description><see cref="ImmutableSegmentedList{T}"/> Complexity</description>
+    ///     <description><see cref="ImmutableList{T}"/> Complexity</description>
+    ///     <description>Comments</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Item</description>
+    ///     <description>O(1)</description>
+    ///     <description>O(log n)</description>
+    ///     <description>Directly index into the underlying segmented list</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Add()</description>
+    ///     <description>Currently O(n), but could be O(1) with a relatively large constant</description>
+    ///     <description>O(log n)</description>
+    ///     <description>Currently requires creating a new segmented list, but could be modified to only clone the segments with changes</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Insert()</description>
+    ///     <description>O(n)</description>
+    ///     <description>O(log n)</description>
+    ///     <description>Requires creating a new segmented list and cloning all impacted segments</description>
+    ///   </item>
+    /// </list>
+    /// 
+    /// <para>This type is backed by segmented arrays to avoid using the Large Object Heap without impacting algorithmic
+    /// complexity.</para>
+    /// </remarks>
+    /// <typeparam name="T">The type of the value in the list.</typeparam>
+    /// <devremarks>
+    /// <para>This type has a documented contract of being exactly one reference-type field in size. Our own
+    /// <see cref="RoslynImmutableInterlocked"/> class depends on it, as well as others externally.</para>
+    ///
+    /// <para><strong>IMPORTANT NOTICE FOR MAINTAINERS AND REVIEWERS:</strong></para>
+    ///
+    /// <para>This type should be thread-safe. As a struct, it cannot protect its own fields from being changed from one
+    /// thread while its members are executing on other threads because structs can change <em>in place</em> simply by
+    /// reassigning the field containing this struct. Therefore it is extremely important that <strong>⚠⚠ Every member
+    /// should only dereference <c>this</c> ONCE ⚠⚠</strong>. If a member needs to reference the
+    /// <see cref="_list"/> field, that counts as a dereference of <c>this</c>. Calling other instance members
+    /// (properties or methods) also counts as dereferencing <c>this</c>. Any member that needs to use <c>this</c> more
+    /// than once must instead assign <c>this</c> to a local variable and use that for the rest of the code instead.
+    /// This effectively copies the one field in the struct to a local variable so that it is insulated from other
+    /// threads.</para>
+    /// </devremarks>
     internal readonly partial struct ImmutableSegmentedList<T> : IImmutableList<T>, IReadOnlyList<T>, IList<T>, IList, IEquatable<ImmutableSegmentedList<T>>
     {
         /// <inheritdoc cref="ImmutableList{T}.Empty"/>
@@ -22,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Collections
             => _list = list;
 
         public int Count => _list.Count;
+
+        public bool IsDefault => _list == null;
 
         /// <inheritdoc cref="ImmutableList{T}.IsEmpty"/>
         public bool IsEmpty => _list.Count == 0;

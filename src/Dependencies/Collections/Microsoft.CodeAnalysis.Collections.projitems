@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Builder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+PrivateInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1+ValueBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedList`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ArraySortHelper.cs" />
