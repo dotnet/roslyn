@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // PROTOTYPE(list-patterns) Can this be ever true? If so, move to if above
                                 Debug.Assert(!boundIndexerAccess.Indexer.IsStatic);
-                                ReportDiagnosticsIfObsolete(diagnostics, lengthProperty, syntax, hasBaseReceiver: false);
+                                ReportDiagnosticsIfObsolete(bindingDiagnostics, lengthProperty, syntax, hasBaseReceiver: false);
                                 GetWellKnownTypeMember(argIsIndex ? WellKnownMember.System_Index__ctor : WellKnownMember.System_Range__ctor, bindingDiagnostics, syntax: syntax);
                                 indexerAccess = BindIndexerDefaultArguments(boundIndexerAccess, BindValueKind.RValue, bindingDiagnostics);
                                 found = true;

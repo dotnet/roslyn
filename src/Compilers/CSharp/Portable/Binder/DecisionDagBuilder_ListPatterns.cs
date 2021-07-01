@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
             output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
 
-            if (list.HasAnyErrors)
+            if (list.HasErrors)
             {
                 tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
             }

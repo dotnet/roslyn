@@ -7928,6 +7928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool argIsIndex,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             [NotNullWhen(true)] out Symbol? patternSymbol,
+            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
             BindingDiagnosticBag diagnostics,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -7962,6 +7963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out Symbol? patternSymbol,
+            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
             BindingDiagnosticBag diagnostics,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

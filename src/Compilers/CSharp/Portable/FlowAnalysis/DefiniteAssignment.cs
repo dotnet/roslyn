@@ -1318,6 +1318,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ListPattern:
+                    {
+                        var pattern = (BoundListPattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
