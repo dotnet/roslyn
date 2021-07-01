@@ -277,10 +277,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
+            Dim unwrapNullable = False
             If _context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then
-                Dim type = TryCast(container, INamedTypeSymbol)
-                If type?.ConstructedFrom.SpecialType = SpecialType.System_Nullable_T Then
-                    container = type.GetTypeArguments().First()
+                Dim type = container.GetSymbolType()
+                If type?.OriginalDefinition?.SpecialType = SpecialType.System_Nullable_T Then
+                    unwrapNullable = True
                 End If
             End If
 
@@ -298,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, position, excludeInstance)) _
                     .ToImmutableArray()
             Else
-                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility, unwrapNullable:=False)
+                symbols = GetMemberSymbols(container, position, excludeInstance, useBaseReferenceAccessibility, unwrapNullable)
             End If
 
             If excludeShared Then
