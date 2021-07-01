@@ -150,25 +150,35 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             // left or right side.
             var left = leftPadding * 5;
             var right = rightPadding * 5;
+            var lineHeight = Math.Floor(format.Typeface.FontFamily.LineSpacing * format.FontRenderingEmSize * 0.75);
 
             var border = new Border
             {
                 Background = format.BackgroundBrush,
                 Child = block,
+                MaxHeight = lineHeight,
                 CornerRadius = new CornerRadius(2),
 
                 // Highlighting lines are 2px buffer.  So shift us up by one from the bottom so we feel centered between them.
                 Margin = new Thickness(left, top: 0, right, bottom: 1),
             };
 
+            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            var stackPanel = new StackPanel
+            {
+                Height = lineHeight * (4 / 3),
+                Orientation = Orientation.Horizontal
+            };
+
             // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
             // affect layout
-            TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(textView.VisualElement));
-            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(textView.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(textView.VisualElement));
+            TextOptions.SetTextFormattingMode(stackPanel, TextOptions.GetTextFormattingMode(textView.VisualElement));
+            TextOptions.SetTextHintingMode(stackPanel, TextOptions.GetTextHintingMode(textView.VisualElement));
+            TextOptions.SetTextRenderingMode(stackPanel, TextOptions.GetTextRenderingMode(textView.VisualElement));
 
-            border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            return border;
+            stackPanel.Children.Add(border);
+            return stackPanel;
         }
 
         private static (ImmutableArray<TaggedText> texts, int leftPadding, int rightPadding) Trim(ImmutableArray<TaggedText> taggedTexts)
