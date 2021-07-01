@@ -970,6 +970,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
+            Debug.Assert(node.LeftPlaceholder is null);
+            Debug.Assert(node.LeftConversion is null);
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.RightOperand);
             BoundExpression left;
@@ -993,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return UpdateExpression(leftBuilder, _F.Local(tmp));
             }
 
-            return UpdateExpression(builder, node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)

@@ -1078,17 +1078,24 @@ public class C
         var dd = d1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-conversion: object
                             //-nullCoalescingOperator: dynamic
 
         var sd = s1 ?? d2;  //-typeExpression: dynamic
                             //-fieldAccess: object
                             //-fieldAccess: dynamic
+                            //-valuePlaceholder: object
+                            //-valuePlaceholder: object
                             //-nullCoalescingOperator: dynamic
 
         var ds = d1 ?? s2;  //-typeExpression: dynamic
                             //-fieldAccess: dynamic
                             //-fieldAccess: object
                             //-conversion: dynamic
+                            //-valuePlaceholder: dynamic
+                            //-valuePlaceholder: dynamic
                             //-nullCoalescingOperator: dynamic
     }
 }
