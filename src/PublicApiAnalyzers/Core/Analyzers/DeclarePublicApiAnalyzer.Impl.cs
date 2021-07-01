@@ -86,8 +86,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private sealed class Impl
         {
-            private const char ObliviousMarker = '~';
-
             private static readonly ImmutableArray<MethodKind> s_ignorableMethodKinds
                 = ImmutableArray.Create(MethodKind.EventAdd, MethodKind.EventRemove);
 

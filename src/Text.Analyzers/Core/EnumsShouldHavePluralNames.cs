@@ -109,8 +109,8 @@ namespace Text.Analyzers
                 return;
             }
 
-            var reportCA1714 = context.Options.MatchesConfiguredVisibility(Rule_CA1714, symbol, context.Compilation, context.CancellationToken);
-            var reportCA1717 = context.Options.MatchesConfiguredVisibility(Rule_CA1717, symbol, context.Compilation, context.CancellationToken);
+            var reportCA1714 = context.Options.MatchesConfiguredVisibility(Rule_CA1714, symbol, context.Compilation);
+            var reportCA1717 = context.Options.MatchesConfiguredVisibility(Rule_CA1717, symbol, context.Compilation);
             if (!reportCA1714 && !reportCA1717)
             {
                 return;

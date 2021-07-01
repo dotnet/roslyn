@@ -28,35 +28,31 @@ namespace Analyzer.Utilities
     {
         public static readonly AggregateCategorizedAnalyzerConfigOptions Empty = new(
             globalOptions: null,
-            ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>>.Empty,
-            CompilationCategorizedAnalyzerConfigOptions.Empty);
+            ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>>.Empty);
 
         private readonly Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? _globalOptions;
         private readonly ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> _perTreeOptions;
-        private readonly CompilationCategorizedAnalyzerConfigOptions _additionalFileBasedOptions;
 
-        private AggregateCategorizedAnalyzerConfigOptions(Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? globalOptions, ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> perTreeOptions, CompilationCategorizedAnalyzerConfigOptions additionalFileBasedOptions)
+        private AggregateCategorizedAnalyzerConfigOptions(Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>? globalOptions, ImmutableDictionary<SyntaxTree, Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>> perTreeOptions)
         {
             _globalOptions = globalOptions;
             _perTreeOptions = perTreeOptions;
-            _additionalFileBasedOptions = additionalFileBasedOptions;
         }
 
         public bool IsEmpty
         {
             get
             {
-                Debug.Assert(ReferenceEquals(this, Empty) || !_perTreeOptions.IsEmpty || !_additionalFileBasedOptions.IsEmpty);
+                Debug.Assert(ReferenceEquals(this, Empty) || !_perTreeOptions.IsEmpty);
                 return ReferenceEquals(this, Empty);
             }
         }
 
-        public static AggregateCategorizedAnalyzerConfigOptions Create(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, Compilation compilation, CompilationCategorizedAnalyzerConfigOptions additionalFileBasedOptions)
+        public static AggregateCategorizedAnalyzerConfigOptions Create(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, Compilation compilation)
         {
             analyzerConfigOptionsProvider = analyzerConfigOptionsProvider ?? throw new ArgumentNullException(nameof(analyzerConfigOptionsProvider));
-            additionalFileBasedOptions = additionalFileBasedOptions ?? throw new ArgumentNullException(nameof(additionalFileBasedOptions));
 
-            if (analyzerConfigOptionsProvider.IsEmpty() && additionalFileBasedOptions.IsEmpty)
+            if (analyzerConfigOptionsProvider.IsEmpty())
             {
                 return Empty;
             }
@@ -74,7 +70,7 @@ namespace Analyzer.Utilities
                 perTreeOptionsBuilder.Add(tree, new Lazy<SyntaxTreeCategorizedAnalyzerConfigOptions>(() => Create(tree, analyzerConfigOptionsProvider)));
             }
 
-            return new AggregateCategorizedAnalyzerConfigOptions(globalOptions, perTreeOptionsBuilder.ToImmutableDictionaryAndFree(), additionalFileBasedOptions);
+            return new AggregateCategorizedAnalyzerConfigOptions(globalOptions, perTreeOptionsBuilder.ToImmutableDictionaryAndFree());
 
             static SyntaxTreeCategorizedAnalyzerConfigOptions Create(SyntaxTree tree, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
             {
@@ -95,23 +91,17 @@ namespace Analyzer.Utilities
 
         private bool TryGetOptionValue<T>(string optionName, OptionKind kind, SyntaxTree? tree, DiagnosticDescriptor? rule, TryParseValue<T> tryParseValue, T defaultValue, [MaybeNullWhen(false)] out T value)
         {
+            value = defaultValue;
+
             if (ReferenceEquals(this, Empty))
             {
-                value = defaultValue;
                 return false;
-            }
-
-            // Prefer additional file based options for back compat.
-            if (_additionalFileBasedOptions.TryGetOptionValue(optionName, kind, rule, tryParseValue, defaultValue, out value))
-            {
-                return true;
             }
 
             if (tree is null)
             {
                 if (_globalOptions is null)
                 {
-                    value = defaultValue;
                     return false;
                 }
 
