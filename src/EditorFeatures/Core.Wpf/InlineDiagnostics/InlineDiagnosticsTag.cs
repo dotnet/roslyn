@@ -89,13 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            // Need to set these properties to avoid unnecessary reformatting because some dependancy properties
-            // affect layout.
-            // TODO: Not sure if these are needed anymore since the errors are not intratextadornment tags
-            /*TextOptions.SetTextFormattingMode(border, TextOptions.GetTextFormattingMode(view.VisualElement));
-            TextOptions.SetTextHintingMode(border, TextOptions.GetTextHintingMode(view.VisualElement));
-            TextOptions.SetTextRenderingMode(border, TextOptions.GetTextRenderingMode(view.VisualElement));*/
-
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
 
             return new GraphicsResult(border, dispose:
