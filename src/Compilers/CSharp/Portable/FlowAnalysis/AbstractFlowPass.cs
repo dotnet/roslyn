@@ -1149,23 +1149,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node)
+        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? nullableData)
         {
-            foreach (var expr in node.Parts)
+            // If there can be any branching, then we need to treat the expressions
+            // as optionally evaluated. Otherwise, we treat them as always evaluated
+            switch (nullableData)
             {
-                VisitRvalue(expr);
+                case null:
+                    visitParts();
+                    break;
+                case { HasTrailingHandlerValidityParameter: false, UsesBoolReturns: false, Construction: var construction }:
+                    VisitRvalue(construction);
+                    visitParts();
+                    break;
+                case { Construction: var construction }:
+                    VisitRvalue(construction);
+                    var beforePartsState = State.Clone();
+                    visitParts();
+                    Join(ref State, ref beforePartsState);
+                    break;
             }
+
             return null;
+
+            void visitParts()
+            {
+                foreach (var expr in node.Parts)
+                {
+                    VisitRvalue(expr);
+                }
+            }
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            return VisitInterpolatedStringBase(node, node.InterpolationData);
         }
 
         public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            // If the node is unconverted, we'll just treat it as if the contents are always evaluated
+            return VisitInterpolatedStringBase(node, nullableData: null);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)
@@ -1186,7 +1210,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
-            // PROTOTYPE(interp-string): handle if necessary
+            return null;
+        }
+
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+        {
             return null;
         }
 

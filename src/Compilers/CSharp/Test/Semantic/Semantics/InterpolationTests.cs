@@ -10428,5 +10428,48 @@ public partial class CustomHandler
 ",
             };
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefiniteAssignment(bool useBoolReturns, bool trailingOutParameter)
+        {
+            var code = @"
+int i;
+string s;
+
+CustomHandler c = $""{i = 1}{M(out var o)}{s = o.ToString()}"";
+_ = i.ToString();
+_ = o.ToString();
+_ = s.ToString();
+
+string M(out object o)
+{
+    o = null;
+    return null;
+}
+";
+
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns, includeTrailingOutConstructorParameter: trailingOutParameter);
+            var comp = CreateCompilation(new[] { code, customHandler }, parseOptions: TestOptions.RegularPreview);
+
+            if (useBoolReturns || trailingOutParameter)
+            {
+                comp.VerifyDiagnostics(
+                    // (6,5): error CS0165: Use of unassigned local variable 'i'
+                    // _ = i.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(6, 5),
+                    // (7,5): error CS0165: Use of unassigned local variable 'o'
+                    // _ = o.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(7, 5),
+                    // (8,5): error CS0165: Use of unassigned local variable 's'
+                    // _ = s.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(8, 5)
+                );
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
+        }
     }
 }
