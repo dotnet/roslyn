@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }
             }
@@ -184,6 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 transaction.Commit();
