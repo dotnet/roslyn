@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 LineOperations.Preserve,
                 IndentationOperations.Follow,
                 lines: 0,
-                1,
+                spaces: 1,
                 spacesOrIndentation);
 
         public enum SpaceOperations

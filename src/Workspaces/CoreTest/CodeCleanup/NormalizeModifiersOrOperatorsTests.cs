@@ -671,7 +671,7 @@ End Class";
         [Fact]
         [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
-        public async Task RemoveByVal_LineContinuation_PC()
+        public async Task RemoveByVal_LineContinuation()
         {
             var code = @"[|Class A
     Sub Method( _

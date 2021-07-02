@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonTrivia_LineContinuation_Comment_PC()
+        public async Task ColonTrivia_LineContinuation_Comment()
         {
             var code = @"[|
         ::: 
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment_PC()
+        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
         {
             var code = @"[|
          Console.WriteLine() : _
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ImplicitLineContinuation_Multiple_PC()
+        public async Task ImplicitLineContinuation_Multiple()
         {
             var code = @"[|
         Dim i = _
@@ -799,7 +799,7 @@ End Module";
         [Fact]
         [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task LineContinuation_MixedWithImplicitLineContinuation_PC()
+        public async Task LineContinuation_MixedWithImplicitLineContinuation()
         {
             var code = @"[|Module Program
     Sub Main(
