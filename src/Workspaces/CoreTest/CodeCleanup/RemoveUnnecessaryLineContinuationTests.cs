@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonTrivia_LineContinuation_Comment_PC()
+        public async Task ColonTrivia_LineContinuation_Comment()
         {
             var code = @"[|
         ::: 
