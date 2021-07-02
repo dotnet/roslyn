@@ -10,7 +10,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 using Internal.Runtime.CompilerServices;
 
@@ -18,17 +17,10 @@ namespace Microsoft.CodeAnalysis.Collections
 {
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    [Serializable]
     [TypeForwardedFrom("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>, ISerializable, IDeserializationCallback
+    internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>
     {
         // This uses the same array-based implementation as Dictionary<TKey, TValue>.
-
-        // Constants for serialization
-        private const string CapacityName = "Capacity"; // Do not rename (binary serialization)
-        private const string ElementsName = "Elements"; // Do not rename (binary serialization)
-        private const string ComparerName = "Comparer"; // Do not rename (binary serialization)
-        private const string VersionName = "Version"; // Do not rename (binary serialization)
 
         /// <summary>Cutoff point for stackallocs. This corresponds to the number of ints.</summary>
         private const int StackAllocThreshold = 100;
@@ -53,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _freeCount;
         private int _version;
         private IEqualityComparer<T>? _comparer;
-        private SerializationInfo? _siInfo; // temporary variable needed during deserialization
 
         #region Constructors
 
@@ -135,15 +126,6 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Initialize(capacity);
             }
-        }
-
-        protected SegmentedHashSet(SerializationInfo info, StreamingContext context)
-        {
-            // We can't do anything with the keys and values until the entire graph has been
-            // deserialized and we have a reasonable estimate that GetHashCode is not going to
-            // fail.  For the time being, we'll just cache this.  The graph is not valid until
-            // OnDeserialization has been called.
-            _siInfo = info;
         }
 
         /// <summary>Initializes the SegmentedHashSet from another SegmentedHashSet with the same element type and equality comparer.</summary>
@@ -387,77 +369,6 @@ namespace Microsoft.CodeAnalysis.Collections
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        #endregion
-
-        #region ISerializable methods
-
-        public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.info);
-            }
-
-            info.AddValue(VersionName, _version); // need to serialize version to avoid problems with serializing while enumerating
-            info.AddValue(ComparerName, Comparer, typeof(IEqualityComparer<T>));
-            info.AddValue(CapacityName, _buckets == null ? 0 : _buckets.Length);
-
-            if (_buckets != null)
-            {
-                var array = new T[Count];
-                CopyTo(array);
-                info.AddValue(ElementsName, array, typeof(T[]));
-            }
-        }
-
-        #endregion
-
-        #region IDeserializationCallback methods
-
-        public virtual void OnDeserialization(object? sender)
-        {
-            if (_siInfo == null)
-            {
-                // It might be necessary to call OnDeserialization from a container if the
-                // container object also implements OnDeserialization. We can return immediately
-                // if this function is called twice. Note we set _siInfo to null at the end of this method.
-                return;
-            }
-
-            int capacity = _siInfo.GetInt32(CapacityName);
-            _comparer = (IEqualityComparer<T>)_siInfo.GetValue(ComparerName, typeof(IEqualityComparer<T>))!;
-            _freeList = -1;
-            _freeCount = 0;
-
-            if (capacity != 0)
-            {
-                _buckets = new int[capacity];
-                _entries = new Entry[capacity];
-#if TARGET_64BIT
-                _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)capacity);
-#endif
-
-                T[]? array = (T[]?)_siInfo.GetValue(ElementsName, typeof(T[]));
-                if (array == null)
-                {
-                    ThrowHelper.ThrowSerializationException(ExceptionResource.Serialization_MissingKeys);
-                }
-
-                // There are no resizes here because we already set capacity above.
-                for (int i = 0; i < array.Length; i++)
-                {
-                    AddIfNotPresent(array[i], out _);
-                }
-            }
-            else
-            {
-                _buckets = null;
-            }
-
-            _version = _siInfo.GetInt32(VersionName);
-            _siInfo = null;
-        }
 
         #endregion
 
