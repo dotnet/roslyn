@@ -7269,32 +7269,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedStringArgumentPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, int argumentIndex, TypeSymbol type, bool hasErrors)
             : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.ArgumentIndex = argumentIndex;
         }
 
-        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, TypeSymbol type)
+        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, int argumentIndex, TypeSymbol type)
             : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
+            this.ArgumentIndex = argumentIndex;
         }
 
 
         public new TypeSymbol Type => base.Type!;
+
+        public int ArgumentIndex { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitInterpolatedStringArgumentPlaceholder(this);
 
-        public BoundInterpolatedStringArgumentPlaceholder Update(TypeSymbol type)
+        public BoundInterpolatedStringArgumentPlaceholder Update(int argumentIndex, TypeSymbol type)
         {
-            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (argumentIndex != this.ArgumentIndex || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedStringArgumentPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundInterpolatedStringArgumentPlaceholder(this.Syntax, argumentIndex, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10989,7 +10993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(type);
+            return node.Update(node.ArgumentIndex, type);
         }
         public override BoundNode? VisitStringInsert(BoundStringInsert node)
         {
@@ -13301,7 +13305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundInterpolatedStringArgumentPlaceholder updatedNode = node.Update(infoAndType.Type!);
+            BoundInterpolatedStringArgumentPlaceholder updatedNode = node.Update(node.ArgumentIndex, infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -15241,6 +15245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node, object? arg) => new TreeDumperNode("interpolatedStringArgumentPlaceholder", null, new TreeDumperNode[]
         {
+            new TreeDumperNode("argumentIndex", node.ArgumentIndex, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

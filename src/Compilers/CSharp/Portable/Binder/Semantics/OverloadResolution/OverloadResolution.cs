@@ -1025,9 +1025,13 @@ outerDefault:
                 return false;
             }
 
-            // Note: we need to confirm the "arrayness" on the original definition because
-            // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
+            return IsValidParamsParameter(final);
+        }
+
+        public static bool IsValidParamsParameter(ParameterSymbol final)
+        {
+            Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 

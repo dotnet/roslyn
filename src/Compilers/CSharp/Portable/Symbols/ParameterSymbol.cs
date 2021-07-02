@@ -401,8 +401,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Indexes of the parameters that will be passed to the constructor of the interpolated string handler type
-        /// when an interpolated string handler conversion occurs. An index of -1 means the "this" parameter. These
-        /// indexes are ordered in the order to be passed to the constructor.
+        /// when an interpolated string handler conversion occurs. These indexes are ordered in the order to be passed
+        /// to the constructor.
+        /// <para/>
+        /// Indexes greater than or equal to 0 are references to parameters defined on the containing method or indexer.
+        /// Indexes less than 0 are constants defined on <see cref="BoundInterpolatedStringArgumentPlaceholder"/>.
         /// </summary>
         internal abstract ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes { get; }
 

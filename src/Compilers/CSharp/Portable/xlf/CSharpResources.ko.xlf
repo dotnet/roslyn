@@ -372,6 +372,11 @@
         <target state="translated">식 트리에는 내림차순 인덱스('^') 식을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
+        <source>An expression tree may not contain an interpolated string handler conversion.</source>
+        <target state="new">An expression tree may not contain an interpolated string handler conversion.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
         <target state="translated">식 트리에는 System.Index 또는 System.Range 패턴의 인덱서 액세스를 포함할 수 없습니다.</target>
@@ -540,6 +545,21 @@
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">C# 컴파일러의 내부 오류입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentAttributeMalformed">
+        <source>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</source>
+        <target state="new">The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</target>
+        <note>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</note>
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString">
+        <source>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</source>
+        <target state="new">Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified">
+        <source>Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</source>
+        <target state="new">Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments">

@@ -1009,13 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
-
             var method = methodResult.Member;
-            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
-
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1025,6 +1019,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution.
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiver?.GetRefKind());
+
+            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+            var argsToParams = methodResult.Result.ArgsToParamsOpt;
+
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -2011,7 +2012,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CoerceArguments(
                 methodResult,
                 analyzedArguments.Arguments,
-                diagnostics);
+                diagnostics,
+                receiverType: null,
+                receiverRefKind: null);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

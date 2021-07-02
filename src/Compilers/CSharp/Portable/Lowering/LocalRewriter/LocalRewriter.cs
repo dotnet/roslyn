@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -390,6 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return PlaceholderReplacement(node);
         }
+
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            => PlaceholderReplacement(node);
 
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
@@ -891,6 +893,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed
                     return true;
 
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // An argument placeholder is always a reference to some type of temp local,
+                    // either representing a user-typed expression that went through this path
+                    // itself when it was originally visited, or the trailing out parameter that
+                    // is passed by out.
+                    return true;
+
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
                     if (eventAccess.IsUsableAsField)
@@ -1016,6 +1025,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
             {
                 Fail(node);
                 return null;

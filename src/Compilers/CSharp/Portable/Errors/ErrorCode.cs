@@ -1951,6 +1951,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments = 9008,
         WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 9009,
         ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 9010,
+        ERR_InterpolatedStringHandlerArgumentAttributeMalformed = 9011,
+        ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 9012,
+        ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 9013,
+        ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 9014,
 
         #endregion diagnostics introduced for C# 10.0
 

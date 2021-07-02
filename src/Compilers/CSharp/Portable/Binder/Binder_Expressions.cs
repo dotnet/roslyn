@@ -2957,10 +2957,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argument;
         }
 
+#nullable enable
         private void CoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
             ArrayBuilder<BoundExpression> arguments,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            TypeSymbol? receiverType,
+            RefKind? receiverRefKind)
             where TMember : Symbol
         {
             var result = methodResult.Result;
@@ -2973,18 +2976,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kind = result.ConversionForArg(arg);
                 BoundExpression argument = arguments[arg];
 
+                if (kind.IsInterpolatedStringHandler)
+                {
+                    Debug.Assert(argument is BoundUnconvertedInterpolatedString);
+                    TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
+                    reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall((BoundUnconvertedInterpolatedString)argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, diagnostics);
+                }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
-                if (!kind.IsIdentity)
+                else if (!kind.IsIdentity)
                 {
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
-
-                    // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
-                    if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.IsUnsafe())
-                    {
-                        // CONSIDER: dev10 uses the call syntax, but this seems clearer.
-                        ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
-                        //CONSIDER: Return a bad expression so that HasErrors is true?
-                    }
+                    reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
                     arguments[arg] = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, parameterTypeWithAnnotations.Type, diagnostics);
                 }
@@ -3007,7 +3010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.NeedsToBeConverted())
                 {
                     Debug.Assert(kind.IsIdentity);
-                    if (argument is BoundTupleLiteral sourceTuple)
+                    if (argument is BoundTupleLiteral)
                     {
                         TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
@@ -3019,7 +3022,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            void reportUnsafeIfNeeded(MemberResolutionResult<TMember> methodResult, BindingDiagnosticBag diagnostics, BoundExpression argument, TypeWithAnnotations parameterTypeWithAnnotations)
+            {
+                // NOTE: for some reason, dev10 doesn't report this for indexer accesses.
+                if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.IsUnsafe())
+                {
+                    // CONSIDER: dev10 uses the call syntax, but this seems clearer.
+                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
+                    //CONSIDER: Return a bad expression so that HasErrors is true?
+                }
+            }
         }
+
+        private static ParameterSymbol GetCorrespondingParameter(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
+        {
+            int paramNum = result.ParameterFromArgument(arg);
+            return parameters[paramNum];
+        }
+#nullable disable
 
         private static TypeWithAnnotations GetCorrespondingParameterTypeWithAnnotations(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
         {
@@ -4406,7 +4427,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression MakeConstructorInvocation(
             NamedTypeSymbol type,
-            ImmutableArray<BoundExpression> arguments,
+            ArrayBuilder<BoundExpression> arguments,
+            ArrayBuilder<RefKind> refKinds,
             SyntaxNode node,
             BindingDiagnosticBag diagnostics)
         {
@@ -4416,6 +4438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 analyzedArguments.Arguments.AddRange(arguments);
+                analyzedArguments.RefKinds.AddRange(refKinds);
 
                 if (type.IsStatic)
                 {
@@ -5272,19 +5295,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            MemberResolutionResult<MethodSymbol> memberResolutionResult;
-            ImmutableArray<MethodSymbol> candidateConstructors;
 
             if (TryPerformConstructorOverloadResolution(
-                type,
-                analyzedArguments,
-                typeName,
-                typeNode.Location,
-                hasErrors, //don't cascade in these cases
-                diagnostics,
-                out memberResolutionResult,
-                out candidateConstructors,
-                allowProtectedConstructorsOfBaseType: false))
+                    type,
+                    analyzedArguments,
+                    typeName,
+                    typeNode.Location,
+                    hasErrors, //don't cascade in these cases
+                    diagnostics,
+                    out MemberResolutionResult<MethodSymbol> memberResolutionResult,
+                    out ImmutableArray<MethodSymbol> candidateConstructors,
+                    allowProtectedConstructorsOfBaseType: false))
             {
                 var method = memberResolutionResult.Member;
 
@@ -5668,7 +5689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics);
+                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiverType: null, receiverRefKind: null);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -7821,7 +7842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics);
+                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverOpt?.GetRefKind());
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;

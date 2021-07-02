@@ -767,13 +767,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 switch (name)
                 {
                     case null:
-                    case "" when ContainingSymbol.IsStatic:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor }:
                         // Invalid data, bail
                         builder.Free();
                         return default;
 
                     case "":
-                        builder.Add(-1);
+                        builder.Add(BoundInterpolatedStringArgumentPlaceholder.InstanceParameter);
                         break;
 
                     default:
