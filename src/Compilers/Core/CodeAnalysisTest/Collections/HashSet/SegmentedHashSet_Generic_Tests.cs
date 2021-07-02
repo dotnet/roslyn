@@ -1,6 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+// NOTE: This code is derived from an implementation originally in dotnet/runtime:
+// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Collections/tests/Generic/HashSet/HashSet.Generic.cs
+//
+// See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
+// reference implementation.
+
 using System.Collections.Generic;
 using Xunit;
 
