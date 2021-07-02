@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
-            var (appendCalls, usesBoolReturn) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics);
+            var (appendCalls, usesBoolReturn, positionInfo) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
             // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
@@ -378,7 +378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructorCall,
                     usesBoolReturn,
                     LocalScopeDepth,
-                    additionalConstructorArguments.NullToEmpty()),
+                    additionalConstructorArguments.NullToEmpty(),
+                    positionInfo),
                 appendCalls,
                 unconvertedInterpolatedString.ConstantValue,
                 unconvertedInterpolatedString.Type,
@@ -440,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
 
-        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
+        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
         {
             // PROTOTYPE(interp-string): Update the spec with the rules around InterpolatedStringHandlerAttribute. For now, we assume that any
             // type that makes it to this method is actually an interpolated string builder type, and we should fully report any binding errors
@@ -448,12 +449,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (source.Parts.IsEmpty)
             {
-                return (ImmutableArray<BoundExpression>.Empty, false);
+                return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty);
             }
 
             var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
             bool? builderPatternExpectsBool = null;
             var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
+            var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(source.Parts.Length);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
             var parameterNamesAndLocationsBuilder = ArrayBuilder<(string, Location)?>.GetInstance(3);
 
@@ -461,20 +463,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(part is BoundLiteral or BoundStringInsert);
                 string methodName;
+                bool isLiteral;
+                bool hasAlignment;
+                bool hasFormat;
 
                 if (part is BoundStringInsert insert)
                 {
                     methodName = "AppendFormatted";
                     argumentsBuilder.Add(insert.Value);
                     parameterNamesAndLocationsBuilder.Add(null);
+                    isLiteral = false;
+                    hasAlignment = false;
+                    hasFormat = false;
 
                     if (insert.Alignment is not null)
                     {
+                        hasAlignment = true;
                         argumentsBuilder.Add(insert.Alignment);
                         parameterNamesAndLocationsBuilder.Add(("alignment", insert.Alignment.Syntax.Location));
                     }
                     if (insert.Format is not null)
                     {
+                        hasFormat = true;
                         argumentsBuilder.Add(insert.Format);
                         parameterNamesAndLocationsBuilder.Add(("format", insert.Format.Syntax.Location));
                     }
@@ -483,6 +493,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     methodName = "AppendLiteral";
                     argumentsBuilder.Add(part);
+                    isLiteral = true;
+                    hasAlignment = false;
+                    hasFormat = false;
                 }
 
                 var arguments = argumentsBuilder.ToImmutableAndClear();
@@ -500,6 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
                 builderAppendCalls.Add(call);
+                positionInfo.Add((isLiteral, hasAlignment, hasFormat));
 
                 // PROTOTYPE(interp-string): Handle dynamic
                 Debug.Assert(call is BoundCall or { HasErrors: true });
@@ -527,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
-            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false);
+            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfo.ToImmutableAndFree());
         }
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(

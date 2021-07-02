@@ -1202,126 +1202,7 @@ static class C
                 );
         }
 
-        // PROTOTYPE(interp-string): Define how these are represented in IOperation
-        private string GetInterpolatedStringHandlerDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null, bool constructorBoolArg = false, bool constructorSuccessResult = true)
-        {
-            Debug.Assert(returnExpression == null || useBoolReturns);
-
-            var builder = new StringBuilder();
-            builder.AppendLine(@"
-namespace System.Runtime.CompilerServices
-{
-    using System.Text;
-    public ref partial struct DefaultInterpolatedStringHandler
-    {
-        private readonly StringBuilder _builder;
-        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount" + (constructorBoolArg ? ", out bool success" : "") + @")
-        {
-            _builder = new StringBuilder();
-            " + (constructorBoolArg ? $"success = {(constructorSuccessResult ? "true" : "false")};" : "") + @"
-        }
-        public string ToStringAndClear() => _builder.ToString();");
-
-            appendSignature("AppendLiteral(string s)");
-            appendBody(includeValue: false, includeAlignment: false, includeFormat: false, isSpan: false);
-
-            if (useDefaultParameters)
-            {
-                appendSignature("AppendFormatted<T>(T value, int alignment = 0, string format = null)");
-                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
-                appendSignature("AppendFormatted(object value, int alignment = 0, string format = null)");
-                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
-                appendSignature("AppendFormatted(string value, int alignment = 0, string format = null)");
-                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
-            }
-            else
-            {
-                appendNonDefaultVariantsWithGenericAndType("T", "<T>");
-                appendNonDefaultVariantsWithGenericAndType("object", generic: null);
-                appendNonDefaultVariantsWithGenericAndType("string", generic: null);
-            }
-
-            if (includeSpanOverloads)
-            {
-                if (useDefaultParameters)
-                {
-                    appendSignature("AppendFormatted(ReadOnlySpan<char> value, int alignment = 0, string format = null)");
-                    appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: true);
-                }
-                else
-                {
-                    appendNonDefaultVariantsWithGenericAndType("ReadOnlySpan<char>", generic: null, isSpan: true);
-                }
-            }
-
-            builder.Append(@"
-    }
-}");
-            return builder.ToString();
-
-            void appendBody(bool includeValue, bool includeAlignment, bool includeFormat, bool isSpan)
-            {
-                if (includeValue)
-                {
-                    builder.Append($@"
-        {{
-            _builder.Append(""value:"");
-            _builder.Append(value{(isSpan ? "" : "?")}.ToString());");
-                }
-                else
-                {
-                    builder.Append(@"
-        {
-            _builder.Append(s);");
-                }
-
-                if (includeAlignment)
-                {
-                    builder.Append(@"
-            _builder.Append("",alignment:"");
-            _builder.Append(alignment);");
-                }
-
-                if (includeFormat)
-                {
-                    builder.Append(@"
-            _builder.Append("":format:"");
-            _builder.Append(format);");
-                }
-
-                builder.Append(@"
-            _builder.AppendLine();");
-
-                if (useBoolReturns)
-                {
-                    builder.Append($@"
-            return {returnExpression ?? "true"};");
-                }
-
-                builder.AppendLine(@"
-        }");
-            }
-
-            void appendSignature(string nameAndParams)
-            {
-                builder.Append(@$"
-        public {(useBoolReturns ? "bool" : "void")} {nameAndParams}");
-            }
-
-            void appendNonDefaultVariantsWithGenericAndType(string type, string generic, bool isSpan = false)
-            {
-                appendSignature($"AppendFormatted{generic}({type} value)");
-                appendBody(includeValue: true, includeAlignment: false, includeFormat: false, isSpan);
-                appendSignature($"AppendFormatted{generic}({type} value, int alignment)");
-                appendBody(includeValue: true, includeAlignment: true, includeFormat: false, isSpan);
-                appendSignature($"AppendFormatted{generic}({type} value, string format)");
-                appendBody(includeValue: true, includeAlignment: false, includeFormat: true, isSpan);
-                appendSignature($"AppendFormatted{generic}({type} value, int alignment, string format)");
-                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan);
-            }
-        }
-
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandler_OverloadsAndBoolReturns(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg)
         {
@@ -1726,7 +1607,7 @@ value:1,alignment:2:format:Y";
             };
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void UseOfSpanInInterpolationHole_CSharp9()
         {
             var source = @"
@@ -1742,7 +1623,7 @@ Console.WriteLine($""{span}"");";
                 );
         }
 
-        [ConditionalTheory(typeof(MonoOrCoreClrOnly), typeof(NoIOperationValidation))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
         [CombinatorialData]
         public void UseOfSpanInInterpolationHole(bool useDefaultParameters, bool useBoolReturns, bool constructorBoolArg)
         {
@@ -2157,7 +2038,7 @@ value:1,alignment:2:format:Y";
             };
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void BoolReturns_ShortCircuit()
         {
             var source = @"
@@ -2174,7 +2055,7 @@ base
 1");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void BoolOutParameter_ShortCircuits(bool useBoolReturns)
         {
@@ -2195,7 +2076,7 @@ string Throw() => throw new Exception();
 1");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void AwaitInHoles_UsesFormat()
         {
             // PROTOTYPE(interp-string): We could make this case use the builder as well by evaluating the holes ahead of time. For DefaultInterpolatedStringHandler,
@@ -2290,7 +2171,7 @@ Task<int> Hole() => Task.FromResult(1);";
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void NoAwaitInHoles_UsesBuilder()
         {
             var source = @"
@@ -2395,7 +2276,7 @@ value:1");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void NoAwaitInHoles_AwaitInExpression_UsesBuilder()
         {
             var source = @"
@@ -2561,7 +2442,7 @@ value:2");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MissingCreate_01()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2590,7 +2471,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MissingCreate_02()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2620,7 +2501,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MissingCreate_03()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2647,7 +2528,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData(null)]
         [InlineData("public string ToStringAndClear(int literalLength) => throw null;")]
         [InlineData("public void ToStringAndClear() => throw null;")]
@@ -2679,7 +2560,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ObsoleteCreateMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2707,7 +2588,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ObsoleteAppendLiteralMethod()
         {
             var code = @"_ = $""base{(object)1}"";";
@@ -2735,7 +2616,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ObsoleteAppendFormattedMethod()
         {
             var code = @"_ = $""base{(object)1}"";";
@@ -2781,7 +2662,7 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void UnmanagedCallersOnlyAppendFormattedMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2863,7 +2744,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void UnmanagedCallersOnlyToStringMethod()
         {
             var code = @"_ = $""{(object)1}"";";
@@ -2939,7 +2820,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void UnsupportedArgumentType()
         {
             var source = @"
@@ -2966,7 +2847,7 @@ ref struct S
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TargetTypedInterpolationHoles()
         {
             var source = @"
@@ -3027,7 +2908,7 @@ value:");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TargetTypedInterpolationHoles_Errors()
         {
             var source = @"System.Console.WriteLine($""{(null, default)}{new()}"");";
@@ -3048,7 +2929,7 @@ value:");
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void RefTernary()
         {
             var source = @"
@@ -3061,7 +2942,7 @@ System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
             CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:1");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void NestedInterpolatedStrings()
         {
             // PROTOTYPE(interp-string): Should we notice the nested string and just treat it as being concated?
@@ -3105,7 +2986,7 @@ System.Console.WriteLine($""{$""{i}""}"");";
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ExceptionFilter_01()
         {
             var source = @"
@@ -3338,7 +3219,7 @@ value:C");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ExplicitUserDefinedConversionInHole()
         {
             var source = @"
@@ -3362,7 +3243,7 @@ ref struct S
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ImplicitUserDefinedConversionInLiteral()
         {
             var source = @"
@@ -3421,7 +3302,7 @@ value:1");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ExplicitUserDefinedConversionInLiteral()
         {
             var source = @"
@@ -3460,7 +3341,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InvalidBuilderReturnType()
         {
             var source = @"
@@ -3495,7 +3376,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MixedBuilderReturnTypes_01()
         {
             var source = @"
@@ -3531,7 +3412,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MixedBuilderReturnTypes_02()
         {
             var source = @"
@@ -3567,7 +3448,7 @@ namespace System.Runtime.CompilerServices
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MixedBuilderReturnTypes_03()
         {
             var source = @"
@@ -3597,7 +3478,7 @@ namespace System.Runtime.CompilerServices
             CompileAndVerify(source, expectedOutput: "value:1");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MixedBuilderReturnTypes_04()
         {
             var source = @"
@@ -3627,62 +3508,7 @@ public class CustomHandler
             CompileAndVerify(new[] { source, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, expectedOutput: "literal:l");
         }
 
-        private const string InterpolatedStringHandlerAttribute = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
-    public sealed class InterpolatedStringHandlerAttribute : Attribute
-    {
-        public InterpolatedStringHandlerAttribute()
-        {
-        }
-    }
-}
-";
-
-        private string GetCustomHandlerType(string name, string type, bool useBoolReturns, bool includeOneTimeHelpers = true)
-        {
-            var returnType = useBoolReturns ? "bool" : "void";
-            var returnStatement = useBoolReturns ? "return true;" : "return;";
-
-            var cultureInfoHandler = @"
-public class CultureInfoNormalizer
-{
-    public static void Normalize()
-    {
-        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-    }
-}
-";
-
-            return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
-using System.Text;
-[System.Runtime.CompilerServices.InterpolatedStringHandler]
-public " + type + " " + name + @"
-{
-    private readonly StringBuilder _builder;
-    public " + name + @"(int literalLength, int formattedCount)
-    {
-        _builder = new();
-    }
-    public " + returnType + @" AppendLiteral(string literal)
-    {
-        _builder.AppendLine(""literal:"" + literal);
-        " + returnStatement + @"
-    }
-    public " + returnType + @" AppendFormatted(object o, int alignment = 0, string format = null)
-    {
-        _builder.AppendLine(""value:"" + o?.ToString());
-        _builder.AppendLine(""alignment:"" + alignment.ToString());
-        _builder.AppendLine(""format:"" + format);
-        " + returnStatement + @"
-    }
-    public override string ToString() => _builder.ToString();
-}
-" + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
-        }
-
-        private void VerifyInterpolatedStringExpression(CSharpCompilation comp, string handlerType = "CustomHandler")
+        private static void VerifyInterpolatedStringExpression(CSharpCompilation comp, string handlerType = "CustomHandler")
         {
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3697,7 +3523,7 @@ public " + type + " " + name + @"
             Assert.True(semanticInfo.ImplicitConversion.IsInterpolatedStringHandler);
             Assert.Null(semanticInfo.ImplicitConversion.Method);
 
-            // PROTOTYPE(interp-string): Assert IConversionOperation.IsImplicit when IOperation is implemented for interpolated strings.
+            // https://github.com/dotnet/roslyn/issues/54505 Assert IConversionOperation.IsImplicit when IOperation is implemented for interpolated strings.
         }
 
         private CompilationVerifier CompileAndVerifyOnCorrectPlatforms(CSharpCompilation compilation, string expectedOutput)
@@ -3706,7 +3532,7 @@ public " + type + " " + name + @"
              expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
              verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void CustomHandlerLocal([CombinatorialValues("class", "struct")] string type, bool useBoolReturns)
         {
@@ -3714,7 +3540,7 @@ public " + type + " " + name + @"
 CustomHandler builder = $""Literal{1,2:f}"";
 System.Console.WriteLine(builder.ToString());";
 
-            var builder = GetCustomHandlerType("CustomHandler", type, useBoolReturns);
+            var builder = GetInterpolatedStringCustomHandlerType("CustomHandler", type, useBoolReturns);
             var comp = CreateCompilation(new[] { code, builder }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
 
@@ -3841,7 +3667,7 @@ format:f");
             };
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void CustomHandlerMethodArgument()
         {
             var code = @"
@@ -3851,7 +3677,7 @@ void M(CustomHandler b)
     System.Console.WriteLine(b.ToString());
 }";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -3888,11 +3714,11 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void ExplicitHandlerCast_InCode()
         {
             var code = @"System.Console.WriteLine((CustomHandler)$""{1,2:f}Literal"");";
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3939,7 +3765,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void HandlerConversionPreferredOverStringForNonConstant()
         {
             var code = @"
@@ -3957,7 +3783,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -3994,7 +3820,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StringPreferredOverHandlerConversionForConstant()
         {
             var code = @"
@@ -4012,7 +3838,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
@@ -4026,7 +3852,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void HandlerConversionPreferredOverStringForNonConstant_AttributeConstructor()
         {
             var code = @"
@@ -4040,7 +3866,7 @@ class Attr : Attribute
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
                 // [Attr($"{1}")]
@@ -4052,7 +3878,7 @@ class Attr : Attribute
             Assert.Equal("Attr..ctor(CustomHandler c)", attr.GetAttributes().Single().AttributeConstructor.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StringPreferredOverHandlerConversionForConstant_AttributeConstructor()
         {
             var code = @"
@@ -4066,7 +3892,7 @@ class Attr : Attribute
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
             void validate(ModuleSymbol m)
@@ -4076,7 +3902,7 @@ class Attr : Attribute
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void MultipleBuilderTypes()
         {
             var code = @"
@@ -4091,8 +3917,8 @@ class C
             var comp = CreateCompilation(new[]
             {
                 code,
-                GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
-                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
+                GetInterpolatedStringCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
+                GetInterpolatedStringCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
             }, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
@@ -4102,7 +3928,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericOverloadResolution_01()
         {
             var code = @"
@@ -4117,7 +3943,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4154,7 +3980,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericOverloadResolution_02()
         {
             var code = @"
@@ -4169,7 +3995,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4206,7 +4032,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericOverloadResolution_03()
         {
             var code = @"
@@ -4218,7 +4044,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,3): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(T)'. There is no implicit reference conversion from 'string' to 'CustomHandler'.
                 // C.M($"{1,2:f}Literal");
@@ -4226,7 +4052,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericInference_01()
         {
             var code = @"
@@ -4239,7 +4065,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (2,3): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // C.M($"{1,2:f}Literal", default(CustomHandler));
@@ -4250,7 +4076,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericInference_02()
         {
             var code = @"
@@ -4263,7 +4089,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (3,3): error CS0411: The type arguments for method 'C.M<T>(T, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // C.M(default(CustomHandler), () => $"{1,2:f}Literal");
@@ -4271,7 +4097,7 @@ class C
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericInference_03()
         {
             var code = @"
@@ -4289,7 +4115,7 @@ partial class CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4327,7 +4153,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void GenericInference_04()
         {
             var code = @"
@@ -4345,7 +4171,7 @@ partial class CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4381,7 +4207,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_01()
         {
             var code = @"
@@ -4390,7 +4216,7 @@ Func<CustomHandler> f = () => $""{1,2:f}Literal"";
 Console.WriteLine(f());
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4426,7 +4252,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_02()
         {
             var code = @"
@@ -4443,7 +4269,7 @@ class C
 
             // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
             // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
@@ -4460,7 +4286,7 @@ class C
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_03()
         {
             // Same as 2, but using a type that isn't allowed in an interpolated string. There is an implicit conversion error on the ref struct
@@ -4487,7 +4313,7 @@ public ref struct S
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
@@ -4512,7 +4338,7 @@ public ref struct S
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_04()
         {
             // Same as 3, but with S added to DefaultInterpolatedStringHandler (which then allows the lambda to be bound as Func<string>, matching the natural return type)
@@ -4546,7 +4372,7 @@ namespace System.Runtime.CompilerServices
 
             string[] source = new[] {
                 code,
-                GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false),
+                GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false),
                 GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: true, useBoolReturns: false)
             };
 
@@ -4588,7 +4414,7 @@ namespace System.Runtime.CompilerServices
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_05()
         {
             var code = @"
@@ -4606,7 +4432,7 @@ static class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -4644,7 +4470,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_06()
         {
             // Same as 5, but with an implicit conversion from the builder type to string. This implicit conversion
@@ -4671,7 +4497,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
@@ -4695,7 +4521,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_07()
         {
             // Same as 5, but with an implicit conversion from string to the builder type.
@@ -4718,7 +4544,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
 alignment:2
@@ -4755,7 +4581,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaReturnInference_08()
         {
             // Same as 5, but with an implicit conversion from the builder type to string and from string to the builder type.
@@ -4779,7 +4605,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Func<bool, string>)' and 'C.M(Func<bool, CustomHandler>)'
                 // C.M(b => 
@@ -4787,7 +4613,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void LambdaInference_AmbiguousInOlderLangVersions()
         {
             var code = @"
@@ -4804,7 +4630,7 @@ static class C
 }
 ";
 
-            var source = new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) };
+            var source = new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
 
             // This successful emit is being caused by https://github.com/dotnet/roslyn/issues/53761, along with the duplicate diagnostics in LambdaReturnInference_04
@@ -4819,7 +4645,7 @@ static class C
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_01()
         {
             var code = @"
@@ -4829,7 +4655,7 @@ var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
 Console.WriteLine(x);
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -4871,7 +4697,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_02()
         {
             // Same as 01, but with a conversion from CustomHandler to string. The rules here are similar to LambdaReturnInference_06
@@ -4888,7 +4714,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -4916,7 +4742,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_03()
         {
             // Same as 02, but with a target-type
@@ -4932,7 +4758,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
                 // CustomHandler x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -4940,7 +4766,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_04()
         {
             // Same 01, but with a conversion from string to CustomHandler. The rules here are similar to LambdaReturnInference_07
@@ -4956,7 +4782,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
 alignment:2
@@ -4997,7 +4823,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_05()
         {
             // Same 01, but with a conversion from string to CustomHandler and CustomHandler to string.
@@ -5014,7 +4840,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,9): error CS0172: Type of conditional expression cannot be determined because 'CustomHandler' and 'string' implicitly convert to one another
                 // var x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -5022,7 +4848,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void TernaryTypes_06()
         {
             // Same 05, but with a target type
@@ -5039,7 +4865,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5081,7 +4907,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_01()
         {
             // Switch expressions infer a best type based on _types_, not based on expressions (section 12.6.3.15 of the spec). Because this is based on types
@@ -5094,7 +4920,7 @@ var x = (bool)(object)false switch { true => default(CustomHandler), false => $"
 Console.WriteLine(x);
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -5102,7 +4928,7 @@ Console.WriteLine(x);
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_02()
         {
             // Same as 01, but with a conversion from CustomHandler. This allows the switch expression to infer a best-common type, which is string.
@@ -5119,7 +4945,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -5151,7 +4977,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_03()
         {
             // Same 02, but with a target-type. The natural type will fail to compile, so the switch will use a target type (unlike TernaryTypes_03, which fails to compile).
@@ -5167,7 +4993,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5213,7 +5039,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_04()
         {
             // Same as 01, but with a conversion to CustomHandler. This allows the switch expression to infer a best-common type, which is CustomHandler.
@@ -5229,7 +5055,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5275,7 +5101,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_05()
         {
             // Same as 01, but with conversions in both directions. No best common type can be found.
@@ -5292,7 +5118,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -5300,7 +5126,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void SwitchTypes_06()
         {
             // Same as 05, but with a target type.
@@ -5317,7 +5143,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5363,7 +5189,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void PassAsRefWithoutKeyword_01()
         {
             var code = @"
@@ -5371,7 +5197,7 @@ M($""{1,2:f}Literal"");
 
 void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5404,7 +5230,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void PassAsRefWithoutKeyword_02()
         {
             var code = @"
@@ -5413,7 +5239,7 @@ M(ref $""{1,2:f}Literal"");
 
 void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // M($"{1,2:f}Literal");
@@ -5424,7 +5250,7 @@ void M(ref CustomHandler c) => System.Console.WriteLine(c);";
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void PassAsRefWithoutKeyword_03()
         {
             var code = @"
@@ -5432,7 +5258,7 @@ M($""{1,2:f}Literal"");
 
 void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5465,7 +5291,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void PassAsRefWithoutKeyword_04()
         {
             var code = @"
@@ -5473,7 +5299,7 @@ M($""{1,2:f}Literal"");
 
 void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5506,7 +5332,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void RefOverloadResolution_Struct([CombinatorialValues("in", "ref")] string refKind)
         {
@@ -5519,7 +5345,7 @@ class C
     public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
 }";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5552,7 +5378,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void RefOverloadResolution_Class([CombinatorialValues("in", "ref")] string refKind)
         {
@@ -5565,7 +5391,7 @@ class C
     public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
 }";
 
-            var comp = CreateCompilation(new[] { code, GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5598,7 +5424,7 @@ literal:Literal");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void RefOverloadResolution_MultipleBuilderTypes()
         {
             var code = @"
@@ -5613,8 +5439,8 @@ class C
             var comp = CreateCompilation(new[]
             {
                 code,
-                GetCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
-                GetCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
+                GetInterpolatedStringCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
+                GetInterpolatedStringCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
             }, parseOptions: TestOptions.RegularPreview);
             VerifyInterpolatedStringExpression(comp, "CustomHandler1");
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
@@ -5684,7 +5510,7 @@ Namespace System.Runtime.CompilerServices
 End Namespace
 ";
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NonHandlerType()
         {
             var code = @"
@@ -5712,7 +5538,7 @@ class C
             Assert.True(sParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NonHandlerType_Metadata()
         {
             var vbCode = @"
@@ -5738,7 +5564,7 @@ End Class
             Assert.True(sParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_InvalidArgument()
         {
             var code = @"
@@ -5752,7 +5578,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -5768,7 +5594,7 @@ class C
             Assert.False(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_01()
         {
             var code = @"
@@ -5782,7 +5608,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -5801,7 +5627,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_01_FromMetadata()
         {
             var vbCode = @"
@@ -5841,7 +5667,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_02()
         {
             var code = @"
@@ -5855,7 +5681,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -5874,7 +5700,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_02_FromMetadata()
         {
             var vbCode = @"
@@ -5914,7 +5740,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_03()
         {
             var code = @"
@@ -5928,7 +5754,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -5950,7 +5776,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_UnknownName_03_FromMetadata()
         {
             var vbCode = @"
@@ -5990,7 +5816,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ReferenceSelf()
         {
             var code = @"
@@ -6004,7 +5830,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6023,7 +5849,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ReferencesSelf_FromMetadata()
         {
             var vbCode = @"
@@ -6063,7 +5889,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NullConstant()
         {
             var code = @"
@@ -6077,7 +5903,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6096,7 +5922,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_01()
         {
             var vbCode = @"
@@ -6136,7 +5962,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_02()
         {
             var vbCode = @"
@@ -6176,7 +6002,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_NullConstant_FromMetadata_03()
         {
             var vbCode = @"
@@ -6216,7 +6042,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnStaticMethod()
         {
             var code = @"
@@ -6230,7 +6056,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6249,7 +6075,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData(@"{""""}")]
         [InlineData(@"""""")]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnStaticMethod_FromMetadata(string arg)
@@ -6291,7 +6117,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnConstructor()
         {
             var code = @"
@@ -6305,7 +6131,7 @@ class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6324,7 +6150,7 @@ class C
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData(@"{""""}")]
         [InlineData(@"""""")]
         public void InterpolatedStringHandlerArgumentAttributeError_ThisOnConstructor_FromMetadata(string arg)
@@ -6366,7 +6192,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerAttributeArgumentError_SubstitutedTypeSymbol()
         {
             var code = @"
@@ -6380,7 +6206,7 @@ public class C<T>
 }
 ";
 
-            var customHandler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6405,7 +6231,7 @@ public class C<T>
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_SubstitutedTypeSymbol_FromMetadata()
         {
             var vbCode = @"
@@ -6445,7 +6271,7 @@ End Structure
             Assert.True(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttributeWarn_ParameterAfterHandler(string extraConstructorArg)
@@ -6468,7 +6294,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var goodCode = @"
 int i = 10;
@@ -6576,7 +6402,7 @@ literal:text
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeWarn_ParameterAfterHandler_FromMetadata()
         {
             var vbCode = @"
@@ -6606,7 +6432,7 @@ End Structure
             Assert.False(cParam.HasInterpolatedStringHandlerArgumentError);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_OptionalNotSpecifiedAtCallsite()
         {
             var code = @"
@@ -6627,7 +6453,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var customHandler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6640,7 +6466,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttributeError_ParamsNotSpecifiedAtCallsite()
         {
             var code = @"
@@ -6661,7 +6487,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var customHandler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6674,7 +6500,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MissingConstructor()
         {
             var code = @"
@@ -6685,7 +6511,7 @@ public class C
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             // https://github.com/dotnet/roslyn/issues/53981 tracks warning here in the future, with user feedback.
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
@@ -6710,7 +6536,7 @@ public class C
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_InaccessibleConstructor_01()
         {
             var code = @"
@@ -6733,7 +6559,7 @@ public partial struct CustomHandler
 
             var executableCode = @"C.M(1, $"""");";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -6791,7 +6617,7 @@ public partial struct CustomHandler
     public CustomHandler(int literalLength, int formattedCount, " + customHandlerRef + @" int i) : this() { " + (customHandlerRef == "out" ? "i = 0;" : "") + @" }
 }
 ";
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -6802,7 +6628,7 @@ public partial struct CustomHandler
             Assert.Equal(0, cParam.InterpolatedStringHandlerArgumentIndexes.Single());
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefNone()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "",
@@ -6811,7 +6637,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefOut()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "out",
@@ -6820,7 +6646,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 9));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_RefIn()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("ref", "in",
@@ -6829,7 +6655,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InNone()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "",
@@ -6838,7 +6664,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "in").WithLocation(5, 8));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InOut()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "out",
@@ -6847,7 +6673,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 8));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_InRef()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("in", "ref",
@@ -6856,7 +6682,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 8));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutNone()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "",
@@ -6865,7 +6691,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("3", "out").WithLocation(5, 9));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_OutRef()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("out", "ref",
@@ -6874,7 +6700,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 9));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneRef()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "ref",
@@ -6883,7 +6709,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "ref").WithLocation(5, 6));
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes_NoneOut()
         {
             InterpolatedStringHandlerArgumentAttribute_MismatchedRefTypes("", "out",
@@ -6892,7 +6718,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("3", "out").WithLocation(5, 6));
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_MismatchedType(string extraConstructorArg)
@@ -6915,7 +6741,7 @@ public partial struct CustomHandler
 
             var executableCode = @"C.M(1, $"""");";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var expectedDiagnostics = extraConstructorArg == ""
                 ? new DiagnosticDescription[]
@@ -6956,7 +6782,7 @@ public partial struct CustomHandler
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_SingleArg(string extraConstructorArg)
@@ -6986,7 +6812,7 @@ int i = 10;
 Console.WriteLine(C.M(i, $""2""));
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7075,7 +6901,7 @@ literal:2");
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_MultipleArgs(string extraConstructorArg)
@@ -7105,7 +6931,7 @@ string s = ""arg"";
 C.M(i, s, $""literal"");
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             string expectedOutput = @"
@@ -7209,7 +7035,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_RefKindsMatch(string extraConstructorArg)
@@ -7248,7 +7074,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7366,7 +7192,7 @@ o in M
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_ReorderedAttributePositions(string extraConstructorArg)
@@ -7405,7 +7231,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7491,7 +7317,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_ParametersReordered(string extraConstructorArg)
@@ -7538,7 +7364,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7642,7 +7468,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_Duplicated(string extraConstructorArg)
@@ -7675,7 +7501,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7753,7 +7579,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_EmptyWithMatchingConstructor(string extraConstructorArg)
@@ -7820,7 +7646,7 @@ public struct CustomHandler
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_EmptyWithoutMatchingConstructor(string extraConstructorArg)
@@ -7876,7 +7702,7 @@ public struct CustomHandler
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_OnIndexerRvalue(string extraConstructorArg)
@@ -7904,7 +7730,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -7992,7 +7818,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_OnIndexerLvalue(string extraConstructorArg)
@@ -8020,7 +7846,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -8108,7 +7934,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void InterpolatedStringHandlerArgumentAttribute_ThisParameter(string extraConstructorArg)
@@ -8138,7 +7964,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -8234,7 +8060,7 @@ literal:literal
             }
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentAttribute_OnConstructor()
         {
 
@@ -8259,7 +8085,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -8294,7 +8120,7 @@ literal:literal
 ");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void RefReturningMethodAsReceiver_Success(string extraConstructorArg)
@@ -8334,7 +8160,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, verify: ExecutionConditionUtil.IsWindowsDesktop ? Verification.Skipped : Verification.Passes, expectedOutput: @"
@@ -8426,7 +8252,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("")]
         [InlineData(", out bool success")]
         public void RefReturningMethodAsReceiver_Success_StructReceiver(string extraConstructorArg)
@@ -8466,7 +8292,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, verify: ExecutionConditionUtil.IsWindowsDesktop ? Verification.Skipped : Verification.Passes, expectedOutput: @"
@@ -8556,7 +8382,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("ref readonly")]
         [InlineData("")]
         public void RefReturningMethodAsReceiver_MismatchedRefness_01(string refness)
@@ -8581,7 +8407,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -8591,7 +8417,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [InlineData("in")]
         [InlineData("")]
         public void RefReturningMethodAsReceiver_MismatchedRefness_02(string refness)
@@ -8616,7 +8442,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -8626,7 +8452,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StructReceiver_Rvalue()
         {
             var code = @"
@@ -8659,7 +8485,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -8704,7 +8530,7 @@ s2.I:2");
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StructReceiver_Lvalue()
         {
             var code = @"
@@ -8737,7 +8563,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,14): error CS1620: Argument 3 must be passed with the 'ref' keyword
@@ -8746,7 +8572,7 @@ public partial struct CustomHandler
             );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StructParameter_ByVal()
         {
             var code = @"
@@ -8776,7 +8602,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"s.I:1");
@@ -8806,7 +8632,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void StructParameter_ByRef()
         {
             var code = @"
@@ -8836,7 +8662,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"s.I:2");
@@ -8870,7 +8696,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void SideEffects(bool useBoolReturns, bool validityParameter)
         {
@@ -8919,7 +8745,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns);
 
             var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview, expectedOutput: @"
 GetReceiver
@@ -8937,7 +8763,7 @@ literal:literal
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentsAttribute_ConversionFromArgumentType()
         {
             var code = @"
@@ -8967,7 +8793,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
@@ -9011,7 +8837,7 @@ literal:literal
             }
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentsAttribute_CompoundAssignment_Indexer_01(bool useBoolReturns, bool validityParameter)
         {
@@ -9064,7 +8890,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -9310,7 +9136,7 @@ format:
             };
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentsAttribute_CompoundAssignment_Indexer_02(bool useBoolReturns, bool validityParameter)
         {
@@ -9360,7 +9186,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -9578,7 +9404,7 @@ GetInt2
             };
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentsAttribute_CompoundAssignment_RefReturningMethod(bool useBoolReturns, bool validityParameter)
         {
@@ -9625,7 +9451,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -9843,7 +9669,7 @@ GetInt2
             };
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void InterpolatedStringHandlerArgumentsAttribute_CollectionInitializerAdd()
         {
             var code = @"
@@ -9881,7 +9707,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -9915,7 +9741,7 @@ literal:literal
 ");
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void InterpolatedStringHandlerArgumentAttribute_AttributeOnAppendFormatCall(bool useBoolReturns, bool validityParameter)
         {
@@ -9959,7 +9785,7 @@ public partial class CustomHandler
     }
 }
 ";
-            var handler = GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns: useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: useBoolReturns);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -10168,7 +9994,7 @@ format:
             };
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void DiscardsUsedAsParameters()
         {
             var code = @"
@@ -10194,7 +10020,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: @"literal:literal");
@@ -10222,7 +10048,7 @@ public partial struct CustomHandler
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void DiscardsUsedAsParameters_DefinedInVB()
         {
             var vb = @"
@@ -10268,7 +10094,7 @@ End Structure
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         public void DisallowedInExpressionTrees()
         {
             var code = @"
@@ -10278,7 +10104,7 @@ using System.Linq.Expressions;
 Expression<Func<CustomHandler>> expr = () => $"""";
 ";
 
-            var handler = GetCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, handler }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -10288,7 +10114,7 @@ Expression<Func<CustomHandler>> expr = () => $"""";
             );
         }
 
-        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [Theory]
         [CombinatorialData]
         public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter)
         {
@@ -10319,7 +10145,7 @@ public partial class CustomHandler
     }
 }";
 
-            var handler = GetCustomHandlerType("CustomHandler", "partial class", useBoolReturns);
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
             var verifier = CompileAndVerify(comp, expectedOutput: "c.i:1");

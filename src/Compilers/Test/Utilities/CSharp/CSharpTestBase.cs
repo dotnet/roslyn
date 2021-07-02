@@ -1845,7 +1845,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static string GetOperationTreeForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             bool useLatestFrameworkReferences = false)
@@ -1896,7 +1896,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
@@ -1931,7 +1931,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
@@ -1951,7 +1951,7 @@ namespace System.Runtime.CompilerServices
                 additionalOperationTreeVerifier);
 
         protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedOperationTree,
             TargetFramework targetFramework,
             DiagnosticDescription[] expectedDiagnostics,
@@ -1962,8 +1962,9 @@ namespace System.Runtime.CompilerServices
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateCompilation(
-                new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
+                testSrc,
                 references,
+                parseOptions: parseOptions,
                 options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
@@ -1988,7 +1989,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedFlowGraph,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
@@ -2008,7 +2009,7 @@ namespace System.Runtime.CompilerServices
         }
 
         protected static void VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(
-            string testSrc,
+            CSharpTestSource testSrc,
             string expectedFlowGraph,
             DiagnosticDescription[] expectedDiagnostics,
             TargetFramework targetFramework,
@@ -2018,8 +2019,9 @@ namespace System.Runtime.CompilerServices
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateCompilation(
-                new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
+                testSrc,
                 references,
+                parseOptions: parseOptions,
                 options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
@@ -2330,6 +2332,184 @@ namespace System
                 options: options,
                 parseOptions: parseOptions);
         }
+        #endregion
+
+        #region Interpolated string handlers
+
+        internal static string GetInterpolatedStringHandlerDefinition(bool includeSpanOverloads, bool useDefaultParameters, bool useBoolReturns, string returnExpression = null, bool constructorBoolArg = false, bool constructorSuccessResult = true)
+        {
+            Debug.Assert(returnExpression == null || useBoolReturns);
+
+            var builder = new StringBuilder();
+            builder.AppendLine(@"
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    public ref partial struct DefaultInterpolatedStringHandler
+    {
+        private readonly StringBuilder _builder;
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount" + (constructorBoolArg ? ", out bool success" : "") + @")
+        {
+            _builder = new StringBuilder();
+            " + (constructorBoolArg ? $"success = {(constructorSuccessResult ? "true" : "false")};" : "") + @"
+        }
+        public string ToStringAndClear() => _builder.ToString();");
+
+            appendSignature("AppendLiteral(string s)");
+            appendBody(includeValue: false, includeAlignment: false, includeFormat: false, isSpan: false);
+
+            if (useDefaultParameters)
+            {
+                appendSignature("AppendFormatted<T>(T value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+                appendSignature("AppendFormatted(object value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+                appendSignature("AppendFormatted(string value, int alignment = 0, string format = null)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: false);
+            }
+            else
+            {
+                appendNonDefaultVariantsWithGenericAndType("T", "<T>");
+                appendNonDefaultVariantsWithGenericAndType("object", generic: null);
+                appendNonDefaultVariantsWithGenericAndType("string", generic: null);
+            }
+
+            if (includeSpanOverloads)
+            {
+                if (useDefaultParameters)
+                {
+                    appendSignature("AppendFormatted(ReadOnlySpan<char> value, int alignment = 0, string format = null)");
+                    appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan: true);
+                }
+                else
+                {
+                    appendNonDefaultVariantsWithGenericAndType("ReadOnlySpan<char>", generic: null, isSpan: true);
+                }
+            }
+
+            builder.Append(@"
+    }
+}");
+            return builder.ToString();
+
+            void appendBody(bool includeValue, bool includeAlignment, bool includeFormat, bool isSpan)
+            {
+                if (includeValue)
+                {
+                    builder.Append($@"
+        {{
+            _builder.Append(""value:"");
+            _builder.Append(value{(isSpan ? "" : "?")}.ToString());");
+                }
+                else
+                {
+                    builder.Append(@"
+        {
+            _builder.Append(s);");
+                }
+
+                if (includeAlignment)
+                {
+                    builder.Append(@"
+            _builder.Append("",alignment:"");
+            _builder.Append(alignment);");
+                }
+
+                if (includeFormat)
+                {
+                    builder.Append(@"
+            _builder.Append("":format:"");
+            _builder.Append(format);");
+                }
+
+                builder.Append(@"
+            _builder.AppendLine();");
+
+                if (useBoolReturns)
+                {
+                    builder.Append($@"
+            return {returnExpression ?? "true"};");
+                }
+
+                builder.AppendLine(@"
+        }");
+            }
+
+            void appendSignature(string nameAndParams)
+            {
+                builder.Append(@$"
+        public {(useBoolReturns ? "bool" : "void")} {nameAndParams}");
+            }
+
+            void appendNonDefaultVariantsWithGenericAndType(string type, string generic, bool isSpan = false)
+            {
+                appendSignature($"AppendFormatted{generic}({type} value)");
+                appendBody(includeValue: true, includeAlignment: false, includeFormat: false, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, int alignment)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: false, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, string format)");
+                appendBody(includeValue: true, includeAlignment: false, includeFormat: true, isSpan);
+                appendSignature($"AppendFormatted{generic}({type} value, int alignment, string format)");
+                appendBody(includeValue: true, includeAlignment: true, includeFormat: true, isSpan);
+            }
+        }
+
+        internal const string InterpolatedStringHandlerAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerAttribute : Attribute
+    {
+        public InterpolatedStringHandlerAttribute()
+        {
+        }
+    }
+}
+";
+
+        internal static string GetInterpolatedStringCustomHandlerType(string name, string type, bool useBoolReturns, bool includeOneTimeHelpers = true, bool includeTrailingOutConstructorParameter = false)
+        {
+            var returnType = useBoolReturns ? "bool" : "void";
+            var returnStatement = useBoolReturns ? "return true;" : "return;";
+
+            var cultureInfoHandler = @"
+public class CultureInfoNormalizer
+{
+    public static void Normalize()
+    {
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+    }
+}
+";
+
+            return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
+using System.Text;
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public " + type + " " + name + @"
+{
+    private readonly StringBuilder _builder;
+    public " + name + @"(int literalLength, int formattedCount" + (includeTrailingOutConstructorParameter ? ", out bool success" : "") + @")
+    {
+        " + (includeTrailingOutConstructorParameter ? "success = true;" : "") + @"
+        _builder = new();
+    }
+    public " + returnType + @" AppendLiteral(string literal)
+    {
+        _builder.AppendLine(""literal:"" + literal);
+        " + returnStatement + @"
+    }
+    public " + returnType + @" AppendFormatted(object o, int alignment = 0, string format = null)
+    {
+        _builder.AppendLine(""value:"" + o?.ToString());
+        _builder.AppendLine(""alignment:"" + alignment.ToString());
+        _builder.AppendLine(""format:"" + format);
+        " + returnStatement + @"
+    }
+    public override string ToString() => _builder.ToString();
+}
+" + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
+        }
+
         #endregion
 
         #region Theory Helpers

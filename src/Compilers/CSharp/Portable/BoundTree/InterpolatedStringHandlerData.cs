@@ -23,19 +23,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public readonly ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> ArgumentPlaceholders;
 
+        public readonly ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> PositionInfo;
+
         public bool HasTrailingHandlerValidityParameter => ArgumentPlaceholders.Length > 0 && ArgumentPlaceholders[^1].ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter;
 
-        public InterpolatedStringHandlerData(TypeSymbol builderType, BoundExpression construction, bool usesBoolReturns, uint scopeOfContainingExpression, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders)
+        public InterpolatedStringHandlerData(TypeSymbol builderType, BoundExpression construction, bool usesBoolReturns, uint scopeOfContainingExpression, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo)
         {
             Debug.Assert(construction is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression or BoundBadExpression);
             Debug.Assert(!placeholders.IsDefault);
             // Only the last placeholder may be the out parameter.
             Debug.Assert(placeholders.IsEmpty || placeholders.AsSpan()[..^1].All(item => item.ArgumentIndex != BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter));
+            Debug.Assert(!positionInfo.IsDefault);
             BuilderType = builderType;
             Construction = construction;
             UsesBoolReturns = usesBoolReturns;
             ScopeOfContainingExpression = scopeOfContainingExpression;
             ArgumentPlaceholders = placeholders;
+            PositionInfo = positionInfo;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1774,7 +1774,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IInterpolatedStringTextOperation));
             LogCommonPropertiesAndNewLine(operation);
 
-            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
+            if (operation.Text.Kind != OperationKind.Literal)
+            {
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
+            }
             Visit(operation.Text, "Text");
         }
 
@@ -1787,9 +1790,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Alignment, "Alignment");
             Visit(operation.FormatString, "FormatString");
 
-            if (operation.FormatString != null)
+            if (operation.FormatString != null && operation.FormatString.Kind != OperationKind.Literal)
             {
-                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
             }
         }
 
