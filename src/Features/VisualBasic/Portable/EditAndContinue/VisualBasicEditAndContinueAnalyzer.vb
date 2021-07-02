@@ -1009,8 +1009,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
 
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode) As SyntaxNode
-            Return If(node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock), node.Parent, Nothing)
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, <Out> ByRef declaration As SyntaxNode) As Boolean
+            If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
+                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
+                declaration = node.Parent.Parent
+                Return True
+            End If
+
+            If node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
+                declaration = node.Parent
+                Return True
+            End If
+
+            declaration = Nothing
+            Return False
         End Function
 
         Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
@@ -3079,7 +3091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return RudeEditKind.None
         End Function
 
-        Friend Overrides Sub ReportTypeDeclarationInsertDeleteRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldType As INamedTypeSymbol, newType As INamedTypeSymbol, newDeclaration As SyntaxNode, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUpdatedTypeSymbolDeclarationRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldType As INamedTypeSymbol, newType As INamedTypeSymbol, newDeclaration As SyntaxNode, cancellationToken As CancellationToken)
             Dim oldNodes = ArrayBuilder(Of SyntaxNode).GetInstance()
             Dim newNodes = ArrayBuilder(Of SyntaxNode).GetInstance()
 
