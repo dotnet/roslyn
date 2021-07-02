@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonTrivia_LineContinuation_Comment()
+        public async Task ColonTrivia_LineContinuation_Comment_PC()
         {
             var code = @"[|
         ::: 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
 
- _
+                       _
         ' test
         Console.WriteLine("")";
 
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
+        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment_PC()
         {
             var code = @"[|
          Console.WriteLine() : _
@@ -398,9 +398,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _
- _
+                            _
         ' test
- _
+        _
         Console.WriteLine()";
 
             await VerifyAsync(CreateMethod(code), CreateMethod(expected));
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ImplicitLineContinuation_Multiple()
+        public async Task ImplicitLineContinuation_Multiple_PC()
         {
             var code = @"[|
         Dim i = _
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Dim i = _
- _
+                _
                 1 +
                 2";
 
@@ -799,7 +799,7 @@ End Module";
         [Fact]
         [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task LineContinuation_MixedWithImplicitLineContinuation()
+        public async Task LineContinuation_MixedWithImplicitLineContinuation_PC()
         {
             var code = @"[|Module Program
     Sub Main(
@@ -811,7 +811,7 @@ End Module|]";
 
             var expected = @"Module Program
     Sub Main(
- _
+             _
         args _
         As String)
     End Sub

@@ -671,7 +671,7 @@ End Class";
         [Fact]
         [WorkItem(544520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544520")]
         [Trait(Traits.Feature, Traits.Features.NormalizeModifiersOrOperators)]
-        public async Task RemoveByVal_LineContinuation()
+        public async Task RemoveByVal_LineContinuation_PC()
         {
             var code = @"[|Class A
     Sub Method( _
@@ -684,7 +684,7 @@ End Class|]";
             var expected = @"Class A
     Sub Method( _
         ByVal _
- _
+              _
             t As String, ByRef t1 As String)
     End Sub
 End Class";
@@ -721,7 +721,7 @@ End Class|]";
             var expected = @"Class A
     Private _
         Shared _
- _
+               _
             a As Integer = 1
 End Class";
 

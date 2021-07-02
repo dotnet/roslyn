@@ -279,8 +279,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             var implicitLineBreak = false;
 
             var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
+            var i = -1;
+            var previousLineColumn = new LineColumn();
             foreach (var trivia in list)
             {
+                i += 1;
                 if (trivia.RawKind == 0)
                 {
                     continue;
@@ -288,18 +291,31 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (IsWhitespaceOrEndOfLine(trivia))
                 {
+
+                    existingWhitespaceDelta = existingWhitespaceDelta.With(
+                       GetLineColumnOfWhitespace(
+                           lineColumn,
+                           previousTrivia,
+                           previousWhitespaceTrivia,
+                           existingWhitespaceDelta,
+                           trivia));
+
+                    if (previousTrivia.RawKind == 733  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.LineContinuation */
+                        && (i + 1) < list.Count
+                        && list[i + 1].RawKind == 732 /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */                      )
+                    {
+                        previousLineColumn = lineColumn;
+                    }
+
                     if (IsEndOfLine(trivia))
                     {
                         implicitLineBreak = false;
                     }
 
-                    existingWhitespaceDelta = existingWhitespaceDelta.With(
-                        GetLineColumnOfWhitespace(
-                            lineColumn,
-                            previousTrivia,
-                            previousWhitespaceTrivia,
-                            existingWhitespaceDelta,
-                            trivia));
+                    if (IsEndOfLine(trivia))
+                    { /* WIP - TBD Maybe this can be combined with Same times above */
+                        previousLineColumn = new LineColumn();
+                    }
 
                     previousWhitespaceTrivia = trivia;
                     continue;
@@ -312,6 +328,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                     previousTrivia, existingWhitespaceDelta, trivia,
                     formatter, whitespaceAdder,
                     changes, implicitLineBreak, cancellationToken);
+
+                if (trivia.RawKind == 732  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */
+                    && previousLineColumn.Column != 0
+                    && previousLineColumn.Column < lineColumn.Column)
+                {
+                    lineColumn = previousLineColumn;
+                    previousLineColumn = new LineColumn();
+                }
 
                 implicitLineBreak = implicitLineBreak || ContainsImplicitLineBreak(trivia);
                 existingWhitespaceDelta = LineColumnDelta.Default;
@@ -418,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         /// <summary>
-        /// if the given trivia is the very first or the last trivia between two normal tokens and 
+        /// if the given trivia is the very first or the last trivia between two normal tokens and
         /// if the trivia is structured trivia, get one token that belongs to the structured trivia and one belongs to the normal token stream
         /// </summary>
         private void GetTokensAtEdgeOfStructureTrivia(SyntaxTrivia trivia1, SyntaxTrivia trivia2, out SyntaxToken token1, out SyntaxToken token2)
@@ -475,7 +499,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private bool FirstLineBlank()
         {
-            // if we see elastic trivia as the first trivia in the trivia list, 
+            // if we see elastic trivia as the first trivia in the trivia list,
             // we consider it as blank line
             if (this.Token1.TrailingTrivia.Count > 0 &&
                 this.Token1.TrailingTrivia[0].IsElastic())
@@ -601,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private int GetInsertionIndex(ArrayBuilder<SyntaxTrivia> changes)
         {
-            // first line is blank or there is no changes. 
+            // first line is blank or there is no changes.
             // just insert at the head
             if (_firstLineBlank ||
                 changes.Count == 0)
@@ -690,7 +714,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private TextSpan GetInsertionSpan(ArrayBuilder<TextChange> changes)
         {
-            // first line is blank or there is no changes. 
+            // first line is blank or there is no changes.
             // just insert at the head
             if (_firstLineBlank ||
                 changes.Count == 0)

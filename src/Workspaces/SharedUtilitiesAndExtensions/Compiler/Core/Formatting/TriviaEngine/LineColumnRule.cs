@@ -124,9 +124,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             => new(
                 SpaceOperations.Force,
                 LineOperations.Preserve,
-                IndentationOperations.Absolute,
+                IndentationOperations.Follow,
                 lines: 0,
-                spacesOrIndentation,
+                1,
                 spacesOrIndentation);
 
         public enum SpaceOperations

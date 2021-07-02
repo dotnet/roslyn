@@ -35,12 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If list.Count = 0 Then
                     Return
                 End If
-
+                Dim previousTrivia As SyntaxTrivia = New SyntaxTrivia
                 For Each trivia In list
                     If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
                         AnalyzeWhitespacesInTrivia(trivia, result)
                     ElseIf trivia.Kind = SyntaxKind.EndOfLineTrivia Then
-                        AnalyzeLineBreak(trivia, result)
+                        AnalyzeLineBreak(previousTrivia, trivia, result)
                     ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
                         result.HasComments = True
                     ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia OrElse trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
@@ -56,6 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                         result.HasPreprocessor = True
                     End If
+                    previousTrivia = trivia
                 Next
             End Sub
 
@@ -71,19 +72,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 result.Tab = 0
             End Sub
 
-            Private Shared Sub AnalyzeLineBreak(trivia As SyntaxTrivia, ByRef result As AnalysisResult)
-                ' if there was any space before line break, then we have trailing spaces
-                If result.Space > 0 OrElse result.Tab > 0 Then
-                    result.HasTrailingSpace = True
+            Private Shared Sub AnalyzeLineBreak(previousTrivia As SyntaxTrivia, trivia As SyntaxTrivia, ByRef result As AnalysisResult)
+                ' if there was any space immediately before line break, then we have trailing spaces
+                Dim text = previousTrivia.ToString()
+                If previousTrivia.Kind = SyntaxKind.WhitespaceTrivia Then
+                    For i As Integer = 0 To previousTrivia.Width - 1
+                        If text(i) = " "c OrElse text(i) = vbTab Then
+                            result.HasTrailingSpace = True
+                            result.HasTabAfterSpace = False
+                            result.Space = 0
+                            result.Tab = 0
+                            result.TreatAsElastic = result.TreatAsElastic Or trivia.IsElastic()
+                            Exit For
+                        End If
+                    Next i
                 End If
 
                 ' reset space and tab information
                 result.LineBreaks += 1
 
-                result.HasTabAfterSpace = False
-                result.Space = 0
-                result.Tab = 0
-                result.TreatAsElastic = result.TreatAsElastic Or trivia.IsElastic()
             End Sub
 
             Private Shared Sub AnalyzeWhitespacesInTrivia(trivia As SyntaxTrivia, ByRef result As AnalysisResult)

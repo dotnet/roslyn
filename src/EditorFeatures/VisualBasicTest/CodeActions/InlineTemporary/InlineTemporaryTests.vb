@@ -2916,7 +2916,7 @@ End Module
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
-        Public Async Function TestEscapeKeywordsIfNeeded5CommentsAfterLineContinuation() As Task
+        Public Async Function TestEscapeKeywordsIfNeeded5CommentsAfterLineContinuation_PC() As Task
             Dim code =
 <File>
 Imports System.Linq
@@ -2939,7 +2939,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _ ' Test
+                            _ ' Test
         [Take]()
         Dim t = 1
     End Sub
