@@ -12,11 +12,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -628,7 +630,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
-            return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+
+            // Do not remove qualifications that already existed for events, fields, properties, and methods
+            var simplifierOptions = ModifyOption(optionSet, CodeStyleOptions2.QualifyFieldAccess, true);
+            simplifierOptions = ModifyOption(simplifierOptions, CodeStyleOptions2.QualifyPropertyAccess, true);
+            simplifierOptions = ModifyOption(simplifierOptions, CodeStyleOptions2.QualifyEventAccess, true);
+            simplifierOptions = ModifyOption(simplifierOptions, CodeStyleOptions2.QualifyMethodAccess, true);
+
+            return await Simplifier.ReduceAsync(formattedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
+
+            OptionSet ModifyOption(OptionSet optionSet, PerLanguageOption2<CodeStyleOption2<bool>> optionTochange, bool newValue)
+            {
+                var optionKey = new OptionKey(optionTochange, document.Project.Language);
+                return optionSet.WithChangedOption(optionKey, new CodeStyleOption2<bool>(newValue, NotificationOption2.Warning));
+            }
         }
 
         private static async Task<Document> FixReferencingDocumentAsync(

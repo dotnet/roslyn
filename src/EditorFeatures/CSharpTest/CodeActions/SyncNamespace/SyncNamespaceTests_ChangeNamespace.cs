@@ -2299,5 +2299,46 @@ End Class</Document>
 End Class";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
+
+        [Fact]
+        public async Task ChangeNamespaceKeepFormatting()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar";
+
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace [||]{declaredNamespace}
+{{
+    class Class1
+    {{
+        int I = 0;
+        public M()
+        {{
+            this.I = 1;
+        }}
+   }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    class Class1
+    {
+        int I = 0;
+        public M()
+        {
+            this.I = 1;
+        }
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
     }
 }

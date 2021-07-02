@@ -8,6 +8,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -100,6 +102,31 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
                 : base(title, createChangedSolution)
             {
+            }
+
+            protected override async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
+            {
+                var optionSet = await GetChangedOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+                return await CleanupDocumentAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
+            }
+
+            private static async Task<OptionSet> GetChangedOptionsAsync(Document document, CancellationToken cancellationToken)
+            {
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                // Do not remove qualifications that already existed for events, fields, properties, and methods
+                var optionSet = ModifyOption(documentOptions, CodeStyleOptions2.QualifyFieldAccess, true);
+                optionSet = ModifyOption(optionSet, CodeStyleOptions2.QualifyPropertyAccess, true);
+                optionSet = ModifyOption(optionSet, CodeStyleOptions2.QualifyMethodAccess, true);
+                optionSet = ModifyOption(optionSet, CodeStyleOptions2.QualifyEventAccess, true);
+
+                return optionSet;
+
+                OptionSet ModifyOption(OptionSet optionSet, PerLanguageOption2<CodeStyleOption2<bool>> optionTochange, bool newValue)
+                {
+                    var optionKey = new OptionKey(optionTochange, document.Project.Language);
+                    return optionSet.WithChangedOption(optionKey, new CodeStyleOption2<bool>(newValue, NotificationOption2.Warning));
+                }
             }
         }
     }
