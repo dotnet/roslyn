@@ -162,9 +162,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 for (var i = 0; i < source._count; i++)
                 {
                     ref var entry = ref entries![i];
-                    if (entry.Next >= -1)
+                    if (entry._next >= -1)
                     {
-                        AddIfNotPresent(entry.Value, out _);
+                        AddIfNotPresent(entry._value, out _);
                     }
                 }
             }
@@ -222,11 +222,11 @@ namespace Microsoft.CodeAnalysis.Collections
                         while (i >= 0)
                         {
                             ref var entry = ref entries[i];
-                            if (entry.HashCode == hashCode && EqualityComparer<T>.Default.Equals(entry.Value, item))
+                            if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, item))
                             {
                                 return i;
                             }
-                            i = entry.Next;
+                            i = entry._next;
 
                             collisionCount++;
                             if (collisionCount > (uint)entries.Length)
@@ -245,11 +245,11 @@ namespace Microsoft.CodeAnalysis.Collections
                         while (i >= 0)
                         {
                             ref var entry = ref entries[i];
-                            if (entry.HashCode == hashCode && defaultComparer.Equals(entry.Value, item))
+                            if (entry._hashCode == hashCode && defaultComparer.Equals(entry._value, item))
                             {
                                 return i;
                             }
-                            i = entry.Next;
+                            i = entry._next;
 
                             collisionCount++;
                             if (collisionCount > (uint)entries.Length)
@@ -267,11 +267,11 @@ namespace Microsoft.CodeAnalysis.Collections
                     while (i >= 0)
                     {
                         ref var entry = ref entries[i];
-                        if (entry.HashCode == hashCode && comparer.Equals(entry.Value, item))
+                        if (entry._hashCode == hashCode && comparer.Equals(entry._value, item))
                         {
                             return i;
                         }
-                        i = entry.Next;
+                        i = entry._next;
 
                         collisionCount++;
                         if (collisionCount > (uint)entries.Length)
@@ -316,23 +316,23 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry.HashCode == hashCode && (_comparer?.Equals(entry.Value, item) ?? EqualityComparer<T>.Default.Equals(entry.Value, item)))
+                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._value, item) ?? EqualityComparer<T>.Default.Equals(entry._value, item)))
                     {
                         if (last < 0)
                         {
-                            bucket = entry.Next + 1; // Value in buckets is 1-based
+                            bucket = entry._next + 1; // Value in buckets is 1-based
                         }
                         else
                         {
-                            entries[last].Next = entry.Next;
+                            entries[last]._next = entry._next;
                         }
 
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
-                        entry.Next = StartOfFreeList - _freeList;
+                        entry._next = StartOfFreeList - _freeList;
 
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
                         {
-                            entry.Value = default!;
+                            entry._value = default!;
                         }
 
                         _freeList = i;
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
 
                     last = i;
-                    i = entry.Next;
+                    i = entry._next;
 
                     collisionCount++;
                     if (collisionCount > (uint)entries.Length)
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 var index = FindItemIndex(equalValue);
                 if (index >= 0)
                 {
-                    actualValue = _entries![index].Value;
+                    actualValue = _entries![index]._value;
                     return true;
                 }
             }
@@ -804,9 +804,9 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < _count && count != 0; i++)
             {
                 ref var entry = ref entries![i];
-                if (entry.Next >= -1)
+                if (entry._next >= -1)
                 {
-                    array[arrayIndex++] = entry.Value;
+                    array[arrayIndex++] = entry._value;
                     count--;
                 }
             }
@@ -825,10 +825,10 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < _count; i++)
             {
                 ref var entry = ref entries![i];
-                if (entry.Next >= -1)
+                if (entry._next >= -1)
                 {
                     // Cache value in case delegate removes it
-                    var value = entry.Value;
+                    var value = entry._value;
                     if (match(value))
                     {
                         // Check again that remove actually removed it.
@@ -896,10 +896,10 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < count; i++)
             {
                 ref var entry = ref entries[i];
-                if (entry.Next >= -1)
+                if (entry._next >= -1)
                 {
-                    ref var bucket = ref GetBucketRef(entry.HashCode);
-                    entry.Next = bucket - 1; // Value in _buckets is 1-based
+                    ref var bucket = ref GetBucketRef(entry._hashCode);
+                    entry._next = bucket - 1; // Value in _buckets is 1-based
                     bucket = i + 1;
                 }
             }
@@ -930,13 +930,13 @@ namespace Microsoft.CodeAnalysis.Collections
             var count = 0;
             for (var i = 0; i < oldCount; i++)
             {
-                var hashCode = oldEntries![i].HashCode; // At this point, we know we have entries.
-                if (oldEntries[i].Next >= -1)
+                var hashCode = oldEntries![i]._hashCode; // At this point, we know we have entries.
+                if (oldEntries[i]._next >= -1)
                 {
                     ref var entry = ref entries![count];
                     entry = oldEntries[i];
                     ref var bucket = ref GetBucketRef(hashCode);
-                    entry.Next = bucket - 1; // Value in _buckets is 1-based
+                    entry._next = bucket - 1; // Value in _buckets is 1-based
                     bucket = count + 1;
                     count++;
                 }
@@ -1006,12 +1006,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     while (i >= 0)
                     {
                         ref var entry = ref entries[i];
-                        if (entry.HashCode == hashCode && EqualityComparer<T>.Default.Equals(entry.Value, value))
+                        if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, value))
                         {
                             location = i;
                             return false;
                         }
-                        i = entry.Next;
+                        i = entry._next;
 
                         collisionCount++;
                         if (collisionCount > (uint)entries.Length)
@@ -1029,12 +1029,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     while (i >= 0)
                     {
                         ref var entry = ref entries[i];
-                        if (entry.HashCode == hashCode && defaultComparer.Equals(entry.Value, value))
+                        if (entry._hashCode == hashCode && defaultComparer.Equals(entry._value, value))
                         {
                             location = i;
                             return false;
                         }
-                        i = entry.Next;
+                        i = entry._next;
 
                         collisionCount++;
                         if (collisionCount > (uint)entries.Length)
@@ -1053,12 +1053,12 @@ namespace Microsoft.CodeAnalysis.Collections
                 while (i >= 0)
                 {
                     ref var entry = ref entries[i];
-                    if (entry.HashCode == hashCode && comparer.Equals(entry.Value, value))
+                    if (entry._hashCode == hashCode && comparer.Equals(entry._value, value))
                     {
                         location = i;
                         return false;
                     }
-                    i = entry.Next;
+                    i = entry._next;
 
                     collisionCount++;
                     if (collisionCount > (uint)entries.Length)
@@ -1074,8 +1074,8 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 index = _freeList;
                 _freeCount--;
-                Debug.Assert((StartOfFreeList - entries![_freeList].Next) >= -1, "shouldn't overflow because `next` cannot underflow");
-                _freeList = StartOfFreeList - entries[_freeList].Next;
+                Debug.Assert((StartOfFreeList - entries![_freeList]._next) >= -1, "shouldn't overflow because `next` cannot underflow");
+                _freeList = StartOfFreeList - entries[_freeList]._next;
             }
             else
             {
@@ -1092,9 +1092,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
             {
                 ref var entry = ref entries![index];
-                entry.HashCode = hashCode;
-                entry.Next = bucket - 1; // Value in _buckets is 1-based
-                entry.Value = value;
+                entry._hashCode = hashCode;
+                entry._next = bucket - 1; // Value in _buckets is 1-based
+                entry._value = value;
                 bucket = index + 1;
                 _version++;
                 location = index;
@@ -1154,9 +1154,9 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < _count; i++)
             {
                 ref var entry = ref entries![i];
-                if (entry.Next >= -1)
+                if (entry._next >= -1)
                 {
-                    var item = entry.Value;
+                    var item = entry._value;
                     if (!other.Contains(item))
                     {
                         Remove(item);
@@ -1200,9 +1200,9 @@ namespace Microsoft.CodeAnalysis.Collections
             for (var i = 0; i < originalCount; i++)
             {
                 ref var entry = ref _entries![i];
-                if (entry.Next >= -1 && !bitHelper.IsMarked(i))
+                if (entry._next >= -1 && !bitHelper.IsMarked(i))
                 {
-                    Remove(entry.Value);
+                    Remove(entry._value);
                 }
             }
         }
@@ -1287,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 if (itemsToRemove.IsMarked(i))
                 {
-                    Remove(_entries![i].Value);
+                    Remove(_entries![i]._value);
                 }
             }
         }
@@ -1379,14 +1379,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private struct Entry
         {
-            public int HashCode;
+            public int _hashCode;
             /// <summary>
             /// 0-based index of next entry in chain: -1 means end of chain
             /// also encodes whether this entry _itself_ is part of the free list by changing sign and subtracting 3,
             /// so -2 means end of free list, -3 means index 0 but on free list, -4 means index 1 but on free list, etc.
             /// </summary>
-            public int Next;
-            public T Value;
+            public int _next;
+            public T _value;
         }
 
         public struct Enumerator : IEnumerator<T>
@@ -1416,9 +1416,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 while ((uint)_index < (uint)_hashSet._count)
                 {
                     ref var entry = ref _hashSet._entries![_index++];
-                    if (entry.Next >= -1)
+                    if (entry._next >= -1)
                     {
-                        _current = entry.Value;
+                        _current = entry._value;
                         return true;
                     }
                 }
