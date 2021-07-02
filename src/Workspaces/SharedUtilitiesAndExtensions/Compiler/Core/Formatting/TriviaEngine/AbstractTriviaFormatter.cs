@@ -337,9 +337,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                     formatter, whitespaceAdder,
                     changes, implicitLineBreak, cancellationToken);
 
-                if (IsComment(trivia)
-                    && previousLineColumn.Column != 0
-                    && previousLineColumn.Column < lineColumn.Column)
+                if (previousLineColumn.Column != 0
+                    && previousLineColumn.Column < lineColumn.Column
+                    && IsComment(trivia))
                 {
                     lineColumn = previousLineColumn;
                     previousLineColumn = new LineColumn();
