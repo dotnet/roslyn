@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             if (entry.State == PositionState.Hidden ||
                 entry.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden)
             {
-                return new LineMapping(unmapped, null, default);
+                return new LineMapping(unmapped, characterOffset: null, mappedSpan: default);
             }
 
             string path = entry.MappedPathOpt ?? string.Empty;

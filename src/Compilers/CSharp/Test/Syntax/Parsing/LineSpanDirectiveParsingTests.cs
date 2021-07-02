@@ -751,6 +751,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Incomplete_13()
+        {
+            ParseIncompleteSyntax(@"#line (1, 2) - (3, 4) 5 ""file.cs""");
+        }
+
+        [Fact]
         public void Missing_01()
         {
             string source = @"#line 1, 2) - (3, 4) ""file.cs""";
@@ -1511,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvalidValue_01()
+        public void VerifyValue_01()
         {
             string source = @"#line (-1, 2) - (3, 4) ""file.cs""";
 
@@ -1548,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvalidValue_02()
+        public void VerifyValue_02()
         {
             string source = @"#line (0, 0) - (0, 0) 0 ""file.cs""";
 
@@ -1598,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvalidValue_03()
+        public void VerifyValue_03()
         {
             string source = @"#line (16707565, 65536) - (16707565, 65536) 65536 ""file.cs""";
 
@@ -1633,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void InvalidValue_04()
+        public void VerifyValue_04()
         {
             string source = @"#line (16707566, 65537) - (16707566, 65537) 65537 ""file.cs""";
 
@@ -1676,6 +1682,148 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.NumericLiteralToken, "65537");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void VerifySpan_01()
+        {
+            string source = @"#line (10, 20) - (10, 20) ""file.cs""";
+
+            UsingLineDirective(source, options: null);
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void VerifySpan_02()
+        {
+            string source = @"#line (10, 20) - (10, 19) ""file.cs""";
+
+            UsingLineDirective(source, options: null,
+                // (1,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+                // #line (10, 20) - (10, 19) "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(10, 19)").WithLocation(1, 18));
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "19");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void VerifySpan_03()
+        {
+            string source = @"#line (10, 20) - (9, 20) ""file.cs""";
+
+            UsingLineDirective(source, options: null,
+                // (1,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+                // #line (10, 20) - (9, 20) "file.cs"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(9, 20)").WithLocation(1, 18));
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "9");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void VerifySpan_04()
+        {
+            string source = @"#line (10, 20) - (11, 1) ""file.cs""";
+
+            UsingLineDirective(source, options: null);
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "20");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "11");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CloseParenToken);
+                }
                 N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
                 N(SyntaxKind.EndOfDirectiveToken);
             }

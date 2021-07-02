@@ -135,16 +135,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }";
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            tree.GetDiagnostics().Verify();
-
             var comp = CreateCompilation(tree);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+                // #line (10, 20) - (9, 20) "C"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(9, 20)").WithLocation(9, 18),
+                // A(11,18): error CS8939: The #line directive end position must be greater than or equal to the start position
+                // #line (10, 20) - (10, 19) "B"
+                Diagnostic(ErrorCode.ERR_LineSpanDirectiveEndLessThanStart, "(10, 19)").WithLocation(11, 18));
 
             var actualLineMappings = GetLineMappings(tree);
             var expectedLineMappings = new[]
             {
                 "(0,0)-(3,7) -> : (0,0)-(3,7)",
-                "(5,0)-(9,0),14 -> a.cs: (0,15)-(4,26)",
+                "(5,0)-(5,14) -> A: (9,19)-(9,20)",
+                "(7,0)-(7,14) -> : (7,0)-(7,14)",
+                "(9,0)-(9,14) -> : (9,0)-(9,14)",
+                "(11,0)-(14,1) -> D: (9,19)-(10,19)",
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
         }

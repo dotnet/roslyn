@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion10 = 8936,
         ERR_SimpleProgramIsEmpty = 8937,
         ERR_LineSpanDirectiveInvalidValue = 8938,
-        ERR_LineSpanDirectiveInvalidSpan = 8939,
+        ERR_LineSpanDirectiveEndLessThanStart = 8939,
 
         #endregion
 

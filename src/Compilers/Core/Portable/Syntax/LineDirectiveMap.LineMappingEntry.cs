@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -90,6 +91,8 @@ namespace Microsoft.CodeAnalysis
                 string? mappedPathOpt,
                 PositionState state)
             {
+                Debug.Assert(state != PositionState.RemappedSpan);
+
                 this.UnmappedLine = unmappedLine;
                 this.MappedLine = mappedLine;
                 this.MappedSpan = default;
