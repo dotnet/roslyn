@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         F();
     }
     static void F() { }
-}";
+}".NormalizeLineEndings();
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var comp = CreateCompilation(tree);
@@ -244,6 +244,25 @@ void Render()
                 "(10,0)-(11,1) -> : (0,0)-(0,0)",
             };
             AssertEx.Equal(expectedLineMappings, actualLineMappings);
+
+            var textB = SourceText.From(sourceB);
+            var actualVisibility = textB.Lines.Select(line => treeB.GetLineVisibility(line.Start)).ToImmutableArray();
+            var expectedVisibility = new[]
+            {
+                LineVisibility.BeforeFirstLineDirective,
+                LineVisibility.Hidden,
+                LineVisibility.Hidden,
+                LineVisibility.Hidden,
+                LineVisibility.Hidden,
+                LineVisibility.Hidden,
+                LineVisibility.Visible,
+                LineVisibility.Visible,
+                LineVisibility.Visible,
+                LineVisibility.Visible,
+                LineVisibility.Hidden,
+                LineVisibility.Hidden,
+            };
+            AssertEx.Equal(expectedVisibility, actualVisibility);
 
             var statements = GetStatementsAndExpressionBodies(treeB);
             var actualTextSpans = statements.SelectAsArray(s => GetTextMapping(textA, treeB, s));

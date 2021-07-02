@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                 case PositionState.Remapped:
+                case PositionState.RemappedSpan:
                     return LineVisibility.Visible;
 
                 case PositionState.Hidden:
