@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.Collections
     [TypeForwardedFrom("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>
     {
+        private const bool SupportsComparerDevirtualization
+#if NETCOREAPP
+            = true;
+#else
+            = false;
+#endif
+
         // This uses the same array-based implementation as Dictionary<TKey, TValue>.
 
         /// <summary>Cutoff point for stackallocs. This corresponds to the number of ints.</summary>
@@ -44,7 +51,15 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _freeList;
         private int _freeCount;
         private int _version;
-        private IEqualityComparer<T>? _comparer;
+#if NETCOREAPP
+        private readonly IEqualityComparer<T>? _comparer;
+#else
+        /// <summary>
+        /// <see cref="EqualityComparer{T}.Default"/> doesn't devirtualize on .NET Framework, so we always ensure
+        /// <see cref="_comparer"/> is initialized to a non-<see langword="null"/> value.
+        /// </summary>
+        private readonly IEqualityComparer<T> _comparer;
+#endif
 
         #region Constructors
 
@@ -57,25 +72,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 _comparer = comparer;
             }
 
-            // Special-case EqualityComparer<string>.Default, StringComparer.Ordinal, and StringComparer.OrdinalIgnoreCase.
-            // We use a non-randomized comparer for improved perf, falling back to a randomized comparer if the
-            // hash buckets become unbalanced.
-
-            if (typeof(T) == typeof(string))
-            {
-                if (_comparer is null)
-                {
-                    _comparer = (IEqualityComparer<T>)NonRandomizedStringEqualityComparer.WrappedAroundDefaultComparer;
-                }
-                else if (ReferenceEquals(_comparer, StringComparer.Ordinal))
-                {
-                    _comparer = (IEqualityComparer<T>)NonRandomizedStringEqualityComparer.WrappedAroundStringComparerOrdinal;
-                }
-                else if (ReferenceEquals(_comparer, StringComparer.OrdinalIgnoreCase))
-                {
-                    _comparer = (IEqualityComparer<T>)NonRandomizedStringEqualityComparer.WrappedAroundStringComparerOrdinalIgnoreCase;
-                }
-            }
+#if !NETCOREAPP
+            // .NET Framework doesn't support devirtualization, so we always initialize comparer to a non-null value
+            _comparer ??= EqualityComparer<T>.Default;
+#endif
         }
 
         public SegmentedHashSet(int capacity) : this(capacity, null) { }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 uint collisionCount = 0;
                 IEqualityComparer<T>? comparer = _comparer;
 
-                if (comparer == null)
+                if (SupportsComparerDevirtualization && comparer == null)
                 {
                     int hashCode = item != null ? item.GetHashCode() : 0;
                     if (typeof(T).IsValueType)
@@ -847,14 +847,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                if (typeof(T) == typeof(string))
-                {
-                    return (IEqualityComparer<T>)IInternalStringEqualityComparer.GetUnderlyingEqualityComparer((IEqualityComparer<string?>?)_comparer);
-                }
-                else
-                {
-                    return _comparer ?? EqualityComparer<T>.Default;
-                }
+                return _comparer ?? EqualityComparer<T>.Default;
             }
         }
 
@@ -878,16 +871,14 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             int newSize = HashHelpers.GetPrime(capacity);
-            Resize(newSize, forceNewHashCodes: false);
+            Resize(newSize);
             return newSize;
         }
 
-        private void Resize() => Resize(HashHelpers.ExpandPrime(_count), forceNewHashCodes: false);
+        private void Resize() => Resize(HashHelpers.ExpandPrime(_count));
 
-        private void Resize(int newSize, bool forceNewHashCodes)
+        private void Resize(int newSize)
         {
-            // Value types never rehash
-            Debug.Assert(!forceNewHashCodes || !typeof(T).IsValueType);
             Debug.Assert(_entries != null, "_entries should be non-null");
             Debug.Assert(newSize >= _entries.Length);
 
@@ -895,26 +886,6 @@ namespace Microsoft.CodeAnalysis.Collections
 
             int count = _count;
             Array.Copy(_entries, entries, count);
-
-            if (!typeof(T).IsValueType && forceNewHashCodes)
-            {
-                Debug.Assert(_comparer is NonRandomizedStringEqualityComparer);
-                _comparer = (IEqualityComparer<T>)((NonRandomizedStringEqualityComparer)_comparer).GetRandomizedEqualityComparer();
-
-                for (int i = 0; i < count; i++)
-                {
-                    ref Entry entry = ref entries[i];
-                    if (entry.Next >= -1)
-                    {
-                        entry.HashCode = entry.Value != null ? _comparer!.GetHashCode(entry.Value) : 0;
-                    }
-                }
-
-                if (ReferenceEquals(_comparer, EqualityComparer<T>.Default))
-                {
-                    _comparer = null;
-                }
-            }
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
             _buckets = new int[newSize];
@@ -1023,7 +994,7 @@ namespace Microsoft.CodeAnalysis.Collections
             uint collisionCount = 0;
             ref int bucket = ref Unsafe.NullRef<int>();
 
-            if (comparer == null)
+            if (SupportsComparerDevirtualization && comparer == null)
             {
                 hashCode = value != null ? value.GetHashCode() : 0;
                 bucket = ref GetBucketRef(hashCode);
@@ -1126,16 +1097,6 @@ namespace Microsoft.CodeAnalysis.Collections
                 bucket = index + 1;
                 _version++;
                 location = index;
-            }
-
-            // Value types never rehash
-            if (!typeof(T).IsValueType && collisionCount > HashHelpers.HashCollisionThreshold && comparer is NonRandomizedStringEqualityComparer)
-            {
-                // If we hit the collision threshold we'll need to switch to the comparer which is using randomized string hashing
-                // i.e. EqualityComparer<string>.Default.
-                Resize(entries.Length, forceNewHashCodes: true);
-                location = FindItemIndex(value);
-                Debug.Assert(location >= 0);
             }
 
             return true;
