@@ -122,6 +122,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
 
         /// <summary>
+        /// check whether given trivia is _ in VB or not
+        /// </summary>
+        protected abstract bool IsLineContinuation(SyntaxTrivia trivia);
+
+        /// <summary>
+        /// check whether given trivia is a Comment in VB or not
+        /// </summary>
+        protected abstract bool IsComment(SyntaxTrivia trivia);
+
+        /// <summary>
         /// check whether given string is either null or whitespace
         /// </summary>
         protected bool IsNullOrWhitespace([NotNullWhen(true)] string? text)
@@ -307,9 +317,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                     else
                     {
-                        if (previousTrivia.RawKind == 733  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.LineContinuation */
+                        if (IsLineContinuation(previousTrivia)
                            && (i + 1) < list.Count
-                           && list[i + 1].RawKind == 732 /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */                      )
+                           && IsComment(list[i + 1]))
                         {
                             previousLineColumn = lineColumn;
                         }
@@ -327,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     formatter, whitespaceAdder,
                     changes, implicitLineBreak, cancellationToken);
 
-                if (trivia.RawKind == 732  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */
+                if (IsComment(trivia)
                     && previousLineColumn.Column != 0
                     && previousLineColumn.Column < lineColumn.Column)
                 {

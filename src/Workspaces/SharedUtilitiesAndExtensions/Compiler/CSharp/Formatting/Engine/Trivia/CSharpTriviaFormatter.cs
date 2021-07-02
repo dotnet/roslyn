@@ -354,5 +354,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             return GetLineColumnDelta(lineColumn, docComment);
         }
+
+        protected override bool IsLineContinuation(SyntaxTrivia trivia)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// This is only here to make interface happy
+        /// </summary>
+        /// <param name="trivia"></param>
+        /// <returns>True is trivial is a comment</returns>
+        protected override bool IsComment(SyntaxTrivia trivia)
+        {
+            return trivia.IsDocComment();
+        }
     }
 }

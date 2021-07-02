@@ -299,5 +299,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return singlelineDocCommentTrivia.ElementAt(0)
         End Function
 
+        Protected Overrides Function IsLineContinuation(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.LineContinuationTrivia
+        End Function
+
+        Protected Overrides Function IsComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
     End Class
 End Namespace
