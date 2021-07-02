@@ -409,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             ITypeSymbol? containerType,
             bool unwrapNullable)
         {
+            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
 
@@ -448,12 +449,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 if (symbol is IAliasSymbol alias)
                     symbol = alias.Target;
 
-                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
                 {
-                    // For named typed and namespaces, we flip things around.  We only want statics and not instance members.
+                    // For named typed, namespaces, and type parameters (potentially constrainted to interface with statics), we flip things around.
+                    // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    containerSymbol = (INamespaceOrTypeSymbol)symbol;
+                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
+                    containerSymbol = symbol;
                 }
 
                 // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
@@ -480,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return default;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
+            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -495,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : symbols;
+                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
