@@ -147,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
                 return self;
 
+            // TODO: Only reallocate page(s) with a changed element
             var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary.Add(key, value);
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return other;
             }
 
+            // TODO: Only reallocate page(s) with a changed element
             SegmentedDictionary<TKey, TValue>? dictionary = null;
             foreach (var pair in pairs)
             {
@@ -211,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (!self._dictionary.ContainsKey(key))
                 return self;
 
+            // TODO: Only reallocate page(s) with a changed element
             var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary.Remove(key);
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
@@ -221,6 +224,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (keys is null)
                 throw new ArgumentNullException(nameof(keys));
 
+            // TODO: Avoid a builder allocation
+            // TODO: Only allocate if keys has one or more values
             var result = ToBuilder();
             result.RemoveRange(keys);
             return result.ToImmutable();
@@ -234,6 +239,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return self;
             }
 
+            // TODO: Only reallocate the page with a changed element
             var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
             dictionary[key] = value;
             return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
@@ -244,6 +250,8 @@ namespace Microsoft.CodeAnalysis.Collections
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
 
+            // TODO: Avoid a builder allocation
+            // TODO: Only reallocate pages with changes
             var result = ToBuilder();
             foreach (var item in items)
             {
