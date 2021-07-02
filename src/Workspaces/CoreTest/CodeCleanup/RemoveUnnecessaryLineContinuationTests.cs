@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ImplicitLineContinuation_Multiple_PC()
+        public async Task ImplicitLineContinuation_Multiple()
         {
             var code = @"[|
         Dim i = _
