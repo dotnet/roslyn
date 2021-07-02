@@ -44,9 +44,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             RequestContext context,
             CancellationToken cancellationToken)
         {
+            // Temporary workaround for https://github.com/dotnet/roslyn/issues/54547:
+            // We should eventually go back to throwing here if context.Document is null.
+            if (context.Document is null)
+            {
+                return new LSP.SemanticTokens();
+            }
+
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(request.PreviousResultId, "previousResultId is null.");
-            Contract.ThrowIfNull(context.Document, "Document is null.");
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
