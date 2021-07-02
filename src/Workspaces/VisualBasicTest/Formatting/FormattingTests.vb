@@ -852,7 +852,7 @@ End Class"
         <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
         <InlineData("_")>
         <InlineData("_ ' Comment")>
-        Public Async Function LineContinuation4_PC(continuation As String) As Task
+        Public Async Function LineContinuation4(continuation As String) As Task
             Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
                     Dim aa = 1 + {continuation}
