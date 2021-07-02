@@ -235,6 +235,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Alterar '{0}' para '{1}' impedirá a continuação da sessão de depuração porque altera a forma da máquina de estado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">A alteração da visibilidade de {0} impedirá que a sessão de depuração continue.</target>

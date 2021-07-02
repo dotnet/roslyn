@@ -152,6 +152,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.ChangingParameterTypes, nameof(FeaturesResources.Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingReturnType, nameof(FeaturesResources.Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing));
 
             AddRudeEdit(RudeEditKind.ChangeImplicitMainReturnType, FeaturesResources.An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing);
 
