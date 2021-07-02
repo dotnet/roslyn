@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -57,10 +57,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             char[] newLineChars = Environment.NewLine.ToCharArray();
             string actual = actualOperationTree.Trim(newLineChars);
-            actual = actual.Replace("\"", "\"\"").Replace(" \n", "\n").Replace(" \r", "\r");
+            actual = actual.Replace(" \n", "\n").Replace(" \r", "\r");
             expectedOperationTree = expectedOperationTree.Trim(newLineChars);
             expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine);
-            expectedOperationTree = expectedOperationTree.Replace("\"", "\"\"");
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
         }
@@ -217,22 +216,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static string ConstantToString(object constant, bool quoteString = true)
+        private static string ConstantToString(object constant)
         {
             switch (constant)
             {
                 case null:
                     return "null";
                 case string s:
-                    if (quoteString)
-                    {
-                        return @"""" + s + @"""";
-                    }
-                    return s;
+                    s = s.Replace("\"", "\"\"");
+                    return @"""" + s + @"""";
                 case IFormattable formattable:
-                    return formattable.ToString(null, CultureInfo.InvariantCulture);
+                    return formattable.ToString(null, CultureInfo.InvariantCulture).Replace("\"", "\"\"");;
                 default:
-                    return constant.ToString();
+                    return constant.ToString().Replace("\"", "\"\"");
             }
         }
 
