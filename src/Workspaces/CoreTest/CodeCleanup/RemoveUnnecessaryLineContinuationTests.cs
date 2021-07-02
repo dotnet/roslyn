@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
-        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment_PC()
+        public async Task ColonToken_LineContinuation_AfterColonToken_Colon_Comment()
         {
             var code = @"[|
          Console.WriteLine() : _
