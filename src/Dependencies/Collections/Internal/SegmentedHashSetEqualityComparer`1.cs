@@ -7,12 +7,12 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Collections.Internal
 {
     /// <summary>Equality comparer for hashsets of hashsets</summary>
-    internal sealed class HashSetEqualityComparer<T> : IEqualityComparer<HashSet<T>?>
+    internal sealed class SegmentedHashSetEqualityComparer<T> : IEqualityComparer<SegmentedHashSet<T>?>
     {
-        public bool Equals(HashSet<T>? x, HashSet<T>? y)
+        public bool Equals(SegmentedHashSet<T>? x, SegmentedHashSet<T>? y)
         {
             // If they're the exact same instance, they're equal.
             if (ReferenceEquals(x, y))
@@ -30,7 +30,7 @@ namespace System.Collections.Generic
 
             // If both sets use the same comparer, they're equal if they're the same
             // size and one is a "subset" of the other.
-            if (HashSet<T>.EqualityComparersAreEqual(x, y))
+            if (SegmentedHashSet<T>.EqualityComparersAreEqual(x, y))
             {
                 return x.Count == y.Count && y.IsSubsetOfHashSetWithSameComparer(x);
             }
@@ -57,7 +57,7 @@ namespace System.Collections.Generic
             return true;
         }
 
-        public int GetHashCode(HashSet<T>? obj)
+        public int GetHashCode(SegmentedHashSet<T>? obj)
         {
             int hashCode = 0; // default to 0 for null/empty set
 
@@ -76,7 +76,7 @@ namespace System.Collections.Generic
         }
 
         // Equals method for the comparer itself.
-        public override bool Equals(object? obj) => obj is HashSetEqualityComparer<T>;
+        public override bool Equals(object? obj) => obj is SegmentedHashSetEqualityComparer<T>;
 
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode();
     }

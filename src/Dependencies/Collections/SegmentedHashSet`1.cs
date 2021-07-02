@@ -14,13 +14,13 @@ using System.Runtime.Serialization;
 
 using Internal.Runtime.CompilerServices;
 
-namespace System.Collections.Generic
+namespace Microsoft.CodeAnalysis.Collections
 {
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
     [TypeForwardedFrom("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    public class HashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>, ISerializable, IDeserializationCallback
+    internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>, ISerializable, IDeserializationCallback
     {
         // This uses the same array-based implementation as Dictionary<TKey, TValue>.
 
@@ -57,9 +57,9 @@ namespace System.Collections.Generic
 
         #region Constructors
 
-        public HashSet() : this((IEqualityComparer<T>?)null) { }
+        public SegmentedHashSet() : this((IEqualityComparer<T>?)null) { }
 
-        public HashSet(IEqualityComparer<T>? comparer)
+        public SegmentedHashSet(IEqualityComparer<T>? comparer)
         {
             if (comparer != null && comparer != EqualityComparer<T>.Default) // first check for null to avoid forcing default comparer instantiation unnecessarily
             {
@@ -87,25 +87,25 @@ namespace System.Collections.Generic
             }
         }
 
-        public HashSet(int capacity) : this(capacity, null) { }
+        public SegmentedHashSet(int capacity) : this(capacity, null) { }
 
-        public HashSet(IEnumerable<T> collection) : this(collection, null) { }
+        public SegmentedHashSet(IEnumerable<T> collection) : this(collection, null) { }
 
-        public HashSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer) : this(comparer)
+        public SegmentedHashSet(IEnumerable<T> collection, IEqualityComparer<T>? comparer) : this(comparer)
         {
             if (collection == null)
             {
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.collection);
             }
 
-            if (collection is HashSet<T> otherAsHashSet && EqualityComparersAreEqual(this, otherAsHashSet))
+            if (collection is SegmentedHashSet<T> otherAsHashSet && EqualityComparersAreEqual(this, otherAsHashSet))
             {
                 ConstructFrom(otherAsHashSet);
             }
             else
             {
                 // To avoid excess resizes, first set size based on collection's count. The collection may
-                // contain duplicates, so call TrimExcess if resulting HashSet is larger than the threshold.
+                // contain duplicates, so call TrimExcess if resulting SegmentedHashSet is larger than the threshold.
                 if (collection is ICollection<T> coll)
                 {
                     int count = coll.Count;
@@ -124,7 +124,7 @@ namespace System.Collections.Generic
             }
         }
 
-        public HashSet(int capacity, IEqualityComparer<T>? comparer) : this(comparer)
+        public SegmentedHashSet(int capacity, IEqualityComparer<T>? comparer) : this(comparer)
         {
             if (capacity < 0)
             {
@@ -137,7 +137,7 @@ namespace System.Collections.Generic
             }
         }
 
-        protected HashSet(SerializationInfo info, StreamingContext context)
+        protected SegmentedHashSet(SerializationInfo info, StreamingContext context)
         {
             // We can't do anything with the keys and values until the entire graph has been
             // deserialized and we have a reasonable estimate that GetHashCode is not going to
@@ -146,8 +146,8 @@ namespace System.Collections.Generic
             _siInfo = info;
         }
 
-        /// <summary>Initializes the HashSet from another HashSet with the same element type and equality comparer.</summary>
-        private void ConstructFrom(HashSet<T> source)
+        /// <summary>Initializes the SegmentedHashSet from another SegmentedHashSet with the same element type and equality comparer.</summary>
+        private void ConstructFrom(SegmentedHashSet<T> source)
         {
             if (source.Count == 0)
             {
@@ -195,7 +195,7 @@ namespace System.Collections.Generic
 
         void ICollection<T>.Add(T item) => AddIfNotPresent(item, out _);
 
-        /// <summary>Removes all elements from the <see cref="HashSet{T}"/> object.</summary>
+        /// <summary>Removes all elements from the <see cref="SegmentedHashSet{T}"/> object.</summary>
         public void Clear()
         {
             int count = _count;
@@ -212,9 +212,9 @@ namespace System.Collections.Generic
             }
         }
 
-        /// <summary>Determines whether the <see cref="HashSet{T}"/> contains the specified element.</summary>
-        /// <param name="item">The element to locate in the <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object contains the specified element; otherwise, false.</returns>
+        /// <summary>Determines whether the <see cref="SegmentedHashSet{T}"/> contains the specified element.</summary>
+        /// <param name="item">The element to locate in the <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object contains the specified element; otherwise, false.</returns>
         public bool Contains(T item) => FindItemIndex(item) >= 0;
 
         /// <summary>Gets the index of the item in <see cref="_entries"/>, or -1 if it's not in the set.</summary>
@@ -461,11 +461,11 @@ namespace System.Collections.Generic
 
         #endregion
 
-        #region HashSet methods
+        #region SegmentedHashSet methods
 
-        /// <summary>Adds the specified element to the <see cref="HashSet{T}"/>.</summary>
+        /// <summary>Adds the specified element to the <see cref="SegmentedHashSet{T}"/>.</summary>
         /// <param name="item">The element to add to the set.</param>
-        /// <returns>true if the element is added to the <see cref="HashSet{T}"/> object; false if the element is already present.</returns>
+        /// <returns>true if the element is added to the <see cref="SegmentedHashSet{T}"/> object; false if the element is already present.</returns>
         public bool Add(T item) => AddIfNotPresent(item, out _);
 
         /// <summary>Searches the set for a given value and returns the equal value it finds, if any.</summary>
@@ -494,8 +494,8 @@ namespace System.Collections.Generic
             return false;
         }
 
-        /// <summary>Modifies the current <see cref="HashSet{T}"/> object to contain all elements that are present in itself, the specified collection, or both.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
+        /// <summary>Modifies the current <see cref="SegmentedHashSet{T}"/> object to contain all elements that are present in itself, the specified collection, or both.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
         public void UnionWith(IEnumerable<T> other)
         {
             if (other == null)
@@ -509,8 +509,8 @@ namespace System.Collections.Generic
             }
         }
 
-        /// <summary>Modifies the current <see cref="HashSet{T}"/> object to contain only elements that are present in that object and in the specified collection.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
+        /// <summary>Modifies the current <see cref="SegmentedHashSet{T}"/> object to contain only elements that are present in that object and in the specified collection.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
         public void IntersectWith(IEnumerable<T> other)
         {
             if (other == null)
@@ -536,7 +536,7 @@ namespace System.Collections.Generic
 
                 // Faster if other is a hashset using same equality comparer; so check
                 // that other is a hashset using the same equality comparer.
-                if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+                if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
                 {
                     IntersectWithHashSetWithSameComparer(otherAsSet);
                     return;
@@ -546,8 +546,8 @@ namespace System.Collections.Generic
             IntersectWithEnumerable(other);
         }
 
-        /// <summary>Removes all elements in the specified collection from the current <see cref="HashSet{T}"/> object.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
+        /// <summary>Removes all elements in the specified collection from the current <see cref="SegmentedHashSet{T}"/> object.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
         public void ExceptWith(IEnumerable<T> other)
         {
             if (other == null)
@@ -575,8 +575,8 @@ namespace System.Collections.Generic
             }
         }
 
-        /// <summary>Modifies the current <see cref="HashSet{T}"/> object to contain only elements that are present either in that object or in the specified collection, but not both.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
+        /// <summary>Modifies the current <see cref="SegmentedHashSet{T}"/> object to contain only elements that are present either in that object or in the specified collection, but not both.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
         public void SymmetricExceptWith(IEnumerable<T> other)
         {
             if (other == null)
@@ -598,12 +598,12 @@ namespace System.Collections.Generic
                 return;
             }
 
-            // If other is a HashSet, it has unique elements according to its equality comparer,
+            // If other is a SegmentedHashSet, it has unique elements according to its equality comparer,
             // but if they're using different equality comparers, then assumption of uniqueness
             // will fail. So first check if other is a hashset using the same equality comparer;
             // symmetric except is a lot faster and avoids bit array allocations if we can assume
             // uniqueness.
-            if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+            if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
             {
                 SymmetricExceptWithUniqueHashSet(otherAsSet);
             }
@@ -613,9 +613,9 @@ namespace System.Collections.Generic
             }
         }
 
-        /// <summary>Determines whether a <see cref="HashSet{T}"/> object is a subset of the specified collection.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object is a subset of <paramref name="other"/>; otherwise, false.</returns>
+        /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object is a subset of the specified collection.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object is a subset of <paramref name="other"/>; otherwise, false.</returns>
         public bool IsSubsetOf(IEnumerable<T> other)
         {
             if (other == null)
@@ -632,7 +632,7 @@ namespace System.Collections.Generic
 
             // Faster if other has unique elements according to this equality comparer; so check
             // that other is a hashset using the same equality comparer.
-            if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+            if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
             {
                 // if this has more elements then it can't be a subset
                 if (Count > otherAsSet.Count)
@@ -649,9 +649,9 @@ namespace System.Collections.Generic
             return uniqueCount == Count && unfoundCount >= 0;
         }
 
-        /// <summary>Determines whether a <see cref="HashSet{T}"/> object is a proper subset of the specified collection.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object is a proper subset of <paramref name="other"/>; otherwise, false.</returns>
+        /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object is a proper subset of the specified collection.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object is a proper subset of <paramref name="other"/>; otherwise, false.</returns>
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
             if (other == null)
@@ -680,7 +680,7 @@ namespace System.Collections.Generic
                 }
 
                 // Faster if other is a hashset (and we're using same equality comparer).
-                if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+                if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
                 {
                     if (Count >= otherAsSet.Count)
                     {
@@ -697,9 +697,9 @@ namespace System.Collections.Generic
             return uniqueCount == Count && unfoundCount > 0;
         }
 
-        /// <summary>Determines whether a <see cref="HashSet{T}"/> object is a proper superset of the specified collection.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object is a superset of <paramref name="other"/>; otherwise, false.</returns>
+        /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object is a proper superset of the specified collection.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object is a superset of <paramref name="other"/>; otherwise, false.</returns>
         public bool IsSupersetOf(IEnumerable<T> other)
         {
             if (other == null)
@@ -723,7 +723,7 @@ namespace System.Collections.Generic
                 }
 
                 // Try to compare based on counts alone if other is a hashset with same equality comparer.
-                if (other is HashSet<T> otherAsSet &&
+                if (other is SegmentedHashSet<T> otherAsSet &&
                     EqualityComparersAreEqual(this, otherAsSet) &&
                     otherAsSet.Count > Count)
                 {
@@ -734,9 +734,9 @@ namespace System.Collections.Generic
             return ContainsAllElements(other);
         }
 
-        /// <summary>Determines whether a <see cref="HashSet{T}"/> object is a proper superset of the specified collection.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object is a proper superset of <paramref name="other"/>; otherwise, false.</returns>
+        /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object is a proper superset of the specified collection.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object is a proper superset of <paramref name="other"/>; otherwise, false.</returns>
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
             if (other == null)
@@ -760,7 +760,7 @@ namespace System.Collections.Generic
                 }
 
                 // Faster if other is a hashset with the same equality comparer
-                if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+                if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
                 {
                     if (otherAsSet.Count >= Count)
                     {
@@ -777,9 +777,9 @@ namespace System.Collections.Generic
             return uniqueCount < Count && unfoundCount == 0;
         }
 
-        /// <summary>Determines whether the current <see cref="HashSet{T}"/> object and a specified collection share common elements.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object and <paramref name="other"/> share at least one common element; otherwise, false.</returns>
+        /// <summary>Determines whether the current <see cref="SegmentedHashSet{T}"/> object and a specified collection share common elements.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object and <paramref name="other"/> share at least one common element; otherwise, false.</returns>
         public bool Overlaps(IEnumerable<T> other)
         {
             if (other == null)
@@ -809,9 +809,9 @@ namespace System.Collections.Generic
             return false;
         }
 
-        /// <summary>Determines whether a <see cref="HashSet{T}"/> object and the specified collection contain the same elements.</summary>
-        /// <param name="other">The collection to compare to the current <see cref="HashSet{T}"/> object.</param>
-        /// <returns>true if the <see cref="HashSet{T}"/> object is equal to <paramref name="other"/>; otherwise, false.</returns>
+        /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object and the specified collection contain the same elements.</summary>
+        /// <param name="other">The collection to compare to the current <see cref="SegmentedHashSet{T}"/> object.</param>
+        /// <returns>true if the <see cref="SegmentedHashSet{T}"/> object is equal to <paramref name="other"/>; otherwise, false.</returns>
         public bool SetEquals(IEnumerable<T> other)
         {
             if (other == null)
@@ -826,7 +826,7 @@ namespace System.Collections.Generic
             }
 
             // Faster if other is a hashset and we're using same equality comparer.
-            if (other is HashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
+            if (other is SegmentedHashSet<T> otherAsSet && EqualityComparersAreEqual(this, otherAsSet))
             {
                 // Attempt to return early: since both contain unique elements, if they have
                 // different counts, then they can't be equal.
@@ -856,7 +856,7 @@ namespace System.Collections.Generic
 
         public void CopyTo(T[] array) => CopyTo(array, 0, Count);
 
-        /// <summary>Copies the elements of a <see cref="HashSet{T}"/> object to an array, starting at the specified array index.</summary>
+        /// <summary>Copies the elements of a <see cref="SegmentedHashSet{T}"/> object to an array, starting at the specified array index.</summary>
         /// <param name="array">The destination array.</param>
         /// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
         public void CopyTo(T[] array, int arrayIndex) => CopyTo(array, arrayIndex, Count);
@@ -900,7 +900,7 @@ namespace System.Collections.Generic
             }
         }
 
-        /// <summary>Removes all elements that match the conditions defined by the specified predicate from a <see cref="HashSet{T}"/> collection.</summary>
+        /// <summary>Removes all elements that match the conditions defined by the specified predicate from a <see cref="SegmentedHashSet{T}"/> collection.</summary>
         public int RemoveWhere(Predicate<T> match)
         {
             if (match == null)
@@ -1025,7 +1025,7 @@ namespace System.Collections.Generic
         }
 
         /// <summary>
-        /// Sets the capacity of a <see cref="HashSet{T}"/> object to the actual number of elements it contains,
+        /// Sets the capacity of a <see cref="SegmentedHashSet{T}"/> object to the actual number of elements it contains,
         /// rounded up to a nearby, implementation-specific value.
         /// </summary>
         public void TrimExcess()
@@ -1067,8 +1067,8 @@ namespace System.Collections.Generic
 
         #region Helper methods
 
-        /// <summary>Returns an <see cref="IEqualityComparer"/> object that can be used for equality testing of a <see cref="HashSet{T}"/> object.</summary>
-        public static IEqualityComparer<HashSet<T>> CreateSetComparer() => new HashSetEqualityComparer<T>();
+        /// <summary>Returns an <see cref="IEqualityComparer"/> object that can be used for equality testing of a <see cref="SegmentedHashSet{T}"/> object.</summary>
+        public static IEqualityComparer<SegmentedHashSet<T>> CreateSetComparer() => new SegmentedHashSetEqualityComparer<T>();
 
         /// <summary>
         /// Initializes buckets and slots arrays. Uses suggested capacity by finding next prime
@@ -1094,7 +1094,7 @@ namespace System.Collections.Generic
         /// <summary>Adds the specified element to the set if it's not already contained.</summary>
         /// <param name="value">The element to add to the set.</param>
         /// <param name="location">The index into <see cref="_entries"/> of the element.</param>
-        /// <returns>true if the element is added to the <see cref="HashSet{T}"/> object; false if the element is already present.</returns>
+        /// <returns>true if the element is added to the <see cref="SegmentedHashSet{T}"/> object; false if the element is already present.</returns>
         private bool AddIfNotPresent(T value, out int location)
         {
             if (_buckets == null)
@@ -1258,7 +1258,7 @@ namespace System.Collections.Generic
         ///
         /// If callers are concerned about whether this is a proper subset, they take care of that.
         /// </summary>
-        internal bool IsSubsetOfHashSetWithSameComparer(HashSet<T> other)
+        internal bool IsSubsetOfHashSetWithSameComparer(SegmentedHashSet<T> other)
         {
             foreach (T item in this)
             {
@@ -1275,7 +1275,7 @@ namespace System.Collections.Generic
         /// If other is a hashset that uses same equality comparer, intersect is much faster
         /// because we can use other's Contains
         /// </summary>
-        private void IntersectWithHashSetWithSameComparer(HashSet<T> other)
+        private void IntersectWithHashSetWithSameComparer(SegmentedHashSet<T> other)
         {
             Entry[]? entries = _entries;
             for (int i = 0; i < _count; i++)
@@ -1342,7 +1342,7 @@ namespace System.Collections.Generic
         /// same equality comparer.
         /// </summary>
         /// <param name="other"></param>
-        private void SymmetricExceptWithUniqueHashSet(HashSet<T> other)
+        private void SymmetricExceptWithUniqueHashSet(SegmentedHashSet<T> other)
         {
             foreach (T item in other)
             {
@@ -1356,11 +1356,11 @@ namespace System.Collections.Generic
         /// <summary>
         /// Implementation notes:
         ///
-        /// Used for symmetric except when other isn't a HashSet. This is more tedious because
-        /// other may contain duplicates. HashSet technique could fail in these situations:
-        /// 1. Other has a duplicate that's not in this: HashSet technique would add then
+        /// Used for symmetric except when other isn't a SegmentedHashSet. This is more tedious because
+        /// other may contain duplicates. SegmentedHashSet technique could fail in these situations:
+        /// 1. Other has a duplicate that's not in this: SegmentedHashSet technique would add then
         /// remove it.
-        /// 2. Other has a duplicate that's in this: HashSet technique would remove then add it
+        /// 2. Other has a duplicate that's in this: SegmentedHashSet technique would remove then add it
         /// back.
         /// In general, its presence would be toggled each time it appears in other.
         ///
@@ -1422,7 +1422,7 @@ namespace System.Collections.Generic
 
         /// <summary>
         /// Determines counts that can be used to determine equality, subset, and superset. This
-        /// is only used when other is an IEnumerable and not a HashSet. If other is a HashSet
+        /// is only used when other is an IEnumerable and not a SegmentedHashSet. If other is a SegmentedHashSet
         /// these properties can be checked faster without use of marking because we can assume
         /// other has no duplicates.
         ///
@@ -1501,7 +1501,7 @@ namespace System.Collections.Generic
         /// speed up if it knows the other item has unique elements. I.e. if they're using
         /// different equality comparers, then uniqueness assumption between sets break.
         /// </summary>
-        internal static bool EqualityComparersAreEqual(HashSet<T> set1, HashSet<T> set2) => set1.Comparer.Equals(set2.Comparer);
+        internal static bool EqualityComparersAreEqual(SegmentedHashSet<T> set1, SegmentedHashSet<T> set2) => set1.Comparer.Equals(set2.Comparer);
 
 #endregion
 
@@ -1519,12 +1519,12 @@ namespace System.Collections.Generic
 
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly HashSet<T> _hashSet;
+            private readonly SegmentedHashSet<T> _hashSet;
             private readonly int _version;
             private int _index;
             private T _current;
 
-            internal Enumerator(HashSet<T> hashSet)
+            internal Enumerator(SegmentedHashSet<T> hashSet)
             {
                 _hashSet = hashSet;
                 _version = hashSet._version;
