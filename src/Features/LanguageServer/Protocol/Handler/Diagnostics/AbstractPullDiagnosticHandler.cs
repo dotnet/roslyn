@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                if (HaveDiagnosticsChangedAndUpdateCache(documentToPreviousDiagnosticParams, document, out var newResultId))
+                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
                 {
                     context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
                     progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
@@ -267,12 +267,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
         /// <param name="document">the document we are currently calculating results for.</param>
         /// <param name="newResultId">the resultId to report new diagnostics with if changed.</param>
-        private bool HaveDiagnosticsChangedAndUpdateCache(
+        private bool HaveDiagnosticsChanged(
             Dictionary<Document, DiagnosticParams> documentToPreviousDiagnosticParams,
             Document document,
             [NotNullWhen(true)] out string? newResultId)
         {
-            // Read and write the cached resultId to _documentIdToLastResultId in a single 'transaction'
+            // Read and write the cached resultId to _documentIdToLastResultId in a single transaction
             // to prevent in-between updates to _documentIdToLastResultId triggered by OnDiagnosticsUpdated.
             lock (_gate)
             {
