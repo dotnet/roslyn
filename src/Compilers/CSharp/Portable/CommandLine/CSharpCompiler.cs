@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using Caravela.Compiler;
+using Caravela.Compiler.Interface.TypeForwards;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,6 +29,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
         private readonly string _tempDirectory;
+        
+        // <Caravela>
+        static CSharpCompiler()
+        {
+            // Ensure that our Caravela.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
+            // is a reference assembly.
+            CaravelaCompilerInterfaces.Initialize();
+        }
+        // </Caravela>
 
         protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
             : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader)

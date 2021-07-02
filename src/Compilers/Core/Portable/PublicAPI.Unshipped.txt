@@ -15,6 +15,8 @@ Caravela.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis
 Caravela.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol assemblySymbol) -> System.Reflection.Assembly
 Caravela.Compiler.TransformerContext.ManifestResources.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.ResourceDescription>
 Caravela.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeName = "CompilerPluginAttribute" -> string
+const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Sdk" -> string
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Caravela.Compiler.ISourceTransformer>
 static Caravela.Compiler.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle
