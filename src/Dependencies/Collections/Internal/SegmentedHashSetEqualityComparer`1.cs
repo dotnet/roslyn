@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSetEqualityComparer.cs
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 return false;
             }
 
-            EqualityComparer<T> defaultComparer = EqualityComparer<T>.Default;
+            var defaultComparer = EqualityComparer<T>.Default;
 
             // If both sets use the same comparer, they're equal if they're the same
             // size and one is a "subset" of the other.
@@ -36,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
 
             // Otherwise, do an O(N^2) match.
-            foreach (T yi in y)
+            foreach (var yi in y)
             {
-                bool found = false;
-                foreach (T xi in x)
+                var found = false;
+                foreach (var xi in x)
                 {
                     if (defaultComparer.Equals(yi, xi))
                     {
@@ -59,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         public int GetHashCode(SegmentedHashSet<T>? obj)
         {
-            int hashCode = 0; // default to 0 for null/empty set
+            var hashCode = 0; // default to 0 for null/empty set
 
             if (obj != null)
             {
-                foreach (T t in obj)
+                foreach (var t in obj)
                 {
                     if (t != null)
                     {

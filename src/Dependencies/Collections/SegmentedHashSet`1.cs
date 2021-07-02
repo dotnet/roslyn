@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // contain duplicates, so call TrimExcess if resulting SegmentedHashSet is larger than the threshold.
                 if (collection is ICollection<T> coll)
                 {
-                    int count = coll.Count;
+                    var count = coll.Count;
                     if (count > 0)
                     {
                         Initialize(count);
@@ -139,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 return;
             }
 
-            int capacity = source._buckets!.Length;
-            int threshold = HashHelpers.ExpandPrime(source.Count + 1);
+            var capacity = source._buckets!.Length;
+            var threshold = HashHelpers.ExpandPrime(source.Count + 1);
 
             if (threshold >= capacity)
             {
@@ -157,10 +158,10 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Initialize(source.Count);
 
-                Entry[]? entries = source._entries;
-                for (int i = 0; i < source._count; i++)
+                var entries = source._entries;
+                for (var i = 0; i < source._count; i++)
                 {
-                    ref Entry entry = ref entries![i];
+                    ref var entry = ref entries![i];
                     if (entry.Next >= -1)
                     {
                         AddIfNotPresent(entry.Value, out _);
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <summary>Removes all elements from the <see cref="SegmentedHashSet{T}"/> object.</summary>
         public void Clear()
         {
-            int count = _count;
+            var count = _count;
             if (count > 0)
             {
                 Debug.Assert(_buckets != null, "_buckets should be non-null");
@@ -202,25 +203,25 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <summary>Gets the index of the item in <see cref="_entries"/>, or -1 if it's not in the set.</summary>
         private int FindItemIndex(T item)
         {
-            int[]? buckets = _buckets;
+            var buckets = _buckets;
             if (buckets != null)
             {
-                Entry[]? entries = _entries;
+                var entries = _entries;
                 Debug.Assert(entries != null, "Expected _entries to be initialized");
 
                 uint collisionCount = 0;
-                IEqualityComparer<T>? comparer = _comparer;
+                var comparer = _comparer;
 
                 if (SupportsComparerDevirtualization && comparer == null)
                 {
-                    int hashCode = item != null ? item.GetHashCode() : 0;
+                    var hashCode = item != null ? item.GetHashCode() : 0;
                     if (typeof(T).IsValueType)
                     {
                         // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-                        int i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
+                        var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
                         while (i >= 0)
                         {
-                            ref Entry entry = ref entries[i];
+                            ref var entry = ref entries[i];
                             if (entry.HashCode == hashCode && EqualityComparer<T>.Default.Equals(entry.Value, item))
                             {
                                 return i;
@@ -239,11 +240,11 @@ namespace Microsoft.CodeAnalysis.Collections
                     {
                         // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize (https://github.com/dotnet/runtime/issues/10050),
                         // so cache in a local rather than get EqualityComparer per loop iteration.
-                        EqualityComparer<T> defaultComparer = EqualityComparer<T>.Default;
-                        int i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
+                        var defaultComparer = EqualityComparer<T>.Default;
+                        var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
                         while (i >= 0)
                         {
-                            ref Entry entry = ref entries[i];
+                            ref var entry = ref entries[i];
                             if (entry.HashCode == hashCode && defaultComparer.Equals(entry.Value, item))
                             {
                                 return i;
@@ -261,11 +262,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    int hashCode = item != null ? comparer.GetHashCode(item) : 0;
-                    int i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
+                    var hashCode = item != null ? comparer.GetHashCode(item) : 0;
+                    var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
                     while (i >= 0)
                     {
-                        ref Entry entry = ref entries[i];
+                        ref var entry = ref entries[i];
                         if (entry.HashCode == hashCode && comparer.Equals(entry.Value, item))
                         {
                             return i;
@@ -289,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref int GetBucketRef(int hashCode)
         {
-            int[] buckets = _buckets!;
+            var buckets = _buckets!;
 #if TARGET_64BIT
             return ref buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, _fastModMultiplier)];
 #else
@@ -301,19 +302,19 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if (_buckets != null)
             {
-                Entry[]? entries = _entries;
+                var entries = _entries;
                 Debug.Assert(entries != null, "entries should be non-null");
 
                 uint collisionCount = 0;
-                int last = -1;
-                int hashCode = item != null ? (_comparer?.GetHashCode(item) ?? item.GetHashCode()) : 0;
+                var last = -1;
+                var hashCode = item != null ? (_comparer?.GetHashCode(item) ?? item.GetHashCode()) : 0;
 
-                ref int bucket = ref GetBucketRef(hashCode);
-                int i = bucket - 1; // Value in buckets is 1-based
+                ref var bucket = ref GetBucketRef(hashCode);
+                var i = bucket - 1; // Value in buckets is 1-based
 
                 while (i >= 0)
                 {
-                    ref Entry entry = ref entries[i];
+                    ref var entry = ref entries[i];
 
                     if (entry.HashCode == hashCode && (_comparer?.Equals(entry.Value, item) ?? EqualityComparer<T>.Default.Equals(entry.Value, item)))
                     {
@@ -364,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         #region IEnumerable methods
 
-        public Enumerator GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new(this);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
@@ -393,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if (_buckets != null)
             {
-                int index = FindItemIndex(equalValue);
+                var index = FindItemIndex(equalValue);
                 if (index >= 0)
                 {
                     actualValue = _entries![index].Value;
@@ -414,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.other);
             }
 
-            foreach (T item in other)
+            foreach (var item in other)
             {
                 AddIfNotPresent(item, out _);
             }
@@ -480,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             // Remove every element in other from this.
-            foreach (T element in other)
+            foreach (var element in other)
             {
                 Remove(element);
             }
@@ -556,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return IsSubsetOfHashSetWithSameComparer(otherAsSet);
             }
 
-            (int uniqueCount, int unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: false);
+            (var uniqueCount, var unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: false);
             return uniqueCount == Count && unfoundCount >= 0;
         }
 
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
 
-            (int uniqueCount, int unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: false);
+            (var uniqueCount, var unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: false);
             return uniqueCount == Count && unfoundCount > 0;
         }
 
@@ -684,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             // Couldn't fall out in the above cases; do it the long way
-            (int uniqueCount, int unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: true);
+            (var uniqueCount, var unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: true);
             return uniqueCount < Count && unfoundCount == 0;
         }
 
@@ -709,7 +710,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return true;
             }
 
-            foreach (T element in other)
+            foreach (var element in other)
             {
                 if (Contains(element))
                 {
@@ -760,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                (int uniqueCount, int unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: true);
+                (var uniqueCount, var unfoundCount) = CheckUniqueAndUnfoundElements(other, returnIfUnfound: true);
                 return uniqueCount == Count && unfoundCount == 0;
             }
         }
@@ -799,10 +800,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentException(ExceptionResource.Arg_ArrayPlusOffTooSmall);
             }
 
-            Entry[]? entries = _entries;
-            for (int i = 0; i < _count && count != 0; i++)
+            var entries = _entries;
+            for (var i = 0; i < _count && count != 0; i++)
             {
-                ref Entry entry = ref entries![i];
+                ref var entry = ref entries![i];
                 if (entry.Next >= -1)
                 {
                     array[arrayIndex++] = entry.Value;
@@ -819,15 +820,15 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.match);
             }
 
-            Entry[]? entries = _entries;
-            int numRemoved = 0;
-            for (int i = 0; i < _count; i++)
+            var entries = _entries;
+            var numRemoved = 0;
+            for (var i = 0; i < _count; i++)
             {
-                ref Entry entry = ref entries![i];
+                ref var entry = ref entries![i];
                 if (entry.Next >= -1)
                 {
                     // Cache value in case delegate removes it
-                    T value = entry.Value;
+                    var value = entry.Value;
                     if (match(value))
                     {
                         // Check again that remove actually removed it.
@@ -859,7 +860,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.capacity);
             }
 
-            int currentCapacity = _entries == null ? 0 : _entries.Length;
+            var currentCapacity = _entries == null ? 0 : _entries.Length;
             if (currentCapacity >= capacity)
             {
                 return currentCapacity;
@@ -870,7 +871,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 return Initialize(capacity);
             }
 
-            int newSize = HashHelpers.GetPrime(capacity);
+            var newSize = HashHelpers.GetPrime(capacity);
             Resize(newSize);
             return newSize;
         }
@@ -884,7 +885,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             var entries = new Entry[newSize];
 
-            int count = _count;
+            var count = _count;
             Array.Copy(_entries, entries, count);
 
             // Assign member variables after both arrays allocated to guard against corruption from OOM if second fails
@@ -892,12 +893,12 @@ namespace Microsoft.CodeAnalysis.Collections
 #if TARGET_64BIT
             _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
 #endif
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
-                ref Entry entry = ref entries[i];
+                ref var entry = ref entries[i];
                 if (entry.Next >= -1)
                 {
-                    ref int bucket = ref GetBucketRef(entry.HashCode);
+                    ref var bucket = ref GetBucketRef(entry.HashCode);
                     entry.Next = bucket - 1; // Value in _buckets is 1-based
                     bucket = i + 1;
                 }
@@ -912,29 +913,29 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void TrimExcess()
         {
-            int capacity = Count;
+            var capacity = Count;
 
-            int newSize = HashHelpers.GetPrime(capacity);
-            Entry[]? oldEntries = _entries;
-            int currentCapacity = oldEntries == null ? 0 : oldEntries.Length;
+            var newSize = HashHelpers.GetPrime(capacity);
+            var oldEntries = _entries;
+            var currentCapacity = oldEntries == null ? 0 : oldEntries.Length;
             if (newSize >= currentCapacity)
             {
                 return;
             }
 
-            int oldCount = _count;
+            var oldCount = _count;
             _version++;
             Initialize(newSize);
-            Entry[]? entries = _entries;
-            int count = 0;
-            for (int i = 0; i < oldCount; i++)
+            var entries = _entries;
+            var count = 0;
+            for (var i = 0; i < oldCount; i++)
             {
-                int hashCode = oldEntries![i].HashCode; // At this point, we know we have entries.
+                var hashCode = oldEntries![i].HashCode; // At this point, we know we have entries.
                 if (oldEntries[i].Next >= -1)
                 {
-                    ref Entry entry = ref entries![count];
+                    ref var entry = ref entries![count];
                     entry = oldEntries[i];
-                    ref int bucket = ref GetBucketRef(hashCode);
+                    ref var bucket = ref GetBucketRef(hashCode);
                     entry.Next = bucket - 1; // Value in _buckets is 1-based
                     bucket = count + 1;
                     count++;
@@ -958,7 +959,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private int Initialize(int capacity)
         {
-            int size = HashHelpers.GetPrime(capacity);
+            var size = HashHelpers.GetPrime(capacity);
             var buckets = new int[size];
             var entries = new Entry[size];
 
@@ -985,26 +986,26 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             Debug.Assert(_buckets != null);
 
-            Entry[]? entries = _entries;
+            var entries = _entries;
             Debug.Assert(entries != null, "expected entries to be non-null");
 
-            IEqualityComparer<T>? comparer = _comparer;
+            var comparer = _comparer;
             int hashCode;
 
             uint collisionCount = 0;
-            ref int bucket = ref Unsafe.NullRef<int>();
+            ref var bucket = ref Unsafe.NullRef<int>();
 
             if (SupportsComparerDevirtualization && comparer == null)
             {
                 hashCode = value != null ? value.GetHashCode() : 0;
                 bucket = ref GetBucketRef(hashCode);
-                int i = bucket - 1; // Value in _buckets is 1-based
+                var i = bucket - 1; // Value in _buckets is 1-based
                 if (typeof(T).IsValueType)
                 {
                     // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
                     while (i >= 0)
                     {
-                        ref Entry entry = ref entries[i];
+                        ref var entry = ref entries[i];
                         if (entry.HashCode == hashCode && EqualityComparer<T>.Default.Equals(entry.Value, value))
                         {
                             location = i;
@@ -1024,10 +1025,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize (https://github.com/dotnet/runtime/issues/10050),
                     // so cache in a local rather than get EqualityComparer per loop iteration.
-                    EqualityComparer<T> defaultComparer = EqualityComparer<T>.Default;
+                    var defaultComparer = EqualityComparer<T>.Default;
                     while (i >= 0)
                     {
-                        ref Entry entry = ref entries[i];
+                        ref var entry = ref entries[i];
                         if (entry.HashCode == hashCode && defaultComparer.Equals(entry.Value, value))
                         {
                             location = i;
@@ -1048,10 +1049,10 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 hashCode = value != null ? comparer.GetHashCode(value) : 0;
                 bucket = ref GetBucketRef(hashCode);
-                int i = bucket - 1; // Value in _buckets is 1-based
+                var i = bucket - 1; // Value in _buckets is 1-based
                 while (i >= 0)
                 {
-                    ref Entry entry = ref entries[i];
+                    ref var entry = ref entries[i];
                     if (entry.HashCode == hashCode && comparer.Equals(entry.Value, value))
                     {
                         location = i;
@@ -1078,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                int count = _count;
+                var count = _count;
                 if (count == entries.Length)
                 {
                     Resize();
@@ -1090,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             {
-                ref Entry entry = ref entries![index];
+                ref var entry = ref entries![index];
                 entry.HashCode = hashCode;
                 entry.Next = bucket - 1; // Value in _buckets is 1-based
                 entry.Value = value;
@@ -1109,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private bool ContainsAllElements(IEnumerable<T> other)
         {
-            foreach (T element in other)
+            foreach (var element in other)
             {
                 if (!Contains(element))
                 {
@@ -1132,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         internal bool IsSubsetOfHashSetWithSameComparer(SegmentedHashSet<T> other)
         {
-            foreach (T item in this)
+            foreach (var item in this)
             {
                 if (!other.Contains(item))
                 {
@@ -1149,13 +1150,13 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         private void IntersectWithHashSetWithSameComparer(SegmentedHashSet<T> other)
         {
-            Entry[]? entries = _entries;
-            for (int i = 0; i < _count; i++)
+            var entries = _entries;
+            for (var i = 0; i < _count; i++)
             {
-                ref Entry entry = ref entries![i];
+                ref var entry = ref entries![i];
                 if (entry.Next >= -1)
                 {
-                    T item = entry.Value;
+                    var item = entry.Value;
                     if (!other.Contains(item))
                     {
                         Remove(item);
@@ -1176,18 +1177,18 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // Keep track of current last index; don't want to move past the end of our bit array
             // (could happen if another thread is modifying the collection).
-            int originalCount = _count;
+            var originalCount = _count;
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> span = stackalloc int[StackAllocThreshold];
-            BitHelper bitHelper = intArrayLength <= StackAllocThreshold ?
+            var bitHelper = intArrayLength <= StackAllocThreshold ?
                 new BitHelper(span.Slice(0, intArrayLength), clear: true) :
                 new BitHelper(new int[intArrayLength], clear: false);
 
             // Mark if contains: find index of in slots array and mark corresponding element in bit array.
-            foreach (T item in other)
+            foreach (var item in other)
             {
-                int index = FindItemIndex(item);
+                var index = FindItemIndex(item);
                 if (index >= 0)
                 {
                     bitHelper.MarkBit(index);
@@ -1196,9 +1197,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
             // If anything unmarked, remove it. Perf can be optimized here if BitHelper had a
             // FindFirstUnmarked method.
-            for (int i = 0; i < originalCount; i++)
+            for (var i = 0; i < originalCount; i++)
             {
-                ref Entry entry = ref _entries![i];
+                ref var entry = ref _entries![i];
                 if (entry.Next >= -1 && !bitHelper.IsMarked(i))
                 {
                     Remove(entry.Value);
@@ -1216,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <param name="other"></param>
         private void SymmetricExceptWithUniqueHashSet(SegmentedHashSet<T> other)
         {
-            foreach (T item in other)
+            foreach (var item in other)
             {
                 if (!Remove(item))
                 {
@@ -1244,23 +1245,22 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <param name="other"></param>
         private unsafe void SymmetricExceptWithEnumerable(IEnumerable<T> other)
         {
-            int originalCount = _count;
+            var originalCount = _count;
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> itemsToRemoveSpan = stackalloc int[StackAllocThreshold / 2];
-            BitHelper itemsToRemove = intArrayLength <= StackAllocThreshold / 2 ?
+            var itemsToRemove = intArrayLength <= StackAllocThreshold / 2 ?
                 new BitHelper(itemsToRemoveSpan.Slice(0, intArrayLength), clear: true) :
                 new BitHelper(new int[intArrayLength], clear: false);
 
             Span<int> itemsAddedFromOtherSpan = stackalloc int[StackAllocThreshold / 2];
-            BitHelper itemsAddedFromOther = intArrayLength <= StackAllocThreshold / 2 ?
+            var itemsAddedFromOther = intArrayLength <= StackAllocThreshold / 2 ?
                 new BitHelper(itemsAddedFromOtherSpan.Slice(0, intArrayLength), clear: true) :
                 new BitHelper(new int[intArrayLength], clear: false);
 
-            foreach (T item in other)
+            foreach (var item in other)
             {
-                int location;
-                if (AddIfNotPresent(item, out location))
+                if (AddIfNotPresent(item, out var location))
                 {
                     // wasn't already present in collection; flag it as something not to remove
                     // *NOTE* if location is out of range, we should ignore. BitHelper will
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             // if anything marked, remove it
-            for (int i = 0; i < originalCount; i++)
+            for (var i = 0; i < originalCount; i++)
             {
                 if (itemsToRemove.IsMarked(i))
                 {
@@ -1320,8 +1320,8 @@ namespace Microsoft.CodeAnalysis.Collections
             // Need special case in case this has no elements.
             if (_count == 0)
             {
-                int numElementsInOther = 0;
-                foreach (T item in other)
+                var numElementsInOther = 0;
+                foreach (var item in other)
                 {
                     numElementsInOther++;
                     break; // break right away, all we want to know is whether other has 0 or 1 elements
@@ -1332,20 +1332,20 @@ namespace Microsoft.CodeAnalysis.Collections
 
             Debug.Assert((_buckets != null) && (_count > 0), "_buckets was null but count greater than 0");
 
-            int originalCount = _count;
+            var originalCount = _count;
             int intArrayLength = BitHelper.ToIntArrayLength(originalCount);
 
             Span<int> span = stackalloc int[StackAllocThreshold];
-            BitHelper bitHelper = intArrayLength <= StackAllocThreshold ?
+            var bitHelper = intArrayLength <= StackAllocThreshold ?
                 new BitHelper(span.Slice(0, intArrayLength), clear: true) :
                 new BitHelper(new int[intArrayLength], clear: false);
 
-            int unfoundCount = 0; // count of items in other not found in this
-            int uniqueFoundCount = 0; // count of unique items in other found in this
+            var unfoundCount = 0; // count of items in other not found in this
+            var uniqueFoundCount = 0; // count of unique items in other found in this
 
-            foreach (T item in other)
+            foreach (var item in other)
             {
-                int index = FindItemIndex(item);
+                var index = FindItemIndex(item);
                 if (index >= 0)
                 {
                     if (!bitHelper.IsMarked(index))
@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         internal static bool EqualityComparersAreEqual(SegmentedHashSet<T> set1, SegmentedHashSet<T> set2) => set1.Comparer.Equals(set2.Comparer);
 
-#endregion
+        #endregion
 
         private struct Entry
         {
@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // dictionary.count+1 could be negative if dictionary.count is int.MaxValue
                 while ((uint)_index < (uint)_hashSet._count)
                 {
-                    ref Entry entry = ref _hashSet._entries![_index++];
+                    ref var entry = ref _hashSet._entries![_index++];
                     if (entry.Next >= -1)
                     {
                         _current = entry.Value;
