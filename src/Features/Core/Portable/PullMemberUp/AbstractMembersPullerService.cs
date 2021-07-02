@@ -21,12 +21,9 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal static class MembersPuller
+    internal abstract class AbstractMembersPullerService : IMembersPullerService
     {
-        /// <summary>
-        /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error, it will return null.
-        /// </summary>
-        public static CodeAction TryComputeCodeAction(
+        public CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
             INamedTypeSymbol destination)
@@ -43,14 +40,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
         }
 
-        /// <summary>
-        /// Return the changed solution if all changes in pullMembersUpOptions are applied.
-        /// </summary>
-        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
-        public static Task<Solution> PullMembersUpAsync(
-            Document document,
-            PullMembersUpOptions pullMembersUpOptions,
-            CancellationToken cancellationToken)
+        public Task<Solution> PullMembersUpAsync(
+             Document document,
+             PullMembersUpOptions pullMembersUpOptions,
+             CancellationToken cancellationToken)
         {
             if (pullMembersUpOptions.Destination.TypeKind == TypeKind.Interface)
             {
@@ -233,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
         }
 
-        private static async Task<Solution> PullMembersIntoClassAsync(
+        private async Task<Solution> PullMembersIntoClassAsync(
             Document document,
             PullMembersUpOptions result,
             Solution solution,
@@ -243,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var codeGenerationService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, options: null, cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
             // Add members to destination
             var pullUpMembersSymbols = result.MemberAnalysisResults.SelectAsArray(
@@ -277,14 +269,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
+                    var semanticModel = await solution.GetDocument(solution.GetDocumentId(syntax.SyntaxTree)).
+                        GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
                     // add import symbol annotations for all the code we may be moving
                     newDestination = newDestination.WithAdditionalAnnotations(
-                        syntax.DescendantNodesAndSelf()
-                        .Select((node) => semanticModel.GetTypeInfo(node, cancellationToken).Type)
-                        .Where((type) => type != null &&
-                                !type.IsErrorType())
-                        .Distinct()
-                        .Select((type) => SymbolAnnotation.Create(type)));
+                        syntax.DescendantNodesAndSelf().
+                        Where((node) => FilterType(node)).
+                        Select((node) => semanticModel.GetTypeInfo(node, cancellationToken).Type).
+                        Where((type) => type != null).
+                        Distinct().
+                        Select((type) => SymbolAnnotation.Create(type)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -312,6 +307,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => newDestination);
             return solutionEditor.GetChangedSolution();
         }
+
+        protected abstract bool FilterType(SyntaxNode node);
 
         private static ISymbol MakeAbstractVersion(ISymbol member)
         {
