@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/Common/tests/System/Collections/ISet.Generic.Tests.cs
@@ -7,12 +8,14 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     /// <summary>
     /// Contains tests that ensure the correctness of any class that implements the generic
@@ -25,6 +28,7 @@ namespace System.Collections.Tests
     /// compares it to the actual result of the set operation.
     /// </summary>
     public abstract class ISet_Generic_Tests<T> : ICollection_Generic_Tests<T>
+        where T : notnull
     {
         #region ISet<T> Helper methods
 
@@ -139,7 +143,7 @@ namespace System.Collections.Tests
 
         private void Validate_IntersectWith(ISet<T> set, IEnumerable<T> enumerable)
         {
-            if (set.Count == 0 || Enumerable.Count(enumerable) == 0)
+            if (set.Count == 0 || !Enumerable.Any(enumerable))
             {
                 set.IntersectWith(enumerable);
                 Assert.Equal(0, set.Count);
@@ -308,16 +312,16 @@ namespace System.Collections.Tests
         public void ISet_Generic_NullEnumerableArgument(int count)
         {
             ISet<T> set = GenericISetFactory(count);
-            Assert.Throws<ArgumentNullException>(() => set.ExceptWith(null));
-            Assert.Throws<ArgumentNullException>(() => set.IntersectWith(null));
-            Assert.Throws<ArgumentNullException>(() => set.IsProperSubsetOf(null));
-            Assert.Throws<ArgumentNullException>(() => set.IsProperSupersetOf(null));
-            Assert.Throws<ArgumentNullException>(() => set.IsSubsetOf(null));
-            Assert.Throws<ArgumentNullException>(() => set.IsSupersetOf(null));
-            Assert.Throws<ArgumentNullException>(() => set.Overlaps(null));
-            Assert.Throws<ArgumentNullException>(() => set.SetEquals(null));
-            Assert.Throws<ArgumentNullException>(() => set.SymmetricExceptWith(null));
-            Assert.Throws<ArgumentNullException>(() => set.UnionWith(null));
+            Assert.Throws<ArgumentNullException>(() => set.ExceptWith(null!));
+            Assert.Throws<ArgumentNullException>(() => set.IntersectWith(null!));
+            Assert.Throws<ArgumentNullException>(() => set.IsProperSubsetOf(null!));
+            Assert.Throws<ArgumentNullException>(() => set.IsProperSupersetOf(null!));
+            Assert.Throws<ArgumentNullException>(() => set.IsSubsetOf(null!));
+            Assert.Throws<ArgumentNullException>(() => set.IsSupersetOf(null!));
+            Assert.Throws<ArgumentNullException>(() => set.Overlaps(null!));
+            Assert.Throws<ArgumentNullException>(() => set.SetEquals(null!));
+            Assert.Throws<ArgumentNullException>(() => set.SymmetricExceptWith(null!));
+            Assert.Throws<ArgumentNullException>(() => set.UnionWith(null!));
         }
 
         [Theory]
@@ -422,9 +426,8 @@ namespace System.Collections.Tests
             Validate_ExceptWith(set, set);
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(CoreClrOnly))]
         [MemberData(nameof(ValidCollectionSizes))]
-        [SkipOnTargetFramework(TargetFrameworkMonikers.NetFramework, ".NET Framework throws InvalidOperationException")]
         public void ISet_Generic_IntersectWith_Itself(int setLength)
         {
             ISet<T> set = GenericISetFactory(setLength);
@@ -500,7 +503,6 @@ namespace System.Collections.Tests
         #region Set Function tests on a large Set
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_ExceptWith_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -509,7 +511,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_IntersectWith_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -518,7 +519,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_IsProperSubsetOf_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -527,7 +527,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_IsProperSupersetOf_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -536,7 +535,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_IsSubsetOf_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -545,7 +543,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_IsSupersetOf_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -554,7 +551,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_Overlaps_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -563,7 +559,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_SetEquals_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -572,7 +567,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_SymmetricExceptWith_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);
@@ -581,7 +575,6 @@ namespace System.Collections.Tests
         }
 
         [Fact]
-        [OuterLoop]
         public void ISet_Generic_UnionWith_LargeSet()
         {
             ISet<T> set = GenericISetFactory(ISet_Large_Capacity);

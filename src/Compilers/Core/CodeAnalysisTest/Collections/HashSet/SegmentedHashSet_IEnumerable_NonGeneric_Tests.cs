@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Collections/tests/Generic/HashSet/HashSet.Generic.Tests.AsNonGenericIEnumerable.cs
@@ -7,15 +8,18 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Collections;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class HashSet_IEnumerable_NonGeneric_Tests : IEnumerable_NonGeneric_Tests
+    public class SegmentedHashSet_IEnumerable_NonGeneric_Tests : IEnumerable_NonGeneric_Tests
     {
         protected override IEnumerable NonGenericIEnumerableFactory(int count)
         {
-            var set = new HashSet<string>();
+            var set = new SegmentedHashSet<string>();
             int seed = 12354;
             while (set.Count < count)
                 set.Add(CreateT(set, seed++));
@@ -24,9 +28,9 @@ namespace System.Collections.Tests
 
         protected override bool Enumerator_Current_UndefinedOperation_Throws => true;
 
-        protected override ModifyOperation ModifyEnumeratorThrows => PlatformDetection.IsNetFramework ? base.ModifyEnumeratorThrows : (base.ModifyEnumeratorAllowed & ~ModifyOperation.Remove);
+        protected override ModifyOperation ModifyEnumeratorThrows => base.ModifyEnumeratorAllowed & ~ModifyOperation.Remove;
 
-        protected override ModifyOperation ModifyEnumeratorAllowed => PlatformDetection.IsNetFramework ? base.ModifyEnumeratorAllowed : ModifyOperation.Overwrite | ModifyOperation.Remove;
+        protected override ModifyOperation ModifyEnumeratorAllowed => ModifyOperation.Overwrite | ModifyOperation.Remove;
 
         /// <summary>
         /// Returns a set of ModifyEnumerable delegates that modify the enumerable passed to them.
@@ -37,7 +41,7 @@ namespace System.Collections.Tests
             {
                 yield return (IEnumerable enumerable) =>
                 {
-                    HashSet<string> casted = ((HashSet<string>)enumerable);
+                    SegmentedHashSet<string> casted = ((SegmentedHashSet<string>)enumerable);
                     if (casted.Count > 0)
                     {
                         casted.Clear();
@@ -48,7 +52,7 @@ namespace System.Collections.Tests
             }
         }
 
-        protected string CreateT(HashSet<string> set, int seed)
+        private protected static string CreateT(SegmentedHashSet<string> set, int seed)
         {
             int stringLength = seed % 10 + 5;
             Random rand = new Random(seed);

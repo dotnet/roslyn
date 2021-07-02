@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/Common/tests/System/Collections/TestingTypes.cs
@@ -7,9 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+#pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     #region Comparers and Equatables
 
@@ -27,7 +32,7 @@ namespace System.Collections.Tests
             return obj % 2;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is BadIntEqualityComparer; // Equal to all other instances of this type, not to anything else.
         }
@@ -39,34 +44,36 @@ namespace System.Collections.Tests
     }
 
     [Serializable]
-    public class EquatableBackwardsOrder : IEquatable<EquatableBackwardsOrder>, IComparable<EquatableBackwardsOrder>, IComparable
+    public class EquatableBackwardsOrder : IEquatable<EquatableBackwardsOrder?>, IComparable<EquatableBackwardsOrder>, IComparable
     {
-        private int _value;
+        private readonly int _value;
 
         public EquatableBackwardsOrder(int value)
         {
             _value = value;
         }
 
-        public int CompareTo(EquatableBackwardsOrder other) //backwards from the usual integer ordering
+        public int CompareTo(EquatableBackwardsOrder? other) //backwards from the usual integer ordering
         {
+            if (other is null)
+                return -1;
+
             return other._value - _value;
         }
 
         public override int GetHashCode() => _value;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            EquatableBackwardsOrder other = obj as EquatableBackwardsOrder;
-            return other != null && Equals(other);
+            return obj is EquatableBackwardsOrder other && Equals(other);
         }
 
-        public bool Equals(EquatableBackwardsOrder other)
+        public bool Equals(EquatableBackwardsOrder? other)
         {
-            return _value == other._value;
+            return _value == other?._value;
         }
 
-        int IComparable.CompareTo(object obj)
+        int IComparable.CompareTo(object? obj)
         {
             if (obj != null && obj.GetType() == typeof(EquatableBackwardsOrder))
                 return ((EquatableBackwardsOrder)obj)._value - _value;
@@ -115,7 +122,7 @@ namespace System.Collections.Tests
     [Serializable]
     public class Comparer_ModOfInt : IEqualityComparer<int>, IComparer<int>
     {
-        private int _mod;
+        private readonly int _mod;
 
         public Comparer_ModOfInt(int mod)
         {
@@ -185,25 +192,25 @@ namespace System.Collections.Tests
             return other.Val - _val;
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
-            if (obj.GetType() == typeof(SimpleInt))
+            if (obj?.GetType() == typeof(SimpleInt))
             {
                 return ((SimpleInt)obj).Val - _val;
             }
             return -1;
         }
 
-        public int CompareTo(object other, IComparer comparer)
+        public int CompareTo(object? other, IComparer comparer)
         {
-            if (other.GetType() == typeof(SimpleInt))
+            if (other?.GetType() == typeof(SimpleInt))
                 return ((SimpleInt)other).Val - _val;
             return -1;
         }
 
-        public bool Equals(object other, IEqualityComparer comparer)
+        public bool Equals(object? other, IEqualityComparer comparer)
         {
-            if (other.GetType() == typeof(SimpleInt))
+            if (other?.GetType() == typeof(SimpleInt))
                 return ((SimpleInt)other).Val == _val;
             return false;
         }
@@ -261,7 +268,7 @@ namespace System.Collections.Tests
             _value = value;
         }
 
-        public int CompareTo(GenericComparable other) => _value.CompareTo(other._value);
+        public int CompareTo(GenericComparable? other) => _value.CompareTo(other?._value);
     }
 
     public class NonGenericComparable : IComparable
@@ -273,15 +280,15 @@ namespace System.Collections.Tests
             _inner = new GenericComparable(value);
         }
 
-        public int CompareTo(object other) =>
-            _inner.CompareTo(((NonGenericComparable)other)._inner);
+        public int CompareTo(object? other) =>
+            _inner.CompareTo(((NonGenericComparable?)other)?._inner);
     }
 
     public class BadlyBehavingComparable : IComparable<BadlyBehavingComparable>, IComparable
     {
-        public int CompareTo(BadlyBehavingComparable other) => 1;
+        public int CompareTo(BadlyBehavingComparable? other) => 1;
 
-        public int CompareTo(object other) => -1;
+        public int CompareTo(object? other) => -1;
     }
 
     public class MutatingComparable : IComparable<MutatingComparable>, IComparable
@@ -295,9 +302,9 @@ namespace System.Collections.Tests
 
         public int State => _state;
 
-        public int CompareTo(object other) => _state++;
+        public int CompareTo(object? other) => _state++;
 
-        public int CompareTo(MutatingComparable other) => _state++;
+        public int CompareTo(MutatingComparable? other) => _state++;
     }
 
     public static class ValueComparable
@@ -334,7 +341,7 @@ namespace System.Collections.Tests
         // Equals(object) is not implemented on purpose.
         // EqualityComparer is only supposed to call through to the strongly-typed Equals since we implement IEquatable.
 
-        public bool Equals(Equatable other)
+        public bool Equals(Equatable? other)
         {
             return other != null && Value == other.Value;
         }
@@ -359,9 +366,9 @@ namespace System.Collections.Tests
             EqualsWorker = _ => false;
         }
 
-        public Func<DelegateEquatable, bool> EqualsWorker { get; set; }
+        public Func<DelegateEquatable?, bool> EqualsWorker { get; set; }
 
-        public bool Equals(DelegateEquatable other) => EqualsWorker(other);
+        public bool Equals(DelegateEquatable? other) => EqualsWorker(other);
     }
 
     public struct ValueDelegateEquatable : IEquatable<ValueDelegateEquatable>
@@ -373,10 +380,10 @@ namespace System.Collections.Tests
 
     public sealed class TrackingEqualityComparer<T> : IEqualityComparer<T>
     {
-        public int EqualsCalls;
-        public int GetHashCodeCalls;
+        public int EqualsCalls { get; set; }
+        public int GetHashCodeCalls { get; set; }
 
-        public bool Equals(T x, T y)
+        public bool Equals(T? x, T? y)
         {
             EqualsCalls++;
             return EqualityComparer<T>.Default.Equals(x, y);
@@ -385,7 +392,7 @@ namespace System.Collections.Tests
         public int GetHashCode(T obj)
         {
             GetHashCodeCalls++;
-            return EqualityComparer<T>.Default.GetHashCode(obj);
+            return EqualityComparer<T>.Default.GetHashCode(obj!);
         }
     }
 

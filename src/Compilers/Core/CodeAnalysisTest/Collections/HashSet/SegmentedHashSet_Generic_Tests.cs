@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Collections/tests/Generic/HashSet/HashSet.Generic.cs
@@ -7,12 +8,13 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
-using Xunit;
+using Microsoft.CodeAnalysis.Collections;
 
-namespace System.Collections.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class HashSet_Generic_Tests_string : HashSet_Generic_Tests<string>
+    public class SegmentedHashSet_Generic_Tests_string : SegmentedHashSet_Generic_Tests<string>
     {
         protected override string CreateT(int seed)
         {
@@ -24,7 +26,7 @@ namespace System.Collections.Tests
         }
     }
 
-    public class HashSet_Generic_Tests_int : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int : SegmentedHashSet_Generic_Tests<int>
     {
         protected override int CreateT(int seed)
         {
@@ -35,7 +37,7 @@ namespace System.Collections.Tests
         protected override bool DefaultValueAllowed => true;
     }
 
-    public class HashSet_Generic_Tests_int_With_Comparer_WrapStructural_Int : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_WrapStructural_Int : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -55,11 +57,11 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new WrapStructural_Int());
+            return new SegmentedHashSet<int>(new WrapStructural_Int());
         }
     }
 
-    public class HashSet_Generic_Tests_int_With_Comparer_WrapStructural_SimpleInt : HashSet_Generic_Tests<SimpleInt>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_WrapStructural_SimpleInt : SegmentedHashSet_Generic_Tests<SimpleInt>
     {
         protected override IEqualityComparer<SimpleInt> GetIEqualityComparer()
         {
@@ -79,12 +81,11 @@ namespace System.Collections.Tests
 
         protected override ISet<SimpleInt> GenericISetFactory()
         {
-            return new HashSet<SimpleInt>(new WrapStructural_SimpleInt());
+            return new SegmentedHashSet<SimpleInt>(new WrapStructural_SimpleInt());
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_EquatableBackwardsOrder : HashSet_Generic_Tests<EquatableBackwardsOrder>
+    public class SegmentedHashSet_Generic_Tests_EquatableBackwardsOrder : SegmentedHashSet_Generic_Tests<EquatableBackwardsOrder>
     {
         protected override EquatableBackwardsOrder CreateT(int seed)
         {
@@ -94,12 +95,11 @@ namespace System.Collections.Tests
 
         protected override ISet<EquatableBackwardsOrder> GenericISetFactory()
         {
-            return new HashSet<EquatableBackwardsOrder>();
+            return new SegmentedHashSet<EquatableBackwardsOrder>();
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_int_With_Comparer_SameAsDefaultComparer : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_SameAsDefaultComparer : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -114,12 +114,11 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new Comparer_SameAsDefaultComparer());
+            return new SegmentedHashSet<int>(new Comparer_SameAsDefaultComparer());
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_int_With_Comparer_HashCodeAlwaysReturnsZero : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_HashCodeAlwaysReturnsZero : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -134,12 +133,11 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new Comparer_HashCodeAlwaysReturnsZero());
+            return new SegmentedHashSet<int>(new Comparer_HashCodeAlwaysReturnsZero());
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_int_With_Comparer_ModOfInt : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_ModOfInt : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -159,12 +157,11 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new Comparer_ModOfInt(15000));
+            return new SegmentedHashSet<int>(new Comparer_ModOfInt(15000));
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_int_With_Comparer_AbsOfInt : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_AbsOfInt : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -179,12 +176,11 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new Comparer_AbsOfInt());
+            return new SegmentedHashSet<int>(new Comparer_AbsOfInt());
         }
     }
 
-    [OuterLoop]
-    public class HashSet_Generic_Tests_int_With_Comparer_BadIntEqualityComparer : HashSet_Generic_Tests<int>
+    public class SegmentedHashSet_Generic_Tests_int_With_Comparer_BadIntEqualityComparer : SegmentedHashSet_Generic_Tests<int>
     {
         protected override IEqualityComparer<int> GetIEqualityComparer()
         {
@@ -199,7 +195,7 @@ namespace System.Collections.Tests
 
         protected override ISet<int> GenericISetFactory()
         {
-            return new HashSet<int>(new BadIntEqualityComparer());
+            return new SegmentedHashSet<int>(new BadIntEqualityComparer());
         }
     }
 }
