@@ -8,18 +8,22 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-
-using Internal.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
     [DebuggerTypeProxy(typeof(ICollectionDebugView<>))]
     [DebuggerDisplay("Count = {Count}")]
-    [TypeForwardedFrom("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
-    internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>, IReadOnlySet<T>
+    internal class SegmentedHashSet<T> : ICollection<T>, ISet<T>, IReadOnlyCollection<T>
+#if NET5_0_OR_GREATER
+        , IReadOnlySet<T>
+#endif
     {
         private const bool SupportsComparerDevirtualization
 #if NETCOREAPP
@@ -330,7 +334,9 @@ namespace Microsoft.CodeAnalysis.Collections
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
                         entry._next = StartOfFreeList - _freeList;
 
+#if NETCOREAPP
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+#endif
                         {
                             entry._value = default!;
                         }
@@ -993,7 +999,7 @@ namespace Microsoft.CodeAnalysis.Collections
             int hashCode;
 
             uint collisionCount = 0;
-            ref var bucket = ref Unsafe.NullRef<int>();
+            ref var bucket = ref RoslynUnsafe.NullRef<int>();
 
             if (SupportsComparerDevirtualization && comparer == null)
             {
