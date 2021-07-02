@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             link.RequestNavigate += HandleRequestNavigate;
             block.Inlines.Add(link);
             block.Inlines.Add(": " + _diagnostic.Message);
-            block.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            block.Arrange(new Rect(block.DesiredSize));
 
             var lineHeight = Math.Floor(format.Typeface.FontFamily.LineSpacing * block.FontSize);
             var image = new CrispImage
