@@ -300,21 +300,19 @@ namespace Microsoft.CodeAnalysis.Formatting
                            existingWhitespaceDelta,
                            trivia));
 
-                    if (previousTrivia.RawKind == 733  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.LineContinuation */
-                        && (i + 1) < list.Count
-                        && list[i + 1].RawKind == 732 /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */                      )
-                    {
-                        previousLineColumn = lineColumn;
-                    }
-
                     if (IsEndOfLine(trivia))
                     {
                         implicitLineBreak = false;
-                    }
-
-                    if (IsEndOfLine(trivia))
-                    { /* WIP - TBD Maybe this can be combined with Same times above */
                         previousLineColumn = new LineColumn();
+                    }
+                    else
+                    {
+                        if (previousTrivia.RawKind == 733  /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.LineContinuation */
+                           && (i + 1) < list.Count
+                           && list[i + 1].RawKind == 732 /* WIP Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.CommentTrivia */                      )
+                        {
+                            previousLineColumn = lineColumn;
+                        }
                     }
 
                     previousWhitespaceTrivia = trivia;
