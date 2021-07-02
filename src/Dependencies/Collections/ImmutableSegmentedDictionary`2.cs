@@ -254,20 +254,7 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public bool TryGetKey(TKey equalKey, out TKey actualKey)
-        {
-            var self = this;
-            foreach (var key in self.Keys)
-            {
-                if (self.KeyComparer.Equals(key, equalKey))
-                {
-                    actualKey = key;
-                    return true;
-                }
-            }
-
-            actualKey = equalKey;
-            return false;
-        }
+            => _dictionary.TryGetKey(equalKey, out actualKey);
 
 #pragma warning disable CS8767 // Nullability of reference types in type of parameter doesn't match implicitly implemented member (possibly because of nullability attributes).
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
