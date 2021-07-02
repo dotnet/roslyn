@@ -859,5 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RecordStructDeclaration = 9068,
 
         ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
     }
 }
