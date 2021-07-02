@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -35,9 +36,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected readonly IDiagnosticService DiagnosticService;
 
         /// <summary>
-        /// Semaphore to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
+        /// Lock to protect <see cref="_documentIdToLastResultId"/> and <see cref="_nextDocumentResultId"/>.
         /// </summary>
-        private readonly SemaphoreSlim _gate = new(initialCount: 1);
+        private readonly object _gate = new();
 
         /// <summary>
         /// Mapping of a document to the last result id we reported for it.
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Ensure we do not clear the cached results while the handler is reading (and possibly then writing)
             // to the cached results.
-            using (_gate.DisposableWait())
+            lock (_gate)
             {
                 // Whenever we hear about changes to a document, drop the data we've stored for it.  We'll recompute it as
                 // necessary on the next request.
@@ -148,31 +149,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
-                TReport report;
-
-                // Ensure the read to _documentIdToLastResultId to get the cached resultId and subsequent write
-                // to _documentIdToLastResultId after calculating new diagnostics happens in a single 'transaction'
-                // to prevent us from overwriting data in _documentIdToLastResultId with stale results.
-                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                if (HaveDiagnosticsChangedAndUpdateCache(documentToPreviousDiagnosticParams, document, out var newResultId))
                 {
-                    if (DiagnosticsAreUnchanged(documentToPreviousDiagnosticParams, document))
-                    {
-                        context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
-
-                        // Nothing changed between the last request and this one.  Report a (null-diagnostics,
-                        // same-result-id) response to the client as that means they should just preserve the current
-                        // diagnostics they have for this file.
-                        var previousParams = documentToPreviousDiagnosticParams[document];
-                        report = CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId);
-                    }
-                    else
-                    {
-                        context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                        report = await ComputeAndReportCurrentDiagnosticsAsync(context, document, cancellationToken).ConfigureAwait(false);
-                    }
+                    context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
                 }
+                else
+                {
+                    context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
 
-                progress.Report(report);
+                    // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                    // same-result-id) response to the client as that means they should just preserve the current
+                    // diagnostics they have for this file.
+                    var previousParams = documentToPreviousDiagnosticParams[document];
+                    progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                }
             }
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
@@ -214,6 +205,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         private async Task<TReport> ComputeAndReportCurrentDiagnosticsAsync(
             RequestContext context,
             Document document,
+            string resultId,
             CancellationToken cancellationToken)
         {
             // Being asked about this document for the first time.  Or being asked again and we have different
@@ -241,7 +233,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     result.Add(ConvertDiagnostic(document, text, diagnostic));
             }
 
-            return RecordDiagnosticReport(document, result.ToArray());
+            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(RequestContext context, DiagnosticParams[] previousResults, BufferedProgress<TReport> progress)
@@ -269,31 +261,45 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         /// <summary>
-        /// Determines if diagnostics have changed since the last report based on the request resultId and
-        /// the resultId stored in <see cref="_documentIdToLastResultId"/>  Called under <see cref="_gate"/>
+        /// Returns true if diagnostics have changed since the last request and if so,
+        /// calculates a new resultId to use for subsequent computation and caches it.
         /// </summary>
-        private bool DiagnosticsAreUnchanged(Dictionary<Document, DiagnosticParams> documentToPreviousDiagnosticParams, Document document)
+        /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
+        /// <param name="document">the document we are currently calculating results for.</param>
+        /// <param name="newResultId">the resultId to report new diagnostics with if changed.</param>
+        private bool HaveDiagnosticsChangedAndUpdateCache(
+            Dictionary<Document, DiagnosticParams> documentToPreviousDiagnosticParams,
+            Document document,
+            [NotNullWhen(true)] out string? newResultId)
         {
-            var workspace = document.Project.Solution.Workspace;
-            return documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
-                   _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
-                   lastReportedResultId == previousParams.PreviousResultId;
-        }
+            // Read and write the cached resultId to _documentIdToLastResultId in a single 'transaction'
+            // to prevent in-between updates to _documentIdToLastResultId triggered by OnDiagnosticsUpdated.
+            lock (_gate)
+            {
+                var workspace = document.Project.Solution.Workspace;
+                if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
+                       _documentIdToLastResultId.TryGetValue((workspace, document.Id), out var lastReportedResultId) &&
+                       lastReportedResultId == previousParams.PreviousResultId)
+                {
+                    // Our cached resultId for the document matches the resultId the client passed to us.
+                    // This means the diagnostics have not changed and we do not need to re-compute.
+                    newResultId = null;
+                    return false;
+                }
 
-        /// <summary>
-        /// Reports diagnostics and caches report, called under <see cref="_gate"/>
-        /// </summary>
-        private TReport RecordDiagnosticReport(Document document, VSDiagnostic[] diagnostics)
-        {
-            // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
-            // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
-            // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
-            // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
-            // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
-            // what changed between each other.
-            var resultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-            _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = resultId;
-            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), diagnostics, resultId);
+                // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
+                // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
+                // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
+                // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
+                // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
+                // what changed between each other.
+                //
+                // Note that we can safely update the map before computation as any cancellation or exception
+                // during computation means that the client will never recieve this resultId and so cannot ask us for it.
+                newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
+                _documentIdToLastResultId[(document.Project.Solution.Workspace, document.Id)] = newResultId;
+                return true;
+            }
         }
 
         private VSDiagnostic ConvertDiagnostic(Document document, SourceText text, DiagnosticData diagnosticData)
