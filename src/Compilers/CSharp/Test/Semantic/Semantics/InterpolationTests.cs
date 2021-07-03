@@ -5474,19 +5474,6 @@ literal:Literal");
 ");
         }
 
-        private const string InterpolatedStringHandlerArgumentAttribute = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class InterpolatedStringHandlerArgumentAttribute : Attribute
-    {
-        public InterpolatedStringHandlerArgumentAttribute(string argument) => Arguments = new string[] { argument };
-        public InterpolatedStringHandlerArgumentAttribute(params string[] arguments) => Arguments = arguments;
-        public string[] Arguments { get; }
-    }
-}
-";
-
         private const string InterpolatedStringHandlerAttributesVB = @"
 Namespace System.Runtime.CompilerServices
     <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct, AllowMultiple:=False, Inherited:=False)>

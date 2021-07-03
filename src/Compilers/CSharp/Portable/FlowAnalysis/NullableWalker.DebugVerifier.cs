@@ -243,6 +243,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // info is exposed to consumers.
                 return null;
             }
+
+            public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+            {
+
+                if (node.InterpolationData is { Construction: var construction })
+                {
+                    Visit(construction);
+                }
+                base.VisitInterpolatedString(node);
+                return null;
+            }
         }
 #endif
     }

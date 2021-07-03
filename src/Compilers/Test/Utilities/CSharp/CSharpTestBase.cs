@@ -2482,13 +2482,15 @@ public class CultureInfoNormalizer
 }
 ";
 
+            var nameWithGenericsTrimmed = name.IndexOf("<") is not -1 and var index ? name[..index] : name;
+
             return (includeOneTimeHelpers ? "using System.Globalization;\n" : "") + @"
 using System.Text;
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
 public " + type + " " + name + @"
 {
     private readonly StringBuilder _builder;
-    public " + name + @"(int literalLength, int formattedCount" + (includeTrailingOutConstructorParameter ? ", out bool success" : "") + @")
+    public " + nameWithGenericsTrimmed + @"(int literalLength, int formattedCount" + (includeTrailingOutConstructorParameter ? ", out bool success" : "") + @")
     {
         " + (includeTrailingOutConstructorParameter ? "success = true;" : "") + @"
         _builder = new();
@@ -2509,6 +2511,19 @@ public " + type + " " + name + @"
 }
 " + (includeOneTimeHelpers ? InterpolatedStringHandlerAttribute + cultureInfoHandler : "");
         }
+
+        internal const string InterpolatedStringHandlerArgumentAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class InterpolatedStringHandlerArgumentAttribute : Attribute
+    {
+        public InterpolatedStringHandlerArgumentAttribute(string argument) => Arguments = new string[] { argument };
+        public InterpolatedStringHandlerArgumentAttribute(params string[] arguments) => Arguments = arguments;
+        public string[] Arguments { get; }
+    }
+}
+";
 
         #endregion
 

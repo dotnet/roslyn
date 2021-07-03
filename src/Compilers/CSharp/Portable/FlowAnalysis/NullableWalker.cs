@@ -17,7 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // PROTOTYPE(interp-string): Implement TryFormat and Create method analysis.
     /// <summary>
     /// Nullability flow analysis.
     /// </summary>
@@ -6952,7 +6951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.InterpolatedStringHandler:
-                    // PROTOTYPE(interp-string): Handle
+                    // https://github.com/dotnet/roslyn/issues/54583 Handle
                     resultState = NullableFlowState.NotNull;
                     break;
 
@@ -9726,6 +9725,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         {
+            // https://github.com/dotnet/roslyn/issues/54583
+            // Better handle the constructor propogation
             var result = base.VisitInterpolatedString(node);
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return result;
@@ -9748,7 +9749,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
-            // PROTOTYPE(interp-string): handle if necessary
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+        {
             SetNotNullResult(node);
             return null;
         }
