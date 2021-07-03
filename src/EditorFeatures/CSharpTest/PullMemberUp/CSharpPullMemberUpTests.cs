@@ -1371,10 +1371,11 @@ namespace ClassLibrary1
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
+using System.Linq;
+
 namespace ClassLibrary1
 {
     using System;
-    using System.Linq;
 
     public class Base
     {
@@ -1680,7 +1681,6 @@ public class Derived : Base
 ";
             await TestInRegularAndScriptAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]

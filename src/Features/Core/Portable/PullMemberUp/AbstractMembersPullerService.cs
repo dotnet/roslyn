@@ -9,20 +9,29 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractMembersPullerService : IMembersPullerService
+    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax> : IMembersPullerService
+        where TUsingOrAliasSyntax : SyntaxNode
     {
+        protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
+
+        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
+
+        // compare names 
+        protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, IEnumerable<TUsingOrAliasSyntax> list);
+
         public CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
@@ -269,18 +278,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    var semanticModel = await solution.GetDocument(solution.GetDocumentId(syntax.SyntaxTree)).
-                        GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    // add import symbol annotations for all the code we may be moving
-                    newDestination = newDestination.WithAdditionalAnnotations(
-                        syntax.DescendantNodesAndSelf().
-                        Where((node) => FilterType(node)).
-                        Select((node) => semanticModel.GetTypeInfo(node, cancellationToken).Type).
-                        Where((type) => type != null).
-                        Distinct().
-                        Select((type) => SymbolAnnotation.Create(type)));
-
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
                         originalMemberEditor.RemoveNode(originalMemberEditor.Generator.GetDeclaration(syntax));
@@ -305,10 +302,38 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => newDestination);
+
+            // add imports by combining source and destination imports, then taking out unneccessary
+            // imports that we don't need from the destination. If source and destination are the same document
+            // or have the same imports, this doesn't do anything
+            var destinationDocument = destinationEditor.GetChangedDocument();
+            var sourceImports = await GetImportsAsync(document, cancellationToken).ConfigureAwait(false);
+            var destinationImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+            var addImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+            var semanticModel = await destinationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            destinationDocument = destinationDocument.WithSyntaxRoot(addImportsService.AddImports(
+                semanticModel.Compilation,
+                destinationEditor.GetChangedRoot(),
+                null,
+                sourceImports,
+                destinationEditor.Generator,
+                options.PlaceSystemNamespaceFirst,
+                document.CanAddImportsInHiddenRegions(),
+                cancellationToken));
+
+            var removeImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
+            destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
+                destinationDocument,
+                node => !IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationImports),
+                cancellationToken).ConfigureAwait(false);
+
+            destinationDocument = destinationDocument.WithSyntaxRoot(
+                EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+
             return solutionEditor.GetChangedSolution();
         }
-
-        protected abstract bool FilterType(SyntaxNode node);
 
         private static ISymbol MakeAbstractVersion(ISymbol member)
         {
