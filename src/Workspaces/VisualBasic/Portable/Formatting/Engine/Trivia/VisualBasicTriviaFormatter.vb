@@ -299,8 +299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return singlelineDocCommentTrivia.ElementAt(0)
         End Function
 
-        Protected Overrides Function IsLineContinuation(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.LineContinuationTrivia
+        Protected Overrides Function LineContinuationFollowedByWhitespaceComment(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.LineContinuationTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia
         End Function
 
         Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean

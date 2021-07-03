@@ -355,12 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return GetLineColumnDelta(lineColumn, docComment);
         }
 
-        /// <summary>
-        /// C# has no Line Continuation character
-        /// </summary>
-        /// <param name="trivia"></param>
-        /// <returns>false</returns>
-        protected override bool IsLineContinuation(SyntaxTrivia trivia)
+        protected override bool LineContinuationFollowedByWhitespaceComment(SyntaxTrivia trivia, SyntaxTrivia nextTrivia)
         {
             return false;
         }
