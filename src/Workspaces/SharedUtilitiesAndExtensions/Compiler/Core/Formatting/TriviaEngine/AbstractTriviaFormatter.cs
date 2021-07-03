@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// It is never reachable in C# since it follows a test for
         /// LineContinuation Character.
         /// </summary>
-        protected abstract bool IsComment(SyntaxTrivia trivia);
+        protected abstract bool IsVisualBasicComment(SyntaxTrivia trivia);
 
         /// <summary>
         /// check whether given string is either null or whitespace
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                     else if (IsLineContinuation(previousTrivia)
                            && (i + 1) < list.Count
-                           && IsComment(list[i + 1]))
+                           && IsVisualBasicComment(list[i + 1]))
                     {
                         // we have a comment following an underscore space the formatter
                         // thinks this next line should be shifted to right by
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (previousLineColumn.Column != 0
                     && previousLineColumn.Column < lineColumn.Column
-                    && IsComment(trivia))
+                    && IsVisualBasicComment(trivia))
                 {
                     lineColumn = previousLineColumn;
                     // When we see a NewLine we don't want any special handling

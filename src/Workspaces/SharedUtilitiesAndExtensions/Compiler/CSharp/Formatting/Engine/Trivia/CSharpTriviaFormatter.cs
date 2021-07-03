@@ -355,19 +355,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return GetLineColumnDelta(lineColumn, docComment);
         }
 
+        /// <summary>
+        /// C# has no Line Continuation character
+        /// </summary>
+        /// <param name="trivia"></param>
+        /// <returns>false</returns>
         protected override bool IsLineContinuation(SyntaxTrivia trivia)
         {
             return false;
         }
 
         /// <summary>
-        /// This is only here to make interface happy
+        /// C# never passes a VB Comment
         /// </summary>
         /// <param name="trivia"></param>
-        /// <returns>True is trivial is a comment</returns>
-        protected override bool IsComment(SyntaxTrivia trivia)
+        /// <returns>false</returns>
+        protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
         {
-            return trivia.IsDocComment();
+            return false;
         }
     }
 }

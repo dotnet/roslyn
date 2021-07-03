@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return trivia.Kind = SyntaxKind.LineContinuationTrivia
         End Function
 
-        Protected Overrides Function IsComment(trivia As SyntaxTrivia) As Boolean
+        Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function
     End Class
