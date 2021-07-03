@@ -1367,7 +1367,7 @@ record B
     public B(int x)
     {
     }
-}", index: 1);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -1407,7 +1407,8 @@ record Sub : Base
     public Sub(int X) : base(X)
     {
     }
-}");
+}
+");
         }
     }
 }
