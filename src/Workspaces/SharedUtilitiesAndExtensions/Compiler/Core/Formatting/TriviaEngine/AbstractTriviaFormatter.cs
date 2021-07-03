@@ -128,6 +128,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         /// <summary>
         /// check whether given trivia is a Comment in VB or not
+        /// It is never reachable in C# since it follows a test for
+        /// LineContinuation Character.
         /// </summary>
         protected abstract bool IsComment(SyntaxTrivia trivia);
 
@@ -289,11 +291,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var implicitLineBreak = false;
 
             var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
-            var i = -1;
+
+            // Holds last position before _ ' Comment so we can reset after processing comment
             var previousLineColumn = new LineColumn();
-            foreach (var trivia in list)
+            SyntaxTrivia trivia;
+            for (var i = 0; i < list.Count; i++)
             {
-                i += 1;
+                trivia = list[i];
                 if (trivia.RawKind == 0)
                 {
                     continue;
@@ -301,7 +305,6 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 if (IsWhitespaceOrEndOfLine(trivia))
                 {
-
                     existingWhitespaceDelta = existingWhitespaceDelta.With(
                        GetLineColumnOfWhitespace(
                            lineColumn,
@@ -313,16 +316,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                     if (IsEndOfLine(trivia))
                     {
                         implicitLineBreak = false;
+                        // If we are on a new line we don't want to continue
+                        // reseting indenting this handles the case of a NewLine
+                        // followed by whitespace and a comment
                         previousLineColumn = new LineColumn();
                     }
-                    else
-                    {
-                        if (IsLineContinuation(previousTrivia)
+                    else if (IsLineContinuation(previousTrivia)
                            && (i + 1) < list.Count
                            && IsComment(list[i + 1]))
-                        {
-                            previousLineColumn = lineColumn;
-                        }
+                    {
+                        // we have a comment following an underscore space the formatter
+                        // thinks this next line should be shifted to right by
+                        // indentation value. Since we know through the test that
+                        // this is the special case of _ ' Comment we don't want the extra indent
+                        // so we set the LineColumn value back to where it was before the comment
+                        previousLineColumn = lineColumn;
                     }
 
                     previousWhitespaceTrivia = trivia;
@@ -342,6 +350,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                     && IsComment(trivia))
                 {
                     lineColumn = previousLineColumn;
+                    // When we see a NewLine we don't want any special handling
+                    // for _ ' Comment
                     previousLineColumn = new LineColumn();
                 }
 
