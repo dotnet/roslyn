@@ -25,6 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax> : IMembersPullerService
         where TUsingOrAliasSyntax : SyntaxNode
     {
+        protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
+
+        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
+
+        // compare names 
+        protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, IEnumerable<TUsingOrAliasSyntax> list);
+
         public CodeAction TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
@@ -60,8 +67,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination);
             }
         }
-
-        protected abstract Task<ImmutableArray<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
 
         private static IMethodSymbol FilterOutNonPublicAccessor(IMethodSymbol getterOrSetter)
         {
@@ -317,9 +322,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 cancellationToken));
 
             var removeImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
-            destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(destinationDocument, (node) => !destinationImports.Contains(node), cancellationToken).ConfigureAwait(false);
-
-            destinationDocument = await Formatting.Formatter.OrganizeImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+            destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
+                destinationDocument,
+                node => !IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationImports),
+                cancellationToken).ConfigureAwait(false);
 
             destinationDocument = destinationDocument.WithSyntaxRoot(
                 EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
@@ -328,8 +334,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return solutionEditor.GetChangedSolution();
         }
-
-        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
 
         private static ISymbol MakeAbstractVersion(ISymbol member)
         {

@@ -1140,6 +1140,7 @@ public class Base
         </Document>
         <Document FilePath = ""File2.cs"">
 using System.Linq;
+using System.Threading.Tasks;
 
 public class Derived : Base
 {
@@ -1192,14 +1193,73 @@ using System.Threading.Tasks;
 public class Base
 {
     public Uri Endpoint{ get; set; }
-
-    public int Test[||]Method()
+    public int TestMethod()
     {
         return Enumerable.Range(0, 5).Sum();
     }
 }
         </Document>
         <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).
+            Select((n) => new Uri(""http://"" + n)).
+            Count((uri) => uri != null);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+
+public class Base
+{
+    public int TestMethod()
+    {
+        return Enumerable.Range(0, 5).
+            Select((n) => new Uri(""http://"" + n)).
+            Count((uri) => uri != null);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
 using System.Linq;
 
 public class Derived : Base
@@ -1260,6 +1320,7 @@ public class Base
         </Document>
         <Document FilePath = ""File2.cs"">
 using System.Linq;
+using System.Threading.Tasks;
 
 public class Derived : Base
 {
@@ -1310,15 +1371,15 @@ namespace ClassLibrary1
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
+using System.Linq;
+
 namespace ClassLibrary1
 {
     using System;
-    using System.Linq;
 
     public class Base
     {
         public Uri Endpoint{ get; set; }
-
         public int Test[||]Method()
         {
             return Enumerable.Range(0, 5).Sum();
@@ -1591,7 +1652,7 @@ using System;
 
 public class Derived : Base
 {
-    public Uri en[||]dpoint = new Uri(""http://localhost"");
+    public var en[||]dpoint = new Uri(""http://localhost"");
 }
         </Document>
     </Project>
@@ -1605,11 +1666,58 @@ using System;
 
 public class Base
 {
-    public Uri en[||]dpoint = new Uri(""http://localhost"");
+    public var endpoint = new Uri(""http://localhost"");
 }
         </Document>
         <Document FilePath = ""File2.cs"">
 using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullFieldToClassNoConstructorWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public var ran[||]ge = Enumerable.Range(0, 5);
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+
+public class Base
+{
+    public var range = Enumerable.Range(0, 5);
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
 
 public class Derived : Base
 {

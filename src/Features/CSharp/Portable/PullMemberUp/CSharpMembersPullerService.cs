@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-#nullable disable
-
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -13,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
@@ -29,10 +27,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         protected override SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node)
         {
-            var (members, imports) = node switch
+            var members = node switch
             {
-                CompilationUnitSyntax compilationUnit => (compilationUnit.Members, compilationUnit.Usings),
-                NamespaceDeclarationSyntax namespaceDeclaration => (namespaceDeclaration.Members, namespaceDeclaration.Usings),
+                CompilationUnitSyntax compilationUnit => compilationUnit.Members,
+                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
                 _ => throw ExceptionUtilities.UnexpectedValue(node)
             };
             if (members.Count == 0)
@@ -42,17 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             var firstMember = members.First();
             var firstMemberTrivia = firstMember.GetLeadingTrivia();
-
-            // check for trailing trivia
-            foreach (var import in imports)
-            {
-                if (import == imports.Last())
-                {
-                    continue;
-                }
-                var importTrailingTrivia = import.GetTrailingTrivia();
-                node = node.ReplaceNode(import, import.WithTrailingTrivia(importTrailingTrivia.NormalizeWhitespace()));
-            }
 
             // If the first member already contains a leading new line then, this will already break up the usings from these members.
             if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
@@ -64,19 +51,25 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             return node.ReplaceNode(firstMember, newFirstMember);
         }
 
-        protected override async Task<ImmutableArray<UsingDirectiveSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken)
+        protected override async Task<IEnumerable<UsingDirectiveSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.DescendantNodesAndSelf().
-                Where((node) => node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax).
-                SelectMany(node => node switch
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.DescendantNodesAndSelf()
+                .Where((node) => node is CompilationUnitSyntax || node is NamespaceDeclarationSyntax)
+                .SelectMany(node => node switch
                 {
                     CompilationUnitSyntax c => c.Usings,
                     NamespaceDeclarationSyntax n => n.Usings,
                     _ => default,
-                }).
-                Distinct().
-                ToImmutableArray();
+                })
+                .Distinct()
+                .Select(import => import.NormalizeWhitespace().WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+        }
+
+        protected override bool IsValidUnnecessaryImport(UsingDirectiveSyntax import, IEnumerable<UsingDirectiveSyntax> list)
+        {
+            var name = import.Name.ToString();
+            return list.Any(node => node.Name.ToString() == name);
         }
     }
 }
