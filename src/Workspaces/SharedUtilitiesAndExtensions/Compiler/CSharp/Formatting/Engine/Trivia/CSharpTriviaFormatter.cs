@@ -369,10 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// C# never passes a VB Comment
         /// </summary>
         /// <param name="trivia"></param>
-        /// <returns>false</returns>
         protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
         {
-            return false;
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }
