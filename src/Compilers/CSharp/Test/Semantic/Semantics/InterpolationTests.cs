@@ -2079,8 +2079,6 @@ string Throw() => throw new Exception();
         [Fact]
         public void AwaitInHoles_UsesFormat()
         {
-            // PROTOTYPE(interp-string): We could make this case use the builder as well by evaluating the holes ahead of time. For DefaultInterpolatedStringHandler,
-            // we know that the framework is never going to ship a version that short circuits, so it would be a valid optimization for us to make.
             var source = @"
 using System;
 using System.Threading.Tasks;
@@ -2924,7 +2922,6 @@ value:");
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null, default)").WithArguments("interpolated string handlers").WithLocation(1, 29),
                 // (1,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // System.Console.WriteLine($"{(null, default)}{new()}");
-                // PROTOTYPE(interp-string): This is technically a break. Should we special case this?
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 46)
             );
         }
@@ -2945,7 +2942,6 @@ System.Console.WriteLine($""{(!b ? ref i : ref i)}"");";
         [Fact]
         public void NestedInterpolatedStrings()
         {
-            // PROTOTYPE(interp-string): Should we notice the nested string and just treat it as being concated?
             var source = @"
 int i = 1;
 System.Console.WriteLine($""{$""{i}""}"");";
@@ -3735,7 +3731,7 @@ literal:Literal");
             Assert.Equal(SpecialType.System_String, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            // PROTOTYPE(interp-string): Assert cast is explicit after IOperation is implemented
+            // https://github.com/dotnet/roslyn/issues/54505 Assert cast is explicit after IOperation is implemented
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1

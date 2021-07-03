@@ -2110,7 +2110,6 @@ outerDefault:
             }
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
-            // PROTOTYPE(interp-string): Document in the spec
             return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
@@ -2431,7 +2430,7 @@ outerDefault:
             // C1 is a better conversion than C2 if E is a non-constant interpolated string expression, C1
             // is an interpolated string handler conversion, and C2 is not an interpolated string
             // handler conversion
-            // PROTOTYPE(interp-string): Handle binary operators composed only of added interpolated strings
+            // https://github.com/dotnet/roslyn/issues/54584 Handle binary operators composed only of added interpolated strings
             if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
@@ -3640,7 +3639,7 @@ outerDefault:
                     {
                         // For interpolated strings handlers, we allow an interpolated string expression to be passed as if `ref` was specified
                         // in the source when the handler type is a value type.
-                        // PROTOTYPE(interp-string): allow binary additions of interpolated strings to match as well.
+                        // https://github.com/dotnet/roslyn/issues/54584 allow binary additions of interpolated strings to match as well.
                         hasInterpolatedStringRefMismatch = true;
                         argumentRefKind = parameterRefKind;
                     }

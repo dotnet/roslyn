@@ -179,8 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 if (unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
                 {
-                    // PROTOTYPE(interp-string): For interpolated strings used as strings, we could evaluate components eagerly
-                    // and always use the builder.
                     return false;
                 }
 
@@ -443,10 +441,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE(interp-string): Update the spec with the rules around InterpolatedStringHandlerAttribute. For now, we assume that any
-            // type that makes it to this method is actually an interpolated string builder type, and we should fully report any binding errors
-            // we encounter while doing this work.
-
             if (source.Parts.IsEmpty)
             {
                 return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty);
