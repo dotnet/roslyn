@@ -11,6 +11,44 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
+    internal static class Extensions
+    {
+        public static bool IsKind(this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2)
+        {
+            return node is not null &&
+                (node.RawKind == (int)kind1 ||
+                node.RawKind == (int)kind2);
+        }
+
+        public static bool IsKind(this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        {
+            return node is not null &&
+                (node.RawKind == (int)kind1 ||
+                node.RawKind == (int)kind2 ||
+                node.RawKind == (int)kind3);
+        }
+
+        public static bool IsKind(this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
+        {
+            return node is not null &&
+                (node.RawKind == (int)kind1 ||
+                node.RawKind == (int)kind2 ||
+                node.RawKind == (int)kind3 ||
+                node.RawKind == (int)kind4);
+        }
+        public static bool IsKind(this SyntaxNode? node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6, SyntaxKind kind7)
+        {
+            return node is not null &&
+                (node.RawKind == (int)kind1 ||
+                node.RawKind == (int)kind2 ||
+                node.RawKind == (int)kind3 ||
+                node.RawKind == (int)kind4 ||
+                node.RawKind == (int)kind5 ||
+                node.RawKind == (int)kind6 ||
+                node.RawKind == (int)kind7);
+        }
+    }
+
     internal class SyntaxNormalizer : CSharpSyntaxRewriter
     {
         private readonly TextSpan _consideredSpan;
@@ -240,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterSemicolon(currentToken, nextToken);
 
                 case SyntaxKind.CommaToken:
-                    return currentToken.Parent.IsKind(SyntaxKind.EnumDeclaration) || currentToken.Parent.IsKind(SyntaxKind.SwitchExpression) ? 1 : 0;
+                    return currentToken.Parent.IsKind(SyntaxKind.EnumDeclaration, SyntaxKind.SwitchExpression) ? 1 : 0;
                 case SyntaxKind.ElseKeyword:
                     return !nextToken.IsKind(SyntaxKind.IfKeyword) ? 1 : 0;
                 case SyntaxKind.ColonToken:
@@ -294,8 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksBeforeOpenBrace(SyntaxToken openBraceToken)
         {
             Debug.Assert(openBraceToken.IsKind(SyntaxKind.OpenBraceToken));
-            if (openBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                openBraceToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) ||
+            if (openBraceToken.Parent.IsKind(SyntaxKind.Interpolation, SyntaxKind.PropertyPatternClause) ||
                 openBraceToken.Parent is InitializerExpressionSyntax ||
                 IsAccessorListWithoutAccessorsWithBlockBody(openBraceToken.Parent))
             {
@@ -310,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static int LineBreaksBeforeCloseBrace(SyntaxToken closeBraceToken)
         {
             Debug.Assert(closeBraceToken.IsKind(SyntaxKind.CloseBraceToken));
-            if (closeBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
-                closeBraceToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) ||
+            if (closeBraceToken.Parent.IsKind(SyntaxKind.Interpolation, SyntaxKind.PropertyPatternClause) ||
                 closeBraceToken.Parent is InitializerExpressionSyntax)
             {
                 return 0;
@@ -324,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterOpenBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+            if (currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause, SyntaxKind.Interpolation) ||
                 currentToken.Parent is InitializerExpressionSyntax ||
                 IsAccessorListWithoutAccessorsWithBlockBody(currentToken.Parent))
             {
@@ -339,9 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken currentToken, SyntaxToken nextToken)
         {
-            if (currentToken.Parent.IsKind(SyntaxKind.SwitchExpression) ||
-                currentToken.Parent.IsKind(SyntaxKind.PropertyPatternClause) ||
-                currentToken.Parent.IsKind(SyntaxKind.Interpolation) ||
+            if (currentToken.Parent.IsKind(SyntaxKind.SwitchExpression, SyntaxKind.PropertyPatternClause, SyntaxKind.Interpolation) ||
                 currentToken.Parent is InitializerExpressionSyntax ||
                 currentToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
                 IsAccessorListFollowedByInitializer(currentToken.Parent))
@@ -599,15 +632,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
-                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause, SyntaxKind.XmlPrefix);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
             {
-                if (next.Parent.IsKind(SyntaxKind.BaseList) ||
-                    next.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
-                    next.Parent is ConstructorInitializerSyntax)
+                if (next.Parent.IsKind(SyntaxKind.BaseList, SyntaxKind.TypeParameterConstraintClause, SyntaxKind.BaseConstructorInitializer, SyntaxKind.ThisConstructorInitializer))
                 {
                     return true;
                 }
@@ -1189,13 +1219,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return parentDepth + 1;
                     }
 
-                    if (node.IsKind(SyntaxKind.TypeParameterConstraintClause) ||
-                        node.IsKind(SyntaxKind.SwitchSection) ||
-                        node.IsKind(SyntaxKind.SwitchExpressionArm) ||
-                        node.IsKind(SyntaxKind.UsingDirective) ||
-                        node.IsKind(SyntaxKind.ExternAliasDirective) ||
-                        node.IsKind(SyntaxKind.QueryExpression) ||
-                        node.IsKind(SyntaxKind.QueryContinuation) ||
+                    if (node.IsKind(SyntaxKind.TypeParameterConstraintClause,
+                            SyntaxKind.SwitchSection,
+                            SyntaxKind.SwitchExpressionArm,
+                            SyntaxKind.UsingDirective,
+                            SyntaxKind.ExternAliasDirective,
+                            SyntaxKind.QueryExpression,
+                            SyntaxKind.QueryContinuation) ||
                         node is MemberDeclarationSyntax or AccessorDeclarationSyntax)
                     {
                         return parentDepth + 1;
