@@ -258,6 +258,7 @@
     <PropertyGroup>
       <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
       <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(PreReleaseVersionLabel)' == 'pr-validation'">pr-validation-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
     </PropertyGroup>
 
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
