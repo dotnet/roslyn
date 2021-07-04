@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxToken VisitToken(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.None || (token.IsMissing && token.FullWidth == 0))
+            if (token.IsKind(SyntaxKind.None) || (token.IsMissing && token.FullWidth == 0))
             {
                 return token;
             }
@@ -130,8 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             // get next token, skipping zero width tokens except for end-of-directive tokens
             var nextToken = token.GetNextToken(
-                t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken,
-                t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
+                t => SyntaxToken.NonZeroWidth(t) || t.IsKind(SyntaxKind.EndOfDirectiveToken),
+                t => t.IsKind(SyntaxKind.SkippedTokensTrivia));
 
             if (_consideredSpan.Contains(nextToken.FullSpan))
             {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 1;
             }
 
-            if (nextToken.Kind() == SyntaxKind.None)
+            if (nextToken.IsKind(SyntaxKind.None))
             {
                 return 0;
             }
@@ -226,8 +226,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // Note: the `where` case handles constraints on method declarations
                     //  and also `where` clauses (consistently with other LINQ cases below)
                     return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
-                        || nextToken.Kind() == SyntaxKind.OpenBraceToken
-                        || nextToken.Kind() == SyntaxKind.WhereKeyword) ? 1 : 0;
+                        || nextToken.IsKind(SyntaxKind.OpenBraceToken)
+                        || nextToken.IsKind(SyntaxKind.WhereKeyword)) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
                     if (currentToken.Parent.IsKind(SyntaxKind.AttributeList) && !currentToken.Parent.Parent.IsKind(SyntaxKind.Parameter))
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.CommaToken:
                     return currentToken.Parent.IsKind(SyntaxKind.EnumDeclaration) || currentToken.Parent.IsKind(SyntaxKind.SwitchExpression) ? 1 : 0;
                 case SyntaxKind.ElseKeyword:
-                    return nextToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
+                    return !nextToken.IsKind(SyntaxKind.IfKeyword) ? 1 : 0;
                 case SyntaxKind.ColonToken:
                     if (currentToken.Parent.IsKind(SyntaxKind.LabeledStatement) || currentToken.Parent is SwitchLabelSyntax)
                     {
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            if (next.Kind() == SyntaxKind.EndOfDirectiveToken)
+            if (next.IsKind(SyntaxKind.EndOfDirectiveToken))
             {
                 // In a directive, there's often no token between the directive keyword and 
                 // the end-of-directive, so we may need a separator.
@@ -579,8 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.SemicolonToken
-                && !(next.Kind() == SyntaxKind.SemicolonToken || next.Kind() == SyntaxKind.CloseParenToken))
+            if (token.IsKind(SyntaxKind.SemicolonToken)
+                && !(next.IsKind(SyntaxKind.SemicolonToken) || next.IsKind(SyntaxKind.CloseParenToken)))
             {
                 return true;
             }
@@ -1079,17 +1079,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsLineBreak(SyntaxToken token)
         {
-            return token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+            return token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken);
         }
 
         private static bool EndsInLineBreak(SyntaxTrivia trivia)
         {
-            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 return true;
             }
 
-            if (trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia || trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            if (trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia) || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
             {
                 var text = trivia.ToFullString();
                 return text.Length > 0 && SyntaxFacts.IsNewLine(text.Last());
@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxNode? VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
-            if (node.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+            if (node.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken))
             {
                 //Just for non verbatim strings we want to make sure that the formatting of interpolations does not emit line breaks.
                 //See: https://github.com/dotnet/roslyn/issues/50742
