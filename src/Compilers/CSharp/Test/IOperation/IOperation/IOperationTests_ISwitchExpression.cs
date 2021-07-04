@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests_SwitchExpression : SemanticModelTestBase
+    public class IOperationTests_ISwitchExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Patterns)]
         [Fact]
