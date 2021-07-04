@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
                     // Note: the `where` case handles constraints on method declarations
                     //  and also `where` clauses (consistently with other LINQ cases below)
-                    return (((currentToken.Parent is StatementSyntax) && nextToken.Parent != currentToken.Parent)
-                        || nextToken.IsKind(SyntaxKind.OpenBraceToken)
-                        || nextToken.IsKind(SyntaxKind.WhereKeyword)) ? 1 : 0;
+                    return (nextToken.IsKind(SyntaxKind.OpenBraceToken) ||
+                        nextToken.IsKind(SyntaxKind.WhereKeyword) ||
+                        (currentToken.Parent is StatementSyntax && nextToken.Parent != currentToken.Parent)) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
                     if (currentToken.Parent.IsKind(SyntaxKind.AttributeList) && !currentToken.Parent.Parent.IsKind(SyntaxKind.Parameter))
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     }
 
                     if (node.Parent.IsKind(SyntaxKind.Block) ||
-                        (node is StatementSyntax && !node.IsKind(SyntaxKind.Block)))
+                        (!node.IsKind(SyntaxKind.Block) && node is StatementSyntax))
                     {
                         // all nested statements are indented one level
                         return parentDepth + 1;
