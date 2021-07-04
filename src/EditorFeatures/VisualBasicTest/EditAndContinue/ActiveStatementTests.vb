@@ -1945,7 +1945,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -1990,7 +1990,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
         End Sub
 
         <Fact>

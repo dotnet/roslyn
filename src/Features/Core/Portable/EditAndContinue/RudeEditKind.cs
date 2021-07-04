@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ExperimentalFeaturesEnabled = 45,
 
         AwaitStatementUpdate = 46,
-        ChangingVisibility = 47,
+        ChangingAccessibility = 47,
 
         CapturingVariable = 48,
         NotCapturingVariable = 49,
