@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 
@@ -15,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string MarkerFormatDefinition_HighlightedDefinition = "MarkerFormatDefinition/HighlightedDefinition";
         public const string MarkerFormatDefinition_HighlightedWrittenReference = "MarkerFormatDefinition/HighlightedWrittenReference";
 
-        public static Type GetTagTypeByName(string typeName)
+        public static Type? GetTagTypeByName(string typeName)
         {
             switch (typeName)
             {

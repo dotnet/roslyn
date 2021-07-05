@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class OperatorSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.UserDefinedOperator;

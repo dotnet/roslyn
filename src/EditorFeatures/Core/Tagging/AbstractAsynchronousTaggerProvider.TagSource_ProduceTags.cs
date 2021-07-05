@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 {
                     await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                }, _dataSource.EventChangeDelay, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
+                }, _dataSource.EventChangeDelay, _asyncListener, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
             }
 
             /// <summary>

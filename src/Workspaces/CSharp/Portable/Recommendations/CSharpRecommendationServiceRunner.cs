@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var node = _context.TargetToken.GetRequiredParent();
             return node switch
             {
-                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } memberAccess
+                MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfExpression(memberAccess.Expression),
-                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.PointerMemberAccessExpression } memberAccess
+                MemberAccessExpressionSyntax(SyntaxKind.PointerMemberAccessExpression) memberAccess
                     => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
                 // This code should be executing only if the cursor is between two dots in a dotdot token.
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             if (ShouldBeTreatedAsTypeInsteadOfExpression(name, out var nameBinding, out var container))
-                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container);
+                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false);
 
             // We're in a name-only context, since if we were an expression we'd be a
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
@@ -353,14 +353,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
 
-            var result = GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container);
+            var result = GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false);
 
             // Check for the Color Color case.
             if (originalExpression.CanAccessInstanceAndStaticMembersOffOf(_context.SemanticModel, _cancellationToken))
             {
                 var speculativeSymbolInfo = _context.SemanticModel.GetSpeculativeSymbolInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
 
-                var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container);
+                var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container, unwrapNullable: false);
 
                 result = new RecommendedSymbols(
                     result.NamedSymbols.Concat(typeMembers.NamedSymbols),
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 container = pointerType.PointedAtType;
             }
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container);
+            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false);
         }
 
         private RecommendedSymbols GetSymbolsOffOfConditionalReceiver(ExpressionSyntax originalExpression)
@@ -392,22 +392,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var expression = originalExpression.WalkDownParentheses();
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
-            var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type.RemoveNullableIfPresent();
+            var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
 
             // If the thing on the left is a type, namespace, or alias, we shouldn't show anything in
             // IntelliSense.
             if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
                 return default;
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container);
+            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: true);
         }
 
         private RecommendedSymbols GetSymbolsOffOfBoundExpression(
             ExpressionSyntax originalExpression,
             ExpressionSyntax expression,
             SymbolInfo leftHandBinding,
-            ITypeSymbol? containerType)
+            ITypeSymbol? containerType,
+            bool unwrapNullable)
         {
+            var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
 
@@ -447,12 +449,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 if (symbol is IAliasSymbol alias)
                     symbol = alias.Target;
 
-                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace)
+                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
                 {
-                    // For named typed and namespaces, we flip things around.  We only want statics and not instance members.
+                    // For named typed, namespaces, and type parameters (potentially constrainted to interface with statics), we flip things around.
+                    // We only want statics and not instance members.
                     excludeInstance = true;
                     excludeStatic = false;
-                    containerSymbol = (INamespaceOrTypeSymbol)symbol;
+                    abstractsOnly = symbol.Kind == SymbolKind.TypeParameter;
+                    containerSymbol = symbol;
                 }
 
                 // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
@@ -479,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return default;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
+            Debug.Assert(!abstractsOnly || (abstractsOnly && !excludeStatic && excludeInstance));
 
             // nameof(X.|
             // Show static and instance members.
@@ -489,12 +494,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
-            var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility);
+            var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable);
 
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
-                : symbols;
+                : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.

@@ -2128,12 +2128,12 @@ namespace System
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                    // (7,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         (int x1, x2) = (1, 2);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int x1, x2) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(7, 9),
-                    // (8,9): error CS8652: The feature 'Mixed declarations and expressions in deconstruction' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         (x3, int x4) = (1, 2);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "(x3, int x4) = (1, 2)", isSuppressed: false).WithArguments("Mixed declarations and expressions in deconstruction").WithLocation(8, 9));
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (int x1, x2) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x1, x2) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (8,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (x3, int x4) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x3, int x4) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 9));
         }
 
         [Fact, WorkItem(12803, "https://github.com/dotnet/roslyn/issues/12803")]

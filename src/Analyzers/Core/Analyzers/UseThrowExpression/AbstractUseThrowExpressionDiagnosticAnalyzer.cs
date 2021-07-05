@@ -52,12 +52,17 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool IsSupported(ParseOptions options);
+        protected abstract bool IsSupported(Compilation compilation);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(startContext =>
             {
+                if (!IsSupported(startContext.Compilation))
+                {
+                    return;
+                }
+
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
                 startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.Throw);
             });
@@ -65,12 +70,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            if (!IsSupported(syntaxTree.Options))
-            {
-                return;
-            }
-
             var cancellationToken = context.CancellationToken;
 
             var throwOperation = (IThrowOperation)context.Operation;
@@ -105,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(ifOperation.Parent is IBlockOperation containingBlock))
+            if (ifOperation.Parent is not IBlockOperation containingBlock)
             {
                 return;
             }
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             localOrParameter = null;
 
             var condition = ifStatement.Condition;
-            if (!(condition is IBinaryOperation binaryOperator))
+            if (condition is not IBinaryOperation binaryOperator)
             {
                 return false;
             }

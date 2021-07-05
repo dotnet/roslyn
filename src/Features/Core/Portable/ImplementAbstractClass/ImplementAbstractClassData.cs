@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!(semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is INamedTypeSymbol classType))
+            if (semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is not INamedTypeSymbol classType)
                 return null;
 
             if (classType.IsAbstract)

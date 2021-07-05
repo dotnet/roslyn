@@ -13,10 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName } &&
+            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.ImplicitConversionName } &&
                GetUnderlyingNamedType(symbol.ReturnType) is not null;
 
         private static INamedTypeSymbol? GetUnderlyingNamedType(ITypeSymbol symbol)

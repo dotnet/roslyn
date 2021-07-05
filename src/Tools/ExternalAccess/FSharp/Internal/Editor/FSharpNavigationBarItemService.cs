@@ -15,15 +15,15 @@ using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 {
     [Shared]
-    [ExportLanguageService(typeof(INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess), LanguageNames.FSharp)]
-    internal class FSharpNavigationBarItemService : INavigationBarItemServiceRenameOnceTypeScriptMovesToExternalAccess
+    [ExportLanguageService(typeof(INavigationBarItemService), LanguageNames.FSharp)]
+    internal class FSharpNavigationBarItemService : INavigationBarItemService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IFSharpNavigationBarItemService _service;
@@ -38,18 +38,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<IList<NavigationBarItem>?> GetItemsAsync(Document document, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            return items?.Select(x => ConvertToNavigationBarItem(x)).ToList();
+            return items == null
+                ? ImmutableArray<NavigationBarItem>.Empty
+                : ConvertItems(textSnapshot, items);
         }
 
-        public async Task NavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, CancellationToken cancellationToken)
+        private static ImmutableArray<NavigationBarItem> ConvertItems(ITextSnapshot textSnapshot, IList<FSharpNavigationBarItem> items)
+            => (items ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>()).Where(x => x.Spans.Any()).SelectAsArray(x => ConvertToNavigationBarItem(x, textSnapshot));
+
+        public async Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken)
         {
             // The logic here was ported from FSharp's implementation. The main reason was to avoid shimming INotificationService.
-            if (!item.Spans.IsEmpty)
+            if (item.NavigationTrackingSpan != null)
             {
-                var span = item.Spans.First();
+                var span = item.NavigationTrackingSpan.GetSpan(textSnapshot);
                 var workspace = document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetRequiredService<IFSharpDocumentNavigationService>();
 
@@ -65,6 +71,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
                     notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
                 }
             }
+
+            return true;
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)
@@ -72,15 +80,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return false;
         }
 
-        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item)
+        private static NavigationBarItem ConvertToNavigationBarItem(FSharpNavigationBarItem item, ITextSnapshot textSnapshot)
         {
-            var childItems = item.ChildItems ?? SpecializedCollections.EmptyList<FSharpNavigationBarItem>();
-
             return new InternalNavigationBarItem(
                 item.Text,
                 FSharpGlyphHelpers.ConvertTo(item.Glyph),
-                item.Spans.ToImmutableArrayOrEmpty(),
-                childItems.SelectAsArray(x => ConvertToNavigationBarItem(x)),
+                NavigationBarItem.GetTrackingSpans(textSnapshot, item.Spans.ToImmutableArrayOrEmpty()),
+                ConvertItems(textSnapshot, item.ChildItems),
                 item.Indent,
                 item.Bolded,
                 item.Grayed);
@@ -88,8 +94,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         private class InternalNavigationBarItem : NavigationBarItem
         {
-            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-                : base(text, glyph, spans, childItems, indent, bolded, grayed)
+            public InternalNavigationBarItem(string text, Glyph glyph, ImmutableArray<ITrackingSpan> trackingSpans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+                : base(text, glyph, trackingSpans, trackingSpans.First(), childItems, indent, bolded, grayed)
             {
             }
         }
