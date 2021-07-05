@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                     ColumnDefinitions.CodeStyle.Category => result.Category,
                     ColumnDefinitions.CodeStyle.Severity => result,
                     ColumnDefinitions.CodeStyle.Value => result,
+                    // PROTOTYPE
+                    ColumnDefinitions.CodeStyle.HelpLink => "https://github.com",
                     _ => null,
                 };
 

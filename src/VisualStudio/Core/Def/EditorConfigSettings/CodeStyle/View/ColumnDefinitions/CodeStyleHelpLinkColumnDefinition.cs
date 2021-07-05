@@ -4,8 +4,9 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -17,17 +18,20 @@ using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions
 {
     [Export(typeof(ITableColumnDefinition))]
-    [Name(Value)]
-    internal class CodeStyleValueColumnDefinition : TableColumnDefinitionBase
+    [Name(HelpLink)]
+    internal class CodeStyleHelpLinkColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeStyleValueColumnDefinition()
+        public CodeStyleHelpLinkColumnDefinition()
         {
         }
 
-        public override string Name => Value;
-        public override string DisplayName => ServicesVSResources.Value;
+        public override ImageMoniker DisplayImage => KnownMonikers.F1Help;
+
+        public override string Name => HelpLink;
+        // PROTOTYPE: Move to resources to make it localizable.
+        public override string DisplayName => "Help link";
         public override double MinWidth => 120;
         public override bool DefaultVisible => false;
         public override bool IsFilterable => false;
@@ -35,15 +39,33 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
-            if (!entry.TryGetValue(Value, out CodeStyleSetting severity))
+            if (!entry.TryGetValue(HelpLink, out string helpLink))
             {
                 content = null;
                 return false;
             }
 
-            var control = new CodeStyleValueControl(severity);
-            content = control;
+            var image = new CrispImage
+            {
+                Moniker = KnownMonikers.StatusInformation,
+                Width = 16.0,
+                Height = 16.0,
+                ToolTip = helpLink,
+                Cursor = Cursors.Hand,
+            };
+
+            image.MouseLeftButtonUp += OnButtonClick;
+            content = image;
             return true;
+        }
+
+        private void OnButtonClick(object sender, RoutedEventArgs e)
+        {
+            var url = ((CrispImage)sender).ToolTip.ToString();
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                Process.Start(uri.ToString());
+            }
         }
     }
 }
