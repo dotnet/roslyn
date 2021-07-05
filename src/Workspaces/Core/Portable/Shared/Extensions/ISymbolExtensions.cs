@@ -356,9 +356,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var result = new List<XNode>();
             foreach (var child in nodes)
             {
-                result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+                if (!(child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName)))
+                {
+                    result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+                }
             }
-
+            foreach (var child in nodes)
+            {
+                if (child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName))
+                {
+                    result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
+                }
+            }
             return result.ToArray();
         }
 
