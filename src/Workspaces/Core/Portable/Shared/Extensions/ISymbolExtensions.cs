@@ -354,6 +354,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static XNode[] RewriteMany(ISymbol symbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XNode[] nodes, CancellationToken cancellationToken)
         {
             var result = new List<XNode>();
+
             foreach (var child in nodes)
             {
                 if (!(child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName)))
@@ -361,6 +362,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
                 }
             }
+
             foreach (var child in nodes)
             {
                 if (child.NodeType == XmlNodeType.Element && ElementNameIs((XElement)child, DocumentationCommentXmlNames.InheritdocElementName))
@@ -368,6 +370,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
                 }
             }
+
             return result.ToArray();
         }
 
