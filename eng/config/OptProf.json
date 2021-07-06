@@ -500,6 +500,40 @@
           ]
         }
       ]
+    },
+    {
+      "assembly": "Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "Common7/IDE/Remote Debugger/x86",
+          "instrumentationExecutable": "Common7/IDE/Remote Debugger/x86/msvsmon.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "TeamEng",
+          "testCases": [
+            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          ]
+        }
+      ]
+    },
+    {
+      "assembly": "Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
+      "instrumentationArguments": [
+        {
+          "relativeInstallationFolder": "Common7/IDE/Remote Debugger/x86",
+          "instrumentationExecutable": "Common7/IDE/Remote Debugger/x86/msvsmon.exe"
+        }
+      ],
+      "tests": [
+        {
+          "container": "TeamEng",
+          "testCases": [
+            "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble"
+          ]
+        }
+      ]
     }
   ]
 }
