@@ -7054,6 +7054,92 @@ public object $$B;
                 Value("\r\nValue:\r\n  goodbye world"));
         }
 
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineOrderBefore()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+public class A { }
+
+/// <summary>
+/// <inheritdoc/>
+/// <para>goodbye world</para>
+/// </summary>
+public class $$B : A { }
+";
+
+            await TestAsync(markup,
+                MainDescription("class B"),
+                Documentation("hello world\r\n\r\ngoodbye world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocInlineOrderAfter()
+        {
+            var markup =
+@"
+/// <summary>hello world</summary>
+public class A { }
+
+/// <summary>
+/// <para>goodbye world</para>
+/// <inheritdoc/>
+/// </summary>
+public class $$B : A { }
+";
+
+            await TestAsync(markup,
+                MainDescription("class B"),
+                Documentation("goodbye world\r\n\r\nhello world"));
+        }
+
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocMultipleInline()
+        {
+            var markup =
+@"
+/// <summary>a</summary>
+public class A { }
+
+/// <summary>b</summary>
+public class B { }
+
+/// <summary>c</summary>
+public class C { }
+
+/// <summary>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""A""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""B""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""B""/>
+/// <para>d</para>
+/// <inheritdoc />
+/// <para>d</para>
+/// <inheritdoc cref=""A""/>
+/// <para>d</para>
+/// </summary>
+public class $$D : C { }
+";
+
+            var documentation = string.Join("\r\n\r\n", "dcdadcdbdcdbdcdad".ToArray());
+
+            await TestAsync(markup,
+                MainDescription("class D"),
+                Documentation(documentation));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
