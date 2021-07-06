@@ -510,6 +510,7 @@ namespace Microsoft.CodeAnalysis
         System_Text_StringBuilder__AppendString,
         System_Text_StringBuilder__AppendObject,
         System_Text_StringBuilder__ctor,
+        System_Text_StringBuilder__AppendChar,
 
         Count
 
