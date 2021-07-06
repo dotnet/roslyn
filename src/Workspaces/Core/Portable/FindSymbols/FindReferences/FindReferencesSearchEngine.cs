@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -213,22 +214,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // now if this in an inheritance scenario, see if this symbol is in the proper up/down inheritance
             // relation with a starting symbol.
 
-            if (symbol.Kind is not SymbolKind.Method and not SymbolKind.Property and not SymbolKind.Event)
-                return false;
-
             // Walk up this symbol and see if we hit the exact group.  If so, this is always a match.  However, also see
             // if we hit the up group.  If we do, it's only a match if UnidirectionalHierarchyCascade is false.
 
-            await foreach (var group in DetermineUpSymbolGroupsAsync(symbol, cancellationToken).ConfigureAwait(false))
+            await foreach (var upSymbol in DetermineUpSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
             {
-                foreach (var groupSymbol in group.Symbols)
-                {
-                    if (await InGroupAsync(exactGroup, groupSymbol, cancellationToken).ConfigureAwait(false))
-                        return true;
+                if (await InGroupAsync(exactGroup, upSymbol, cancellationToken).ConfigureAwait(false))
+                    return true;
 
-                    if (!_options.UnidirectionalHierarchyCascade && await InGroupAsync(upGroup, groupSymbol, cancellationToken).ConfigureAwait(false))
-                        return true;
-                }
+                if (!_options.UnidirectionalHierarchyCascade && await InGroupAsync(upGroup, upSymbol, cancellationToken).ConfigureAwait(false))
+                    return true;
             }
 
             return false;
@@ -262,6 +257,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return false;
         }
+
+        internal async IAsyncEnumerable<ISymbol> DetermineUpSymbolsAsync(
+            ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            if (_options.Cascade &&
+                symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event &&
+                symbol.ContainingType.TypeKind is not TypeKind.Interface)
+            {
+                // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
+                // or explicitly implements and cascade to those.
+                foreach (var match in await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, _solution, projects: null, includeDerivedTypes: false, cancellationToken).ConfigureAwait(false))
+                    yield return match;
+
+                if (symbol.GetOverriddenMember() is { } overriddenMember)
+                    yield return overriddenMember;
+            }
+        }
+
+        //internal static async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> InheritanceCascadeAsync(
+        //    ISymbol symbol,
+        //    Solution solution,
+        //    ImmutableHashSet<Project>? projects,
+        //    FindReferencesCascadeDirection cascadeDirection,
+        //    CancellationToken cancellationToken)
+        //{
+        //    if (symbol.IsImplementableMember())
+        //    {
+        //        // We have an interface method.  Walk down the inheritance hierarchy and find all implementations of
+        //        // that method and cascade to them.
+        //        var result = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
+        //            ? await SymbolFinder.FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
+        //            : ImmutableArray<ISymbol>.Empty;
+        //        return result.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
+        //    }
+        //    else
+        //    {
+        //        // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
+        //        // or explicitly implements and cascade to those.
+        //        var interfaceMembersImplemented = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
+        //            ? await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
+        //            : ImmutableArray<ISymbol>.Empty;
+
+        //        // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
+        //        // We only need to go up or down one level.  Then, when we're finding references on
+        //        // those members, we'll end up traversing the entire hierarchy.
+        //        var overrides = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
+        //            ? await SymbolFinder.FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
+        //            : ImmutableArray<ISymbol>.Empty;
+
+        //        var overriddenMember = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
+        //            ? symbol.GetOverriddenMember()
+        //            : null;
+
+        //        var interfaceMembersImplementedWithDirection = interfaceMembersImplemented.SelectAsArray(s => (s, FindReferencesCascadeDirection.Up));
+        //        var overridesWithDirection = overrides.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
+        //        var overriddenMemberWithDirection = (overriddenMember!, FindReferencesCascadeDirection.Up);
+
+        //        return overriddenMember == null
+        //            ? interfaceMembersImplementedWithDirection.Concat(overridesWithDirection)
+        //            : interfaceMembersImplementedWithDirection.Concat(overridesWithDirection).Concat(overriddenMemberWithDirection);
+        //    }
+        //}
 
         //internal static async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> InheritanceCascadeAsync(
         //    ISymbol symbol,

@@ -18,17 +18,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
         }
 
-        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
-            TSymbol symbol,
-            Project project,
-            FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesSearchEngine.InheritanceCascadeAsync(
-                symbol, project.Solution, ImmutableHashSet.Create(project), cascadeDirection, cancellationToken);
-        }
-
         protected static ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
             ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
             SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)

@@ -204,62 +204,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         yield return group;
 
-                        foreach (var finder in _finders)
+                        foreach (var symbol in symbols)
                         {
-                            foreach (var symbol in symbols)
-                            {
-                                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, _options, cancellationToken).ConfigureAwait(false);
-                                PushAll(stack, cascaded);
-                            }
+                            await foreach (var cascaded in DetermineCascadedSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
+                                stack.Push(cascaded);
                         }
                     }
                 }
+            }
+        }
+
+        private async IAsyncEnumerable<ISymbol> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            foreach (var finder in _finders)
+            {
+                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, _solution, _options, cancellationToken).ConfigureAwait(false);
+                foreach (var match in cascaded)
+                    yield return match;
             }
         }
 
         private async IAsyncEnumerable<SymbolGroup> DetermineUpSymbolGroupsAsync(
-            ISymbol searchSymbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+            ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (_options.Cascade)
+            await foreach (var upSymbol in DetermineUpSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
             {
-                var set = new HashSet<SymbolGroup>();
-                var stack = new Stack<ISymbol>();
+                var symbols = await SymbolFinder.FindLinkedSymbolsAsync(upSymbol, _solution, cancellationToken).ConfigureAwait(false);
+                var group = new SymbolGroup(symbols);
+                yield return group;
 
-                foreach (var finder in _finders)
+                await foreach (var cascade in DetermineCascadedSymbolsAsync(upSymbol, cancellationToken).ConfigureAwait(false))
                 {
-                    var cascaded = await finder.DetermineUpCascadedSymbolsAsync(searchSymbol, _options, cancellationToken).ConfigureAwait(false);
-                    PushAll(stack, cascaded);
-                }
-
-                while (stack.Count > 0)
-                {
-                    var currentSymbol = stack.Pop();
-                    var symbols = await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false);
-                    var group = new SymbolGroup(symbols);
-
-                    // As long as we keep adding new groups to the result, then keep searching those new symbols to see
-                    // what they cascade to.
-                    if (set.Add(group))
-                    {
-                        yield return group;
-
-                        foreach (var finder in _finders)
-                        {
-                            foreach (var symbol in symbols)
-                            {
-                                var cascaded = await finder.DetermineUpCascadedSymbolsAsync(symbol, _options, cancellationToken).ConfigureAwait(false);
-                                PushAll(stack, cascaded);
-                            }
-                        }
-                    }
+                    symbols = await SymbolFinder.FindLinkedSymbolsAsync(cascade, _solution, cancellationToken).ConfigureAwait(false);
+                    group = new SymbolGroup(symbols);
+                    yield return group;
                 }
             }
-        }
-
-        private static void PushAll(Stack<ISymbol> stack, ImmutableArray<ISymbol> symbols)
-        {
-            foreach (var symbol in symbols)
-                stack.Push(symbol);
         }
 
         //private async Task<HashSet<SymbolGroup>> DetermineUpGroupAsync(ISymbol searchSymbol, CancellationToken cancellationToken)

@@ -19,11 +19,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(INamedTypeSymbol symbol)
             => symbol.TypeKind != TypeKind.Error;
 
-        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
-            Project project,
+            Solution solution,
             FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // cascade to destructor
             Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            return Task.FromResult(result.SelectAsArray(s => (s, cascadeDirection)));
+            return Task.FromResult(result.ToImmutable());
         }
 
         private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol

@@ -27,10 +27,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
         public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken);
-
-        public abstract Task<ImmutableArray<ISymbol>> DetermineUpCascadedSymbolsAsync(
-            ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ISymbol symbol, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
@@ -936,26 +933,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public sealed override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.Cascade &&
                 symbol is TSymbol typedSymbol &&
                 CanFind(typedSymbol))
             {
-                return DetermineCascadedSymbolsAsync(typedSymbol, options, cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-        }
-
-        public sealed override Task<ImmutableArray<ISymbol>> DetermineUpCascadedSymbolsAsync(
-            ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken)
-        {
-            if (options.Cascade &&
-                symbol is TSymbol typedSymbol &&
-                CanFind(typedSymbol))
-            {
-                return DetermineUpCascadedSymbolsAsync(typedSymbol, options, cancellationToken);
+                return DetermineCascadedSymbolsAsync(typedSymbol, solution, options, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<ISymbol>();
@@ -963,14 +947,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             TSymbol symbol,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-        }
-
-        protected virtual Task<ImmutableArray<ISymbol>> DetermineUpCascadedSymbolsAsync(
-            TSymbol symbol,
+            Solution solution,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {

@@ -99,35 +99,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
-            Project project,
+            Solution solution,
             FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
             {
-                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(project, parameter, symbols, cancellationToken).ConfigureAwait(false);
+            await CascadeBetweenAnonymousFunctionParametersAsync(parameter, solution, symbols, cancellationToken).ConfigureAwait(false);
             CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
 
-            using var _2 = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(symbols.Count, out var result);
-            foreach (var symbol in symbols)
-                result.Add((symbol, cascadeDirection));
-
-            return result.ToImmutable();
+            return symbols.ToImmutable();
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
-            Project project,
             IParameterSymbol parameter,
+            Solution solution,
             ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
@@ -136,7 +131,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var parameterNode = parameter.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
                 if (parameterNode != null)
                 {
-                    var document = project.Solution.GetDocument(parameterNode.SyntaxTree);
+                    var document = solution.GetDocument(parameterNode.SyntaxTree);
                     if (document != null)
                     {
                         var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();

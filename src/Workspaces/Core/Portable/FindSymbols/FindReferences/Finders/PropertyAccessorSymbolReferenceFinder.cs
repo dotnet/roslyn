@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -16,22 +17,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind.IsPropertyAccessor();
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
-            Project project,
+            Solution solution,
             FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
-            var result = await base.DetermineCascadedSymbolsAsync(
-                symbol, project, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
-
             // If we've been asked to search for specific accessors, then do not cascade.
             // We don't want to produce results for the associated property.
-            if (!options.AssociatePropertyReferencesWithSpecificAccessor && symbol.AssociatedSymbol != null)
-                result = result.Add((symbol.AssociatedSymbol, cascadeDirection));
-
-            return result;
+            return options.AssociatePropertyReferencesWithSpecificAccessor || symbol.AssociatedSymbol == null
+                ? SpecializedTasks.EmptyImmutableArray<ISymbol>()
+                : Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol));
         }
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

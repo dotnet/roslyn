@@ -17,11 +17,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IFieldSymbol symbol,
+            Solution solution,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             return symbol.AssociatedSymbol != null
-                ? Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol)
+                ? Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol))
                 : SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
