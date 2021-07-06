@@ -1310,15 +1310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol), (oldGetterSymbol, newGetterSymbol)));
                     }
 
-                    // Inserting/deleting a delegate declaration affects the delegate type and its Invoke method, 
-                    // whose parameter symbols are associated with the parameter syntax of the delegate declaration.
-                    //if (node.IsKind(SyntaxKind.DelegateDeclaration))
-                    //{
-                    //    var oldInvokeMethod = ((INamedTypeSymbol?)oldSymbol)?.DelegateInvokeMethod;
-                    //    var newInvokeMethod = ((INamedTypeSymbol?)newSymbol)?.DelegateInvokeMethod;
-                    //    return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol), (oldInvokeMethod, newInvokeMethod)));
-                    //}
-
                     break;
             }
 
