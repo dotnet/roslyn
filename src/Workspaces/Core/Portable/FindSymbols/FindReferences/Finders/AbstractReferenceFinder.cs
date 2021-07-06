@@ -102,8 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         /// <summary>
-        /// Finds all the documents in the provided project that contain the requested string
-        /// values
+        /// Finds all the documents in the provided project that contain a global attribute in them.
         /// </summary>
         protected static Task<ImmutableArray<Document>> FindDocumentsWithGlobalAttributesAsync(
             Project project,
@@ -154,6 +153,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected static bool IdentifiersMatch(ISyntaxFactsService syntaxFacts, string name, SyntaxToken token)
             => syntaxFacts.IsIdentifier(token) && syntaxFacts.TextMatch(token.ValueText, name);
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken: cancellationToken);
         }
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol symbol,
             string identifier,
@@ -179,6 +180,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, identifier, document, semanticModel, symbolsMatch, cancellationToken);
         }
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
         protected static async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingIdentifierAsync(
             ISymbol _,
             string identifier,
