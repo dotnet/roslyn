@@ -312,6 +312,14 @@
           "container": "TeamEng",
           "filteredTestCases": [
             {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
+              "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
+            },
+            {
               "filename": "/Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
               "testCases":[ "TeamEng.OptProfTest.vs_debugger_start_no_build_cs_scribble" ]
             },
