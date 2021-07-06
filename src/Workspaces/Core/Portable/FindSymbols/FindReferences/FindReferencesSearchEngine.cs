@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(ISymbol symbol, IReferenceFinder finder)>();
+            var set = new HashSet<ISymbol>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
