@@ -158,7 +158,6 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
-            ' PROTOTYPE(caller-expr): Confirm whether this should be case-sensitive or case-insensitive.
             CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
         End Sub
 
