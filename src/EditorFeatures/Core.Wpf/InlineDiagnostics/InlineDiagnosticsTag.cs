@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public readonly InlineDiagnosticsLocations Location;
         private readonly DiagnosticData _diagnostic;
         private readonly INavigateToLinkService _navigateToLinkService;
+        private readonly IEditorFormatMap _editorFormatMap;
 
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap, InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
             : base(editorFormatMap)
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             _diagnostic = diagnostic;
             Location = location;
             _navigateToLinkService = navigateToLinkService;
+            _editorFormatMap = editorFormatMap;
         }
 
         /// <summary>
@@ -86,6 +89,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Margin = new Thickness(10, top: 0, 0, bottom: 1),
                 Padding = new Thickness(1)
             };
+
+            var editorBackground = (Color)_editorFormatMap.GetProperties("Indicator Margin")["BackgroundColor"];
+            ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             view.ViewportWidthChanged += ViewportWidthChangedHandler;
