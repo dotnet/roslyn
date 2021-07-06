@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             foreach (var symbol in symbols)
                             {
-                                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false);
+                                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, _options, cancellationToken).ConfigureAwait(false);
                                 PushAll(stack, cascaded);
                             }
                         }
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var finder in _finders)
                 {
-                    var cascaded = await finder.DetermineUpCascadedSymbolsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
+                    var cascaded = await finder.DetermineUpCascadedSymbolsAsync(searchSymbol, _options, cancellationToken).ConfigureAwait(false);
                     PushAll(stack, cascaded);
                 }
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             foreach (var symbol in symbols)
                             {
-                                var cascaded = await finder.DetermineUpCascadedSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false);
+                                var cascaded = await finder.DetermineUpCascadedSymbolsAsync(symbol, _options, cancellationToken).ConfigureAwait(false);
                                 PushAll(stack, cascaded);
                             }
                         }

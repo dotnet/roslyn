@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// 
         /// Implementations of this method must be thread-safe.
         /// </summary>
-        Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, CancellationToken cancellationToken);
-        Task<ImmutableArray<ISymbol>> DetermineUpCascadedSymbolsAsync(ISymbol symbol, CancellationToken cancellationToken);
+        Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<ISymbol>> DetermineUpCascadedSymbolsAsync(ISymbol symbol, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         ///// <summary>
         ///// Called by the find references search engine to determine which projects should be
