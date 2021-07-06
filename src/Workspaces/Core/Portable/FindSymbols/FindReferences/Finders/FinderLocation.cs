@@ -26,15 +26,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         /// </summary>
         public readonly ReferenceLocation Location;
 
-        public FinderLocation(SyntaxNode node, ReferenceLocation location)
+        public readonly ISymbol Symbol;
+
+        public FinderLocation(SyntaxNode node, ISymbol symbol, ReferenceLocation location)
         {
             Node = node;
+            Symbol = symbol;
             Location = location;
         }
 
-        public void Deconstruct(out SyntaxNode node, out ReferenceLocation location)
+        public void Deconstruct(out SyntaxNode node, out ISymbol symbol, out ReferenceLocation location)
         {
             node = Node;
+            symbol = Symbol;
             location = Location;
         }
     }

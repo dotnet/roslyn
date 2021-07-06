@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
-                (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
+                (t, m) => ValueTaskFactory.FromResult((matched: true, (ISymbol?)symbol, reason: CandidateReason.None)),
                 docCommentId: null,
                 findInGlobalSuppressions: false,
                 cancellationToken);

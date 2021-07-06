@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol, symbol.Name, document, semanticModel, symbolsMatchAsync, cancellationToken);
         }
 
-        private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
+        private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
             IParameterSymbol parameter,
             Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Solution solution,
