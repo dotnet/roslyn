@@ -52,14 +52,50 @@ End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
-            ' PROTOTYPE(caller-expr): Confirm whether this should be case-sensitive or case-insensitive.
-            '            compilation.AssertTheseDiagnostics(
-            '<expected><![CDATA[
-            'BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
-            '    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = "<default-arg>")
-            '                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ']]></expected>)
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program", "
+.class private auto ansi sealed Program
+	extends [System.Runtime]System.Object
+{
+	.custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field private static literal string P = ""P""
+	// Methods
+	.method public static 
+		void Main () cil managed 
+	{
+		.custom instance void [System.Runtime]System.STAThreadAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2050
+		// Code size 13 (0xd)
+		.maxstack 8
+		.entrypoint
+		IL_0000: ldc.i4.s 123
+		IL_0002: ldstr ""123""
+		IL_0007: call void Program::Log(int32, string)
+		IL_000c: ret
+	} // end of method Program::Main
+	.method public static 
+		void Log (
+			int32 p,
+			[opt] string arg
+		) cil managed 
+	{
+		.param [2] = ""<default-arg>""
+			.custom instance void [System.Runtime]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+				01 00 01 70 00 00
+			)
+		// Method begins at RVA 0x205e
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: call void [System.Console]System.Console::WriteLine(string)
+		IL_0006: ret
+	} // end of method Program::Log
+} // end of class Program
+")
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
