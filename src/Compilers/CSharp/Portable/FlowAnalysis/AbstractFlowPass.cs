@@ -1149,11 +1149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? nullableData)
+        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? data)
         {
             // If there can be any branching, then we need to treat the expressions
             // as optionally evaluated. Otherwise, we treat them as always evaluated
-            switch (nullableData)
+            switch (data)
             {
                 case null:
                     visitParts();
@@ -1162,11 +1162,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(construction);
                     visitParts();
                     break;
-                case { Construction: var construction }:
+                case { UsesBoolReturns: var usesBoolReturns, Construction: var construction }:
                     VisitRvalue(construction);
                     var beforePartsState = State.Clone();
-                    visitParts();
-                    Join(ref State, ref beforePartsState);
+
+                    foreach (var expr in node.Parts)
+                    {
+                        VisitRvalue(expr);
+                        if (usesBoolReturns)
+                        {
+                            Join(ref beforePartsState, ref State);
+                        }
+                    }
+
+                    if (usesBoolReturns)
+                    {
+                        // Already been joined after the last part, just assign
+                        State = beforePartsState;
+                    }
+                    else
+                    {
+                        Join(ref State, ref beforePartsState);
+                    }
+
                     break;
             }
 
@@ -1189,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
             // If the node is unconverted, we'll just treat it as if the contents are always evaluated
-            return VisitInterpolatedStringBase(node, nullableData: null);
+            return VisitInterpolatedStringBase(node, data: null);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)

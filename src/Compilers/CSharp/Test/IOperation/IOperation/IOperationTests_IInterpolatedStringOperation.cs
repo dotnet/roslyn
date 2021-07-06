@@ -1752,5 +1752,88 @@ IVariableDeclaratorOperation (Symbol: CustomHandler c) (OperationKind.VariableDe
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
+
+        [Fact]
+        public void DynamicConstruction_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+dynamic d = 1;
+M(/*<bind>*/$""literal{d,1:format}""/*</bind>*/);
+
+void M(CustomHandler c) {}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount)
+    {
+    }
+
+    public void AppendLiteral(dynamic d)
+    {
+        Console.WriteLine(""AppendLiteral"");
+    }
+
+    public void AppendFormatted(dynamic d, int alignment, string format)
+    {
+        Console.WriteLine(""AppendFormatted"");
+    }
+}
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""literal{d,1:format}""')
+  Parts(2):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: 'literal')
+        Text:
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'literal')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""literal"", IsImplicit) (Syntax: 'literal')
+      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{d,1:format}')
+        Expression:
+          ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
+        Alignment:
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        FormatString:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""format"") (Syntax: ':format')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, InterpolatedStringHandlerAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact]
+        public void DynamicConstruction_02()
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+dynamic d = 1;
+M(d, /*<bind>*/$""{1}literal""/*</bind>*/);
+
+void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+}
+";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
+
+            var expectedDiagnostics = new[] {
+                // (4,16): error CS9015: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+                // M(d, /*<bind>*/$""/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""""").WithArguments("CustomHandler").WithLocation(4, 16)
+            };
+
+            string expectedOperationTree = @"
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
     }
 }

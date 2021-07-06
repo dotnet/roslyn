@@ -27,7 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool HasTrailingHandlerValidityParameter => ArgumentPlaceholders.Length > 0 && ArgumentPlaceholders[^1].ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter;
 
-        public InterpolatedStringHandlerData(TypeSymbol builderType, BoundExpression construction, bool usesBoolReturns, uint scopeOfContainingExpression, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo)
+        public readonly BoundInterpolatedStringHandlerPlaceholder ReceiverPlaceholder;
+
+        public InterpolatedStringHandlerData(
+            TypeSymbol builderType,
+            BoundExpression construction,
+            bool usesBoolReturns,
+            uint scopeOfContainingExpression,
+            ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders,
+            ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo,
+            BoundInterpolatedStringHandlerPlaceholder receiverPlaceholder)
         {
             Debug.Assert(construction is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression or BoundBadExpression);
             Debug.Assert(!placeholders.IsDefault);
@@ -40,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ScopeOfContainingExpression = scopeOfContainingExpression;
             ArgumentPlaceholders = placeholders;
             PositionInfo = positionInfo;
+            ReceiverPlaceholder = receiverPlaceholder;
         }
 
         /// <summary>

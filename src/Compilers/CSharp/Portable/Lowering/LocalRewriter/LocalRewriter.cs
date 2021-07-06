@@ -393,6 +393,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
             => PlaceholderReplacement(node);
 
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
+            => PlaceholderReplacement(node);
+
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
         /// Each occurrence of the placeholder node is replaced with the node returned.
@@ -898,6 +901,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // either representing a user-typed expression that went through this path
                     // itself when it was originally visited, or the trailing out parameter that
                     // is passed by out.
+                    return true;
+
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // A handler placeholder is the receiver of the interpolated string AppendLiteral
+                    // or AppendFormatted calls, and should never be defensively copied.
                     return true;
 
                 case BoundKind.EventAccess:

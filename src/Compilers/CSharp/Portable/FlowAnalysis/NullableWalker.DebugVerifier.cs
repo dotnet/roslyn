@@ -246,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
             {
-
                 if (node.InterpolationData is { Construction: var construction })
                 {
                     Visit(construction);

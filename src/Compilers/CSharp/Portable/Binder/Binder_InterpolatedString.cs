@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -212,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
-            var (appendCalls, usesBoolReturn, positionInfo) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics);
+            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(unconvertedInterpolatedString.Syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
+            var (appendCalls, usesBoolReturn, positionInfo) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, implicitBuilderReceiver, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
             // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
@@ -366,8 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentsBuilder.Free();
             refKindsBuilder.Free();
 
-            // PROTOTYPE(interp-string): Support dynamic
-            Debug.Assert(constructorCall.HasErrors || constructorCall is BoundObjectCreationExpression);
+            Debug.Assert(constructorCall.HasErrors || constructorCall is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression);
+
+            if (constructorCall is BoundDynamicObjectCreationExpression)
+            {
+                // An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, unconvertedInterpolatedString.Syntax.Location, interpolatedStringHandlerType.Name);
+            }
 
             return new BoundInterpolatedString(
                 unconvertedInterpolatedString.Syntax,
@@ -377,7 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usesBoolReturn,
                     LocalScopeDepth,
                     additionalConstructorArguments.NullToEmpty(),
-                    positionInfo),
+                    positionInfo,
+                    implicitBuilderReceiver),
                 appendCalls,
                 unconvertedInterpolatedString.ConstantValue,
                 unconvertedInterpolatedString.Type,
@@ -439,7 +446,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
 
-        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
+        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(
+            BoundUnconvertedInterpolatedString source,
+            BoundInterpolatedStringHandlerPlaceholder implicitBuilderReceiver,
+            BindingDiagnosticBag diagnostics)
         {
             if (source.Parts.IsEmpty)
             {
@@ -509,9 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builderAppendCalls.Add(call);
                 positionInfo.Add((isLiteral, hasAlignment, hasFormat));
 
-                // PROTOTYPE(interp-string): Handle dynamic
-                Debug.Assert(call is BoundCall or { HasErrors: true });
+                Debug.Assert(call is BoundCall or BoundDynamicInvocation or { HasErrors: true });
 
+                // We just assume that dynamic is going to do the right thing, and runtime will fail if it does not. If there are only dynamic calls, we assume that
+                // void is returned.
                 if (call is BoundCall { Method: { ReturnType: var returnType } method })
                 {
                     bool methodReturnsBool = returnType.SpecialType == SpecialType.System_Boolean;
