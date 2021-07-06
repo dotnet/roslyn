@@ -25,9 +25,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax> : IMembersPullerService
         where TUsingOrAliasSyntax : SyntaxNode
     {
-        protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
+        protected abstract SyntaxNode EnsureLeadingTriviaBeforeFirstMember(SyntaxNode root, SyntaxTriviaList trivia);
 
-        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
+        protected abstract SyntaxTriviaList GetFirstMemberTrivia(SyntaxNode root);
+
+        protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
 
         // compare names 
         protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, IEnumerable<TUsingOrAliasSyntax> list);
@@ -307,13 +309,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // imports that we don't need from the destination. If source and destination are the same document
             // or have the same imports, this doesn't do anything
             var destinationDocument = destinationEditor.GetChangedDocument();
+            var destinationRoot = await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var sourceImports = await GetImportsAsync(document, cancellationToken).ConfigureAwait(false);
             var destinationImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+            var destinationTrivia = GetFirstMemberTrivia(destinationRoot);
             var addImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
             var semanticModel = await destinationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             destinationDocument = destinationDocument.WithSyntaxRoot(addImportsService.AddImports(
                 semanticModel.Compilation,
-                destinationEditor.GetChangedRoot(),
+                destinationRoot,
                 null,
                 sourceImports,
                 destinationEditor.Generator,
@@ -327,17 +331,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node => !IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationImports),
                 cancellationToken).ConfigureAwait(false);
 
-            var finalImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
-            // in the odd case that we removed all imports (meaning we initially had no imports but possible whitespace
-            // at the start of the file), it will have removed the initial whitespace along with the imports
-            // infront of the first member, so add that back in
-            if (finalImports.IsEmpty())
-            {
-                destinationDocument = destinationDocument.WithSyntaxRoot(EnsureLeadingBlankLineBeforeFirstMember(
-                    await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
-            }
-
-            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+            destinationRoot = EnsureLeadingTriviaBeforeFirstMember(
+                await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false), destinationTrivia);
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, destinationRoot);
 
             return solutionEditor.GetChangedSolution();
         }

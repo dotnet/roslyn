@@ -27,23 +27,37 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node)
+        protected override SyntaxTriviaList GetFirstMemberTrivia(SyntaxNode root)
         {
-            var members = node switch
+            var members = root switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Members,
                 NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
-                _ => throw ExceptionUtilities.UnexpectedValue(node)
+                _ => throw ExceptionUtilities.UnexpectedValue(root)
             };
             if (members.Count == 0)
             {
-                return node;
+                return SyntaxTriviaList.Empty;
+            }
+            return members.First().GetLeadingTrivia();
+        }
+
+        protected override SyntaxNode EnsureLeadingTriviaBeforeFirstMember(SyntaxNode root, SyntaxTriviaList trivia)
+        {
+            var members = root switch
+            {
+                CompilationUnitSyntax compilationUnit => compilationUnit.Members,
+                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
+                _ => throw ExceptionUtilities.UnexpectedValue(root)
+            };
+            if (members.Count == 0)
+            {
+                return root;
             }
 
             var firstMember = members.First();
-            return node.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));
         }
-
 
         protected override async Task<IEnumerable<UsingDirectiveSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken)
         {

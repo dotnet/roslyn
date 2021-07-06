@@ -1214,6 +1214,165 @@ public class Derived : Base
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return 5;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+
+public class Base
+{
+    public int TestMethod()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainPreImportCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+using System.Linq;
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+using System;
+using System.Linq;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainPostImportCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+
+// blah blah
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+
+// blah blah
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
         {
             var testText = @"
