@@ -386,6 +386,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
         {
+            var group = await ReportPotentialDefinitionAsync(symbol, cancellationToken).ConfigureAwait(false);
+            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<SymbolGroup> ReportPotentialDefinitionAsync(ISymbol symbol, CancellationToken cancellationToken)
+        {
             // See if this symbol is already associated with a symbol group.
             if (!_symbolToGroup.TryGetValue(symbol, out var group))
             {
@@ -410,7 +416,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
             }
 
-            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+            return group;
         }
     }
 }
