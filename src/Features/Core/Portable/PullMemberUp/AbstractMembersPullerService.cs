@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
 
+        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
+
         // compare names 
         protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, IEnumerable<TUsingOrAliasSyntax> list);
 
@@ -325,8 +327,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node => !IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationImports),
                 cancellationToken).ConfigureAwait(false);
 
-            //destinationDocument = destinationDocument.WithSyntaxRoot(
-            //    EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            var finalImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
+            // in the odd case that we removed all imports (meaning we initially had no imports but possible whitespace
+            // at the start of the file), it will have removed the initial whitespace along with the imports
+            // infront of the first member, so add that back in
+            if (finalImports.IsEmpty())
+            {
+                destinationDocument = destinationDocument.WithSyntaxRoot(EnsureLeadingBlankLineBeforeFirstMember(
+                    await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            }
 
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
 

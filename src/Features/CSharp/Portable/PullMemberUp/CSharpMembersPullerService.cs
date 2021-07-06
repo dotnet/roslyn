@@ -27,6 +27,24 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
         }
 
+        protected override SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node)
+        {
+            var members = node switch
+            {
+                CompilationUnitSyntax compilationUnit => compilationUnit.Members,
+                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
+                _ => throw ExceptionUtilities.UnexpectedValue(node)
+            };
+            if (members.Count == 0)
+            {
+                return node;
+            }
+
+            var firstMember = members.First();
+            return node.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+        }
+
+
         protected override async Task<IEnumerable<UsingDirectiveSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
