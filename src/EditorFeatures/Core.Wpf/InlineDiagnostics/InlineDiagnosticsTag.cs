@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Padding = new Thickness(1)
             };
 
-            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"]; ;
+            var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
