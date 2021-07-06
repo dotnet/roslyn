@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// cref="IAssemblySymbol"/> for both source and metadata symbols, and an optional <see cref="Project"/> if this
         /// was a symbol from source.
         /// </summary>
-        private static (IAssemblySymbol assembly, Project? sourceProject) GetSymbolOrigination(
+        public static (IAssemblySymbol assembly, Project? sourceProject) GetSymbolOrigination(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var assembly = symbol.OriginalDefinition.ContainingAssembly;

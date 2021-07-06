@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (searchSymbol == null || symbolToMatch == null)
                 return false;
 
+            if (searchSymbol.Equals(symbolToMatch))
+                return true;
+
             if (await OriginalSymbolsMatchCoreAsync(solution, searchSymbol, symbolToMatch, cancellationToken).ConfigureAwait(false))
                 return true;
 
@@ -72,12 +75,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             if (searchSymbol == null || symbolToMatch == null)
-            {
                 return false;
-            }
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
             symbolToMatch = symbolToMatch.GetOriginalUnreducedDefinition();
+
+            if (searchSymbol.Equals(symbolToMatch))
+                return true;
 
             // We compare the given searchSymbol and symbolToMatch for equivalence using SymbolEquivalenceComparer
             // as follows:
