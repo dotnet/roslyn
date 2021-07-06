@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private async Task ProcessDocumentQueueAsync(
             Document document,
-            HashSet<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder)> documentQueue,
+            HashSet<(ISymbol symbol, IReferenceFinder finder)> documentQueue,
             Func<ISymbol, ValueTask<bool>> isMatchAsync,
             CancellationToken cancellationToken)
         {
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
-                foreach (var (group, symbol, finder) in documentQueue)
-                    await ProcessDocumentAsync(document, model, group, symbol, finder, isMatchAsync, cancellationToken).ConfigureAwait(false);
+                foreach (var (symbol, finder) in documentQueue)
+                    await ProcessDocumentAsync(document, model, symbol, finder, isMatchAsync, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private async Task ProcessDocumentAsync(
             Document document,
             SemanticModel semanticModel,
-            SymbolGroup group,
             ISymbol symbol,
             IReferenceFinder finder,
             Func<ISymbol, ValueTask<bool>> isMatchAsync,
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         symbol, isMatchAsync, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
                     {
-                        await HandleLocationAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                        await HandleLocationAsync(symbol, location, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 finally
