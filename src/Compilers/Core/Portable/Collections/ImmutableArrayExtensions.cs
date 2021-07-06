@@ -654,6 +654,17 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
+            return builder.ToImmutableAndFree();
+        }
+
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
         {
             return first.Add(second);

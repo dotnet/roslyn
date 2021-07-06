@@ -38,20 +38,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var typeName = symbol.ContainingType.Name;
-            var documentsWithName = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, typeName).ConfigureAwait(false);
+
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, typeName).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, symbol.ContainingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
+
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
-                ? await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, simpleName).ConfigureAwait(false)
-                : SpecializedCollections.EmptyEnumerable<Document>();
+                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
 
             var documentsWithImplicitObjectCreations = symbol.MethodKind == MethodKind.Constructor
                 ? await FindDocumentsWithImplicitObjectCreationExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return documentsWithName.Concat(documentsWithType, documentsWithImplicitObjectCreations)
-                                    .Concat(documentsWithAttribute)
-                                    .Distinct()
-                                    .ToImmutableArray();
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(documentsWithType, documentsWithImplicitObjectCreations, documentsWithAttribute, documentsWithGlobalAttributes);
         }
 
         private static bool IsPotentialReference(
@@ -84,10 +84,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
             var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, semanticModel, cancellationToken).ConfigureAwait(false);
+
             var aliasReferences = await FindAliasReferencesAsync(
                 nonAliasTypeReferences, methodSymbol, document, semanticModel,
                 findParentNode, cancellationToken).ConfigureAwait(false);
-            return normalReferences.Concat(aliasReferences);
+
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, methodSymbol, cancellationToken).ConfigureAwait(false);
+            return normalReferences.Concat(aliasReferences, suppressionReferences);
         }
 
         private async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentWorkerAsync(
