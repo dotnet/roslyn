@@ -1962,6 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SimpleProgramIsEmpty = 8937,
         ERR_LineSpanDirectiveInvalidValue = 8938,
         ERR_LineSpanDirectiveEndLessThanStart = 8939,
+        ERR_WrongArityAsyncReturn = 8940,
 
         #endregion
 
