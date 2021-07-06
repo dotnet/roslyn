@@ -296,19 +296,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // by checking the ReferenceLocations that are returned.
             var searchSymbol = symbol;
 
-            if (searchSymbol is IAliasSymbol)
-            {
-                searchSymbol = ((IAliasSymbol)searchSymbol).Target;
-            }
+            if (searchSymbol is IAliasSymbol aliasSymbol)
+                searchSymbol = aliasSymbol.Target;
 
             searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
 
             // If they're searching for a delegate constructor, then just search for the delegate
             // itself.  They're practically interchangeable for consumers.
             if (searchSymbol.IsConstructor() && searchSymbol.ContainingType.TypeKind == TypeKind.Delegate)
-            {
                 searchSymbol = symbol.ContainingType;
-            }
 
             Contract.ThrowIfNull(searchSymbol);
             return searchSymbol;

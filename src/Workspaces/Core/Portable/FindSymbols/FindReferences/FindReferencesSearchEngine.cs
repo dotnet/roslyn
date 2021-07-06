@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await foreach (var group in DetermineUpSymbolGroupsAsync(searchSymbol, cancellationToken).ConfigureAwait(false))
                     upGroup.Add(group);
 
-                using var _2 = ArrayBuilder<Task<(SymbolGroup group, ISymbol symbol, IReferenceFinder finder, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
+                using var _2 = ArrayBuilder<Task<(ISymbol symbol, IReferenceFinder finder, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
                 foreach (var project in projects)
                 {
                     foreach (var group in exactGroup)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 tasks.Add(Task.Factory.StartNew(async () =>
                                 {
                                     var documents = await finder.DetermineDocumentsToSearchAsync(groupSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
-                                    return (group, groupSymbol, finder, documents);
+                                    return (groupSymbol, finder, documents);
                                 }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                             }
                         }
@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var projectToDocumentMap = new ProjectToDocumentMap();
                 foreach (var task in tasks)
                 {
-                    var (group, groupSymbol, finder, documents) = await task.ConfigureAwait(false);
+                    var (groupSymbol, finder, documents) = await task.ConfigureAwait(false);
                     foreach (var document in documents)
                     {
                         projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                            .MultiAdd(document, (symbol, finder));
+                                            .MultiAdd(document, (groupSymbol, finder));
                     }
                 }
 

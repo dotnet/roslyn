@@ -276,18 +276,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var symbolToMatch = symbolInfoToMatch.Symbol;
                 var symbolToMatchCompilation = model.Compilation;
 
-                if (symbolInfoToMatch.Symbol != null && await isMatchAsync(symbolInfoToMatch.Symbol).ConfigureAwait(false))
+                if (symbolInfoToMatch.Symbol != null &&
+                    symbolInfoToMatch.Symbol.Kind == searchSymbol.Kind &&
+                    await isMatchAsync(symbolInfoToMatch.Symbol).ConfigureAwait(false))
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(static (s, isMatchAsync) => isMatchAsync(s).AsTask(), isMatchAsync).ConfigureAwait(false))
+
+                foreach (var symbol in symbolInfoToMatch.CandidateSymbols)
                 {
-                    return (matched: true, symbolInfoToMatch.CandidateReason);
+                    if (symbol.Kind == searchSymbol.Kind &&
+                        await isMatchAsync(symbol).ConfigureAwait(false))
+                    {
+                        return (matched: true, symbolInfoToMatch.CandidateReason);
+                    }
                 }
-                else
-                {
-                    return (matched: false, CandidateReason.None);
-                }
+
+                return (matched: false, CandidateReason.None);
             };
         }
 
