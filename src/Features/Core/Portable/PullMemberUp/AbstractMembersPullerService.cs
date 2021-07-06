@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
     {
         protected abstract Task<IEnumerable<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
 
-        protected abstract SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node);
-
         // compare names 
         protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, IEnumerable<TUsingOrAliasSyntax> list);
 
@@ -327,8 +325,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node => !IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationImports),
                 cancellationToken).ConfigureAwait(false);
 
-            destinationDocument = destinationDocument.WithSyntaxRoot(
-                EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            //destinationDocument = destinationDocument.WithSyntaxRoot(
+            //    EnsureLeadingBlankLineBeforeFirstMember(await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
 
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
 

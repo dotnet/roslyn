@@ -27,32 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         {
         }
 
-        protected override SyntaxNode EnsureLeadingBlankLineBeforeFirstMember(SyntaxNode node)
-        {
-            var members = node switch
-            {
-                CompilationUnitSyntax compilationUnit => compilationUnit.Members,
-                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
-                _ => throw ExceptionUtilities.UnexpectedValue(node)
-            };
-            if (members.Count == 0)
-            {
-                return node;
-            }
-
-            var firstMember = members.First();
-            var firstMemberTrivia = firstMember.GetLeadingTrivia();
-
-            // If the first member already contains a leading new line then, this will already break up the usings from these members.
-            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return node;
-            }
-
-            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
-            return node.ReplaceNode(firstMember, newFirstMember);
-        }
-
         protected override async Task<IEnumerable<UsingDirectiveSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
