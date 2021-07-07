@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName => _originalParam.IsCallerMemberName;
 
-        // We don't currently support caller argument expression for cloned begin/end invoke.
+        // We don't currently support caller argument expression for cloned begin/end invoke since
+        // they throw PlatformNotSupportedException at runtime and we feel it's unnecessary to support them.
         internal override int CallerArgumentExpressionParameterIndex => -1;
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
