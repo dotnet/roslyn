@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiver?.GetRefKind(), receiver is null ? Binder.ExternalScope : GetValEscape(receiver, LocalScopeDepth));
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiver?.GetRefKind(), method.RequiresInstanceReceiver ? GetValEscape(receiver, LocalScopeDepth) : Binder.ExternalScope);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;

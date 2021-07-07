@@ -1267,27 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(interpolatedString.InterpolationData != null);
             var data = interpolatedString.InterpolationData.GetValueOrDefault();
-
-            uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
-
-            if (escapeScope >= scopeOfTheContainingExpression)
-            {
-                // Can't get any worse
-                return escapeScope;
-            }
-
-            foreach (var part in interpolatedString.Parts)
-            {
-                escapeScope = Math.Max(escapeScope, GetValEscape(part, scopeOfTheContainingExpression));
-
-                if (escapeScope >= scopeOfTheContainingExpression)
-                {
-                    // Can't get any worse
-                    return escapeScope;
-                }
-            }
-
-            return escapeScope;
+            return GetValEscape(data.Construction, scopeOfTheContainingExpression);
         }
 
         /// <summary>

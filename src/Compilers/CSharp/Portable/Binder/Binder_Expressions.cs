@@ -7843,7 +7843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverOpt?.GetRefKind(), receiverOpt is null ? Binder.ExternalScope : GetValEscape(receiverOpt, LocalScopeDepth));
+                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverOpt?.GetRefKind(), property.RequiresInstanceReceiver ? GetValEscape(receiverOpt, LocalScopeDepth) : Binder.ExternalScope);
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;
