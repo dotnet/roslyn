@@ -3743,6 +3743,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAsyncReturn" xml:space="preserve">
     <value>The return type of an async method must be void, Task, Task&lt;T&gt;, a task-like type, IAsyncEnumerable&lt;T&gt;, or IAsyncEnumerator&lt;T&gt;</value>
   </data>
+  <data name="ERR_WrongArityAsyncReturn" xml:space="preserve">
+    <value>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</value>
+  </data>
   <data name="ERR_CantReturnVoid" xml:space="preserve">
     <value>Cannot return an expression of type 'void'</value>
   </data>
