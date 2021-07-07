@@ -3,6 +3,6 @@
   <PropertyGroup>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <!-- Subfolder relative to the root package folder where all servicehub assemblies for .NET Core host are located -->
-    <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
+    <ServiceHubCoreSubPath>Core</ServiceHubCoreSubPath>
   </PropertyGroup>
 </Project>
