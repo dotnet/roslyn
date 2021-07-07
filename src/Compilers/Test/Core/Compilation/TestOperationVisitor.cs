@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.InterpolatedStringText, operation.Kind);
             if (operation.Text.Kind != OperationKind.Literal)
-            { 
+            {
                 Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
             }
             Assert.Same(operation.Text, operation.Children.Single());

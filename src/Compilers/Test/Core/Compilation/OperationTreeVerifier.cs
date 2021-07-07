@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     s = s.Replace("\"", "\"\"");
                     return @"""" + s + @"""";
                 case IFormattable formattable:
-                    return formattable.ToString(null, CultureInfo.InvariantCulture).Replace("\"", "\"\"");;
+                    return formattable.ToString(null, CultureInfo.InvariantCulture).Replace("\"", "\"\"");
                 default:
                     return constant.ToString().Replace("\"", "\"\"");
             }
