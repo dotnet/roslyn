@@ -667,11 +667,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal virtual void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
-            if (oldNode.RawKind != newNode.RawKind)
-            {
-                return;
-            }
-
             if (oldSymbol is ITypeParameterSymbol or IParameterSymbol)
             {
                 return;
@@ -3303,6 +3298,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     rudeEdit = RudeEditKind.AccessorKindUpdate;
                 }
+
+                // Consider: Generalize to compare P/Invokes regardless of how they are defined (using attribute or Declare)
+                if (oldMethod.MethodKind == MethodKind.DeclareMethod || newMethod.MethodKind == MethodKind.DeclareMethod)
+                {
+                    var oldImportData = oldMethod.GetDllImportData();
+                    var newImportData = newMethod.GetDllImportData();
+                    if (oldImportData != null && newImportData != null)
+                    {
+                        // Declare method syntax can't change these.
+                        Debug.Assert(oldImportData.BestFitMapping == newImportData.BestFitMapping ||
+                                     oldImportData.CallingConvention == newImportData.CallingConvention ||
+                                     oldImportData.ExactSpelling == newImportData.ExactSpelling ||
+                                     oldImportData.SetLastError == newImportData.SetLastError ||
+                                     oldImportData.ThrowOnUnmappableCharacter == newImportData.ThrowOnUnmappableCharacter);
+
+                        if (oldImportData.ModuleName != newImportData.ModuleName)
+                        {
+                            rudeEdit = RudeEditKind.DeclareLibraryUpdate;
+                        }
+                        else if (oldImportData.EntryPointName != newImportData.EntryPointName)
+                        {
+                            rudeEdit = RudeEditKind.DeclareAliasUpdate;
+                        }
+                        else if (oldImportData.CharacterSet != newImportData.CharacterSet)
+                        {
+                            rudeEdit = RudeEditKind.ModifiersUpdate;
+                        }
+                    }
+                    else if (oldImportData is null != newImportData is null)
+                    {
+                        rudeEdit = RudeEditKind.ModifiersUpdate;
+                    }
+                }
             }
             else if (oldSymbol is INamedTypeSymbol oldType && newSymbol is INamedTypeSymbol newType)
             {
@@ -3413,7 +3441,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(newSymbol.IsImplicitlyDeclared == newDeclaration is null);
+            // TODO: fails in VB on delegate parameter
+            // Contract.ThrowIfFalse(newSymbol.IsImplicitlyDeclared == newDeclaration is null);
 
             ReportCustomAttributeRudeEdits(diagnostics, oldSymbol, newSymbol, capabilities, out var hasAttributeChange, out var hasReturnTypeAttributeChange);
 

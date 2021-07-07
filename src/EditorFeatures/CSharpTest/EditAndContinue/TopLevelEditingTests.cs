@@ -1,5 +1,4 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
-// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1142,8 +1141,8 @@ class C
         [Fact]
         public void Type_BaseType_TupleElementName_Update()
         {
-            var src1 = "class C : List<(int a, int b)> { }";
-            var src2 = "class C : List<(int a, int c)> { }";
+            var src1 = "class C : System.Collections.Generic.List<(int a, int b)> { }";
+            var src2 = "class C : System.Collections.Generic.List<(int a, int c)> { }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -1154,8 +1153,8 @@ class C
         [Fact]
         public void Type_BaseType_Dynamic_Update()
         {
-            var src1 = "class C : List<dynamic> { }";
-            var src2 = "class C : List<object> { }";
+            var src1 = "class C : System.Collections.Generic.List<dynamic> { }";
+            var src2 = "class C : System.Collections.Generic.List<object> { }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -1783,9 +1782,9 @@ interface I<T> { void F() {} }
                     DocumentResults(
                         diagnostics: new[]
                         {
-                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", "method"),
-                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", "method"),
-                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", "method"),
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", FeaturesResources.method),
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", FeaturesResources.method),
+                            Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "void F()", FeaturesResources.method),
                         })
                 });
         }
@@ -3161,7 +3160,7 @@ record C(int X)
         }
 
         [Fact]
-        public void Enum_Member_Attribute_InsertDelete()
+        public void Enum_Member_Attribute_InsertDeleteAndUpdate()
         {
             var srcA1 = "";
             var srcB1 = "enum N { A = 1 }";
@@ -5295,7 +5294,7 @@ partial class C
         public void PartialMember_DeleteInsert_UpdateMethodParameterType()
         {
             var srcA1 = "partial struct S { }";
-            var srcB1 = "partial struct S { void F(); }";
+            var srcB1 = "partial struct S { void F(int x); }";
             var srcA2 = "partial struct S { void F(byte x); }";
             var srcB2 = "partial struct S { }";
 
@@ -5312,7 +5311,7 @@ partial class C
                     DocumentResults(
                         diagnostics: new[]
                         {
-                            Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F()"))
+                            Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F(int x)"))
                         })
                 });
         }
