@@ -78,12 +78,44 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // set of documents to search, we only bother with those.
                 var projects = _documents != null ? _documents.Select(d => d.Project) : _solution.Projects;
                 var projectsToSearch = await DependentProjectsFinder.GetDependentProjectsAsync(_solution, searchSymbol, projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+                if (projectsToSearch.IsEmpty)
+                    return;
 
                 // Keep track of the initial symbol group corresponding to search-symbol.  Any references to this group
                 // will always be reported.
-                var exactGroup = new HashSet<SymbolGroup>();
-                await foreach (var group in DetermineExactSymbolGroupsAsync(searchSymbol, cancellationToken).ConfigureAwait(false))
-                    exactGroup.Add(group);
+                var exactSymbols = await DetermineExactSymbolGroupsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
+                var upSymbols = await DetermineUpSymbolsAsync(exactSymbols, cancellationToken).ConfigureAwait(false);
+                var downSymbols = new HashSet<ISymbol>();
+
+                var projectsToSearchSet = projectsToSearch.ToSet();
+                var dependencyGraph = _solution.GetProjectDependencyGraph();
+
+                using var _1 = ArrayBuilder<Task>.GetInstance(out var projectTasks);
+
+                foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
+                {
+                    var currentProject = _solution.GetRequiredProject(projectId);
+                    await InheritanceCascadeAsync(exactSymbols, upSymbols, downSymbols, currentProject, cancellationToken).ConfigureAwait(false);
+
+                    var allSymbols = new HashSet<ISymbol>();
+                    allSymbols.AddRange(exactSymbols);
+                    allSymbols.AddRange(upSymbols);
+                    allSymbols.AddRange(downSymbols);
+
+                    projectTasks.Add(Task.Factory.StartNew(async () =>
+                    {
+
+                    }, cancellationToken, TaskCreationOptions.None, _scheduler));
+                }
+
+                await Task.WhenAll(projectTasks).ConfigureAwait(false);
+
+                var symbolOrigination = DependentProjectsFinder.GetSymbolOrigination(_solution, searchSymbol, cancellationToken);
+                var initialProject = symbolOrigination.sourceProject ?? projectsToSearch.First();
+
+
+
+                var downSymbols = await DetermineDownSymbolsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
 
                 // Determine the set of symbols higher up in the search-symbol's inheritance hierarchy.  References to
                 // these groups will always be reported.  However any reference to a subtype of these (that is not a
@@ -101,25 +133,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // UnidirectionalHierarchyCascade.  If UnidirectionalHierarchyCascade is false then all subtypes will be
                 // reported (i.e. D, E, and C).  If UnidirectionalHierarchyCascade is true, then only 'B' and 'D' will
                 // be reported (C will not be).
-                var upGroup = new HashSet<SymbolGroup>();
-                await foreach (var group in DetermineUpSymbolGroupsAsync(searchSymbol, cancellationToken).ConfigureAwait(false))
-                    upGroup.Add(group);
 
-                using var _2 = ArrayBuilder<Task<(ISymbol symbol, IReferenceFinder finder, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
+                using var _2 = ArrayBuilder<Task<(ISymbol symbol, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
                 foreach (var project in projects)
                 {
-                    foreach (var group in exactGroup)
+                    foreach (var exactSymbol in exactSymbols)
                     {
-                        foreach (var groupSymbol in group.Symbols)
+                        foreach (var finder in _finders)
                         {
-                            foreach (var finder in _finders)
+                            tasks.Add(Task.Factory.StartNew(async () =>
                             {
-                                tasks.Add(Task.Factory.StartNew(async () =>
-                                {
-                                    var documents = await finder.DetermineDocumentsToSearchAsync(groupSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
-                                    return (groupSymbol, finder, documents);
-                                }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
-                            }
+                                var documents = await finder.DetermineDocumentsToSearchAsync(exactSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                                return (exactSymbol, documents);
+                            }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                         }
                     }
                 }
@@ -129,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var projectToDocumentMap = new ProjectToDocumentMap();
                 foreach (var task in tasks)
                 {
-                    var (groupSymbol, finder, documents) = await task.ConfigureAwait(false);
+                    var (groupSymbol, documents) = await task.ConfigureAwait(false);
                     foreach (var document in documents)
                     {
                         projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)

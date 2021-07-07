@@ -188,40 +188,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         //    }
         //}
 
-        private async IAsyncEnumerable<SymbolGroup> DetermineExactSymbolGroupsAsync(
-            ISymbol searchSymbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        private async Task<HashSet<ISymbol>> DetermineExactSymbolGroupsAsync(ISymbol searchSymbol, CancellationToken cancellationToken)
         {
+            var result = new HashSet<ISymbol>();
+
             if (!_options.Cascade)
             {
                 // If we're not cascading, then we only find references to the exact original symbol, not any related
                 // symbols to it in its linked documents.
-                yield return new SymbolGroup(ImmutableArray.Create(searchSymbol));
+                result.Add(searchSymbol);
             }
             else
             {
-                var set = new HashSet<SymbolGroup>();
-
                 var stack = new Stack<ISymbol>();
                 stack.Push(searchSymbol);
 
                 while (stack.Count > 0)
                 {
                     var currentSymbol = stack.Pop();
-                    var group = await GetSymbolGroupAsync(currentSymbol, cancellationToken).ConfigureAwait(false);
+
                     // As long as we keep adding new groups to the result, then keep searching those new symbols to see
                     // what they cascade to.
-                    if (set.Add(group))
+                    if (result.Add(currentSymbol))
                     {
-                        yield return group;
-
-                        foreach (var symbol in group.Symbols)
-                        {
-                            await foreach (var cascaded in DetermineCascadedSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
-                                stack.Push(cascaded);
-                        }
+                        await foreach (var cascaded in DetermineCascadedSymbolsAsync(currentSymbol, cancellationToken).ConfigureAwait(false))
+                            stack.Push(cascaded);
                     }
                 }
             }
+
+            return result;
         }
 
         private async Task<SymbolGroup> GetSymbolGroupAsync(ISymbol currentSymbol, CancellationToken cancellationToken)
