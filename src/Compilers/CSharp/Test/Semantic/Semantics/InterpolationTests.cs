@@ -10750,5 +10750,243 @@ AppendFormatted");
 }
 ");
         }
+
+        [Fact]
+        public void RefEscape_01()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    Span<char> s;
+
+    public CustomHandler(int literalLength, int formattedCount) : this() {}
+
+    public void AppendFormatted(Span<char> s) => this.s = s;
+
+    public static CustomHandler M()
+    {
+        Span<char> s = stackalloc char[10];
+        return $""{s}"";
+    }
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return $"{s}";
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 19)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_02()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    Span<char> s;
+
+    public CustomHandler(int literalLength, int formattedCount) : this() {}
+
+    public void AppendFormatted(Span<char> s) => this.s = s;
+
+    public static ref CustomHandler M()
+    {
+        Span<char> s = stackalloc char[10];
+        return $""{s}"";
+    }
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8150: By-value returns may only be used in methods that return by value
+                //         return $"{s}";
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(17, 9)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_03()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    Span<char> s;
+
+    public CustomHandler(int literalLength, int formattedCount) : this() {}
+
+    public void AppendFormatted(Span<char> s) => this.s = s;
+
+    public static ref CustomHandler M()
+    {
+        Span<char> s = stackalloc char[10];
+        return ref $""{s}"";
+    }
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref $"{s}";
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, @"$""{s}""").WithLocation(17, 20)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_04()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    S1 s1;
+
+    public CustomHandler(int literalLength, int formattedCount, ref S1 s1) : this() { this.s1 = s1; }
+
+    public void AppendFormatted(Span<char> s) => this.s1.s = s;
+
+    public static void M(ref S1 s1)
+    {
+        Span<char> s = stackalloc char[10];
+        M2(ref s1, $""{s}"");
+    }
+
+    public static void M2(ref S1 s1, [InterpolatedStringHandlerArgument(""s1"")] ref CustomHandler handler) {}
+}
+
+public ref struct S1
+{
+    public Span<char> s;
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_CallArgMixing, @"M2(ref s1, $""{s}"")").WithArguments("CustomHandler.M2(ref S1, ref CustomHandler)", "handler").WithLocation(17, 9),
+                // (17,23): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         M2(ref s1, $"{s}");
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "s").WithArguments("s").WithLocation(17, 23)
+            );
+        }
+
+        [Fact]
+        public void RefEscape_05()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    Span<char> s;
+
+    public CustomHandler(int literalLength, int formattedCount, ref Span<char> s) : this() { this.s = s; }
+
+    public void AppendFormatted(S1 s1) => s1.s = this.s;
+
+    public static void M(ref S1 s1)
+    {
+        Span<char> s = stackalloc char[10];
+        M2(ref s, $""{s1}"");
+    }
+
+    public static void M2(ref Span<char> s, [InterpolatedStringHandlerArgument(""s"")] CustomHandler handler) {}
+}
+
+public ref struct S1
+{
+    public Span<char> s;
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefEscape_06()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+Span<char> s = stackalloc char[5];
+Span<char> s2 = stackalloc char[10];
+s.TryWrite($""{s2}"");
+
+public static class MemoryExtensions
+{
+    public static bool TryWrite(this Span<char> span, [InterpolatedStringHandlerArgument(""span"")] CustomHandler builder) => true;
+}
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, Span<char> s) : this() { }
+
+    public bool AppendFormatted(Span<char> s) => true;
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefEscape_07()
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+Span<char> s = stackalloc char[5];
+Span<char> s2 = stackalloc char[10];
+s.TryWrite($""{s2}"");
+
+public static class MemoryExtensions
+{
+    public static bool TryWrite(this Span<char> span, [InterpolatedStringHandlerArgument(""span"")] ref CustomHandler builder) => true;
+}
+
+[InterpolatedStringHandler]
+public ref struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, Span<char> s) : this() { }
+
+    public bool AppendFormatted(Span<char> s) => true;
+}
+";
+
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics();
+        }
     }
 }

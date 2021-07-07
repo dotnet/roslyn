@@ -1261,6 +1261,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal static uint GetInterpolatedStringHandlerConversionEscapeScope(
+            BoundInterpolatedString interpolatedString,
+            uint scopeOfTheContainingExpression)
+        {
+            Debug.Assert(interpolatedString.InterpolationData != null);
+            var data = interpolatedString.InterpolationData.GetValueOrDefault();
+
+            uint escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+
+            if (escapeScope >= scopeOfTheContainingExpression)
+            {
+                // Can't get any worse
+                return escapeScope;
+            }
+
+            foreach (var part in interpolatedString.Parts)
+            {
+                escapeScope = Math.Max(escapeScope, GetValEscape(part, scopeOfTheContainingExpression));
+
+                if (escapeScope >= scopeOfTheContainingExpression)
+                {
+                    // Can't get any worse
+                    return escapeScope;
+                }
+            }
+
+            return escapeScope;
+        }
+
         /// <summary>
         /// Computes the scope to which the given invocation can escape
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
@@ -2661,6 +2690,11 @@ moreArguments:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
 
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        return GetInterpolatedStringHandlerConversionEscapeScope((BoundInterpolatedString)conversion.Operand, scopeOfTheContainingExpression);
+                    }
+
                     return GetValEscape(conversion.Operand, scopeOfTheContainingExpression);
 
                 case BoundKind.AssignmentOperator:
@@ -2713,10 +2747,18 @@ moreArguments:
 
                 case BoundKind.ImplicitReceiver:
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
-                case BoundKind.InterpolatedStringHandlerPlaceholder: // PROTOTYPE(interp-string): we likely need to update this when custom builder types are supported
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
+
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // The handler placeholder cannot escape out of the current expression, as it's a compiler-synthesized
+                    // location.
+                    return scopeOfTheContainingExpression;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // We saved off the safe-to-escape of the argument when we did binding
+                    return ((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape;
 
                 case BoundKind.DisposableValuePlaceholder:
                     // Disposable value placeholder is only ever used to lookup a pattern dispose method
@@ -2862,6 +2904,14 @@ moreArguments:
 
                 case BoundKind.AwaitableValuePlaceholder:
                     if (((BoundAwaitableValuePlaceholder)expr).ValEscape > escapeTo)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
+                        return false;
+                    }
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    if (((BoundInterpolatedStringArgumentPlaceholder)expr).ValSafeToEscape > escapeTo)
                     {
                         Error(diagnostics, ErrorCode.ERR_EscapeLocal, node, expr.Syntax);
                         return false;
@@ -3077,6 +3127,12 @@ moreArguments:
                 case BoundKind.Conversion:
                     var conversion = (BoundConversion)expr;
                     Debug.Assert(conversion.ConversionKind != ConversionKind.StackAllocToSpanType, "StackAllocToSpanType unexpected");
+
+                    if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
+                    {
+                        return CheckInterpolatedStringExpressionEscape((BoundInterpolatedString)conversion.Operand, escapeFrom, escapeTo, diagnostics, isRef: false);
+                    }
+
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
                 case BoundKind.AssignmentOperator:
@@ -3339,6 +3395,38 @@ moreArguments:
             foreach (var expression in expressions)
             {
                 if (!CheckValEscape(expression.Syntax, expression, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool CheckInterpolatedStringExpressionEscape(BoundInterpolatedString interpolatedString, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics, bool isRef)
+        {
+            // We need to check to see if any values could potentially escape outside the max depth via the handler type.
+            // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
+            // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
+            // escape, or does the opposite. In either case, we need to check.
+
+            foreach (var part in interpolatedString.Parts)
+            {
+                if (part is not BoundCall { Method: { Name: "AppendFormatted" } } call)
+                {
+                    // Dynamic calls cannot have ref struct parameters, and AppendLiteral calls will always have literal
+                    // string arguments and do not require us to be concerned with escape
+                    continue;
+                }
+
+                // The interpolation component is always the first argument to the method, and it was not passed by name
+                // so there can be no reordering.
+                var argument = call.Arguments[0];
+                var success = isRef
+                    ? CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics)
+                    : CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                if (!success)
                 {
                     return false;
                 }

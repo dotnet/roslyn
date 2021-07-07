@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
-            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType);
+            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType);
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
             populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
@@ -456,7 +456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty);
             }
 
-            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
             bool? builderPatternExpectsBool = null;
             var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
             var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(source.Parts.Length);
@@ -557,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int interpolatedStringArgNum,
             TypeSymbol? receiverType,
             RefKind? receiverRefKind,
+            uint receiverValEscapeScope,
             BindingDiagnosticBag diagnostics)
         {
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
@@ -699,17 +699,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                var placeholderSyntax = argumentIndex switch
+                SyntaxNode placeholderSyntax;
+                uint valSafeToEscapeScope;
+
+                switch (argumentIndex)
                 {
-                    BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => unconvertedString.Syntax,
-                    >= 0 => arguments[argumentIndex].Syntax,
-                    _ => throw ExceptionUtilities.UnexpectedValue(argumentIndex)
-                };
+                    case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                        placeholderSyntax = unconvertedString.Syntax;
+                        valSafeToEscapeScope = receiverValEscapeScope;
+                        break;
+                    case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
+                        placeholderSyntax = unconvertedString.Syntax;
+                        valSafeToEscapeScope = Binder.ExternalScope;
+                        break;
+                    case >= 0:
+                        placeholderSyntax = arguments[argumentIndex].Syntax;
+                        valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(argumentIndex);
+                }
 
                 argumentPlaceholdersBuilder.Add(
                     new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
+                        valSafeToEscapeScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter));
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors

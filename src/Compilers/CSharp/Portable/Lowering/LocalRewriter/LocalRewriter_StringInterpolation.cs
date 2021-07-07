@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using System.Linq;
-using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
