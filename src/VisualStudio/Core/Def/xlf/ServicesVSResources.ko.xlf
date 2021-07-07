@@ -1192,11 +1192,6 @@
         <target state="translated">심각도를 업데이트하는 중</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">코드 분석에 64비트 프로세스 사용(다시 시작 필요)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
         <source>Use expression body for lambdas</source>
         <target state="translated">람다에 식 본문 사용</target>
