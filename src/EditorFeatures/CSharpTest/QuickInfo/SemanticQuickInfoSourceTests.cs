@@ -7140,6 +7140,69 @@ public class $$D : C { }
                 Documentation(documentation));
         }
 
+        [WorkItem(54494, "https://github.com/dotnet/roslyn/issues/54494")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInheritdocMultipleInlineChain()
+        {
+            var markup =
+@"
+/// <summary>a</summary>
+public class A { }
+
+/// <summary>b</summary>
+public class B { }
+
+/// <summary>
+/// <para>A</para>
+/// <para>B</para>
+/// <para></para>
+/// <inheritdoc cref=""A""/>
+/// <para></para>
+/// <inheritdoc cref=""B""/>
+/// </summary>
+public class AB { }
+
+/// <summary>c</summary>
+public class C { }
+
+/// <summary>d</summary>
+public class D { }
+
+/// <summary>
+/// <para>D</para>
+/// <para>C</para>
+/// <para></para>
+/// <inheritdoc cref=""D""/>
+/// <para></para>
+/// <inheritdoc cref=""C""/>
+/// </summary>
+public class DC { }
+
+/// <summary>
+/// <para>e</para>
+/// <inheritdoc cref=""A""/>
+/// <para>e</para>
+/// <inheritdoc cref=""B""/>
+/// <para>e</para>
+/// <inheritdoc cref=""AB""/>
+/// <para>e</para>
+/// <inheritdoc cref=""C""/>
+/// <para>e</para>
+/// <inheritdoc cref=""D""/>
+/// <para>e</para>
+/// <inheritdoc cref=""DC""/>
+/// <para>e</para>
+/// </summary>
+public class $$E { }
+";
+
+            var documentation = string.Join("\r\n\r\n", "eaebeABabecedeDCdce".ToArray());
+
+            await TestAsync(markup,
+                MainDescription("class E"),
+                Documentation(documentation));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestInheritdocCycle1()
         {
