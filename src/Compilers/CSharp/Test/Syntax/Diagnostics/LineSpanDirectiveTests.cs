@@ -463,6 +463,11 @@ class Page
 
         private static ImmutableArray<string> GetLineMappings(SyntaxTree tree)
         {
+            var directives = tree.GetRoot().DescendantNodesAndSelf(descendIntoTrivia: true).OfType<DirectiveTriviaSyntax>();
+            foreach (var directive in directives)
+            {
+                Assert.NotEqual(SyntaxKind.None, directive.DirectiveNameToken.Kind());
+            }
             return tree.GetLineMappings().Select(mapping => mapping.ToString()!).ToImmutableArray();
         }
 
@@ -545,15 +550,18 @@ class Page
         B();
 #line (1, 1) - (1, 100) ""b.txt""
         C();
+#line (2, 3) - (2, 4) 9 ""a.txt""
+        D();
     }
     static void A() { }
     static void B() { }
     static void C() { }
+    static void D() { }
 }".NormalizeLineEndings();
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL:
 @"{
-  // Code size       20 (0x14)
+  // Code size       26 (0x1a)
   .maxstack  0
  -IL_0000:  nop
  -IL_0001:  call       ""void Program.A()""
@@ -562,7 +570,9 @@ class Page
   IL_000c:  nop
  -IL_000d:  call       ""void Program.C()""
   IL_0012:  nop
- -IL_0013:  ret
+ -IL_0013:  call       ""void Program.D()""
+  IL_0018:  nop
+ -IL_0019:  ret
 }");
             verifier.VerifyPdb("Program.Main", expectedPdb:
 @"<symbols>
@@ -583,11 +593,13 @@ class Page
         <entry offset=""0x1"" startLine=""3"" startColumn=""4"" endLine=""3"" endColumn=""8"" document=""2"" />
         <entry offset=""0x7"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""13"" document=""1"" />
         <entry offset=""0xd"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""3"" />
-        <entry offset=""0x13"" startLine=""2"" startColumn=""5"" endLine=""2"" endColumn=""6"" document=""3"" />
+        <entry offset=""0x13"" startLine=""2"" startColumn=""3"" endLine=""2"" endColumn=""5"" document=""2"" />
+        <entry offset=""0x19"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""6"" document=""2"" />
       </sequencePoints>
     </method>
   </methods>
-</symbols>");
+</symbols>
+");
         }
     }
 }
