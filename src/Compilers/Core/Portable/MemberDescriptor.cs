@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
             this.Signature = Signature;
         }
 
+        internal static MemberDescriptor FromSignatureInfo(WellKnownMemberSignatureInfo signatureInfo)
+        {
+            return InitializeSingleFromStream(new MemoryStream(signatureInfo.SerializeToByteArray(), writable: false), signatureInfo.Name);
+        }
+
         internal static ImmutableArray<MemberDescriptor> InitializeFromStream(Stream stream, string[] nameTable)
         {
             int count = nameTable.Length;
@@ -116,25 +121,36 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
 
             for (int i = 0; i < count; i++)
             {
-                MemberFlags flags = (MemberFlags)stream.ReadByte();
-                short declaringTypeId = ReadTypeId(stream);
-                ushort arity = (ushort)stream.ReadByte();
-
-                if ((flags & MemberFlags.Field) != 0)
-                {
-                    ParseType(signatureBuilder, stream);
-                }
-                else
-                {
-                    // Property, PropertyGet, Method or Constructor
-                    ParseMethodOrPropertySignature(signatureBuilder, stream);
-                }
-
-                builder.Add(new MemberDescriptor(flags, declaringTypeId, nameTable[i], signatureBuilder.ToImmutable(), arity));
+                builder.Add(InitializeSingleFromStream(stream, nameTable[i], signatureBuilder));
                 signatureBuilder.Clear();
             }
 
             return builder.ToImmutable();
+        }
+
+        internal static MemberDescriptor InitializeSingleFromStream(Stream stream, string name)
+        {
+            var signatureBuilder = ImmutableArray.CreateBuilder<byte>();
+            return InitializeSingleFromStream(stream, name, signatureBuilder));
+        }
+
+        private static MemberDescriptor InitializeSingleFromStream(Stream stream, string name, ImmutableArray<byte>.Builder signatureBuilder)
+        {
+            MemberFlags flags = (MemberFlags)stream.ReadByte();
+            short declaringTypeId = ReadTypeId(stream);
+            ushort arity = (ushort)stream.ReadByte();
+
+            if ((flags & MemberFlags.Field) != 0)
+            {
+                ParseType(signatureBuilder, stream);
+            }
+            else
+            {
+                // Property, PropertyGet, Method or Constructor
+                ParseMethodOrPropertySignature(signatureBuilder, stream);
+            }
+
+            return new MemberDescriptor(flags, declaringTypeId, name, signatureBuilder.ToImmutable(), arity);
         }
 
         /// <summary>
