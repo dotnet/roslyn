@@ -205,14 +205,6 @@ namespace Microsoft.CodeAnalysis
                 // - Added when new item position < previousTable.length
 
                 var previousEntry = _previous._states[_states.Count];
-
-                // when both entries have no items, we can short circuit
-                if (previousEntry.Count == 0 && outputs.Length == 0)
-                {
-                    _states.Add(previousEntry);
-                    return true;
-                }
-
                 var modified = new TableEntry.Builder();
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
