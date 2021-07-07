@@ -21,7 +21,7 @@ jobs:
     queue: BuildPool.Windows.10.Amd64.Open
   variables:
     EnableRichCodeNavigation: true
-  timeoutInMinutes: 200
+  timeoutInMinutes: 60
 
   steps:
     - task: PowerShell@2
