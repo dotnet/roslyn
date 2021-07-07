@@ -10814,7 +10814,6 @@ public ref struct CustomHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
@@ -10847,7 +10846,6 @@ public ref struct CustomHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8150: By-value returns may only be used in methods that return by value
@@ -10879,7 +10877,6 @@ public ref struct CustomHandler
     }
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
@@ -10919,7 +10916,6 @@ public ref struct S1
     public Span<char> s;
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
@@ -10963,7 +10959,6 @@ public ref struct S1
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
@@ -10993,7 +10988,6 @@ public ref struct CustomHandler
 }
 ";
 
-
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
@@ -11022,7 +11016,6 @@ public ref struct CustomHandler
     public bool AppendFormatted(Span<char> s) => true;
 }
 ";
-
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
