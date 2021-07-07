@@ -1826,11 +1826,26 @@ public partial struct CustomHandler
 
             var expectedDiagnostics = new[] {
                 // (4,16): error CS9015: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
-                // M(d, /*<bind>*/$""/*</bind>*/);
-                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""""").WithArguments("CustomHandler").WithLocation(4, 16)
+                // M(d, /*<bind>*/$"{1}literal"/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(4, 16)
             };
 
             string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$""{1}literal""')
+  Parts(2):
+      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{1}')
+        Expression:
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: '1')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+        Alignment:
+          null
+        FormatString:
+          null
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null, IsInvalid) (Syntax: 'literal')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""literal"", IsInvalid, IsImplicit) (Syntax: 'literal')
 ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);

@@ -10240,7 +10240,7 @@ public partial class CustomHandler
 
         [Theory]
         [CombinatorialData]
-        public void DefiniteAssignment(bool useBoolReturns, bool trailingOutParameter)
+        public void DefiniteAssignment_01(bool useBoolReturns, bool trailingOutParameter)
         {
             var code = @"
 int i;
@@ -10273,6 +10273,34 @@ string M(out object o)
                     // (8,5): error CS0165: Use of unassigned local variable 's'
                     // _ = s.ToString();
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(8, 5)
+                );
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefiniteAssignment_02(bool useBoolReturns, bool trailingOutParameter)
+        {
+            var code = @"
+int i;
+
+CustomHandler c = $""{i = 1}"";
+_ = i.ToString();
+";
+
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns, includeTrailingOutConstructorParameter: trailingOutParameter);
+            var comp = CreateCompilation(new[] { code, customHandler }, parseOptions: TestOptions.RegularPreview);
+
+            if (trailingOutParameter)
+            {
+                comp.VerifyDiagnostics(
+                    // (5,5): error CS0165: Use of unassigned local variable 'i'
+                    // _ = i.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(5, 5)
                 );
             }
             else

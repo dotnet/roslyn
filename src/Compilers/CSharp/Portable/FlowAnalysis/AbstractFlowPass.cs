@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1162,11 +1163,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(construction);
                     visitParts();
                     break;
-                case { UsesBoolReturns: var usesBoolReturns, Construction: var construction }:
+                case { UsesBoolReturns: var usesBoolReturns, HasTrailingHandlerValidityParameter: var hasTrailingValidityParameter, Construction: var construction }:
                     VisitRvalue(construction);
-                    var beforePartsState = State.Clone();
 
-                    foreach (var expr in node.Parts)
+                    if (node.Parts.IsEmpty)
+                    {
+                        break;
+                    }
+
+                    TLocalState beforePartsState;
+                    ReadOnlySpan<BoundExpression> remainingParts;
+
+                    if (hasTrailingValidityParameter)
+                    {
+                        beforePartsState = State.Clone();
+                        remainingParts = node.Parts.AsSpan();
+                    }
+                    else
+                    {
+                        Visit(node.Parts[0]);
+                        beforePartsState = State.Clone();
+                        remainingParts = node.Parts.AsSpan()[1..];
+                    }
+
+                    foreach (var expr in remainingParts)
                     {
                         VisitRvalue(expr);
                         if (usesBoolReturns)
