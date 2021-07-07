@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private readonly TaskScheduler _scheduler;
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+
+        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new();
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var document in documents)
                     {
                         projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                            .MultiAdd(document, (groupSymbol, finder));
+                                            .MultiAdd(document, groupSymbol);
                     }
                 }
 
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void ValidateProjectToDocumentMap(
             ProjectToDocumentMap projectToDocumentMap)
         {
-            var set = new HashSet<(ISymbol symbol, IReferenceFinder finder)>();
+            var set = new HashSet<ISymbol>();
 
             foreach (var documentMap in projectToDocumentMap.Values)
             {
@@ -381,8 +383,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
-
-        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new ConcurrentDictionary<ISymbol, SymbolGroup>();
 
         private async ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
         {

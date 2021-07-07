@@ -18,9 +18,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using DocumentMap = Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
-    using ProjectMap = Dictionary<Project, HashSet<(ISymbol symbol, IReferenceFinder finder)>>;
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
+    using DocumentMap = Dictionary<Document, HashSet<ISymbol>>;
+    using ProjectMap = Dictionary<Project, HashSet<ISymbol>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -30,26 +30,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_CreateDocumentMapAsync, cancellationToken))
             {
-                using var _ = ArrayBuilder<Task<(ImmutableArray<Document>, ISymbol, IReferenceFinder)>>.GetInstance(out var tasks);
+                using var _ = ArrayBuilder<Task<(ImmutableArray<Document>, ISymbol)>>.GetInstance(out var tasks);
 
                 foreach (var (project, projectQueue) in projectMap)
                 {
-                    foreach (var (symbol, finder) in projectQueue)
+                    foreach (var symbol in projectQueue)
                     {
                         tasks.Add(Task.Factory.StartNew(() =>
-                            DetermineDocumentsToSearchAsync(project, symbol, finder, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                            DetermineDocumentsToSearchAsync(project, symbol, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
                 }
 
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 var finalMap = new ProjectToDocumentMap();
-                foreach (var (documents, symbol, finder) in results)
+                foreach (var (documents, symbol) in results)
                 {
                     foreach (var document in documents)
                     {
                         finalMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                .MultiAdd(document, (symbol, finder));
+                                .MultiAdd(document, symbol);
                     }
                 }
 
@@ -64,14 +64,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task<(ImmutableArray<Document>, ISymbol, IReferenceFinder)> DetermineDocumentsToSearchAsync(
-            Project project, ISymbol symbol, IReferenceFinder finder, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<Document>, ISymbol)> DetermineDocumentsToSearchAsync(
+            Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var documents = await finder.DetermineDocumentsToSearchAsync(
-                symbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
-            var finalDocs = documents.WhereNotNull().Distinct().Where(
-                d => _documents == null || _documents.Contains(d)).ToImmutableArray();
-            return (finalDocs, symbol, finder);
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+
+            foreach (var finder in _finders)
+            {
+                var documents = await finder.DetermineDocumentsToSearchAsync(
+                    symbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+
+                foreach (var document in documents)
+                {
+                    if (_documents == null || _documents.Contains(document))
+                        result.Add(document);
+                }
+            }
+
+            result.RemoveDuplicates();
+            return (result.ToImmutable(), symbol);
         }
 
         //private async Task<ProjectMap> CreateProjectMapAsync(ConcurrentSet<SymbolGroup> symbolGroups, CancellationToken cancellationToken)
