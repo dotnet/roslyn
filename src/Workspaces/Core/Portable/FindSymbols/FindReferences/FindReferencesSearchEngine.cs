@@ -133,17 +133,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async ValueTask<SymbolGroup> GetOrCreateSymbolGroupAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
+            // See if this symbol is already associated with a symbol group.
             if (!_symbolToGroup.TryGetValue(symbol, out var group))
             {
+                // If not, compute the group it should be associated with.
                 group = await DetermineSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+
+                // now try to update our mapping.
                 lock (_symbolToGroup)
                 {
-                    if (!_symbolToGroup.ContainsKey(symbol))
+                    // Another thread may have beat us, so only do this if we're actually the first to get here.
+                    if (!_symbolToGroup.TryGetValue(symbol, out _))
                     {
                         foreach (var groupSymbol in group.Symbols)
-                        {
                             Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
-                        }
                     }
                 }
             }
