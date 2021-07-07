@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (node is CompilationUnitSyntax unit)
             {
-                // When deleting something from a compilation unit we just report diagnostics for the last global statment
+                // When deleting something from a compilation unit we just report diagnostics for the last global statement
                 return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
             }
 

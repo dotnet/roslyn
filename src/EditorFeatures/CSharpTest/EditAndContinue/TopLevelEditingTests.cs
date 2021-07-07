@@ -15186,7 +15186,7 @@ public class C { }
             var edits = GetTopEdits(src1, src2);
 
             // Since each individual statement is a separate update to a separate node, this just validates we correctly
-            // only anaylze the things once
+            // only analyze the things once
             edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
         }
 

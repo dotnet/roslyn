@@ -2591,8 +2591,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         if (oldContainingSymbol != null)
                                         {
                                             var containingSymbolKey = SymbolKey.Create(oldContainingSymbol, cancellationToken);
-                                            var newContatiningSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                                            if (newContatiningSymbol == null)
+                                            var newContainingSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                            if (newContainingSymbol == null)
                                             {
                                                 continue;
                                             }
