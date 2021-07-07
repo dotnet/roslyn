@@ -77,6 +77,11 @@
         <target state="translated">只有物件初始設定式中，或執行個體建構函式中 'this' 或 'base' 上僅供初始化的屬性或索引子 '{0}' 或 'init' 存取子可以指派。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">屬性 '{0}' 在事件存取子上無效。其只有在 '{1}' 宣告上才有效。</target>
@@ -1120,6 +1125,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="new">generic attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -4581,11 +4591,6 @@
         <target state="translated">無法將 null 轉換成類型參數 '{0}'，因為其可能是不可為 null 的實值類型。請考慮改用 'default({0})'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">無法套用屬性類別 '{0}'，因為其為泛型</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
         <source>Duplicate constraint '{0}' for type parameter '{1}'</source>
         <target state="translated">類型參數 '{1}' 出現重複的條件約束 '{0}'</target>
@@ -5813,11 +5818,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
         <target state="translated">'{0}' 不可同時實作 '{1}' 和 '{2}'，因為它們可能會整合某些類型參數的替代</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">泛型類型不可衍生自 '{0}'，因為其為屬性類別</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
@@ -7080,8 +7080,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">'{0}' 在 '{1}' 與 '{2}' 之間模稜兩可; 請使用 '@{0}' 或 '{0}Attribute'</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="needs-review-translation">'{0}' 在 '{1}' 與 '{2}' 之間模稜兩可; 請使用 '@{0}' 或 '{0}Attribute'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">

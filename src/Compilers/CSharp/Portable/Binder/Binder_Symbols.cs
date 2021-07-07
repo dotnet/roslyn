@@ -1174,10 +1174,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
-                if (unconstructedType.IsGenericType && options.IsAttributeTypeLookup() && boundTypeArguments.Any(bta => bta.Type.IsTypeParameter() || bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()))
+                if (unconstructedType.IsGenericType
+                    && options.IsAttributeTypeLookup()
+                    && boundTypeArguments.FirstOrDefault(bta => bta.Type.IsTypeParameter() || bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()) is { HasType: true } badAttributeArgument)
                 {
-                    // error CS0416: 'T': an attribute argument cannot use type parameters
-                    diagnostics.Add(ErrorCode.ERR_AttrArgWithTypeVars, node.Location, boundTypeArguments.First(bta => bta.Type.IsTypeParameter() || bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()).ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                    diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, badAttributeArgument.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type

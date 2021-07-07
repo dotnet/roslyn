@@ -522,12 +522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeTypeWithoutSuffixViabilityUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
             bool resultWithoutSuffixIsViable = IsSingleViableAttributeType(result, out symbolWithoutSuffix, ref attributeTypeWithoutSuffixViabilityUseSiteInfo);
 
-            if (symbolWithoutSuffix is not null)
-            {
-                symbolWithoutSuffix = UnwrapAliasNoDiagnostics(symbolWithoutSuffix);
-                flagDisallowedGeneric(Compilation, symbolWithoutSuffix, result);
-            }
-
             // Result with 'Attribute' suffix added.
             LookupResult resultWithSuffix = null;
             Symbol symbolWithSuffix = null;
@@ -538,12 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultWithSuffix = LookupResult.GetInstance();
                 this.LookupSymbolsOrMembersInternal(resultWithSuffix, qualifierOpt, name + "Attribute", arity, basesBeingResolved, options, diagnose, ref useSiteInfo);
                 resultWithSuffixIsViable = IsSingleViableAttributeType(resultWithSuffix, out symbolWithSuffix, ref attributeTypeWithSuffixViabilityUseSiteInfo);
-
-                if (symbolWithSuffix is not null)
-                {
-                    symbolWithSuffix = UnwrapAliasNoDiagnostics(symbolWithSuffix);
-                    flagDisallowedGeneric(Compilation, symbolWithSuffix, resultWithSuffix);
-                }
             }
 
             if (resultWithoutSuffixIsViable && resultWithSuffixIsViable)
@@ -575,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if ((object)symbolWithoutSuffix != null) // was not ambiguous, but not viable
                     {
-                        result.SetFrom(generateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error, diagnose));
+                        result.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithoutSuffix, result.Error, diagnose));
                     }
                 }
 
@@ -585,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)symbolWithSuffix != null)
                         {
-                            resultWithSuffix.SetFrom(generateNonViableAttributeTypeResult(symbolWithSuffix, resultWithSuffix.Error, diagnose));
+                            resultWithSuffix.SetFrom(GenerateNonViableAttributeTypeResult(symbolWithSuffix, resultWithSuffix.Error, diagnose));
                         }
                     }
 
@@ -594,28 +582,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             resultWithSuffix?.Free();
-
-            static void flagDisallowedGeneric(CSharpCompilation compilation, Symbol symbol, LookupResult result)
-            {
-                if (!compilation.LanguageVersion.AllowGenericAttributes()
-                    && symbol is NamedTypeSymbol { IsGenericType: true })
-                {
-                    var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, symbol);
-                    result.SetFrom(LookupResult.NotAnAttributeType(symbol, diagInfo));
-                }
-            }
-
-            SingleLookupResult generateNonViableAttributeTypeResult(Symbol symbol, DiagnosticInfo diagInfo, bool diagnose)
-            {
-                Debug.Assert((object)symbol != null);
-
-                if (diagInfo == null)
-                {
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    CheckAttributeTypeViability(symbol, diagnose, ref diagInfo, ref discardedUseSiteInfo);
-                }
-                return LookupResult.NotAnAttributeType(symbol, diagInfo);
-            }
         }
 
         private bool IsAmbiguousResult(LookupResult result, out Symbol resultSymbol)
@@ -713,6 +679,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DiagnosticInfo discarded = null;
             return CheckAttributeTypeViability(UnwrapAliasNoDiagnostics(symbol), diagnose: false, diagInfo: ref discarded, ref attributeTypeViabilityUseSiteInfo);
+        }
+
+        private SingleLookupResult GenerateNonViableAttributeTypeResult(Symbol symbol, DiagnosticInfo diagInfo, bool diagnose)
+        {
+            Debug.Assert((object)symbol != null);
+
+            symbol = UnwrapAliasNoDiagnostics(symbol);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            CheckAttributeTypeViability(symbol, diagnose, ref diagInfo, ref discardedUseSiteInfo);
+            return LookupResult.NotAnAttributeType(symbol, diagInfo);
         }
 
         private bool CheckAttributeTypeViability(Symbol symbol, bool diagnose, ref DiagnosticInfo diagInfo, ref CompoundUseSiteInfo<AssemblySymbol> attributeTypeViabilityUseSiteInfo)

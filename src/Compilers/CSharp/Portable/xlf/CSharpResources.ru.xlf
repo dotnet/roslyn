@@ -77,6 +77,11 @@
         <target state="translated">Значение свойства, задаваемого только при инициализации, или значение индексатора "{0}" может быть присвоено только в инициализаторе объекта, в свойствах "this" или "base" в конструкторе экземпляра или в методе доступа "init".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">Атрибут "{0}" запрещено использовать в методах доступа к событиям. Он допустим только для объявлений "{1}".</target>
@@ -1120,6 +1125,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="new">generic attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -4581,11 +4591,6 @@
         <target state="translated">Невозможно преобразовать Null к параметру типа "{0}", так как он может быть типом значения, не допускающим значения Null. Используйте вместо этого "default({0})".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Класс атрибута "{0}" не может использоваться, так как он является универсальным.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
         <source>Duplicate constraint '{0}' for type parameter '{1}'</source>
         <target state="translated">Повторяющееся ограничение "{0}" для параметра типа "{1}".</target>
@@ -5813,11 +5818,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
         <target state="translated">"{0}" не в состоянии реализовать ни "{1}", ни "{2}", так как они могут быть идентичными для некоторых подстановок параметров типа.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">Универсальный тип не может быть производным от "{0}", так как это класс атрибута.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
@@ -7080,8 +7080,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">"{0}" неоднозначен между "{1}" и "{2}"; используйте либо "@{0}", либо "{0}Attribute".</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="needs-review-translation">"{0}" неоднозначен между "{1}" и "{2}"; используйте либо "@{0}", либо "{0}Attribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">

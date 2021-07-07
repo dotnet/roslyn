@@ -494,10 +494,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return self >= MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion();
         }
-
-        internal static bool AllowGenericAttributes(this LanguageVersion self)
-        {
-            return self >= MessageID.IDS_FeatureAllowGenericAttributes.RequiredVersion();
-        }
     }
 }
