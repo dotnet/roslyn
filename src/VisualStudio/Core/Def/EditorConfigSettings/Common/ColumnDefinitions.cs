@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             public const string Description = Prefix + CodeStylePrefix + "descriptionname";
             public const string Value = Prefix + CodeStylePrefix + "valuename";
             public const string Severity = Prefix + CodeStylePrefix + "severityname";
+            public const string HelpLink = Prefix + CodeStylePrefix + "helplinkname";
         }
 
         internal static class Formatting
