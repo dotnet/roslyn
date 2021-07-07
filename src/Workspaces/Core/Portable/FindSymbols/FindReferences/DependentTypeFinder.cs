@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Get all the projects that depend on 'project' as well as 'project' itself.
             return dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(project.Id)
-                                               .Concat(project.Id);
+                                  .Concat(project.Id);
         }
 
         private static List<Project> GetOrderedProjectsToExamine(

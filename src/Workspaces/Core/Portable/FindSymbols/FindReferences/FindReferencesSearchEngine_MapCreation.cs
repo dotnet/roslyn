@@ -213,6 +213,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         await foreach (var cascaded in DetermineCascadedSymbolsAsync(currentSymbol, cancellationToken).ConfigureAwait(false))
                             stack.Push(cascaded);
+
+                        foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false))
+                            stack.Push(linked);
                     }
                 }
             }
