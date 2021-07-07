@@ -554,6 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.UsingDirective;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return Label.NamespaceDeclaration;
 
                 case SyntaxKind.ClassDeclaration:
@@ -1355,7 +1356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return ((UsingDirectiveSyntax)node).Name;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).Name;
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return ((BaseNamespaceDeclarationSyntax)node).Name;
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:

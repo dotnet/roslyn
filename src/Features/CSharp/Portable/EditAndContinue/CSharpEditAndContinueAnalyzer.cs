@@ -1489,7 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return node.Span;
 
                 case SyntaxKind.NamespaceDeclaration:
-                    var ns = (NamespaceDeclarationSyntax)node;
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    var ns = (BaseNamespaceDeclarationSyntax)node;
                     return TextSpan.FromBounds(ns.NamespaceKeyword.SpanStart, ns.Name.Span.End);
 
                 case SyntaxKind.ClassDeclaration:
@@ -2500,7 +2501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.NamespaceDeclaration:
-                        ClassifyUpdate((NamespaceDeclarationSyntax)oldNode, (NamespaceDeclarationSyntax)newNode);
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        ClassifyUpdate((BaseNamespaceDeclarationSyntax)oldNode, (BaseNamespaceDeclarationSyntax)newNode);
                         return;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -2622,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 }
             }
 
-            private void ClassifyUpdate(NamespaceDeclarationSyntax oldNode, NamespaceDeclarationSyntax newNode)
+            private void ClassifyUpdate(BaseNamespaceDeclarationSyntax oldNode, BaseNamespaceDeclarationSyntax newNode)
             {
                 Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Name, newNode.Name));
                 ReportError(RudeEditKind.Renamed);
