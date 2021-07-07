@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName => _originalParam.IsCallerMemberName;
 
-        // From code review: Could we just return -1 for now and see if anyone would ask us to support the scenarios.
+        // We don't currently support caller argument expression for cloned begin/end invoke.
         internal override int CallerArgumentExpressionParameterIndex => -1;
 
         internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
