@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IConditionalAccessExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -1562,6 +1562,190 @@ Block[B9] - Exit
     Predecessors: [B8]
     Statements (0)
 ", DiagnosticDescription.None);
+        }
+
+        [Fact]
+        public void InvalidConditionalAccess_01()
+        {
+            var code = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+        _ = 123?[1, 2];
+    }/*</bind>*/
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+                //         _ = 123?[1, 2];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
+             };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1] [2] [3]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '123')
+                  Value: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+                      Children(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123, IsInvalid) (Syntax: '123')
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '123')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+                Leaving: {R2}
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[1, 2]')
+                  Value: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[1, 2]')
+                      Children(3):
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '2')
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '123')
+              Value: 
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: '123')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = 123?[1, 2];')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '_ = 123?[1, 2]')
+                  Left: 
+                    IDiscardOperation (Symbol: ? _) (OperationKind.Discard, Type: ?) (Syntax: '_')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123?[1, 2]')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+", expectedDiagnostics);
+        }
+
+        [Fact]
+        public void InvalidConditionalAccess_02()
+        {
+            var code = @"
+class C
+{
+    void M()
+    /*<bind>*/{
+        _ = 123?[1, 2].ToString();
+    }/*</bind>*/
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,16): error CS0023: Operator '?' cannot be applied to operand of type 'int'
+                //         _ = 123?[1, 2];
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(6, 16)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(code, @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1] [2] [3]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (3)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '123')
+                  Value: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+                      Children(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123, IsInvalid) (Syntax: '123')
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '123')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+                Leaving: {R2}
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[1, 2].ToString()')
+                  Value: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[1, 2].ToString()')
+                      Children(1):
+                          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '[1, 2].ToString')
+                            Children(1):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[1, 2]')
+                                  Children(3):
+                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+                                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '2')
+                                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '123')
+              Value: 
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: ?, Constant: null, IsInvalid, IsImplicit) (Syntax: '123')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '_ = 123?[1, ... ToString();')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '_ = 123?[1, ... .ToString()')
+                  Left: 
+                    IDiscardOperation (Symbol: ? _) (OperationKind.Discard, Type: ?) (Syntax: '_')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '123?[1, 2].ToString()')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+", expectedDiagnostics);
         }
     }
 }

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertAnonymousTypeToTupleCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertAnonymousTypeToTuple), Shared]
     internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider
         : AbstractConvertAnonymousTypeToTupleCodeFixProvider<
             ExpressionSyntax,

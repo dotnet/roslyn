@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
         }
 
+        /// <summary>
+        /// Figure out if the target runtime supports static abstract members in interfaces.
+        /// </summary>
+        internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
+        {
+            // https://github.com/dotnet/roslyn/issues/53800: Implement the actual check, this is a temporary stub. 
+            get => RuntimeSupportsDefaultInterfaceImplementation;
+        }
+
         private bool RuntimeSupportsFeature(SpecialMember feature)
         {
             Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
@@ -784,9 +793,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeReferences,
             bool isWellKnownType,
             out (AssemblySymbol, AssemblySymbol) conflicts,
-            DiagnosticBag warnings = null,
+            DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
+            // Type from this assembly always wins.
+            // After that we look in references, which may yield ambiguities. If `ignoreCorLibraryDuplicatedTypes` is set,
+            // corlib does not contribute to ambiguities (corlib loses over other references).
+            // For well-known types before C# 7, ambiguities are reported as a warning and the first candidate wins.
+            // For other types, when `ignoreCorLibraryDuplicatedTypes` isn't set, finding a candidate in corlib resolves
+            // ambiguities (corlib wins over other references).
+
+            Debug.Assert(warnings is null || isWellKnownType);
+
             conflicts = default;
             NamedTypeSymbol result;
 
@@ -802,6 +820,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)result != null || !includeReferences)
             {
                 return result;
+            }
+
+            // Then try corlib, when finding a result there means we've found the final result
+            bool isWellKnownTypeBeforeCSharp7 = isWellKnownType && warnings is not null;
+            bool skipCorLibrary = false;
+
+            if (CorLibrary != (object)this &&
+                !CorLibrary.IsMissing &&
+                !isWellKnownTypeBeforeCSharp7 && !ignoreCorLibraryDuplicatedTypes)
+            {
+                NamedTypeSymbol corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
+                skipCorLibrary = true;
+
+                if (isValidCandidate(corLibCandidate, isWellKnownType))
+                {
+                    return corLibCandidate;
+                }
             }
 
             Debug.Assert(this is SourceAssemblySymbol,
@@ -824,24 +859,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(!(this is SourceAssemblySymbol && assembly.IsMissing)); // Non-source assemblies can have missing references
 
+                if (skipCorLibrary && assembly == (object)CorLibrary)
+                {
+                    continue;
+                }
+
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
-                if (isWellKnownType && !IsValidWellKnownType(candidate))
-                {
-                    candidate = null;
-                }
-
-                if ((object)candidate == null)
+                if (!isValidCandidate(candidate, isWellKnownType))
                 {
                     continue;
                 }
 
-                if (candidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
-                {
-                    continue;
-                }
-
-                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything));
 
                 if ((object)result != null)
                 {
@@ -861,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    if (warnings == null)
+                    if (warnings is null)
                     {
                         conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
@@ -880,6 +910,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             assemblies.Free();
             return result;
+
+            bool isValidCandidate(NamedTypeSymbol candidate, bool isWellKnownType)
+            {
+                return candidate is not null
+                    && (!isWellKnownType || IsValidWellKnownType(candidate))
+                    && !candidate.IsHiddenByCodeAnalysisEmbeddedAttribute();
+            }
         }
 
         private bool IsInCorLib(NamedTypeSymbol type)

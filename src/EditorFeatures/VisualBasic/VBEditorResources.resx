@@ -135,9 +135,6 @@
   <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
   </data>
-  <data name="Format_Document" xml:space="preserve">
-    <value>Format Document</value>
-  </data>
   <data name="Formatting_Document" xml:space="preserve">
     <value>Formatting Document...</value>
   </data>

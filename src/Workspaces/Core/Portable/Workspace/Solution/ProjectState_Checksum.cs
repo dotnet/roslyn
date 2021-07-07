@@ -43,11 +43,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    // Here, we use the _documentStates and _additionalDocumentStates and visit them in order; we ensure that those are
-                    // sorted by ID so we have a consistent sort.
-                    var documentChecksumsTasks = _documentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var additionalDocumentChecksumTasks = _additionalDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
-                    var analyzerConfigDocumentChecksumTasks = _analyzerConfigDocumentStates.Select(pair => pair.Value.GetChecksumAsync(cancellationToken));
+                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
 
                     var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
 
@@ -78,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                         new AnalyzerConfigDocumentChecksumCollection(analyzerConfigDocumentChecksums));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

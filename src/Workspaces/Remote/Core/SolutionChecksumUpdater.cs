@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -15,6 +16,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
+    /// <summary>
+    /// This class runs against the in-process workspace, and when it sees changes proactively pushes them to
+    /// the out-of-process workspace through the <see cref="IRemoteAssetSynchronizationService"/>.
+    /// </summary>
     internal sealed class SolutionChecksumUpdater : GlobalOperationAwareIdleProcessor
     {
         private readonly Workspace _workspace;
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
             : base(listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater),
                    workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                   workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+                   TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS)), shutdownToken)
         {
             _workspace = workspace;
             _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);

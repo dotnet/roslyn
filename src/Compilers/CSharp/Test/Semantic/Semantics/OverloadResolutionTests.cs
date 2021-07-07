@@ -8986,7 +8986,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -9017,15 +9017,15 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }

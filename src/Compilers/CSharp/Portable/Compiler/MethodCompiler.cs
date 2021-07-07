@@ -554,24 +554,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.Field:
                         {
-                            var field = (FieldSymbol)member;
-                            var fieldSymbol = (field.TupleUnderlyingField ?? field) as SourceMemberFieldSymbol;
-                            if ((object)fieldSymbol != null)
+                            var fieldSymbol = (FieldSymbol)member;
+                            if (member is TupleErrorFieldSymbol)
                             {
-                                if (fieldSymbol.IsConst)
-                                {
-                                    // We check specifically for constant fields with bad values because they never result
-                                    // in bound nodes being inserted into method bodies (in which case, they would be covered
-                                    // by the method-level check).
-                                    ConstantValue constantValue = fieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
-                                    SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
-                                }
+                                break;
+                            }
 
-                                if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
-                                {
-                                    // force the generation of implementation types for fixed-size buffers
-                                    TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
-                                }
+                            if (fieldSymbol.IsConst)
+                            {
+                                // We check specifically for constant fields with bad values because they never result
+                                // in bound nodes being inserted into method bodies (in which case, they would be covered
+                                // by the method-level check).
+                                ConstantValue constantValue = fieldSymbol.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
+                                SetGlobalErrorIfTrue(constantValue == null || constantValue.IsBad);
+                            }
+
+                            if (fieldSymbol.IsFixedSizeBuffer && compilationState.Emitting)
+                            {
+                                // force the generation of implementation types for fixed-size buffers
+                                TypeSymbol discarded = fieldSymbol.FixedImplementationType(compilationState.ModuleBuilderOpt);
                             }
                             break;
                         }
@@ -810,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_globalHasErrors)
             {
                 var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
-                foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
+                foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken).ForwardingMethods)
                 {
                     Debug.Assert(synthesizedExplicitImpl.SynthesizesLoweredBoundBody);
                     synthesizedExplicitImpl.GenerateMethodBody(compilationState, discardedDiagnostics);
@@ -1687,7 +1688,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            if (method is SourceMemberMethodSymbol sourceMethod)
+            if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
+            {
+                body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+            }
+            else if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 
@@ -1909,10 +1914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
-            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax
+                || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
             // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
@@ -1934,7 +1941,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            if (containingType.IsStructType() || containingType.IsEnumType())
+            {
+                return null;
+            }
+            else if (constructor is SynthesizedRecordCopyCtor copyCtor)
             {
                 return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
             }

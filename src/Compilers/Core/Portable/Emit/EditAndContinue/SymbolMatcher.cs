@@ -2,26 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class SymbolMatcher
     {
-        public abstract Cci.ITypeReference MapReference(Cci.ITypeReference reference);
-        public abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
-        public abstract Cci.INamespace MapNamespace(Cci.INamespace @namespace);
+        public abstract Cci.ITypeReference? MapReference(Cci.ITypeReference reference);
+        public abstract Cci.IDefinition? MapDefinition(Cci.IDefinition definition);
+        public abstract Cci.INamespace? MapNamespace(Cci.INamespace @namespace);
 
-        public ISymbolInternal MapDefinitionOrNamespace(ISymbolInternal symbol)
+        public ISymbolInternal? MapDefinitionOrNamespace(ISymbolInternal symbol)
         {
             var adapter = symbol.GetCciAdapter();
-            return (adapter is Cci.IDefinition definition) ? MapDefinition(definition)?.GetInternalSymbol() : MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
+            return (adapter is Cci.IDefinition definition) ?
+                MapDefinition(definition)?.GetInternalSymbol() :
+                MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
         }
 
         public EmitBaseline MapBaselineToCompilation(
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 eventMapAdded: baseline.EventMapAdded,
                 propertyMapAdded: baseline.PropertyMapAdded,
                 methodImplsAdded: baseline.MethodImplsAdded,
+                customAttributesAdded: baseline.CustomAttributesAdded,
                 tableEntriesAdded: baseline.TableEntriesAdded,
                 blobStreamLengthAdded: baseline.BlobStreamLengthAdded,
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var result = new Dictionary<K, V>(Cci.SymbolEquivalentEqualityComparer.Instance);
             foreach (var pair in items)
             {
-                var key = (K)MapDefinition(pair.Key);
+                var key = (K?)MapDefinition(pair.Key);
 
                 // Result may be null if the definition was deleted, or if the definition
                 // was synthesized (e.g.: an iterator type) and the method that generated
@@ -102,8 +104,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var key = pair.Key;
                 var value = pair.Value;
-                var type = (Cci.ITypeDefinition)MapDefinition(value.Type);
-                Debug.Assert(type != null);
+                var type = (Cci.ITypeDefinition?)MapDefinition(value.Type);
+                RoslynDebug.Assert(type != null);
                 result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
             }
 

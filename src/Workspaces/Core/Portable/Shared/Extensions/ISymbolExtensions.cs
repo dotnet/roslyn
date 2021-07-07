@@ -15,6 +15,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
-                catch
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                 }
             }
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
-                    xpathValue = BuildXPathForElement(element.Parent);
+                    xpathValue = BuildXPathForElement(element.Parent!);
                 }
                 else
                 {
@@ -424,28 +425,46 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
 
-                var loadedElements = TrySelectNodes(document, xpathValue);
-                if (loadedElements is null)
-                {
-                    return Array.Empty<XNode>();
-                }
-
-                if (loadedElements?.Length > 0)
-                {
-                    // change the current XML file path for nodes contained in the document:
-                    // prototype(inheritdoc): what should the file path be?
-                    var result = RewriteMany(symbol, visitedSymbols, compilation, loadedElements, cancellationToken);
-
-                    // The elements could be rewritten away if they are includes that refer to invalid
-                    // (but existing and accessible) XML files.  If this occurs, behave as if we
-                    // had failed to find any XPath results (as in Dev11).
-                    if (result.Length > 0)
+                // Consider the following code, we want Test<int>.Clone to say "Clones a Test<int>" instead of "Clones a int", thus
+                // we rewrite `typeparamref`s as cref pointing to the correct type:
+                /*
+                    public class Test<T> : ICloneable<Test<T>>
                     {
-                        return result;
+                        /// <inheritdoc/>
+                        public Test<T> Clone() => new();
+                    }
+
+                    /// <summary>A type that has clonable instances.</summary>
+                    /// <typeparam name="T">The type of instances that can be cloned.</typeparam>
+                    public interface ICloneable<T>
+                    {
+                        /// <summary>Clones a <typeparamref name="T"/>.</summary>
+                        public T Clone();
+                    }
+                */
+                // Note: there is no way to cref an instantiated generic type. See https://github.com/dotnet/csharplang/issues/401
+                var typeParameterRefs = document.Descendants(DocumentationCommentXmlNames.TypeParameterReferenceElementName).ToImmutableArray();
+                foreach (var typeParameterRef in typeParameterRefs)
+                {
+                    if (typeParameterRef.Attribute(DocumentationCommentXmlNames.NameAttributeName) is var typeParamName)
+                    {
+                        var index = symbol.OriginalDefinition.GetAllTypeParameters().IndexOf(p => p.Name == typeParamName.Value);
+                        if (index >= 0)
+                        {
+                            var typeArgs = symbol.GetAllTypeArguments();
+                            if (index < typeArgs.Length)
+                            {
+                                var docId = typeArgs[index].GetDocumentationCommentId();
+                                var replacement = new XElement(DocumentationCommentXmlNames.SeeElementName);
+                                replacement.SetAttributeValue(DocumentationCommentXmlNames.CrefAttributeName, docId);
+                                typeParameterRef.ReplaceWith(replacement);
+                            }
+                        }
                     }
                 }
 
-                return null;
+                var loadedElements = TrySelectNodes(document, xpathValue);
+                return loadedElements ?? Array.Empty<XNode>();
             }
             catch (XmlException)
             {
@@ -487,7 +506,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     if (typeSymbol.TypeKind == TypeKind.Class)
                     {
-                        // prototype(inheritdoc): when does base class take precedence over interface?
+                        // Classes use the base type as the default inheritance candidate. A different target (e.g. an
+                        // interface) can be provided via the 'path' attribute.
                         return typeSymbol.BaseType;
                     }
                     else if (typeSymbol.TypeKind == TypeKind.Interface)
@@ -571,7 +591,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 XContainer temp = new XElement("temp");
                 temp.Add(node);
-                copy = temp.LastNode;
+                copy = temp.LastNode!;
                 temp.RemoveNodes();
             }
 

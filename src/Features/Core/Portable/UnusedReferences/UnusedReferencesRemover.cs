@@ -4,10 +4,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
@@ -26,28 +26,47 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         };
 
         public static async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
-            Project project,
+            Solution solution,
+            string projectFilePath,
             ImmutableArray<ReferenceInfo> references,
             CancellationToken cancellationToken)
         {
-            // Create a lookup of used assembly paths
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation is null)
+            var projects = solution.Projects
+                .Where(project => projectFilePath.Equals(project.FilePath, System.StringComparison.OrdinalIgnoreCase));
+
+            HashSet<string> usedAssemblyFilePaths = new();
+            HashSet<string> usedProjectFileNames = new();
+
+            foreach (var project in projects)
             {
-                return ImmutableArray<ReferenceInfo>.Empty;
+                // Create a lookup of used assembly paths
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                if (compilation is null)
+                {
+                    continue;
+                }
+
+                var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
+
+                usedAssemblyFilePaths.AddRange(usedAssemblyReferences
+                    .OfType<PortableExecutableReference>()
+                    .Select(reference => reference.FilePath)
+                    .WhereNotNull());
+
+                // Compilation references do not contain the full path to the output assembly so we track them
+                // by file name.
+                usedProjectFileNames.AddRange(usedAssemblyReferences
+                    .OfType<CompilationReference>()
+                    .Select(reference => reference.Compilation.SourceModule.MetadataName)
+                    .WhereNotNull());
             }
 
-            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
-            HashSet<string> usedAssemblyFilePaths = new(usedAssemblyReferences
-                .OfType<PortableExecutableReference>()
-                .Select(reference => reference.FilePath)
-                .WhereNotNull());
-
-            return GetUnusedReferences(usedAssemblyFilePaths, references);
+            return GetUnusedReferences(usedAssemblyFilePaths, usedProjectFileNames, references);
         }
 
         internal static ImmutableArray<ReferenceInfo> GetUnusedReferences(
             HashSet<string> usedAssemblyFilePaths,
+            HashSet<string> usedProjectFileNames,
             ImmutableArray<ReferenceInfo> references)
         {
             var unusedReferencesBuilder = ImmutableArray.CreateBuilder<ReferenceInfo>();
@@ -76,7 +95,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
                 var unusedReferences = RemoveDirectlyUsedReferences(
                     referencesForReferenceType,
-                    usedAssemblyFilePaths);
+                    usedAssemblyFilePaths,
+                    usedProjectFileNames);
 
                 // Update with the references that are remaining.
                 if (unusedReferences.IsEmpty)
@@ -110,7 +130,8 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
         private static ImmutableArray<ReferenceInfo> RemoveDirectlyUsedReferences(
             ImmutableArray<ReferenceInfo> references,
-            HashSet<string> usedAssemblyFilePaths)
+            HashSet<string> usedAssemblyFilePaths,
+            HashSet<string> usedProjectFileNames)
         {
             // In this method we will check if a reference directly brings in a used compilation assembly.
             //
@@ -122,19 +143,42 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
 
             foreach (var reference in references)
             {
-                // We will look at the compilation assemblies brought in directly by the
-                // references to see if they are used.
-                if (!reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
+                if (reference.ReferenceType == ReferenceType.Project)
                 {
-                    // None of the assemblies brought into this compilation are in the
-                    // used assemblies list, so we will consider the reference unused.
-                    unusedReferencesBuilder.Add(reference);
-                    continue;
+                    // Since we only know project references by their CompilationReference which
+                    // does not include the full output path. We look only at the file name of the
+                    // compilation assembly and compare it with our list of used project assembly names.
+                    var projectAssemblyFileNames = reference.CompilationAssemblies
+                        .SelectAsArray(assemblyPath => Path.GetFileName(assemblyPath));
+
+                    // We will look at the project assemblies brought in directly by the
+                    // references to see if they are used.
+                    if (!projectAssemblyFileNames.Any(usedProjectFileNames.Contains))
+                    {
+                        // None of the project assemblies brought into this compilation are in the
+                        // used assemblies list, so we will consider the reference unused.
+                        unusedReferencesBuilder.Add(reference);
+                        continue;
+                    }
+
+                    // Remove the project file name now that we've identified it.
+                    usedProjectFileNames.ExceptWith(projectAssemblyFileNames);
+                }
+                else
+                {
+                    // We will look at the compilation assemblies brought in directly by the
+                    // references to see if they are used.
+                    if (!reference.CompilationAssemblies.Any(usedAssemblyFilePaths.Contains))
+                    {
+                        // None of the assemblies brought into this compilation are in the
+                        // used assemblies list, so we will consider the reference unused.
+                        unusedReferencesBuilder.Add(reference);
+                        continue;
+                    }
                 }
 
                 // Remove all assemblies that are brought into this compilation by this reference.
                 usedAssemblyFilePaths.ExceptWith(GetAllCompilationAssemblies(reference));
-
             }
 
             return unusedReferencesBuilder.ToImmutable();
@@ -192,16 +236,17 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<Project> UpdateReferencesAsync(
-            Project project,
+        public static async Task<Solution> UpdateReferencesAsync(
+            Solution solution,
+            string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var referenceCleanupService = project.Solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
+            var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
-            await ApplyReferenceUpdatesAsync(referenceCleanupService, project.FilePath!, referenceUpdates, cancellationToken).ConfigureAwait(true);
+            await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
 
-            return project.Solution.Workspace.CurrentSolution.GetRequiredProject(project.Id);
+            return solution.Workspace.CurrentSolution;
         }
 
         internal static async Task ApplyReferenceUpdatesAsync(

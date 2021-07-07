@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.Cci;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -30,10 +28,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
-            Debug.Assert(definitionMap != null);
-            Debug.Assert(edits != null);
-            Debug.Assert(isAddedSymbol != null);
-
             _definitionMap = definitionMap;
             _isAddedSymbol = isAddedSymbol;
             _changes = CalculateChanges(edits);
@@ -58,11 +52,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public SymbolChange GetChange(IDefinition def)
         {
-            ISymbolInternal symbol = def.GetInternalSymbol();
-            var synthesizedDef = symbol as ISynthesizedMethodBodyImplementationSymbol;
-            if (synthesizedDef != null)
+            var symbol = def.GetInternalSymbol();
+            if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedDef)
             {
-                Debug.Assert(synthesizedDef.Method != null);
+                RoslynDebug.Assert(synthesizedDef.Method != null);
 
                 var generator = synthesizedDef.Method;
                 ISymbolInternal synthesizedSymbol = synthesizedDef;
@@ -207,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected abstract ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol);
+        protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
 
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelSourceTypeDefinitions(EmitContext context)
         {
@@ -255,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
 
                 var member = edit.NewSymbol;
+                RoslynDebug.AssertNotNull(member);
 
                 // Partial methods are supplied as implementations but recorded
                 // internally as definitions since definitions are used in emit.
@@ -284,26 +278,17 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             while (true)
             {
-                symbol = GetContainingSymbol(symbol);
-                if (symbol == null)
+                var containingSymbol = GetContainingSymbol(symbol);
+                if (containingSymbol == null || changes.ContainsKey(containingSymbol))
                 {
                     return;
                 }
 
-                if (changes.ContainsKey(symbol))
-                {
-                    return;
-                }
+                var change = containingSymbol.Kind is SymbolKind.Property or SymbolKind.Event ?
+                    SymbolChange.Updated : SymbolChange.ContainsChanges;
 
-                var kind = symbol.Kind;
-                if (kind == SymbolKind.Property || kind == SymbolKind.Event)
-                {
-                    changes.Add(symbol, SymbolChange.Updated);
-                }
-                else
-                {
-                    changes.Add(symbol, SymbolChange.ContainsChanges);
-                }
+                changes.Add(containingSymbol, change);
+                symbol = containingSymbol;
             }
         }
 
@@ -314,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// field and the accessor methods. By default, the containing
         /// symbol is simply Symbol.ContainingSymbol.
         /// </summary>
-        private static ISymbol GetContainingSymbol(ISymbol symbol)
+        private static ISymbol? GetContainingSymbol(ISymbol symbol)
         {
             // This approach of walking up the symbol hierarchy towards the
             // root, rather than walking down to the leaf symbols, seems

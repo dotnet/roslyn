@@ -12,7 +12,10 @@
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/netcoreapp3.1/BuildValidator.dll",
       "args": [
-        "--assembliesPath", "./artifacts/obj/RunTests",
+        "--assembliesPath", "./artifacts/obj/csc/Debug/netcoreapp3.1",
+        "--referencesPath", "./artifacts/bin",
+        "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref",
+        "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Ref",
         "--debugPath", "./artifacts/BuildValidator",
         "--sourcePath", "."
       ],

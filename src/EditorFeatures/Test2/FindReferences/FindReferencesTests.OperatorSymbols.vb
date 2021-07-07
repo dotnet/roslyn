@@ -108,6 +108,138 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|==|] new A();
+    }
+    public static bool operator {|Definition:$$==|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator !=(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnNotEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|!=|] new A();
+    }
+    public static bool operator ==(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$!=|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnGreaterThanOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|>|] new A();
+    }
+    public static bool operator {|Definition:$$>|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator <(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnLessThanOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|<|] new A();
+    }
+    public static bool operator >(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$<|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnGreaterThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|>=|] new A();
+    }
+    public static bool operator {|Definition:$$>=|}(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator <=(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(52654, "https://github.com/dotnet/roslyn/issues/52654")>
+        Public Async Function TestCSharpFindReferencesOnLessThanOrEqualsOperator(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class A
+{
+    void Goo()
+    {
+        var x = new A() [|<=|] new A();
+    }
+    public static bool operator >=(A left, A right) => throw new System.NotImplementedException();
+    public static bool operator {|Definition:$$<=|}(A left, A right) => throw new System.NotImplementedException();
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestVisualBasicFindReferencesOnUnaryOperatorOverload(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -326,7 +458,7 @@ class A
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharpFindOperatorUsedInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestCSharpFindOperatorUsedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -348,8 +480,277 @@ class B
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractConversionOperatorInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:i$$nt|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:int|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:int|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:i$$nt|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator int(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator int(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:i$$nt|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaApi1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:int|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:i$$nt|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractConversionOperatorViaApi2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I5<T> where T : I5<T>
+{
+    abstract static implicit operator {|Definition:int|}(T x);
+}
+
+class C5_1 : I5<C5_1>
+{
+    public static implicit operator {|Definition:in$$t|}(C5_1 x) => default;
+}
+
+class C5_2 : I5<C5_2>
+{
+    static implicit I5<C5_2>.operator {|Definition:int|}(C5_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+$$|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaApi1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:$$+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaApi2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:$$+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator {|Definition:$$+|}(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator +(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpStaticAbstractOperatorViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+interface I4<T> where T : I4<T>
+{
+    abstract static int operator {|Definition:+|}(T x);
+}
+
+class C4_1 : I4<C4_1>
+{
+    public static int operator +(C4_1 x) => default;
+}
+
+class C4_2 : I4<C4_2>
+{
+    static int I4<C4_2>.operator {|Definition:$$+|}(C4_2 x) => default;
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
     End Class
 End Namespace

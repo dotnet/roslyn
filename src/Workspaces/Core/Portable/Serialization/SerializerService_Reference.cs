@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public static void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             }
         }
 
-        public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -377,14 +377,18 @@ namespace Microsoft.CodeAnalysis.Serialization
                         metadataKind = (MetadataImageKind)reader.ReadInt32();
                         Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
                         pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
+#pragma warning restore CA2016 
                     }
 
                     return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
                 }
 
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
+#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
                 return (ReadModuleMetadataFrom(reader, kind), storages: default);
+#pragma warning restore CA2016
             }
 
             if (metadataKind == MetadataImageKind.Assembly)

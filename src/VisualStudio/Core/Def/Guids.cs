@@ -9,10 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class Guids
     {
-        // Deprecated, and can be removed once https://github.com/dotnet/roslyn/pull/9186 is merged
-        // and the closed solution no longer depends on this.
-        public const string CSharpOptionPageFormattingIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
-
         public const string CSharpPackageIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
         public const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
         public const string CSharpLanguageServiceIdString = "694dd9b6-b865-4c5b-ad85-86356e9c88dc";
@@ -128,6 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
+
+        public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
+        public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
 
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids

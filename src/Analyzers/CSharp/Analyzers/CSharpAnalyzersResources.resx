@@ -215,6 +215,9 @@
   <data name="Use_is_null_check" xml:space="preserve">
     <value>Use 'is null' check</value>
   </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+  </data>
   <data name="Use_simple_using_statement" xml:space="preserve">
     <value>Use simple 'using' statement</value>
   </data>
@@ -235,7 +238,7 @@
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
   <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</value>
     <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
   </data>
   <data name="Deconstruct_variable_declaration" xml:space="preserve">
@@ -313,5 +316,8 @@
   </data>
   <data name="Blank_line_not_allowed_after_constructor_initializer_colon" xml:space="preserve">
     <value>Blank line not allowed after constructor initializer colon</value>
+  </data>
+  <data name="Null_check_can_be_clarified" xml:space="preserve">
+    <value>Null check can be clarified</value>
   </data>
 </root>

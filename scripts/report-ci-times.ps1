@@ -122,8 +122,8 @@ function initialPass() {
             # use builds from any branch
             $false
 
-            # distrust all PR/feature/release branch builds and only get master CI builds
-            # $refName -ne "refs/heads/master"
+            # distrust all PR/feature/release branch builds and only get main CI builds
+            # $refName -ne "refs/heads/main"
 
             # ignore specific PRs which modify infra and thus don't measure the "production" behavior
             # $refName -eq "refs/pulls/50046/merge" -or $refName -eq "refs/pulls/49626/merge"

@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
         Public Sub New(
             selectorService As ITextStructureNavigatorSelectorService,
             contentTypeService As IContentTypeRegistryService,
-            waitIndicator As IWaitIndicator)
-            MyBase.New(selectorService, contentTypeService, waitIndicator)
+            uiThreadOperationExecutor As IUIThreadOperationExecutor)
+            MyBase.New(selectorService, contentTypeService, uiThreadOperationExecutor)
         End Sub
 
         Protected Overrides Function ShouldSelectEntireTriviaFromStart(trivia As SyntaxTrivia) As Boolean

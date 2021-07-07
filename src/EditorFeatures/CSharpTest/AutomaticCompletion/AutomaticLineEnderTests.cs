@@ -1259,6 +1259,74 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestNonEmptyGetAccessor()
+        {
+            Test(@"
+public Class Bar
+{
+    public int P
+    {
+        get
+        {
+            if (true)
+            $$
+            {
+                return 1;
+            }
+        }
+    }   
+}",
+                @"
+public Class Bar
+{
+    public int P
+    {
+        get
+        {
+            i$$f ($$true$$)$$
+            {
+                return 1;
+            }
+        }
+    }   
+}");
+        }
+
+        [WpfFact]
+        public void TestNonEmptySetAccessor()
+        {
+            Test(@"
+public Class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            if (true)
+            $$
+            {
+            }
+        }
+    }   
+}",
+                @"
+public Class Bar
+{
+    public int P
+    {
+        get;
+        set
+        {
+            i$$f (t$$rue)$$
+            {
+            }
+        }
+    }   
+}");
+        }
+
+        [WpfFact]
         public void TestSetAccessorOfIndexer()
         {
             Test(@"
@@ -1471,6 +1539,27 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestNonEmptyProperty()
+        {
+            Test(@"
+public class Bar
+{
+    public int Foo
+    {
+        get { }
+        $$
+    }
+}", @"
+public class Bar
+{
+    public int Foo
+    {
+        $$get$$ { }$$
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestMulitpleFields()
         {
             Test(@"
@@ -1529,6 +1618,29 @@ public class Bar
 }";
             Test(firstResult, initialMarkup);
             Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestNonEmptyEvent()
+        {
+            Test(@"
+using System;
+public class Bar
+{
+    public event EventHandler Foo
+    {
+        add { }
+        $$
+    }
+}", @"
+using System;
+public class Bar
+{
+    public event EventHandler Foo
+    {
+        $$add$$ {$$ }$$
+    }
+}");
         }
 
         [WpfFact]
@@ -1806,6 +1918,40 @@ public class Foo
 
             Test(firstResult, initialMarkup);
             Test(secondResult, firstResult);
+        }
+
+        [WpfFact]
+        public void TestObjectCreationExpressionWithNonEmptyInitializer()
+        {
+            Test(
+                @"
+public class Bar
+{
+    public void M()
+    {
+        var a = new Foo() { HH = 1, PP = 2 };
+        $$
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}",
+                @"
+public class Bar
+{
+    public void M()
+    {
+        var a = n$$ew Fo$$o($$) {$$ HH = 1$$, PP = 2 $$};
+    }
+}
+public class Foo
+{
+    public int HH { get; set; }
+    public int PP { get; set; }
+}");
+
         }
 
         [WpfFact]

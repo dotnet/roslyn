@@ -255,15 +255,15 @@ class D
             var comp = CreateCompilationWithFunctionPointersAndIl(source, il);
 
             comp.VerifyDiagnostics(
-                // (6,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (6,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i1 = ref c.Field1();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<int>").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field1()").WithArguments("delegate*<ref int>").WithLocation(6, 26),
                 // (6,28): error CS0570: 'C.Field1' is not supported by the language
                 //         ref int i1 = ref c.Field1();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field1").WithArguments("C.Field1").WithLocation(6, 28),
-                // (7,26): error CS0570: 'delegate*<int>' is not supported by the language
+                // (7,26): error CS0570: 'delegate*<ref int>' is not supported by the language
                 //         ref int i2 = ref c.Field2();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<int>").WithLocation(7, 26),
+                Diagnostic(ErrorCode.ERR_BindToBogus, "c.Field2()").WithArguments("delegate*<ref int>").WithLocation(7, 26),
                 // (7,28): error CS0570: 'C.Field2' is not supported by the language
                 //         ref int i2 = ref c.Field2();
                 Diagnostic(ErrorCode.ERR_BindToBogus, "Field2").WithArguments("C.Field2").WithLocation(7, 28),
@@ -3223,18 +3223,18 @@ unsafe class C
                 // (26,36): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
                 //         delegate*<object> ptr14 = &M6;
                 Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(26, 36),
-                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<object>'
+                // (27,40): error CS8758: Ref mismatch between 'C.M6()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr15 = &M6;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<object>").WithLocation(27, 40),
-                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M6").WithArguments("C.M6()", "delegate*<ref object>").WithLocation(27, 40),
+                // (28,40): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref object>'
                 //         delegate*<ref object> ptr16 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(28, 40),
-                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref object>").WithLocation(28, 40),
+                // (29,49): error CS8758: Ref mismatch between 'C.M5()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr17 = &M5;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<object>").WithLocation(29, 49),
-                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<object>'
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M5").WithArguments("C.M5()", "delegate*<ref readonly object>").WithLocation(29, 49),
+                // (30,49): error CS8758: Ref mismatch between 'C.M7()' and function pointer 'delegate*<ref readonly object>'
                 //         delegate*<ref readonly object> ptr18 = &M7;
-                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<object>").WithLocation(30, 49)
+                Diagnostic(ErrorCode.ERR_FuncPtrRefMismatch, "M7").WithArguments("C.M7()", "delegate*<ref readonly object>").WithLocation(30, 49)
             );
         }
 
@@ -5314,7 +5314,7 @@ unsafe class C
     }
 }");
 
-            verifier.VerifyIL(@"C.M<T>(delegate*<T>, delegate*<T>)", @"
+            verifier.VerifyIL(@"C.M<T>(delegate*<ref T>, delegate*<T>)", @"
 {
   // Code size       34 (0x22)
   .maxstack  1
@@ -6321,10 +6321,10 @@ unsafe class Derived : Base
             comp.VerifyDiagnostics(
                 // (9,29): error CS0115: 'Derived.M1(delegate*<{refKind2} string>)': no suitable method found to override
                 //     protected override void M1(delegate*<{refKind2} string> ptr) {}
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<string>)").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments($"Derived.M1(delegate*<{(string.IsNullOrWhiteSpace(refKind2) ? "" : refKind2)}string>)").WithLocation(9, 29),
                 // (10,49): error CS0508: 'Derived.M2()': return type must be 'delegate*<{refKind1} string>' to match overridden member 'Base.M2()'
                 //     protected override delegate*<{refKind2} string> M2() => throw null;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<string>").WithLocation(10, 42 + refKind2.Length)
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("Derived.M2()", "Base.M2()", $"delegate*<{(string.IsNullOrWhiteSpace(refKind1) ? "" : refKind1)}string>").WithLocation(10, 42 + refKind2.Length)
             );
         }
 
@@ -7078,12 +7078,12 @@ unsafe public class C
                 // (18,32): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
                 //         ref string? str3 = ref ptr1(ref str2);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1(ref str2)").WithArguments("string", "string?").WithLocation(18, 32),
-                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string?, string>'.
+                // (19,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string?, ref string>'.
                 //         delegate*<ref string?, ref string> ptr2 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string?, string>").WithLocation(19, 51),
-                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, string>' doesn't match target type 'delegate*<ref string, string?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string?, ref string>").WithLocation(19, 51),
+                // (20,51): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string, ref string>' doesn't match target type 'delegate*<ref string, ref string?>'.
                 //         delegate*<ref string, ref string?> ptr3 = ptr1;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, string>", "delegate*<ref string, string?>").WithLocation(20, 51)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr1").WithArguments("delegate*<ref string, ref string>", "delegate*<ref string, ref string?>").WithLocation(20, 51)
             );
         }
 
@@ -7787,10 +7787,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (6,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(6, 6),
-                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (11,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(11, 10)
             );
@@ -8688,6 +8688,51 @@ class D
         }
 
         [Fact]
+        [WorkItem(54113, "https://github.com/dotnet/roslyn/issues/54113")]
+        public void UnmanagedCallersOnlyDefinedOnConversion()
+        {
+            var il = UnmanagedCallersOnlyAttributeIl + @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname static 
+        int32 op_Implicit (
+            class C i
+        ) cil managed 
+    {
+        // [System.Runtime.InteropServices.UnmanagedCallersOnly]
+        .custom instance void System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        IL_0000: ldc.i4.0
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+            var comp = CreateCompilationWithIL(@"
+class Test
+{
+    void M(C x)
+    {
+        _ = (int)x;
+    }
+}
+", il);
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UnmanagedCallersOnlyDefinedOnProperty_InSource()
         {
             var comp = CreateCompilation(new[] { @"
@@ -8708,10 +8753,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -8793,7 +8838,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,28): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     static int Prop { [UnmanagedCallersOnly] get {} }
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 28)
             );
@@ -8933,10 +8978,10 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] set => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10),
-                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (8,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly] get => throw null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(8, 10)
             );
@@ -9014,7 +9059,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9076,7 +9121,7 @@ class C
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (5,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(5, 6)
             );
@@ -9214,7 +9259,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (12,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(12, 6)
             );
@@ -9246,7 +9291,7 @@ public static class CExt
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (14,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(14, 6)
             );
@@ -9745,7 +9790,7 @@ namespace System.Runtime.InteropServices
                 // (7,10): error CS8893: 'UnmanagedCallersOnlyAttribute' is not a valid calling convention type for 'UnmanagedCallersOnly'.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_InvalidUnmanagedCallersOnlyCallConv, "UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })").WithArguments("System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute").WithLocation(7, 10),
-                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,10): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         [UnmanagedCallersOnly(CallConvs = new[] { typeof(UnmanagedCallersOnlyAttribute) })]
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 10)
             );
@@ -10775,7 +10820,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10831,9 +10876,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
+                // (10,20): error CS8347: Cannot use a result of 'delegate*<ref Span<int>, ref Span<int>>' in this context because it may expose variables referenced by parameter '0' outside of their declaration scope
                 //         return ref ptr(ref span);
-                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, System.Span<int>>", "0").WithLocation(10, 20),
+                Diagnostic(ErrorCode.ERR_EscapeCall, "ptr(ref span)").WithArguments("delegate*<ref System.Span<int>, ref System.Span<int>>", "0").WithLocation(10, 20),
                 // (10,28): error CS8168: Cannot return local 'span' by reference because it is not a ref local
                 //         return ref ptr(ref span);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "span").WithArguments("span").WithLocation(10, 28)
@@ -10861,7 +10906,7 @@ unsafe
 
             var verifier = CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped);
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, System.Span<int>>, ref System.Span<int>)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref System.Span<int>, ref System.Span<int>>, ref System.Span<int>)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -10892,9 +10937,9 @@ unsafe
 }", options: TestOptions.UnsafeReleaseExe);
 
             comp.VerifyDiagnostics(
-                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, int>' by writable reference because it is a readonly variable
+                // (8,16): error CS8333: Cannot return method 'delegate*<ref int, ref readonly int>' by writable reference because it is a readonly variable
                 //         => ref ptr(ref i);
-                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, int>").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "ptr(ref i)").WithArguments("method", "delegate*<ref int, ref readonly int>").WithLocation(8, 16)
             );
         }
 
@@ -10915,7 +10960,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -11023,7 +11068,7 @@ unsafe
     static ref int ReturnByRef(ref int i) => ref i;
 }", expectedOutput: "2");
 
-            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, int>, ref int, ref int)", @"
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ReturnPtrByRef|0_0(delegate*<ref int, ref int>, ref int, ref int)", @"
 {
   // Code size       10 (0xa)
   .maxstack  2

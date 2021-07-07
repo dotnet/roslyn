@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1721,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
-        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
@@ -1839,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1860,7 +1859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1931,6 +1930,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
 
         #endregion diagnostics introduced for C# 9.0
+
+        #region diagnostics introduced for C# 10.0
+
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
+        ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
+        ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
+
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces = 8919,
+        ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers = 8920,
+        ERR_BadAbstractUnaryOperatorSignature = 8921,
+        ERR_BadAbstractIncDecSignature = 8922,
+        ERR_BadAbstractIncDecRetType = 8923,
+        ERR_BadAbstractBinaryOperatorSignature = 8924,
+        ERR_BadAbstractShiftOperatorSignature = 8925,
+        ERR_BadAbstractStaticMemberAccess = 8926,
+        ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 8927,
+        ERR_CloseUnimplementedInterfaceMemberNotStatic = 8928,
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 8929,
+        ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
+        ERR_AbstractConversionNotInvolvingContainedType = 8931,
+        ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
+        HDN_DuplicateWithGlobalUsing = 8933,
+        ERR_CantConvAnonMethReturnType = 8934,
+        ERR_BuilderAttributeDisallowed = 8935,
+        ERR_FeatureNotAvailableInVersion10 = 8936,
+        ERR_SimpleProgramIsEmpty = 8937,
+        ERR_LineSpanDirectiveInvalidValue = 8938,
+        ERR_LineSpanDirectiveEndLessThanStart = 8939,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

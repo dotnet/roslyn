@@ -15,18 +15,9 @@
     <DeployExtension>false</DeployExtension>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefInstalledProduct Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-                            Name="Microsoft Visual C#"
-                            DisplayName="#116"
-                            ProductDetails="#117"/>
-    <PkgDefPackageRegistration Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}"
-                               Name="CSharpVsInteractiveWindowPackage"
-                               Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage"
-                               AllowsBackgroundLoad="true"/>
-    <PkgDefPackageRegistration Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-                               Name="CSharpPackage"
-                               Class="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage"
-                               AllowsBackgroundLoad="true"/>
+    <PkgDefInstalledProduct Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" Name="Microsoft Visual C#" DisplayName="#116" ProductDetails="#117" />
+    <PkgDefPackageRegistration Include="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}" Name="CSharpVsInteractiveWindowPackage" Class="Microsoft.VisualStudio.LanguageServices.CSharp.Interactive.CSharpVsInteractiveWindowPackage" AllowsBackgroundLoad="true" />
+    <PkgDefPackageRegistration Include="{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" Name="CSharpPackage" Class="Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService.CSharpPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -45,6 +36,8 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

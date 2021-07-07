@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IEnumerable<ResourceDescription> ManifestResources;
         internal readonly Cci.ModulePropertiesForSerialization SerializationProperties;
         internal readonly OutputKind OutputKind;
+        internal Stream RawWin32Resources;
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
@@ -964,7 +965,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     throw ExceptionUtilities.UnexpectedValue(platformType);
 
                 default:
-                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                    return GetSpecialType((SpecialType)platformType, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
         }
     }

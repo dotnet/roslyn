@@ -1,6 +1,6 @@
 **Samples Location:**
 
-Sample analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [Samples.sln](https://github.com/dotnet/roslyn-sdk/tree/master/Samples.sln).
+Sample analyzers to demonstrate recommended implementation models for different analysis scenarios have been added to [Samples.sln](https://github.com/dotnet/roslyn-sdk/tree/main/Samples.sln).
 
 **Description:**
 

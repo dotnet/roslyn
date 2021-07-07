@@ -4,9 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -18,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText))
-            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts)
+            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False)
         End Sub
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
@@ -32,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function ParseGeneratedSourceText(input As GeneratedSourceText, fileName As String, cancellationToken As CancellationToken) As SyntaxTree
-            Return SyntaxFactory.ParseSyntaxTree(input.Text, _state.ParseOptions, fileName, cancellationToken)
+            Return VisualBasicSyntaxTree.ParseTextLazy(input.Text, CType(_state.ParseOptions, VisualBasicParseOptions), fileName)
         End Function
 
         Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing) As VisualBasicGeneratorDriver
-            Return New VisualBasicGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts)
+            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty())
         End Function
 
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection

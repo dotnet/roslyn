@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
+            if (!AreCollectionInitializersSupported(context.Compilation))
+            {
+                return;
+            }
+
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType != null)
             {
@@ -57,15 +62,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
         }
 
-        protected abstract bool AreCollectionInitializersSupported(SyntaxNodeAnalysisContext context);
+        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
-            if (!AreCollectionInitializersSupported(context))
-            {
-                return;
-            }
-
             var semanticModel = context.SemanticModel;
             var objectCreationExpression = (TObjectCreationExpressionSyntax)context.Node;
             var language = objectCreationExpression.Language;

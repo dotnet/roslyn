@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return GetProximityExpressions(tree, position, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }

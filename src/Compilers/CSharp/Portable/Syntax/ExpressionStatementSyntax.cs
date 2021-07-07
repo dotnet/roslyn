@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public ExpressionStatementSyntax Update(ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, expression, semicolonToken);
+            => Update(AttributeLists, expression, semicolonToken);
     }
 }
 

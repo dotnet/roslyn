@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -456,7 +455,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             // a type decl can't come before usings/externs
-            if (originalToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            var nextToken = originalToken.GetNextToken(includeSkipped: true);
+            if (nextToken.IsUsingOrExternKeyword() ||
+                (nextToken.Kind() == SyntaxKind.GlobalKeyword && nextToken.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == nextToken))
             {
                 return false;
             }
@@ -606,11 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // A type can also show up after certain types of modifiers
             if (canBePartial &&
                 token.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
-            {
-                return true;
-            }
-
-            if (token.IsKindOrHasMatchingText(SyntaxKind.DataKeyword))
             {
                 return true;
             }
@@ -1396,7 +1392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is { P: $$
             // e is { ..., P: $$
-            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
+            // e is { ..., P.P2: $$
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
@@ -1422,6 +1419,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // For instance:
+            // e is { A.$$ }
+            if (leftToken.IsKind(SyntaxKind.DotToken))
+            {
+                return false;
+            }
 
             var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
             if (patternSyntax != null)
@@ -1484,25 +1488,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
             {
-                var node = leftToken.Parent;
+                SyntaxNode? node = leftToken.Parent as ExpressionSyntax;
+                if (node == null)
+                    return false;
 
-                // Walking up the tree for expressions such as 'case (((N.C.P $$'
-                while (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    node = node.Parent;
-                }
+                // Walk up the right edge of all complete expressions.
+                while (node is ExpressionSyntax && node.GetLastToken(includeZeroWidth: true) == leftToken)
+                    node = node.GetRequiredParent();
 
                 // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
-                while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
-                {
-                    node = node.Parent;
-                }
+                while (node is ParenthesizedExpressionSyntax)
+                    node = node.GetRequiredParent();
 
                 // case (1 $$
-                if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
-                {
+                if (node is CaseSwitchLabelSyntax { Parent: SwitchSectionSyntax })
                     return true;
-                }
 
                 return false;
             }
@@ -1623,6 +1623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     node = node.Parent;
                     continue;
                 }
+
                 if (node.Parent.IsKind(SyntaxKind.Argument) && node.Parent.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     node = node.Parent.Parent;
@@ -1645,6 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
             }
+
             return false;
         }
 

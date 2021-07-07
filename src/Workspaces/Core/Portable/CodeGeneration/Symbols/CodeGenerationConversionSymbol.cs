@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol toType,
             IParameterSymbol fromType,
             bool isImplicit,
-            ImmutableArray<AttributeData> toTypeAttributes)
+            ImmutableArray<AttributeData> toTypeAttributes,
+            string documentationCommentXml)
             : base(containingType,
                   attributes,
                   declaredAccessibility,
@@ -32,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                       WellKnownMemberNames.ExplicitConversionName,
                   typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                   parameters: ImmutableArray.Create(fromType),
-                  returnTypeAttributes: toTypeAttributes)
+                  returnTypeAttributes: toTypeAttributes,
+                  documentationCommentXml)
         {
         }
 
