@@ -420,11 +420,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             async Task AddSymbolsIfMissingAsync(ISymbol symbol)
             {
+                symbol = await MapToAppropriateSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
                 foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false))
                 {
-                    var mapped = await MapToAppropriateSymbolAsync(linked, cancellationToken).ConfigureAwait(false);
-                    if (result.Add(mapped))
-                        stack.Push(mapped);
+                    if (result.Add(linked))
+                        stack.Push(linked);
                 }
             }
         }
