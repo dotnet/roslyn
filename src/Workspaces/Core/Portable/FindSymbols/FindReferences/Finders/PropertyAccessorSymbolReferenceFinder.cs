@@ -37,42 +37,40 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // First, find any documents with the full name of the accessor (i.e. get_Goo).
             // This will find explicit calls to the method (which can happen when C# references
             // a VB parameterized property).
-            var result = await FindDocumentsAsync(
-                project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
 
+            var propertyDocuments = ImmutableArray<Document>.Empty;
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 // we want to associate normal property references with the specific accessor being
                 // referenced.  So we also need to include documents with our property's name. Just
                 // defer to the Property finder to find these docs and combine them with the result.
-                var propertyDocuments = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+                propertyDocuments = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
                     property, project, documents,
                     options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
-
-                result = result.AddRange(propertyDocuments);
             }
 
-            return result;
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(propertyDocuments, documentsWithGlobalAttributes);
         }
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var references = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             if (symbol.AssociatedSymbol is IPropertySymbol property &&
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property, isMatchAsync, document, semanticModel,
+                    property, document, semanticModel,
                     options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
 

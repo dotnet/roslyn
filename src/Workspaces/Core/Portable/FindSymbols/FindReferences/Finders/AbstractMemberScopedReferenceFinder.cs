@@ -49,7 +49,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var container = GetContainer(symbol);
             if (container != null)
             {
-                return await FindReferencesInContainerAsync(symbol, isMatchAsync, container, document, semanticModel, cancellationToken).ConfigureAwait(false);
+                return await FindReferencesInContainerAsync(symbol, container, document, semanticModel, cancellationToken).ConfigureAwait(false);
             }
 
             if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var tokens = root.DescendantTokens();
 
                 return await FindReferencesInTokensWithSymbolNameAsync(
-                    symbol, isMatchAsync, document, semanticModel, tokens, cancellationToken).ConfigureAwait(false);
+                    symbol, document, semanticModel, tokens, cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<FinderLocation>.Empty;
@@ -112,20 +111,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             IEnumerable<SyntaxToken> tokens,
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, isMatchAsync, document, semanticModel, tokens,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, document, semanticModel, tokens, findParentNode: null, cancellationToken);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
             TSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             IEnumerable<SyntaxToken> tokens,
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var name = symbol.Name;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, isMatchAsync, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
 
             return FindReferencesInTokensAsync(
                 document,
@@ -147,20 +143,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             ISymbol container,
             Document document,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             return FindReferencesInContainerAsync(
-                symbol, isMatchAsync, container, document, semanticModel,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, container, document, semanticModel, findParentNode: null, cancellationToken);
         }
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
             TSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             ISymbol container,
             Document document,
             SemanticModel semanticModel,
@@ -173,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var name = symbol.Name;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, isMatchAsync, findParentNode, document.Project.Solution, cancellationToken);
+            var symbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             var tokensMatch = GetTokensMatchFunction(syntaxFacts, name);
 
             return FindReferencesInTokensAsync(

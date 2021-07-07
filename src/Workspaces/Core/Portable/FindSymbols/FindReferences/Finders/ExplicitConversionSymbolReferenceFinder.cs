@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var underlyingNamedType = GetUnderlyingNamedType(symbol.ReturnType);
             Contract.ThrowIfNull(underlyingNamedType);
-            var documentsWithName = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, underlyingNamedType.Name).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, underlyingNamedType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             return FindReferencesInDocumentAsync(
-                symbol, isMatchAsync, document, semanticModel,
+                symbol, document, semanticModel,
                 t => IsPotentialReference(syntaxFacts, t),
                 cancellationToken);
         }

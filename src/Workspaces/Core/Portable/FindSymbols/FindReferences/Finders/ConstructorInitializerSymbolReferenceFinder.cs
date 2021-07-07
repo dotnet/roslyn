@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -69,13 +68,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return await FindReferencesInTokensAsync(
-                 methodSymbol,
-                 isMatchAsync,
-                 document,
-                 semanticModel,
-                 tokens,
-                 TokensMatch,
-                 cancellationToken).ConfigureAwait(false);
+                 methodSymbol, document, semanticModel, tokens, TokensMatch, cancellationToken).ConfigureAwait(false);
 
             // local functions
             bool TokensMatch(SyntaxToken t)

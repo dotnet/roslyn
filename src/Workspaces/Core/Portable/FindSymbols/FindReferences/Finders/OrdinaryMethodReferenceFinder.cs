@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // searches for these, then we should find usages of 'lock(goo)' or 'synclock(goo)'
             // since they implicitly call those methods.
 
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, methodSymbol.Name).ConfigureAwait(false);
             var forEachDocuments = IsForEachMethod(methodSymbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
@@ -85,7 +85,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithAwaitExpressionAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments).Concat(awaitExpressionDocuments);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return ordinaryDocuments.Concat(forEachDocuments, deconstructDocuments, awaitExpressionDocuments, documentsWithGlobalAttributes);
         }
 
         private static bool IsForEachMethod(IMethodSymbol methodSymbol)
@@ -103,34 +104,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(
-                symbol, isMatchAsync, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var nameMatches = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            if (IsForEachMethod(symbol))
-            {
-                var forEachMatches = await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-                nameMatches = nameMatches.Concat(forEachMatches);
-            }
+            var forEachMatches = IsForEachMethod(symbol)
+                ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
 
-            if (IsDeconstructMethod(symbol))
-            {
-                var deconstructMatches = await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-                nameMatches = nameMatches.Concat(deconstructMatches);
-            }
+            var deconstructMatches = IsDeconstructMethod(symbol)
+                ? await FindReferencesInDeconstructionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
 
-            if (IsGetAwaiterMethod(symbol))
-            {
-                var getAwaiterMatches = await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-                nameMatches = nameMatches.Concat(getAwaiterMatches);
-            }
+            var getAwaiterMatches = IsGetAwaiterMethod(symbol)
+                ? await FindReferencesInAwaitExpressionAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<FinderLocation>.Empty;
 
-            return nameMatches;
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            return nameMatches.Concat(forEachMatches, deconstructMatches, getAwaiterMatches, suppressionReferences);
         }
     }
 }

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var isMatchAsync = GetIsMatchFunction(exactGroup, upGroup, cancellationToken);
 
                 foreach (var (project, documentMap) in projectToDocumentMap)
-                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap, isMatchAsync, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }

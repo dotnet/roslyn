@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Also, we only look for files that have the name of the owning type.  This helps filter
             // down the set considerably.
             Contract.ThrowIfNull(symbol.DeclaringMethod);
-            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, symbol.Name,
+            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
                 GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
                 symbol.DeclaringMethod.ContainingType.Name);
         }
@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
-            Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in
             // the bounds of the method they're declared within.  We could improve perf by
             // limiting our search by only looking within the method body's span. 
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, isMatchAsync, document, semanticModel, cancellationToken);
+            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
         }
     }
 }
