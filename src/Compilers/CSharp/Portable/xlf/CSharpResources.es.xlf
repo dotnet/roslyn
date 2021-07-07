@@ -9244,11 +9244,6 @@ Considere la posibilidad de suprimir la advertencia solo si tiene la seguridad d
         <target state="translated">El mejor método Add sobrecargado '{0}' para el elemento inicializador de la colección está obsoleto. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Las instrucciones yield pueden no aparecer en el nivel superior del código interactivo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">El valor '{0}' de SecurityAction no es válido en este tipo de declaración. Los atributos de seguridad solo son válidos en las declaraciones de ensamblado, de tipo y de método.</target>
@@ -10775,11 +10770,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">Para que el tipo "{0}" se utilice como AsyncMethodBuilder para el tipo "{1}", su propiedad Task debe devolver el tipo "{1}" en lugar del tipo "{2}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">No se permiten atributos en los parámetros de tipo o parámetros de funciones locales.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">

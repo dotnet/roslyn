@@ -9244,11 +9244,6 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <target state="translated">Najlepsza przeciążona metoda Add „{0}” dla elementu inicjatora kolekcji jest przestarzała. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Instrukcje yield nie mogą pojawiać się na najwyższym poziomie kodu interaktywnego.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">Atrybut zabezpieczeń „{0}” jest nieprawidłowy w tym typie deklaracji. Atrybuty zabezpieczeń są prawidłowe tylko dla deklaracji zestawu, typu i metody.</target>
@@ -10775,11 +10770,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">Aby typ „{0}” mógł zostać użyty jako element AsyncMethodBuilder dla typu „{1}”, jego właściwość zadania powinna zwracać typ „{1}” zamiast typu „{2}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">Atrybuty nie są dozwolone w przypadku lokalnych parametrów funkcji lub parametrów typu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">

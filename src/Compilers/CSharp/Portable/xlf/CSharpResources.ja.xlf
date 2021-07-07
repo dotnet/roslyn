@@ -9244,11 +9244,6 @@ You should consider suppressing the warning only if you're sure that you don't w
         <target state="translated">コレクション初期化子要素に最も適しているオーバーロード Add メソッド '{0}' は古い形式です。{1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Yield ステートメントは、対話型コードの最上部に表示できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">セキュリティ属性 '{0}' はこの宣言型では無効です。セキュリティ属性は、アセンブリ、型、メソッドの宣言でのみ有効です。</target>
@@ -10775,11 +10770,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">型 '{0}' を型 '{1}' の AsyncMethodBuilder として使うには、その Task プロパティが型 '{2}' ではなく型 '{1}' を返す必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">ローカル関数パラメーターまたは型パラメーターに属性を使うことはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">

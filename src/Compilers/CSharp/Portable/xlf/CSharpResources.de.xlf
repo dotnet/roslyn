@@ -9244,11 +9244,6 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <target state="translated">Die beste überladene Add-Methode "{0}" für das Sammlungsinitialisiererelement ist veraltet. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Yield-Anweisungen dürfen nicht in der obersten Ebene von interaktivem Code enthalten sein.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">Das Sicherheitsattribut "{0}" ist für diesen Deklarationstyp nicht gültig. Sicherheitsattribute sind nur für Assembly-, Typ- und Methodendeklarationen gültig.</target>
@@ -10775,11 +10770,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">Damit der Typ "{0}" als "AsyncMethodBuilder" für den Typ "{1}" verwendet wird, muss seine Aufgabeneigenschaft den Typ "{1}" anstelle des Typs "{2}" zurückgeben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">Attribute sind bei lokalen Funktionsparametern oder Typenparametern nicht zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">
