@@ -8,7 +8,7 @@ Enhanced using consists of several related features that aim to make the disposa
 
  - _[Pattern-based disposal for ref structs](#Pattern-based-disposal-for-ref-structs)_ allows `ref struct`s to opt into disposal without needing to implement the `IDisposable` interface.
 
-__See__: the [corresponding proposal](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/using.md) in CSharpLang.
+__See__: the [corresponding proposal](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/using.md) in CSharpLang.
 
 ## Using Declarations
 

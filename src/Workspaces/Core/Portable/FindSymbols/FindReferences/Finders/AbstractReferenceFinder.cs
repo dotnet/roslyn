@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
-        public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public abstract Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken);
 
@@ -90,8 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
-
+                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
                 if (findInGlobalSuppressions && info.ContainsGlobalAttributes)
                 {
                     return true;
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
                 return info.ContainsPredefinedType(predefinedType);
             }, cancellationToken);
         }
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
 
                 // NOTE: Predefined operators can be referenced in global suppression attributes.
                 return info.ContainsPredefinedOperator(op) || info.ContainsGlobalAttributes;
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             // It's very costly to walk an entire tree.  So if the tree is simple and doesn't contain
             // any unicode escapes in it, then we do simple string matching to find the tokens.
-            var info = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var info = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (!info.ProbablyContainsIdentifier(identifier))
                 return ImmutableArray<SyntaxToken>.Empty;
 
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(s => SymbolFinder.OriginalSymbolsMatchAsync(solution, searchSymbol, s, cancellationToken)).ConfigureAwait(false))
+                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(static (s, arg) => SymbolFinder.OriginalSymbolsMatchAsync(arg.solution, arg.searchSymbol, s, arg.cancellationToken), (solution, searchSymbol, cancellationToken)).ConfigureAwait(false))
                 {
                     return (matched: true, symbolInfoToMatch.CandidateReason);
                 }
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             return FindDocumentsAsync(project, documents, async (d, c) =>
             {
-                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                var info = await SyntaxTreeIndex.GetRequiredIndexAsync(d, c).ConfigureAwait(false);
                 return predicate(info);
             }, cancellationToken);
         }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CollectMatchingReferences collectMatchingReferences,
             CancellationToken cancellationToken)
         {
-            var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+            var syntaxTreeInfo = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (isRelevantDocument(syntaxTreeInfo))
             {
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -932,20 +932,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 
-        public override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
             if (options.Cascade &&
                 symbol is TSymbol typedSymbol &&
                 CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    typedSymbol,
-                    solution, projects, options, cancellationToken);
+                    typedSymbol, solution, projects, options, cascadeDirection, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected virtual Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
@@ -955,11 +955,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 solution, symbol, projects, cancellationToken);
         }
 
-        protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected virtual Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             TSymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(

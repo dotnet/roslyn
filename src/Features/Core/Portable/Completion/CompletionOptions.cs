@@ -63,6 +63,19 @@ namespace Microsoft.CodeAnalysis.Completion
             new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
+        public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
+            new(nameof(CompletionOptions), nameof(EnableArgumentCompletionSnippets), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
+
+        // Test-only options
+
+        // This option is associated with the Roslyn.LSP.Completion flag and should be removed once the flag is removed.
+        // It is intended for testing purposes only.
+        public static readonly PerLanguageOption2<bool> ForceRoslynLSPCompletionExperiment =
+            new(nameof(CompletionOptions), nameof(ForceRoslynLSPCompletionExperiment), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ForceRoslynLSPCompletionExperiment"));
+
         public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
         {
             yield return ShowCompletionItemFilters;

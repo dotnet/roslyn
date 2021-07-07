@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -285,9 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (this.Kind)
                 {
                     case SyntaxKind.TrueKeyword:
-                        return true;
+                        return Boxes.BoxedTrue;
                     case SyntaxKind.FalseKeyword:
-                        return false;
+                        return Boxes.BoxedFalse;
                     case SyntaxKind.NullKeyword:
                         return null;
                     default:

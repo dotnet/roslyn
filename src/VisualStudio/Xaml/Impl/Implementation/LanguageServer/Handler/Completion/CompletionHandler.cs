@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -27,6 +29,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
         public override string Method => Methods.TextDocumentCompletionName;
+        private const string CreateEventHandlerCommandTitle = "Create Event Handler";
+
+        private static readonly Command s_retriggerCompletionCommand = new Command()
+        {
+            CommandIdentifier = StringConstants.RetriggerCompletionCommand,
+            Title = "Re-trigger completions"
+        };
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -41,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            if (request.Context is VSCompletionContext completionContext && completionContext.InvokeKind == VSCompletionInvokeKind.Deletion)
+            {
+                // Don't trigger completions on backspace.
+                return null;
+            }
+
             var document = context.Document;
             if (document == null)
             {
@@ -56,19 +71,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
+            var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>>();
             return new VSCompletionList
             {
-                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray(),
+                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
                 SuggestionMode = false,
             };
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument, Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>> commitCharactersCach)
         {
             var item = new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
-                CommitCharacters = xamlCompletion.CommitCharacters,
+                VsCommitCharacters = GetCommitCharacters(xamlCompletion, commitCharactersCach),
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
                 Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
@@ -77,6 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Kind = GetItemKind(xamlCompletion.Kind),
                 Description = xamlCompletion.Description,
                 Icon = xamlCompletion.Icon,
+                InsertTextFormat = xamlCompletion.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
 
@@ -89,7 +106,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 };
             }
 
+            if (xamlCompletion.EventDescription.HasValue)
+            {
+                item.Command = new Command()
+                {
+                    CommandIdentifier = StringConstants.CreateEventHandlerCommand,
+                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Title = CreateEventHandlerCommandTitle
+                };
+            }
+            else if (xamlCompletion.RetriggerCompletion)
+            {
+                // Retriger completion after commit
+                item.Command = s_retriggerCompletionCommand;
+            }
+
             return item;
+        }
+
+        private static SumType<string[], CommitCharacter[]> GetCommitCharacters(XamlCompletionItem completionItem, Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>> commitCharactersCache)
+        {
+            if (!completionItem.XamlCommitCharacters.HasValue)
+            {
+                return completionItem.CommitCharacters;
+            }
+
+            if (commitCharactersCache.TryGetValue(completionItem.Kind, out var cachedCharacters))
+            {
+                // If we have already cached the commit characters, return the cached ones
+                return cachedCharacters.ToArray();
+            }
+
+            var xamlCommitCharacters = completionItem.XamlCommitCharacters.Value;
+
+            var commitCharacters = xamlCommitCharacters.Characters.Select(c => new CommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
+            commitCharactersCache.Add(completionItem.Kind, commitCharacters);
+            return commitCharacters.ToArray();
         }
 
         private static CompletionItemKind GetItemKind(XamlCompletionKind kind)
@@ -98,43 +150,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             {
                 case XamlCompletionKind.Element:
                 case XamlCompletionKind.ElementName:
+                    return CompletionItemKind.Element;
                 case XamlCompletionKind.EndTag:
-                    return CompletionItemKind.Class;
+                    return CompletionItemKind.CloseElement;
                 case XamlCompletionKind.Attribute:
                 case XamlCompletionKind.AttachedPropertyValue:
-                case XamlCompletionKind.PropertyElement:
-                case XamlCompletionKind.MarkupExtensionParameter:
                 case XamlCompletionKind.ConditionalArgument:
+                case XamlCompletionKind.DataBoundProperty:
+                case XamlCompletionKind.MarkupExtensionParameter:
+                case XamlCompletionKind.PropertyElement:
                     return CompletionItemKind.Property;
+                case XamlCompletionKind.ConditionValue:
                 case XamlCompletionKind.MarkupExtensionValue:
                 case XamlCompletionKind.PropertyValue:
-                case XamlCompletionKind.NamespaceValue:
-                case XamlCompletionKind.ConditionValue:
                 case XamlCompletionKind.Value:
                     return CompletionItemKind.Value;
                 case XamlCompletionKind.Event:
                 case XamlCompletionKind.EventHandlerDescription:
                     return CompletionItemKind.Event;
-                case XamlCompletionKind.MarkupExtensionClass:
-                    return CompletionItemKind.Method;
+                case XamlCompletionKind.NamespaceValue:
                 case XamlCompletionKind.Prefix:
-                    return CompletionItemKind.Constant;
+                    return CompletionItemKind.Namespace;
+                case XamlCompletionKind.AttachedPropertyTypePrefix:
+                case XamlCompletionKind.MarkupExtensionClass:
                 case XamlCompletionKind.Type:
                 case XamlCompletionKind.TypePrefix:
-                case XamlCompletionKind.AttachedPropertyTypePrefix:
-                    return CompletionItemKind.TypeParameter;
+                    return CompletionItemKind.Class;
                 case XamlCompletionKind.LocalResource:
-                    return CompletionItemKind.Reference;
+                    return CompletionItemKind.LocalResource;
                 case XamlCompletionKind.SystemResource:
-                    return CompletionItemKind.Reference;
+                    return CompletionItemKind.SystemResource;
                 case XamlCompletionKind.CData:
                 case XamlCompletionKind.Comment:
                 case XamlCompletionKind.ProcessingInstruction:
                 case XamlCompletionKind.RegionStart:
                 case XamlCompletionKind.RegionEnd:
                     return CompletionItemKind.Keyword;
-                case XamlCompletionKind.DataBoundProperty:
-                    return CompletionItemKind.Variable;
                 case XamlCompletionKind.Snippet:
                     return CompletionItemKind.Snippet;
                 default:

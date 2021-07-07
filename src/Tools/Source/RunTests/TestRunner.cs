@@ -70,7 +70,7 @@ namespace RunTests
             var correlationPayload = $@"<HelixCorrelationPayload Include=""{duplicateDir}"" />";
 
             // https://github.com/dotnet/roslyn/issues/50661
-            // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/master/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
+            // it's possible we should be using the BUILD_SOURCEVERSIONAUTHOR instead here a la https://github.com/dotnet/arcade/blob/main/src/Microsoft.DotNet.Helix/Sdk/tools/xharness-runner/Readme.md#how-to-use
             // however that variable isn't documented at https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
             var queuedBy = Environment.GetEnvironmentVariable("BUILD_QUEUEDBY");
             if (queuedBy is null)
@@ -158,15 +158,23 @@ namespace RunTests
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var workItem = @"
-        <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
-            <PayloadDirectory>" + Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!) + @"</PayloadDirectory>
+                var setRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD=LatestMajor";
+                var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
+                var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
+                    ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
+                    : "";
+                var workItem = $@"
+        <HelixWorkItem Include=""{assemblyInfo.DisplayName}"">
+            <PayloadDirectory>{Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!)}</PayloadDirectory>
             <Command>
-                " + lsCommand + @"
-                " + rehydrateCommand + @"
-                " + lsCommand + @"
-                dotnet --version
-                dotnet " + commandLineArguments + @"
+                {lsCommand}
+                {rehydrateCommand}
+                {lsCommand}
+                {setRollforward}
+                {setPrereleaseRollforward}
+                dotnet --info
+                {setTestIOperation}
+                dotnet {commandLineArguments}
             </Command>
             <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
@@ -241,7 +249,7 @@ namespace RunTests
                 }
 
                 // Display the current status of the TestRunner.
-                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
+                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns.
                 ConsoleUtil.Write($"  {running.Count,2} running, {waiting.Count,2} queued, {completed.Count,2} completed");
                 if (failures > 0)
                 {

@@ -220,10 +220,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     documents: null,
                     ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
                     streamingProgress,
-                    FindReferencesSearchOptions.Default,
-                    cancellationToken);
+                    FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
                 return streamingProgress.GetReferencedSymbols();
             }
         }
@@ -897,9 +896,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var recommendations = await Recommender.GetImmutableRecommendedSymbolsAtPositionAsync(
-                semanticModel, position, document.Project.Solution.Workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var recommendations = await Recommender.GetRecommendedSymbolsAtPositionAsync(semanticModel, position, document.Project.Solution.Workspace, options: null, cancellationToken).ConfigureAwait(false);
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 

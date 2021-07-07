@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -48,6 +49,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly Dictionary<int, VSReferenceItem> _definitionsWithoutReference = new();
 
         /// <summary>
+        /// Set of the locations we've found references at.  We may end up with multiple references
+        /// being reported for the same location.  For example, this can happen in multi-targetting 
+        /// scenarios when there are symbols in files linked into multiple projects.  Those symbols
+        /// may have references that themselves are in linked locations, leading to multiple references
+        /// found at different virtual locations that the user considers at the same physical location.
+        /// For now we filter out these duplicates to not clutter the UI.  If LSP supports the ability
+        /// to override an already reported VSReferenceItem, we could also reissue the item with the
+        /// additional information about all the projects it is found in.
+        /// </summary>
+        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = new();
+
+        /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<VSReferenceItem> _workQueue;
@@ -55,13 +68,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         // Unique identifier given to each definition and reference.
         private int _id = 0;
 
-        public override CancellationToken CancellationToken { get; }
-
         public FindUsagesLSPContext(
             IProgress<VSReferenceItem[]> progress,
             Document document,
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
+            IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
         {
             _progress = progress;
@@ -69,18 +81,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _workQueue = new AsyncBatchingWorkQueue<VSReferenceItem>(
-                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, cancellationToken);
-
-            CancellationToken = cancellationToken;
+                TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
 
         // After all definitions/references have been found, wait here until all results have been reported.
-        public override async ValueTask OnCompletedAsync()
+        public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => await _workQueue.WaitUntilCurrentBatchCompletesAsync().ConfigureAwait(false);
 
-        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+        public override async ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
-            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (_definitionToId.ContainsKey(definition))
                 {
@@ -95,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 var definitionItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
                     definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
-                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, CancellationToken).ConfigureAwait(false);
+                    definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
                 {
@@ -113,16 +123,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override async ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
         {
-            using (await _semaphore.DisposableWaitAsync(CancellationToken).ConfigureAwait(false))
+            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // Each reference should be associated with a definition. If this somehow isn't the
                 // case, we bail out early.
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
-                {
                     return;
-                }
+
+                // If this is reference to the same physical location we've already reported, just
+                // filter this out.  it will clutter the UI to show the same places.
+                if (!_referenceLocations.Add((reference.SourceSpan.Document.FilePath, reference.SourceSpan.SourceSpan)))
+                    return;
 
                 // If the definition hasn't been reported yet, add it to our list of references to report.
                 if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
@@ -137,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 var referenceItem = await GenerateVSReferenceItemAsync(
                     _id, definitionId, _document, _position, reference.SourceSpan,
                     reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
-                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, CancellationToken).ConfigureAwait(false);
+                    definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
                 {
@@ -325,11 +338,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private Task ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
+        private ValueTask ReportReferencesAsync(ImmutableArray<VSReferenceItem> referencesToReport, CancellationToken cancellationToken)
         {
             // We can report outside of the lock here since _progress is thread-safe.
             _progress.Report(referencesToReport.ToArray());
-            return Task.CompletedTask;
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

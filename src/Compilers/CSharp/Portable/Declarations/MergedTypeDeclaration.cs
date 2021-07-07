@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Keys);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

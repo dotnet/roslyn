@@ -19,13 +19,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+        public async Task<bool> TryAppendDiagnosticsForSpanAsync(
+            Document document, TextSpan? range, ArrayBuilder<DiagnosticData> result, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             var getter = await LatestDiagnosticsForSpanGetter.CreateAsync(this, document, range, blockForData, addOperationScope, includeSuppressedDiagnostics, diagnosticId, cancellationToken).ConfigureAwait(false);
             return await getter.TryGetAsync(result, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+            Document document, TextSpan? range, string? diagnosticId, bool includeSuppressedDiagnostics, bool blockForData, Func<string, IDisposable?>? addOperationScope, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
             var result = await TryAppendDiagnosticsForSpanAsync(document, range, list, diagnosticId, includeSuppressedDiagnostics, blockForData, addOperationScope, cancellationToken).ConfigureAwait(false);
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly IEnumerable<StateSet> _stateSets;
             private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
 
-            private readonly TextSpan _range;
+            private readonly TextSpan? _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
             private readonly string? _diagnosticId;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public static async Task<LatestDiagnosticsForSpanGetter> CreateAsync(
                  DiagnosticIncrementalAnalyzer owner,
                  Document document,
-                 TextSpan range,
+                 TextSpan? range,
                  bool blockForData,
                  Func<string, IDisposable?>? addOperationScope,
                  bool includeSuppressedDiagnostics,
@@ -73,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                return new LatestDiagnosticsForSpanGetter(owner, compilationWithAnalyzers, document, stateSets, diagnosticId, range, blockForData, addOperationScope, includeSuppressedDiagnostics);
+                return new LatestDiagnosticsForSpanGetter(
+                    owner, compilationWithAnalyzers, document, stateSets, diagnosticId, range, blockForData, addOperationScope, includeSuppressedDiagnostics);
             }
 
             private LatestDiagnosticsForSpanGetter(
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 Document document,
                 IEnumerable<StateSet> stateSets,
                 string? diagnosticId,
-                TextSpan range,
+                TextSpan? range,
                 bool blockForData,
                 Func<string, IDisposable?>? addOperationScope,
                 bool includeSuppressedDiagnostics)
@@ -140,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Debug.Assert(!_blockForData || containsFullResult);
                     return containsFullResult;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -211,7 +214,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.GetTextSpan())
+                return diagnostic.DocumentId == _document.Id &&
+                    (_range == null || _range.Value.IntersectsWith(diagnostic.GetTextSpan()))
                     && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
                     && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }

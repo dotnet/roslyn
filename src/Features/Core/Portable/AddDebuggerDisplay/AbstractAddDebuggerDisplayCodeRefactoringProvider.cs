@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
         protected abstract bool CanNameofAccessNonPublicMembersFromAttributeArgument { get; }
 
+        protected abstract bool SupportsConstantInterpolatedStrings(Document document);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             => methodSymbol is { Name: DebuggerDisplayMethodName, Arity: 0, Parameters: { IsEmpty: true } };
 
         private static bool IsClassOrStruct(ITypeSymbol typeSymbol)
-            => typeSymbol.TypeKind == TypeKind.Class || typeSymbol.TypeKind == TypeKind.Struct;
+            => typeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct;
 
         private static bool HasDebuggerDisplayAttribute(ITypeSymbol typeSymbol, Compilation compilation)
             => typeSymbol.GetAttributes()
@@ -115,14 +117,35 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             var editor = new SyntaxEditor(syntaxRoot, document.Project.Solution.Workspace);
             var generator = editor.Generator;
 
-            var attributeArgument = CanNameofAccessNonPublicMembersFromAttributeArgument
-                ? generator.AddExpression(
-                    generator.AddExpression(
-                        generator.LiteralExpression(DebuggerDisplayPrefix),
-                        generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
-                    generator.LiteralExpression(DebuggerDisplaySuffix))
-                : generator.LiteralExpression(
+            SyntaxNode attributeArgument;
+            if (CanNameofAccessNonPublicMembersFromAttributeArgument)
+            {
+                if (SupportsConstantInterpolatedStrings(document))
+                {
+                    attributeArgument = generator.InterpolatedStringExpression(
+                        generator.CreateInterpolatedStringStartToken(isVerbatim: false),
+                        new SyntaxNode[]
+                        {
+                            generator.InterpolatedStringText(generator.InterpolatedStringTextToken("{{", "{{")),
+                            generator.Interpolation(generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
+                            generator.InterpolatedStringText(generator.InterpolatedStringTextToken("(),nq}}", "(),nq}}")),
+                        },
+                        generator.CreateInterpolatedStringEndToken());
+                }
+                else
+                {
+                    attributeArgument = generator.AddExpression(
+                        generator.AddExpression(
+                            generator.LiteralExpression(DebuggerDisplayPrefix),
+                            generator.NameOfExpression(generator.IdentifierName(DebuggerDisplayMethodName))),
+                        generator.LiteralExpression(DebuggerDisplaySuffix));
+                }
+            }
+            else
+            {
+                attributeArgument = generator.LiteralExpression(
                     DebuggerDisplayPrefix + DebuggerDisplayMethodName + DebuggerDisplaySuffix);
+            }
 
             var newAttribute = generator
                 .Attribute(generator.TypeExpression(debuggerAttributeTypeSymbol), new[] { attributeArgument })

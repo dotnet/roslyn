@@ -12,10 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal partial class ExplicitConversionSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
-            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName } &&
+            => symbol is { MethodKind: MethodKind.Conversion, Name: WellKnownMemberNames.ExplicitConversionName or WellKnownMemberNames.ImplicitConversionName } &&
                GetUnderlyingNamedType(symbol.ReturnType) is not null;
 
         private static INamedTypeSymbol? GetUnderlyingNamedType(ITypeSymbol symbol)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // Ignore any documents that don't also have an explicit cast in them.
             foreach (var document in documentsWithName.Concat(documentsWithType).Distinct())
             {
-                var index = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                 if (index.ContainsConversion)
                     result.Add(document);
             }

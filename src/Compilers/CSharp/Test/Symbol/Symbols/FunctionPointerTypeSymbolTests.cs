@@ -1525,9 +1525,9 @@ unsafe class C
             var f2 = c.GetField("Field2").Type;
 
             Assert.Equal("delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32>", f1.ToTestDisplayString());
-            Assert.Equal("delegate*<int>", f1.ToDisplayString());
+            Assert.Equal("delegate*<ref readonly int>", f1.ToDisplayString());
             Assert.Equal("delegate*<ref System.Int32 modopt(System.Object)>", f2.ToTestDisplayString());
-            Assert.Equal("delegate*<int>", f2.ToDisplayString());
+            Assert.Equal("delegate*<ref int>", f2.ToDisplayString());
         }
 
         [Fact]

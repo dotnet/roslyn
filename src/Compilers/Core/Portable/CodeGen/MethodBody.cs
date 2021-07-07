@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
 
         // Data used when emitting EnC delta:
-        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
+        private readonly ImmutableArray<Cci.ITypeReference?> _stateMachineAwaiterSlots;
 
         // Data used when emitting Dynamic Analysis resource:
         private readonly DynamicAnalysisMethodBodyData _dynamicAnalysisDataOpt;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             string stateMachineTypeNameOpt,
             ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
-            ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlots,
+            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlots,
             StateMachineMoveNextBodyDebugInfo stateMachineMoveNextDebugInfoOpt,
             DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt)
         {
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         ImmutableArray<EncHoistedLocalInfo> Cci.IMethodBody.StateMachineHoistedLocalSlots
             => _stateMachineHoistedLocalSlots;
 
-        ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots
+        ImmutableArray<Cci.ITypeReference?> Cci.IMethodBody.StateMachineAwaiterSlots
             => _stateMachineAwaiterSlots;
 
         bool Cci.IMethodBody.HasDynamicLocalVariables => _hasDynamicLocalVariables;

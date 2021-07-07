@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly), Shared]
     internal class CSharpImplementExplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             //
             // This can save a lot of extra time spent finding callers, especially for methods with
             // high fan-out (like IDisposable.Dispose()).
-            var findRefsOptions = FindReferencesSearchOptions.Default.WithCascade(false);
+            var findRefsOptions = FindReferencesSearchOptions.Default.With(cascade: false);
             var references = await SymbolFinder.FindReferencesAsync(
                 implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 

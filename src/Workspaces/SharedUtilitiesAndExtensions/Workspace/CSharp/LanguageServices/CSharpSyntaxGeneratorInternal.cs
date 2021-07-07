@@ -95,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode InterpolatedStringText(SyntaxToken textToken)
             => SyntaxFactory.InterpolatedStringText(textToken);
 
-        internal override SyntaxToken InterpolatedStringTextToken(string content)
+        internal override SyntaxToken InterpolatedStringTextToken(string content, string value)
             => SyntaxFactory.Token(
                 SyntaxFactory.TriviaList(),
                 SyntaxKind.InterpolatedStringTextToken,
-                content, "",
+                content, value,
                 SyntaxFactory.TriviaList());
 
         internal override SyntaxNode Interpolation(SyntaxNode syntaxNode)
@@ -131,6 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 RefKind.RefReadOnly when forFunctionPointerReturnParameter => SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)),
                 _ => throw ExceptionUtilities.UnexpectedValue(refKind),
             };
+
+        internal override SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext)
+            => typeContext ? typeSymbol.GenerateTypeSyntax() : typeSymbol.GenerateExpressionSyntax();
 
         #region Patterns
 

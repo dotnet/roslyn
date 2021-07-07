@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// Used for logging compiler diagnostics to a stream in the unstandardized SARIF
     /// (Static Analysis Results Interchange Format) v1.0.0 format.
     /// https://github.com/sarif-standard/sarif-spec
-    /// https://rawgit.com/sarif-standard/sarif-spec/master/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
+    /// https://rawgit.com/sarif-standard/sarif-spec/main/Static%20Analysis%20Results%20Interchange%20Format%20(SARIF).html
     /// </summary>
     /// <remarks>
     /// To log diagnostics in the standardized SARIF v2.1.0 format, use the SarifV2ErrorLogger.

@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterpolatedStringText(textToken)
         End Function
 
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        Friend Overrides Function InterpolatedStringTextToken(content As String, value As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, value)
         End Function
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode
@@ -120,6 +120,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TypeParameterList(
                 SyntaxFactory.SeparatedList(Of TypeParameterSyntax)(
                     typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
+        End Function
+
+        Friend Overrides Function Type(typeSymbol As ITypeSymbol, typeContext As Boolean) As SyntaxNode
+            Return If(typeContext, typeSymbol.GenerateTypeSyntax(), typeSymbol.GenerateExpressionSyntax())
         End Function
 
 #Region "Patterns"

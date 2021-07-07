@@ -11,26 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(FirstBuiltInArgumentProvider))>
     <[Shared]>
     Friend Class ContextVariableArgumentProvider
-        Inherits ArgumentProvider
+        Inherits AbstractContextVariableArgumentProvider
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Public Overrides Async Function ProvideArgumentAsync(context As ArgumentContext) As Task
-            If context.PreviousValue IsNot Nothing Then
-                Return
-            End If
-
-            Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim symbols = semanticModel.LookupSymbols(context.Position, name:=context.Parameter.Name)
-            For Each symbol In symbols
-                If SymbolEqualityComparer.Default.Equals(context.Parameter.Type, symbol.GetSymbolType()) Then
-                    context.DefaultValue = context.Parameter.Name
-                    Return
-                End If
-            Next
-        End Function
     End Class
 End Namespace

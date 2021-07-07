@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
@@ -61,9 +62,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //
             // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
             // handler treats those as separate worlds that they are responsible for.
-            return context.Document != null && context.IsTracking(context.Document.GetURI())
-                ? ImmutableArray.Create(context.Document)
-                : ImmutableArray<Document>.Empty;
+            if (context.Document == null)
+            {
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            if (!context.IsTracking(context.Document.GetURI()))
+            {
+                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            return ImmutableArray.Create(context.Document);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -73,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            return _analyzerService.GetDiagnosticsAsync(document.Project.Solution, documentId: document.Id, cancellationToken: cancellationToken);
+            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
     }
 }

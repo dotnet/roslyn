@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VBResources.resx">
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
-        <target state="new">Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</target>
+        <target state="translated">Init only 属性 "{0}" 只能由对象成员初始值设定项分配，或在实例构造函数中的 "Me"、"MyClass" 或 "MyBase" 上分配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
         <source>'{0}' cannot override init-only '{1}'.</source>
-        <target state="new">'{0}' cannot override init-only '{1}'.</target>
+        <target state="translated">"{0}" 无法重写 init-only "{1}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
         <source>Init-only '{0}' cannot be implemented.</source>
-        <target state="new">Init-only '{0}' cannot be implemented.</target>
+        <target state="translated">无法实现 init-only "{0}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -54,12 +54,12 @@
       </trans-unit>
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
-        <target state="new">Events of shared WithEvents variables cannot be handled by methods in a different type.</target>
+        <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
-        <target state="new">'UnmanagedCallersOnly' attribute is not supported.</target>
+        <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_InitOnlySettersUsage">
         <source>assigning to or passing 'ByRef' properties with init-only setters</source>
-        <target state="new">assigning to or passing 'ByRef' properties with init-only setters</target>
+        <target state="translated">通过 init-only 资源库分配或传递 "ByRef" 属性</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -5539,7 +5539,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'New' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"New" 不能用于元组类型。请改用元组文本表达式。</target>
+        <target state="translated">"New" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PredefinedValueTupleTypeMustBeStruct">

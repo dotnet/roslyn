@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicRemoveSharedFromModuleMembersCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveSharedFromModuleMembers), [Shared]>
     Friend NotInheritable Class VisualBasicRemoveSharedFromModuleMembersCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
@@ -64,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                 Dim newNode = GetReplacement(document, node)
                 editor.ReplaceNode(node, newNode)
             Next
+
             Return Task.CompletedTask
         End Function
 

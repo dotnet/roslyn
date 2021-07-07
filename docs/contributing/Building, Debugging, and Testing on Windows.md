@@ -15,12 +15,12 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2019
 
-1. [Visual Studio 2019 16.8](https://visualstudio.microsoft.com/downloads/)
+1. [Visual Studio 2019 16.9](https://visualstudio.microsoft.com/downloads/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "16.8" or greater
+    - Ensure Visual Studio is on Version "16.9" or greater
     - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. [.NET Core SDK 5.0](https://dotnet.microsoft.com/download/dotnet-core/5.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-5.0.102-windows-x64-installer)
+1. [.NET 6.0 Preview 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/6.0) [Windows x64 installer](https://dotnet.microsoft.com/download/dotnet/thank-you/sdk-6.0.100-preview.3-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -73,7 +73,7 @@ The Rosyln solution is designed to support easy debugging via F5.  Several of ou
 projects produce VSIX which deploy into Visual Studio during build.  The F5 operation
 will start a new Visual Studio instance using those VSIX which override our installed
 binaries.  This means trying out a change to the language, IDE or debugger is as
-simple as hitting F5.
+simple as hitting F5. Note that for changes to the compiler, out-of-process builds won't use the privately built version of the compiler.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
 the default but in some cases will need to be set explicitly.
@@ -129,8 +129,8 @@ your version and go back to the originally installed version by choosing your
 version and clicking Uninstall.
 
 If you only install the VSIX, then the IDE will behave correctly (ie. new compiler
-and IDE behavior), but the Build operation or building from the command-line won't. 
-To fix that, add a reference to the `Microsoft.Net.Compilers.Toolset` you built into 
+and IDE behavior), but the Build operation or building from the command-line won't.
+To fix that, add a reference to the `Microsoft.Net.Compilers.Toolset` you built into
 your csproj. As shown below, you'll want to (1) add a nuget source pointing to your local build folder,
 (2) add the package reference, then (3) verify the Build Output of your project with a
 `#error version` included in your program.
@@ -144,7 +144,7 @@ your csproj. As shown below, you'll want to (1) add a nuget source pointing to y
 
 ### Deploying with command-line
 
-You can build and deploy with the following command: 
+You can build and deploy with the following command:
 `.\Build.cmd -Configuration Release -deployExtensions -launch`.
 
 Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
@@ -160,11 +160,11 @@ csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 ### Troubleshooting your setup
 
 To confirm what version of the compiler is being used, include `#error version` in your program
-and the compiler will produce a diagnostic including its own version as well as the language 
+and the compiler will produce a diagnostic including its own version as well as the language
 version it is operating under.
 
 You can also attach a debugger to Visual Studio and check the loaded modules, looking at the folder
-where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere 
+where the various `CodeAnalysis` modules were loaded from (the `RoslynDev` should load them somewhere
 under `AppData`, not from `Program File`).
 
 ### Testing on the [dotnet/runtime](https://github.com/dotnet/runtime) repo
@@ -176,6 +176,12 @@ under `AppData`, not from `Program File`).
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
     - add `<MicrosoftNetCompilersToolsetVersion>3.9.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
+### Testing with extra IOperation validation
+
+Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.  
+For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.  
+See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
+
 ## Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.

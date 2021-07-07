@@ -16,28 +16,28 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// A queue to batch up flush requests and ensure that we don't issue then more often than every <see
         /// cref="FlushAllDelayMS"/>.
         /// </summary>
-        private readonly AsyncBatchingDelay _flushQueue;
+        private readonly AsyncBatchingWorkQueue _flushQueue;
 
         private void EnqueueFlushTask()
         {
-            _flushQueue.RequeueWork();
+            _flushQueue.AddWork();
         }
 
-        private Task FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
+        private async ValueTask FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
         {
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            await PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
         }
 
-        private void FlushWritesOnClose()
+        private Task FlushWritesOnCloseAsync()
         {
             // Issue a write task to write this all out to disk.
             //
             // Note: this only happens on close, so we don't try to avoid allocations here.
 
-            var writeTask = PerformWriteAsync(
+            return PerformWriteAsync(
                 () =>
                 {
                     // Perform the actual write while having exclusive access to the scheduler.
@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // read/write after releasing us.
                     _shutdownTokenSource.Cancel();
                 }, CancellationToken.None);
-
-            // Wait for that task to finish.
-            writeTask.Wait();
         }
 
         private void FlushInMemoryDataToDisk()

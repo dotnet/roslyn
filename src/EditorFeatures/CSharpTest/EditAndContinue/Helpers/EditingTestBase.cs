@@ -2,19 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -34,22 +35,42 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             ConstructorWithParameters
         }
 
+        public static string GetResource(string keyword)
+            => keyword switch
+            {
+                "class" => FeaturesResources.class_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "interface" => FeaturesResources.interface_,
+                "record" => CSharpFeaturesResources.record_,
+                "record struct" => CSharpFeaturesResources.record_struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(keyword)
+            };
+
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
             => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap)
-        {
-            Assert.NotNull(syntaxMap);
-            return new SemanticEditDescription(kind, symbolProvider, syntaxMap, preserveLocalVariables: true);
-        }
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap, string? partialType = null)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, bool preserveLocalVariables = false)
-            => new(kind, symbolProvider, syntaxMap: null, preserveLocalVariables);
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables);
 
-        private static SyntaxTree ParseSource(string source)
-            => CSharpEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source));
+        internal static string DeletedSymbolDisplay(string kind, string displayName)
+            => string.Format(FeaturesResources.member_kind_and_name, kind, displayName);
+
+        internal static DocumentAnalysisResultsDescription DocumentResults(
+            ActiveStatementsDescription? activeStatements = null,
+            SemanticEditDescription[]? semanticEdits = null,
+            RudeEditDiagnosticDescription[]? diagnostics = null)
+            => new(activeStatements, semanticEdits, diagnostics);
+
+        private static SyntaxTree ParseSource(string markedSource)
+            => SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                path: "test.cs");
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
@@ -61,6 +82,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
             return match.GetTreeEdits();
+        }
+
+        public static EditScript<SyntaxNode> GetTopEdits(EditScript<SyntaxNode> methodEdits)
+        {
+            var oldMethodSource = methodEdits.Match.OldRoot.ToFullString();
+            var newMethodSource = methodEdits.Match.NewRoot.ToFullString();
+
+            return GetTopEdits(WrapMethodBodyWithClass(oldMethodSource), WrapMethodBodyWithClass(newMethodSource));
         }
 
         /// <summary>
@@ -103,6 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
             => EditAndContinueTestHelpers.ToMatchingPairs(matches);
 
+#nullable disable
+
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
             MethodKind kind = MethodKind.Regular)
@@ -135,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource)
-            => new(oldSource, newSource);
+        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, string path = "0")
+            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: path), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);

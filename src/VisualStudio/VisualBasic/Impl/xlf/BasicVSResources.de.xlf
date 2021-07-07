@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../BasicVSResources.resx">
     <body>
@@ -51,6 +51,16 @@
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">"Is Nothing" für Verweisübereinstimmungsprüfungen vorziehen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">Vereinfachte Objekterstellung bevorzugen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">Unnötige Import-Direktiven entfernen</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -166,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">Import-Direktiven</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">Importe sortieren</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

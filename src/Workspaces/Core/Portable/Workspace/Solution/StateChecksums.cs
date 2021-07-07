@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 {
     internal sealed class SolutionStateChecksums : ChecksumWithChildren
     {
-        public SolutionStateChecksums(Checksum infoChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums)
-            : this(new object[] { infoChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums })
+        public SolutionStateChecksums(Checksum attributesChecksum, Checksum optionsChecksum, ProjectChecksumCollection projectChecksums, AnalyzerReferenceChecksumCollection analyzerReferenceChecksums, Checksum frozenSourceGeneratedDocumentIdentity, Checksum frozenSourceGeneratedDocumentText)
+            : this(new object[] { attributesChecksum, optionsChecksum, projectChecksums, analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentity, frozenSourceGeneratedDocumentText })
         {
         }
 
@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Serialization
         public Checksum Options => (Checksum)Children[1];
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[3];
+        public Checksum FrozenSourceGeneratedDocumentIdentity => (Checksum)Children[4];
+        public Checksum FrozenSourceGeneratedDocumentText => (Checksum)Children[5];
 
         public async Task FindAsync(
             SolutionState state,
@@ -54,6 +56,18 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (searchingChecksumsLeft.Remove(Options))
             {
                 result[Options] = state.Options;
+            }
+
+            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentIdentity))
+            {
+                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentIdentity checksum if we didn't have a text in the first place.");
+                result[FrozenSourceGeneratedDocumentIdentity] = state.FrozenSourceGeneratedDocumentState.Identity;
+            }
+
+            if (searchingChecksumsLeft.Remove(FrozenSourceGeneratedDocumentText))
+            {
+                Contract.ThrowIfNull(state.FrozenSourceGeneratedDocumentState, "We should not have had a FrozenSourceGeneratedDocumentState checksum if we didn't have a text in the first place.");
+                result[FrozenSourceGeneratedDocumentText] = await SerializableSourceText.FromTextDocumentStateAsync(state.FrozenSourceGeneratedDocumentState, cancellationToken).ConfigureAwait(false);
             }
 
             if (searchingChecksumsLeft.Remove(Projects.Checksum))
@@ -152,11 +166,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             if (searchingChecksumsLeft.Remove(CompilationOptions))
             {
+                Contract.ThrowIfNull(state.CompilationOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[CompilationOptions] = state.CompilationOptions;
             }
 
             if (searchingChecksumsLeft.Remove(ParseOptions))
             {
+                Contract.ThrowIfNull(state.ParseOptions, "We should not be trying to serialize a project with no compilation options; RemoteSupportedLanguages.IsSupported should have filtered it out.");
                 result[ParseOptions] = state.ParseOptions;
             }
 
@@ -220,11 +236,9 @@ namespace Microsoft.CodeAnalysis.Serialization
             Dictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
 
-            // verify input
-            Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
-            Contract.ThrowIfFalse(this == stateChecksum);
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (searchingChecksumsLeft.Remove(Checksum))
             {
@@ -253,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public static IReadOnlyList<T> GetOrCreate<T>(IReadOnlyList<T> unorderedList, ConditionalWeakTable<object, object>.CreateValueCallback orderedListGetter)
             => (IReadOnlyList<T>)s_cache.GetValue(unorderedList, orderedListGetter);
 
-        public static bool TryGetValue(object value, out Checksum checksum)
+        public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
         {
             // same key should always return same checksum
             if (!s_cache.TryGetValue(value, out var result))

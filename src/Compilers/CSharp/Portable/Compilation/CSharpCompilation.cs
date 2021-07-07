@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
@@ -133,11 +134,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
 
         /// <summary>
+        /// The set of trees for which enough analysis was performed in order to record usage of using directives.
+        /// Once all trees are processed the value is set to null.
+        /// </summary>
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
+
+        /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
         /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
         /// </summary>
-        internal ConcurrentDictionary<object, NullableWalker.Data>? NullableAnalysisData;
+        internal NullableData? NullableAnalysisData;
+
+        internal sealed class NullableData
+        {
+            internal readonly int MaxRecursionDepth;
+            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
+
+            internal NullableData(int maxRecursionDepth = -1)
+            {
+                MaxRecursionDepth = maxRecursionDepth;
+                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
+            }
+        }
+
+        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
         public override string Language
         {
@@ -446,7 +467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
+            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
@@ -757,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is there a trailing expression?
-            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            var lastGlobalStatement = (GlobalStatementSyntax?)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
             if (lastGlobalStatement != null)
             {
                 var statement = lastGlobalStatement.Statement;
@@ -1423,9 +1445,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal Imports GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
 
-        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
+        {
+            var usingsFromoptions = UsingsFromOptions;
+            var previousSubmission = PreviousSubmission;
+            var previousSubmissionImports = previousSubmission is object ? Imports.ExpandPreviousSubmissionImports(previousSubmission.GlobalImports, this) : ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+
+            if (usingsFromoptions.UsingNamespacesOrTypes.IsEmpty)
+            {
+                return previousSubmissionImports;
+            }
+            else if (previousSubmissionImports.IsEmpty)
+            {
+                return usingsFromoptions.UsingNamespacesOrTypes;
+            }
+
+            var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            boundUsings.AddRange(usingsFromoptions.UsingNamespacesOrTypes);
+            uniqueUsings.AddAll(usingsFromoptions.UsingNamespacesOrTypes.Select(static unt => unt.NamespaceOrType));
+
+            foreach (var previousUsing in previousSubmissionImports)
+            {
+                if (uniqueUsings.Add(previousUsing.NamespaceOrType))
+                {
+                    boundUsings.Add(previousUsing);
+                }
+            }
+
+            uniqueUsings.Free();
+
+            return boundUsings.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Global imports not including those from previous submissions.
+        /// </summary>
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+
+        private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
@@ -1442,8 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Imports.Empty;
             }
 
-            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports(basesBeingResolved: null);
+            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetImports((CSharpSyntaxNode)tree.GetRoot(), basesBeingResolved: null);
         }
 
         /// <summary>
@@ -2272,17 +2332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
         }
 
-        /// <summary>
-        /// Returns imported symbols for the given declaration.
-        /// </summary>
-        internal Imports GetImports(SingleNamespaceDeclaration declaration)
-        {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
-            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
+            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
         }
 
         private void CompleteTree(SyntaxTree tree)
@@ -2304,12 +2356,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void ReportUnusedImports(SyntaxTree? filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal override void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            ReportUnusedImports(filterTree, new BindingDiagnosticBag(diagnostics), cancellationToken);
+            ReportUnusedImports(filterTree: null, new BindingDiagnosticBag(diagnostics), cancellationToken);
         }
 
-        internal void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
@@ -2348,7 +2400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (info.Kind == SyntaxKind.ExternAliasDirective)
                             {
                                 // Record targets of used extern aliases
-                                var node = info.Tree.GetRoot().FindToken(info.Span.Start, findInsideTrivia: false).
+                                var node = info.Tree.GetRoot(cancellationToken).FindToken(info.Span.Start, findInsideTrivia: false).
                                                Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
 
                                 if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
@@ -2420,6 +2472,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CompleteTree(tree);
                     }
                 }
+            }
+
+            if (filterTree is null)
+            {
+                _usageOfUsingsRecordedInTrees = null;
             }
         }
 
@@ -2750,32 +2807,137 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
-            MethodCompiler.CompileMethodBodies(
-                compilation: this,
-                moduleBeingBuiltOpt: null,
-                emittingPdb: false,
-                emitTestCoverageData: false,
-                hasDeclarationErrors: false,
-                emitMethodBodies: false,
-                diagnostics: bindingDiagnostics,
-                filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
-                cancellationToken: cancellationToken);
-
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, tree, span);
-
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
-            if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
+            bool reportUnusedUsings = (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan) && ReportUnusedImportsInTree(tree);
+            bool recordUsageOfUsingsInAllTrees = false;
+
+            if (reportUnusedUsings && UsageOfUsingsRecordedInTrees is not null)
             {
-                ReportUnusedImports(tree, diagnostics, cancellationToken);
+                foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
+                {
+                    if (singleDeclaration.SyntaxReference.SyntaxTree == tree)
+                    {
+                        if (singleDeclaration.HasGlobalUsings)
+                        {
+                            // Global Using directives can be used in any tree. Make sure we collect usage information from all of them.
+                            recordUsageOfUsingsInAllTrees = true;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecordedInTrees?.IsEmpty == true)
+            {
+                Debug.Assert(reportUnusedUsings);
+
+                // Simply compile the world
+                compileMethodBodiesAndDocComments(filterTree: null, filterSpan: null, bindingDiagnostics, cancellationToken);
+                _usageOfUsingsRecordedInTrees = null;
+            }
+            else
+            {
+                // Always compile the target tree
+                compileMethodBodiesAndDocComments(filterTree: tree, filterSpan: span, bindingDiagnostics, cancellationToken);
+
+                if (reportUnusedUsings)
+                {
+                    registeredUsageOfUsingsInTree(tree);
+                }
+
+                // Compile other trees if we need to, but discard diagnostics from them.
+                if (recordUsageOfUsingsInAllTrees)
+                {
+                    Debug.Assert(reportUnusedUsings);
+
+                    var discarded = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    Debug.Assert(discarded.DiagnosticBag is object);
+
+                    foreach (var otherTree in SyntaxTrees)
+                    {
+                        var trackingSet = UsageOfUsingsRecordedInTrees;
+
+                        if (trackingSet is null)
+                        {
+                            break;
+                        }
+
+                        if (!trackingSet.Contains(otherTree))
+                        {
+                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, discarded, cancellationToken);
+                            registeredUsageOfUsingsInTree(otherTree);
+                            discarded.DiagnosticBag.Clear();
+                        }
+                    }
+
+                    discarded.DiagnosticBag.Free();
+                }
+            }
+
+            if (reportUnusedUsings)
+            {
+                ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
             return diagnostics.ToReadOnlyAndFree();
+
+            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
+            {
+                MethodCompiler.CompileMethodBodies(
+                                compilation: this,
+                                moduleBeingBuiltOpt: null,
+                                emittingPdb: false,
+                                emitTestCoverageData: false,
+                                hasDeclarationErrors: false,
+                                emitMethodBodies: false,
+                                diagnostics: bindingDiagnostics,
+                                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
+                                cancellationToken: cancellationToken);
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
+            }
+
+            void registeredUsageOfUsingsInTree(SyntaxTree tree)
+            {
+                var current = UsageOfUsingsRecordedInTrees;
+
+                while (true)
+                {
+                    if (current is null)
+                    {
+                        break;
+                    }
+
+                    var updated = current.Add(tree);
+
+                    if ((object)updated == current)
+                    {
+                        break;
+                    }
+
+                    if (updated.Count == SyntaxTrees.Length)
+                    {
+                        _usageOfUsingsRecordedInTrees = null;
+                        break;
+                    }
+
+                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecordedInTrees, updated, current);
+
+                    if (recent == (object)current)
+                    {
+                        break;
+                    }
+
+                    current = recent;
+                }
+            }
         }
 
         private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
-            GlobalImports.Complete(cancellationToken);
+            UsingsFromOptions.Complete(this, cancellationToken);
 
             SourceLocation? location = null;
             if (syntaxTree != null)
@@ -3125,6 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             Stream? win32Resources,
+            bool useRawWin32Resources,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
@@ -3132,7 +3295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics);
 
             ReportManifestResourceDuplicates(
                 moduleBuilder.ManifestResources,
@@ -3189,7 +3352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -3201,7 +3363,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken);
         }
@@ -3383,7 +3544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {
@@ -4172,7 +4333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.Contains(_name))
+                    if (typeDecl.MemberNames.ContainsKey(_name))
                     {
                         return true;
                     }

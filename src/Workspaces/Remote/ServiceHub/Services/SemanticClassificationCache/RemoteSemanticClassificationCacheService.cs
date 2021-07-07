@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persistenceService == null)
                 return;
 
-            using var storage = await persistenceService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
+            var storage = await persistenceService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
+            await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
                 return;
 
@@ -113,29 +114,23 @@ namespace Microsoft.CodeAnalysis.Remote
             if (matches)
                 return;
 
-            var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-            try
-            {
-                // Compute classifications for the full span.
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
+            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-                using var stream = SerializableBytes.CreateWritableStream();
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                {
-                    WriteTo(classifiedSpans, writer);
-                }
+            // Compute classifications for the full span.
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), classifiedSpans, cancellationToken).ConfigureAwait(false);
 
-                stream.Position = 0;
-                await storage.WriteStreamAsync(documentKey, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
-            }
-            finally
+            using var stream = SerializableBytes.CreateWritableStream();
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
             {
-                ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
+                WriteTo(classifiedSpans, writer);
             }
+
+            stream.Position = 0;
+            await storage.WriteStreamAsync(documentKey, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void WriteTo(List<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
+        private static void WriteTo(ArrayBuilder<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
         {
             writer.WriteInt32(ClassificationFormat);
 
@@ -180,12 +175,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            SerializableDocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
+            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                    documentKey.Rehydrate(), checksum, cancellationToken).ConfigureAwait(false);
+                    documentKey, checksum, cancellationToken).ConfigureAwait(false);
                 if (classifiedSpans.IsDefault)
                     return null;
 
@@ -264,7 +259,8 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persistenceService == null)
                 return default;
 
-            using var storage = await persistenceService.GetStorageAsync(workspace, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+            var storage = await persistenceService.GetStorageAsync(workspace, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
                 return default;
 

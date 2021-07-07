@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Next
 #End If
 
-                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer))
+                    builder.Add(New BoundAsNewLocalDeclarations(varDecl, locals.ToImmutableAndFree(), asNewInitializer, Me))
                 End If
             Next
 
@@ -3864,10 +3864,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       diagnostics)
                     End If
 
-                    Dim membertUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                    Dim memberUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
 
-                    If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                        diagnostics.AddDependencies(membertUseSiteInfo)
+                    If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                        diagnostics.AddDependencies(memberUseSiteInfo)
                         collectionPlaceholder = New BoundRValuePlaceholder(collectionSyntax,
                                                                            If(collectionType IsNot Nothing AndAlso collectionType.IsStringType, collectionType, collection.Type))
                         Dim methodOrPropertyGroup As BoundMethodOrPropertyGroup
@@ -3891,9 +3891,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         member = GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext,
                                                       collectionSyntax,
                                                       diagnostics)
-                        membertUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
-                        If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                            diagnostics.AddDependencies(membertUseSiteInfo)
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundMethodGroup(collectionSyntax,
                                                                          Nothing,
                                                                          ImmutableArray.Create(DirectCast(member, MethodSymbol)),
@@ -3925,9 +3925,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           diagnostics)
                         End If
 
-                        membertUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
-                        If member IsNot Nothing AndAlso membertUseSiteInfo.DiagnosticInfo Is Nothing Then
-                            diagnostics.AddDependencies(membertUseSiteInfo)
+                        memberUseSiteInfo = If(member?.GetUseSiteInfo(), New UseSiteInfo(Of AssemblySymbol)())
+                        If member IsNot Nothing AndAlso memberUseSiteInfo.DiagnosticInfo Is Nothing Then
+                            diagnostics.AddDependencies(memberUseSiteInfo)
                             methodOrPropertyGroup = New BoundPropertyGroup(collectionSyntax,
                                                                            ImmutableArray.Create(DirectCast(member, PropertySymbol)),
                                                                            LookupResultKind.Good,

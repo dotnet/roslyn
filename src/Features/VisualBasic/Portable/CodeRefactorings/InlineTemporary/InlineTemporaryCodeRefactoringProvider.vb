@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             ' Next, get the top-most statement of the local declaration
             Dim variableDeclarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
             Dim localDeclaration = DirectCast(variableDeclarator.Parent, LocalDeclarationStatementSyntax)
-            Dim originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.GetInitializer())
+            Dim originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.GetInitializer(), cancellationToken)
 
             Dim topMostStatementOfLocalDeclaration = If(localDeclaration.HasAncestor(Of ExpressionSyntax),
                                                         localDeclaration.Ancestors().OfType(Of ExpressionSyntax).Last().FirstAncestorOrSelf(Of StatementSyntax)(),
@@ -463,6 +463,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                                               Return newNode _
                                                   .WithAdditionalAnnotations(ConflictAnnotation.Create(VBFeaturesResources.Conflict_s_detected))
                                           End Function
+
             Return Await inlinedDocument.ReplaceNodesAsync(replacementNodesWithChangedSemantics.Keys, conflictAnnotationAdder, cancellationToken).ConfigureAwait(False)
         End Function
 

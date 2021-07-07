@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
     using static SimplifyBooleanExpressionConstants;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.SimplifyConditionalExpression), Shared]
     internal sealed class SimplifyConditionalCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

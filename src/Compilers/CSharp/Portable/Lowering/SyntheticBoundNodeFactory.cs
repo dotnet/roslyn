@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression MakeInvocationExpression(
             BinderFlags flags,
             SyntaxNode node,
-            BoundExpression? receiver,
+            BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
             BindingDiagnosticBag diagnostics,
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If necessary, add a conversion on the return expression.
                 var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
@@ -633,6 +633,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
             => New(ctor, args.ToImmutableArray());
 
+        public BoundObjectCreationExpression New(NamedTypeSymbol type, ImmutableArray<BoundExpression> args)
+        {
+            var ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
+            return New(ctor, args);
+        }
+
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
 
@@ -657,12 +663,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression InstanceCall(BoundExpression? receiver, string name, BoundExpression arg)
+        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
         }
 
-        public BoundExpression InstanceCall(BoundExpression? receiver, string name)
+        public BoundExpression InstanceCall(BoundExpression receiver, string name)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray<BoundExpression>.Empty, this.Diagnostics);
         }
@@ -1236,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var useSiteInfo =
 #if DEBUG
-                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
+                    CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
 #else
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
@@ -1381,7 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression Not(BoundExpression expression)
         {
             Debug.Assert(expression is { Type: { SpecialType: CodeAnalysis.SpecialType.System_Boolean } });
-            return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, LookupResultKind.Viable, expression.Type);
+            return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, constrainedToTypeOpt: null, LookupResultKind.Viable, expression.Type);
         }
 
         /// <summary>

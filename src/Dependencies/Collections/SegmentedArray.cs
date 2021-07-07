@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
@@ -83,9 +84,46 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length == 0)
                 return;
 
-            foreach (var (first, second) in GetSegmentsUnaligned(sourceArray, sourceIndex, destinationArray, destinationIndex, length))
+            if (sourceArray.SyncRoot == destinationArray.SyncRoot
+                && sourceIndex + length > destinationIndex)
             {
-                first.CopyTo(second);
+                // We are copying in the same array with overlap
+                CopyOverlapped(sourceArray, sourceIndex, destinationIndex, length);
+            }
+            else
+            {
+                foreach (var (first, second) in GetSegmentsUnaligned(sourceArray, sourceIndex, destinationArray, destinationIndex, length))
+                {
+                    first.CopyTo(second);
+                }
+            }
+        }
+
+        // PERF: Avoid inlining this path in Copy<T>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void CopyOverlapped<T>(SegmentedArray<T> array, int sourceIndex, int destinationIndex, int length)
+        {
+            Debug.Assert(length > 0);
+            Debug.Assert(sourceIndex >= 0);
+            Debug.Assert(destinationIndex >= 0);
+            Debug.Assert((uint)(sourceIndex + length) <= array.Length);
+            Debug.Assert((uint)(destinationIndex + length) <= array.Length);
+
+            var unalignedEnumerator = GetSegmentsUnaligned(array, sourceIndex, array, destinationIndex, length);
+            if (sourceIndex < destinationIndex)
+            {
+                // We are copying forward in the same array with overlap
+                foreach (var (first, second) in unalignedEnumerator.Reverse())
+                {
+                    first.CopyTo(second);
+                }
+            }
+            else
+            {
+                foreach (var (first, second) in unalignedEnumerator)
+                {
+                    first.CopyTo(second);
+                }
             }
         }
 
@@ -333,10 +371,10 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning disable IDE0051 // Remove unused private members (will be used in follow-up)
         private static AlignedSegmentEnumerable<T> GetSegmentsAligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
             => new(first, firstOffset, second, secondOffset, length);
+#pragma warning restore IDE0051 // Remove unused private members
 
         private static UnalignedSegmentEnumerable<T> GetSegmentsUnaligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
             => new(first, firstOffset, second, secondOffset, length);
-#pragma warning restore IDE0051 // Remove unused private members
 
         private readonly struct AlignedSegmentEnumerable<T>
         {
@@ -397,15 +435,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = _firstSegments[0].Length;
                 if (_completed == 0)
                 {
-                    var initialFirstSegment = _firstOffset / segmentLength;
-                    var initialFirstSegmentStart = initialFirstSegment * segmentLength;
-                    var initialSecondSegment = _secondOffset / segmentLength;
-                    var initialSecondSegmentStart = initialSecondSegment * segmentLength;
-                    var offset = _firstOffset - initialFirstSegmentStart;
-                    Debug.Assert(offset == (_secondOffset - initialSecondSegmentStart), "Aligned views must start at the same segment offset");
+                    var initialFirstSegment = _firstOffset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var initialSecondSegment = _secondOffset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var offset = _firstOffset & SegmentedArrayHelper.GetOffsetMask<T>();
+                    Debug.Assert(offset == (_secondOffset & SegmentedArrayHelper.GetOffsetMask<T>()), "Aligned views must start at the same segment offset");
 
                     var firstSegment = _firstSegments[initialFirstSegment];
                     var secondSegment = _secondSegments[initialSecondSegment];
@@ -417,9 +452,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    var firstSegment = _firstSegments[(_completed + _firstOffset) / segmentLength];
-                    var secondSegment = _secondSegments[(_completed + _secondOffset) / segmentLength];
-                    var currentSegmentLength = Math.Min(segmentLength, _length - _completed);
+                    var firstSegment = _firstSegments[(_completed + _firstOffset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    var secondSegment = _secondSegments[(_completed + _secondOffset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    var currentSegmentLength = Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed);
                     _current = (firstSegment.AsMemory().Slice(0, currentSegmentLength), secondSegment.AsMemory().Slice(0, currentSegmentLength));
                     _completed += currentSegmentLength;
                     return true;
@@ -451,6 +486,25 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public UnalignedSegmentEnumerator<T> GetEnumerator()
                 => new((T[][])_first.SyncRoot, _firstOffset, (T[][])_second.SyncRoot, _secondOffset, _length);
+
+            public ReverseEnumerable Reverse()
+                => new(this);
+
+            public readonly struct ReverseEnumerable
+            {
+                private readonly UnalignedSegmentEnumerable<T> _enumerable;
+
+                public ReverseEnumerable(UnalignedSegmentEnumerable<T> enumerable)
+                {
+                    _enumerable = enumerable;
+                }
+
+                public UnalignedSegmentEnumerator<T>.Reverse GetEnumerator()
+                => new((T[][])_enumerable._first.SyncRoot, _enumerable._firstOffset, (T[][])_enumerable._second.SyncRoot, _enumerable._secondOffset, _enumerable._length);
+
+                public UnalignedSegmentEnumerable<T> Reverse()
+                    => _enumerable;
+            }
         }
 
         private struct UnalignedSegmentEnumerator<T>
@@ -486,22 +540,68 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = Math.Max(_firstSegments[0].Length, _secondSegments[0].Length);
-                var initialFirstSegment = (_completed + _firstOffset) / segmentLength;
-                var initialFirstSegmentStart = initialFirstSegment * segmentLength;
-                var initialSecondSegment = (_completed + _secondOffset) / segmentLength;
-                var initialSecondSegmentStart = initialSecondSegment * segmentLength;
-                var firstOffset = _completed + _firstOffset - initialFirstSegmentStart;
-                var secondOffset = _completed + _secondOffset - initialSecondSegmentStart;
+                var initialFirstSegment = (_completed + _firstOffset) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                var initialSecondSegment = (_completed + _secondOffset) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                var firstOffset = (_completed + _firstOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
+                var secondOffset = (_completed + _secondOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
 
                 var firstSegment = _firstSegments[initialFirstSegment];
                 var secondSegment = _secondSegments[initialSecondSegment];
                 var remainingInFirstSegment = firstSegment.Length - firstOffset;
                 var remainingInSecondSegment = secondSegment.Length - secondOffset;
-                var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length);
+                var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length - _completed);
                 _current = (firstSegment.AsMemory().Slice(firstOffset, currentSegmentLength), secondSegment.AsMemory().Slice(secondOffset, currentSegmentLength));
                 _completed += currentSegmentLength;
                 return true;
+            }
+
+            public struct Reverse
+            {
+                private readonly T[][] _firstSegments;
+                private readonly int _firstOffset;
+                private readonly T[][] _secondSegments;
+                private readonly int _secondOffset;
+                private readonly int _length;
+
+                private int _completed;
+                private (Memory<T> first, Memory<T> second) _current;
+
+                public Reverse(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+                {
+                    _firstSegments = firstSegments;
+                    _firstOffset = firstOffset;
+                    _secondSegments = secondSegments;
+                    _secondOffset = secondOffset;
+                    _length = length;
+
+                    _completed = 0;
+                    _current = (Memory<T>.Empty, Memory<T>.Empty);
+                }
+
+                public (Memory<T> first, Memory<T> second) Current => _current;
+
+                public bool MoveNext()
+                {
+                    if (_completed == _length)
+                    {
+                        _current = (Memory<T>.Empty, Memory<T>.Empty);
+                        return false;
+                    }
+
+                    var initialFirstSegment = (_firstOffset + _length - _completed - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var initialSecondSegment = (_secondOffset + _length - _completed - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var firstOffset = (_firstOffset + _length - _completed - 1) & SegmentedArrayHelper.GetOffsetMask<T>();
+                    var secondOffset = (_secondOffset + _length - _completed - 1) & SegmentedArrayHelper.GetOffsetMask<T>();
+
+                    var firstSegment = _firstSegments[initialFirstSegment];
+                    var secondSegment = _secondSegments[initialSecondSegment];
+                    var remainingInFirstSegment = firstOffset + 1;
+                    var remainingInSecondSegment = secondOffset + 1;
+                    var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length - _completed);
+                    _current = (firstSegment.AsMemory().Slice(firstOffset - currentSegmentLength + 1, currentSegmentLength), secondSegment.AsMemory().Slice(secondOffset - currentSegmentLength + 1, currentSegmentLength));
+                    _completed += currentSegmentLength;
+                    return true;
+                }
             }
         }
 
@@ -580,12 +680,10 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = _segments[0].Length;
                 if (_completed == 0)
                 {
-                    var firstSegment = _offset / segmentLength;
-                    var firstSegmentStart = firstSegment * segmentLength;
-                    var offset = _offset - firstSegmentStart;
+                    var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
                     var segment = _segments[firstSegment];
                     var remainingInSegment = segment.Length - offset;
@@ -595,8 +693,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    var segment = _segments[(_completed + _offset) / segmentLength];
-                    _current = segment.AsMemory().Slice(0, Math.Min(segmentLength, _length - _completed));
+                    var segment = _segments[(_completed + _offset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    _current = segment.AsMemory().Slice(0, Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed));
                     _completed += _current.Length;
                     return true;
                 }
@@ -631,12 +729,10 @@ namespace Microsoft.CodeAnalysis.Collections
                         return false;
                     }
 
-                    var segmentLength = _segments[0].Length;
                     if (_completed == 0)
                     {
-                        var firstSegment = _offset / segmentLength;
-                        var firstSegmentStart = firstSegment * segmentLength;
-                        var offset = _offset - firstSegmentStart;
+                        var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                        var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
                         var segment = _segments[firstSegment];
                         var remainingInSegment = segment.Length - offset;
@@ -646,8 +742,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
                     else
                     {
-                        var segment = _segments[(_completed + _offset) / segmentLength];
-                        _current = segment.AsMemory().Slice(0, Math.Min(segmentLength, _length - _completed));
+                        var segment = _segments[(_completed + _offset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                        _current = segment.AsMemory().Slice(0, Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed));
                         _completed += _current.Length;
                         return true;
                     }
