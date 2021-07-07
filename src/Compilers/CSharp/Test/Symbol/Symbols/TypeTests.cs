@@ -91,7 +91,7 @@ interface B {
             Assert.Equal(Accessibility.Internal, s.DeclaredAccessibility);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void InheritedTypesCrossTrees(string ob, string cb)
         {
             var text = @"namespace MT " + ob + @"

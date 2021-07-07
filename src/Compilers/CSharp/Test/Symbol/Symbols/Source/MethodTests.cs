@@ -450,7 +450,7 @@ public interface A {
             Assert.Equal(RefKind.Out, p2.RefKind);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void InterfaceImplementsCrossTrees(string ob, string cb)
         {
             var text1 =

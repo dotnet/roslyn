@@ -66,7 +66,7 @@ class C
             Assert.Equal(RefKind.RefReadOnly, rxLocal.RefKind);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestGetDeclaredSymbolFromNamespace(string ob, string cb)
         {
             var compilation = CreateCompilation($@"
@@ -108,7 +108,7 @@ class
             Assert.Equal("", symbol.Name);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestGetDeclaredSymbolFromNestedNamespace(string ob, string cb)
         {
             var compilation = CreateCompilation($@"
@@ -195,7 +195,7 @@ enum E { }
             Assert.Equal("E", symbol.ToTestDisplayString());
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void GenericNameInNamespaceName(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
@@ -218,7 +218,7 @@ namespace C<int>.B
             Assert.Equal("C.B.Y", symbol.ToTestDisplayString());
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void AliasedNameInNamespaceName(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
@@ -1014,7 +1014,7 @@ class C1 { }
 
         [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
         [Theory]
-        [MemberData(nameof(SingleLineOrBracedNamespace))]
+        [MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestLookupUnresolvableNamespaceUsing(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
@@ -1035,7 +1035,7 @@ class C1 { }
             // should validate type here
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestLookupSourceSymbolHidesMetadataSymbol(string ob, string cb)
         {
             var compilation = CreateCompilation(@"
@@ -3002,7 +3002,7 @@ class CGoo
 
         [WorkItem(537953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537953")]
         [Theory]
-        [MemberData(nameof(SingleLineOrBracedNamespace))]
+        [MemberData(nameof(FileScopedOrBracedNamespace))]
         public void GetDeclaredSymbolNoTypeSymbolWithErr(string ob, string cb)
         {
             var compilation = (Compilation)CreateCompilation(@"

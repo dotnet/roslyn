@@ -1238,7 +1238,7 @@ public class ClassC : ClassB {}
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void NestedNames1(string ob, string cb)
         {
             var text =

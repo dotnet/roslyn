@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             }
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void SourceNamedTypeDeclaringSyntax(string ob, string cb)
         {
             var text =
@@ -420,7 +420,7 @@ namespace System {}
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, global, 1, SyntaxKind.CompilationUnit);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TypeParameterDeclaringSyntax(string ob, string cb)
         {
             var text =

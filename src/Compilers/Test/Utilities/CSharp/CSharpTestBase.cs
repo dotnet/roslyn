@@ -2357,7 +2357,7 @@ namespace System
             }
         }
 
-        public static IEnumerable<object[]> SingleLineOrBracedNamespace
+        public static IEnumerable<object[]> FileScopedOrBracedNamespace
         {
             get
             {

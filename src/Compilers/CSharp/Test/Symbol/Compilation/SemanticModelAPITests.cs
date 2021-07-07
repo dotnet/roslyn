@@ -3844,7 +3844,7 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void LookupInNamespace(string ob, string cb)
         {
             var source = @"
