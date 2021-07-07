@@ -241,21 +241,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async IAsyncEnumerable<SymbolGroup> DetermineUpSymbolGroupsAsync(
-            ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            await foreach (var upSymbol in DetermineUpSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
-            {
-                var group = await GetSymbolGroupAsync(upSymbol, cancellationToken).ConfigureAwait(false);
-                yield return group;
+        //private async IAsyncEnumerable<SymbolGroup> DetermineUpSymbolGroupsAsync(
+        //    ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
+        //{
+        //    await foreach (var upSymbol in DetermineUpSymbolsAsync(symbol, cancellationToken).ConfigureAwait(false))
+        //    {
+        //        var group = await GetSymbolGroupAsync(upSymbol, cancellationToken).ConfigureAwait(false);
+        //        yield return group;
 
-                await foreach (var cascade in DetermineCascadedSymbolsAsync(upSymbol, cancellationToken).ConfigureAwait(false))
-                {
-                    group = await GetSymbolGroupAsync(cascade, cancellationToken).ConfigureAwait(false);
-                    yield return group;
-                }
-            }
-        }
+        //        await foreach (var cascade in DetermineCascadedSymbolsAsync(upSymbol, cancellationToken).ConfigureAwait(false))
+        //        {
+        //            group = await GetSymbolGroupAsync(cascade, cancellationToken).ConfigureAwait(false);
+        //            yield return group;
+        //        }
+        //    }
+        //}
 
         //private async Task<HashSet<SymbolGroup>> DetermineUpGroupAsync(ISymbol searchSymbol, CancellationToken cancellationToken)
         //{

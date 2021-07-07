@@ -86,18 +86,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
-        {
-            return FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, includeDerivedTypes: true, cancellationToken);
-        }
-
         /// <inheritdoc cref="FindImplementedInterfaceMembersAsync"/>
         /// <remarks>
         /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
         /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, bool includeDerivedTypes, CancellationToken cancellationToken)
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
             // public
@@ -125,9 +119,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // In this case, Base.Goo *does* implement IGoo.Goo in the context of the type
                     // Derived.
                     var containingType = symbol.ContainingType.OriginalDefinition;
-                    var derivedClasses = includeDerivedTypes
-                        ? await SymbolFinder.FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false)
-                        : ImmutableArray<INamedTypeSymbol>.Empty;
+                    var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(
+                        containingType, solution, projects, cancellationToken).ConfigureAwait(false);
                     var allTypes = derivedClasses.Concat(containingType);
 
                     using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);

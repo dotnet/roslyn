@@ -389,10 +389,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (!InvolvesInheritance(currentSymbol))
                         continue;
 
-                    // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
-                    // or explicitly implements and cascade to those.
-                    foreach (var match in await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(currentSymbol, _solution, projects: null, includeDerivedTypes: false, cancellationToken).ConfigureAwait(false))
-                        await AddSymbolsIfMissingAsync(match).ConfigureAwait(false);
+                    var originatingProject = _solution.GetOriginatingProject(currentSymbol);
+                    if (originatingProject != null)
+                    {
+                        // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
+                        // or explicitly implements and cascade to those.
+                        foreach (var match in await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(currentSymbol, _solution, ImmutableHashSet.Create(originatingProject), cancellationToken).ConfigureAwait(false))
+                            await AddSymbolsIfMissingAsync(match).ConfigureAwait(false);
+                    }
 
                     if (currentSymbol.GetOverriddenMember() is { } overriddenMember)
                         await AddSymbolsIfMissingAsync(overriddenMember).ConfigureAwait(false);
