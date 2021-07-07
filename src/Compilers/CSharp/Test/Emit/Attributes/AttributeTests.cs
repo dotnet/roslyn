@@ -9686,6 +9686,9 @@ public class Program { }
             // If a type deriving from a generic attribute is found in metadata, it's permitted to be used as an attribute in C# 9 and below.
             var comp = CreateCompilationWithIL(source, il, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
+
+            comp = CreateCompilationWithIL(source, il);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
