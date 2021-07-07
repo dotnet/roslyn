@@ -63,12 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         {
             if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
             {
-                // we allow all reference points. 
-                // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-                return SpecializedTasks.True;
+                return IsSupportedCodeElementAsync(descriptor.Kind);
             }
 
             return SpecializedTasks.False;
+        }
+
+        private static Task<bool> IsSupportedCodeElementAsync(CodeElementKinds kinds)
+        {
+            // we currently allow reference points only on those code elements
+            return kinds switch
+            {
+                CodeElementKinds.Type or CodeElementKinds.Property or CodeElementKinds.Method => SpecializedTasks.True,
+                _ => SpecializedTasks.False,
+            };
         }
 
         public Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
