@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    using SymbolsMatchAsync = Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason)>>;
+    using SymbolsMatchAsync = Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>>;
 
     internal class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IPropertySymbol>
     {
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var (matched, matchedSymbol, candidateReason, indexerReference) = await ComputeIndexerInformationAsync(
+                var (matched, candidateReason, indexerReference) = await ComputeIndexerInformationAsync(
                     symbol, isMatchAsync, document, semanticModel, node, cancellationToken).ConfigureAwait(false);
                 if (!matched)
                     continue;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var symbolUsageInfo = GetSymbolUsageInfo(
                     node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                locations.Add(new FinderLocation(node, matchedSymbol!,
+                locations.Add(new FinderLocation(node,
                     new ReferenceLocation(
                         document, alias: null, location, isImplicit: false, symbolUsageInfo,
                         GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts),
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return locations.ToImmutable();
         }
 
-        private static ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
+        private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
             IPropertySymbol symbol,
             Func<ISymbol, ValueTask<bool>> isMatchAsync,
             Document document,
@@ -206,16 +206,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
         }
 
-        private static async ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerMemberCRefInformationAsync(
             SemanticModel semanticModel, SyntaxNode node, SymbolsMatchAsync symbolsMatchAsync)
         {
-            var (matched, symbol, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
 
             // For an IndexerMemberCRef the node itself is the indexer we are looking for.
-            return (matched, symbol, reason, node);
+            return (matched, reason, node);
         }
 
-        private static async ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
             ISyntaxFactsService syntaxFacts,
             SymbolsMatchAsync symbolsMatchAsync)
@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, symbol, reason) = await symbolsMatchAsync(indexerReference, semanticModel).ConfigureAwait(false);
-            return (matched, symbol, reason, indexerReference);
+            var (matched, reason) = await symbolsMatchAsync(indexerReference, semanticModel).ConfigureAwait(false);
+            return (matched, reason, indexerReference);
         }
 
-        private static async ValueTask<(bool matched, ISymbol? symbol, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {
@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return default;
             }
 
-            var (matched, symbol, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
-            return (matched, symbol, reason, indexerReference);
+            var (matched, reason) = await symbolsMatchAsync(node, semanticModel).ConfigureAwait(false);
+            return (matched, reason, indexerReference);
         }
     }
 }

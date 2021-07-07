@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
 
-                    locations.Add(new FinderLocation(node, originalUnreducedSymbolDefinition, new ReferenceLocation(
+                    locations.Add(new FinderLocation(node, new ReferenceLocation(
                         document, alias: null, location, isImplicit: true, symbolUsageInfo, GetAdditionalFindUsagesProperties(node, semanticModel, syntaxFacts), CandidateReason.None)));
                 }
             }
