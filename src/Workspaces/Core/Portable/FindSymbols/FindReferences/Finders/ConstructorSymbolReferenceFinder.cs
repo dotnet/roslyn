@@ -173,9 +173,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 => syntaxTreeInfo.ContainsImplicitObjectCreation;
 
             void CollectMatchingReferences(
-                ISymbol originalUnreducedSymbolDefinition, SyntaxNode node,
-                ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
-                ArrayBuilder<FinderLocation> locations)
+                SyntaxNode node, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
                 if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
                     return;
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     return;
 
                 var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-                if (Matches(constructor, originalUnreducedSymbolDefinition))
+                if (Matches(constructor, symbol))
                 {
                     var location = node.GetFirstToken().GetLocation();
                     var symbolUsageInfo = GetSymbolUsageInfo(node, semanticModel, syntaxFacts, semanticFacts, cancellationToken);
