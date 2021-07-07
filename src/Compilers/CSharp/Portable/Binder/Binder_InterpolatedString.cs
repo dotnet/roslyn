@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int interpolatedStringArgNum,
             TypeSymbol? receiverType,
             RefKind? receiverRefKind,
-            uint receiverValEscapeScope,
+            uint receiverEscapeScope,
             BindingDiagnosticBag diagnostics)
         {
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         placeholderSyntax = unconvertedString.Syntax;
-                        valSafeToEscapeScope = receiverValEscapeScope;
+                        valSafeToEscapeScope = receiverEscapeScope;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                         placeholderSyntax = unconvertedString.Syntax;

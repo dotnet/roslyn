@@ -3110,7 +3110,7 @@ moreArguments:
 
                     if (conversion.ConversionKind == ConversionKind.InterpolatedStringHandler)
                     {
-                        return CheckInterpolatedStringExpressionEscape((BoundInterpolatedString)conversion.Operand, escapeFrom, escapeTo, diagnostics, isRef: false);
+                        return CheckInterpolatedStringHandlerConversionEscape((BoundInterpolatedString)conversion.Operand, escapeFrom, escapeTo, diagnostics);
                     }
 
                     return CheckValEscape(node, conversion.Operand, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -3383,12 +3383,16 @@ moreArguments:
             return true;
         }
 
-        private static bool CheckInterpolatedStringExpressionEscape(BoundInterpolatedString interpolatedString, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics, bool isRef)
+        private static bool CheckInterpolatedStringHandlerConversionEscape(BoundInterpolatedString interpolatedString, uint escapeFrom, uint escapeTo, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(interpolatedString.InterpolationData is not null);
+
             // We need to check to see if any values could potentially escape outside the max depth via the handler type.
             // Consider the case where a ref-struct handler saves off the result of one call to AppendFormatted,
             // and then on a subsequent call it either assigns that saved value to another ref struct with a larger
             // escape, or does the opposite. In either case, we need to check.
+
+            CheckValEscape(interpolatedString.Syntax, interpolatedString.InterpolationData.GetValueOrDefault().Construction, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
             foreach (var part in interpolatedString.Parts)
             {
@@ -3402,9 +3406,7 @@ moreArguments:
                 // The interpolation component is always the first argument to the method, and it was not passed by name
                 // so there can be no reordering.
                 var argument = call.Arguments[0];
-                var success = isRef
-                    ? CheckRefEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics)
-                    : CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+                var success = CheckValEscape(argument.Syntax, argument, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
 
                 if (!success)
                 {

@@ -10261,12 +10261,23 @@ string M(out object o)
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns, includeTrailingOutConstructorParameter: trailingOutParameter);
             var comp = CreateCompilation(new[] { code, customHandler }, parseOptions: TestOptions.RegularPreview);
 
-            if (useBoolReturns || trailingOutParameter)
+            if (trailingOutParameter)
             {
                 comp.VerifyDiagnostics(
                     // (6,5): error CS0165: Use of unassigned local variable 'i'
                     // _ = i.ToString();
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(6, 5),
+                    // (7,5): error CS0165: Use of unassigned local variable 'o'
+                    // _ = o.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(7, 5),
+                    // (8,5): error CS0165: Use of unassigned local variable 's'
+                    // _ = s.ToString();
+                    Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(8, 5)
+                );
+            }
+            else if (useBoolReturns)
+            {
+                comp.VerifyDiagnostics(
                     // (7,5): error CS0165: Use of unassigned local variable 'o'
                     // _ = o.ToString();
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(7, 5),

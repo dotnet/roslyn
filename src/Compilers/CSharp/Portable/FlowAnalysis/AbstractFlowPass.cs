@@ -1202,6 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        Debug.Assert(hasTrailingValidityParameter);
                         Join(ref State, ref beforePartsState);
                     }
 
