@@ -7844,7 +7844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
                 RefKind? receiverRefKind = receiverOpt?.GetRefKind();
-                uint receiverEscapeScope = property.RequiresInstanceReceiver
+                uint receiverEscapeScope = property.RequiresInstanceReceiver && receiverOpt != null
                     ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiverOpt, LocalScopeDepth) : GetValEscape(receiverOpt, LocalScopeDepth)
                     : Binder.ExternalScope;
                 this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverRefKind, receiverEscapeScope);

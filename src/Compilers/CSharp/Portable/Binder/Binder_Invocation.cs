@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             var receiverRefKind = receiver?.GetRefKind();
-            uint receiverValEscapeScope = method.RequiresInstanceReceiver
+            uint receiverValEscapeScope = method.RequiresInstanceReceiver && receiver != null
                 ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
                 : Binder.ExternalScope;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverRefKind, receiverValEscapeScope);
