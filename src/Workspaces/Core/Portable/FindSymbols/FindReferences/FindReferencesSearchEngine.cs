@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     projectTasks.Add(Task.Factory.StartNew(async () =>
                     {
                         await ProcessProjectAsync(currentProject, allSymbols, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken, TaskCreationOptions.None, _scheduler));
+                    }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
 
                 await Task.WhenAll(projectTasks).ConfigureAwait(false);
