@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
                 _ => throw ExceptionUtilities.UnexpectedValue(root)
             };
+
             if (members.Count == 0)
             {
                 return SyntaxTriviaList.Empty;
             }
+
             return members.First().GetLeadingTrivia();
         }
 
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Members,
                 _ => throw ExceptionUtilities.UnexpectedValue(root)
             };
+
             if (members.Count == 0)
             {
                 return root;
