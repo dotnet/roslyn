@@ -90,11 +90,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var projectsToSearchSet = projectsToSearch.ToSet();
                 var dependencyGraph = _solution.GetProjectDependencyGraph();
 
+                await _progressTracker.AddItemsAsync(projectsToSearchSet.Count, cancellationToken).ConfigureAwait(false);
+
                 using var _1 = ArrayBuilder<Task>.GetInstance(out var projectTasks);
 
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
                     var currentProject = _solution.GetRequiredProject(projectId);
+                    if (!projectsToSearchSet.Contains(currentProject))
+                        continue;
+
                     await InheritanceCascadeAsync(exactSymbols, upSymbols, downSymbols, currentProject, cancellationToken).ConfigureAwait(false);
 
                     var allSymbols = new HashSet<ISymbol>();
@@ -104,18 +109,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     projectTasks.Add(Task.Factory.StartNew(async () =>
                     {
-
+                        await ProcessProjectAsync(currentProject, allSymbols, cancellationToken).ConfigureAwait(false);
                     }, cancellationToken, TaskCreationOptions.None, _scheduler));
                 }
 
                 await Task.WhenAll(projectTasks).ConfigureAwait(false);
 
-                var symbolOrigination = DependentProjectsFinder.GetSymbolOrigination(_solution, searchSymbol, cancellationToken);
-                var initialProject = symbolOrigination.sourceProject ?? projectsToSearch.First();
+                //var symbolOrigination = DependentProjectsFinder.GetSymbolOrigination(_solution, searchSymbol, cancellationToken);
+                //var initialProject = symbolOrigination.sourceProject ?? projectsToSearch.First();
 
 
 
-                var downSymbols = await DetermineDownSymbolsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
+                //var downSymbols = await DetermineDownSymbolsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
 
                 // Determine the set of symbols higher up in the search-symbol's inheritance hierarchy.  References to
                 // these groups will always be reported.  However any reference to a subtype of these (that is not a
@@ -134,44 +139,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // reported (i.e. D, E, and C).  If UnidirectionalHierarchyCascade is true, then only 'B' and 'D' will
                 // be reported (C will not be).
 
-                using var _2 = ArrayBuilder<Task<(ISymbol symbol, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
-                foreach (var project in projects)
-                {
-                    foreach (var exactSymbol in exactSymbols)
-                    {
-                        foreach (var finder in _finders)
-                        {
-                            tasks.Add(Task.Factory.StartNew(async () =>
-                            {
-                                var documents = await finder.DetermineDocumentsToSearchAsync(exactSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
-                                return (exactSymbol, documents);
-                            }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
-                        }
-                    }
-                }
+                //using var _2 = ArrayBuilder<Task<(ISymbol symbol, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
+                //foreach (var project in projects)
+                //{
+                //    foreach (var exactSymbol in exactSymbols)
+                //    {
+                //        foreach (var finder in _finders)
+                //        {
+                //            tasks.Add(Task.Factory.StartNew(async () =>
+                //            {
+                //                var documents = await finder.DetermineDocumentsToSearchAsync(exactSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                //                return (exactSymbol, documents);
+                //            }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                //        }
+                //    }
+                //}
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                //await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                var projectToDocumentMap = new ProjectToDocumentMap();
-                foreach (var task in tasks)
-                {
-                    var (groupSymbol, documents) = await task.ConfigureAwait(false);
-                    foreach (var document in documents)
-                    {
-                        projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)
-                                            .MultiAdd(document, groupSymbol);
-                    }
-                }
+                //var projectToDocumentMap = new ProjectToDocumentMap();
+                //foreach (var task in tasks)
+                //{
+                //    var (groupSymbol, documents) = await task.ConfigureAwait(false);
+                //    foreach (var document in documents)
+                //    {
+                //        projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)
+                //                            .MultiAdd(document, groupSymbol);
+                //    }
+                //}
 
-                //var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);
-                //var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap, cancellationToken).ConfigureAwait(false);
-                //ValidateProjectToDocumentMap(projectToDocumentMap);
+                ////var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);
+                ////var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap, cancellationToken).ConfigureAwait(false);
+                ////ValidateProjectToDocumentMap(projectToDocumentMap);
 
-                await ProcessAsync(exactGroup, upGroup, projectToDocumentMap, cancellationToken).ConfigureAwait(false);
+                //await ProcessAsync(exactGroup, upGroup, projectToDocumentMap, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessProjectAsync(Project project, HashSet<ISymbol> allSymbols, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using var _ = PooledHashSet<Document>.GetInstance(out var allDocuments);
+                foreach (var symbol in allSymbols)
+                {
+                    foreach (var finder in _finders)
+                    {
+                        var documents = await finder.DetermineDocumentsToSearchAsync(
+                            symbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                        allDocuments.AddRange(documents);
+                    }
+                }
+
+                foreach (var document in allDocuments)
+                    await ProcessDocumentQueueAsync(document, allSymbols, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

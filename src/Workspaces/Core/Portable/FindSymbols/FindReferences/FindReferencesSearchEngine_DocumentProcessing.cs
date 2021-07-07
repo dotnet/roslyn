@@ -53,20 +53,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
             {
-                try
+                //try
+                //{
+                foreach (var finder in _finders)
                 {
-                    foreach (var finder in _finders)
-                    {
-                        var references = await finder.FindReferencesInDocumentAsync(
-                            symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
-                        foreach (var (_, location) in references)
-                            await HandleLocationAsync(symbol, location, cancellationToken).ConfigureAwait(false);
-                    }
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
+                        await HandleLocationAsync(symbol, location, cancellationToken).ConfigureAwait(false);
                 }
-                finally
-                {
-                    await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
-                }
+                //}
+                //finally
+                //{
+                //    await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+                //}
             }
         }
     }
