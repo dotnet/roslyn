@@ -1410,7 +1410,7 @@ class Program
             CompileAndVerify(compilation, expectedOutput: @"s1: s1-arg
 s2: s2-arg
 s3: 
-s4: _").VerifyDiagnostics(); // PROTOTYPE(caller-arg): Should 'out' keyword be included?
+s4: _").VerifyDiagnostics();
         }
 
 
