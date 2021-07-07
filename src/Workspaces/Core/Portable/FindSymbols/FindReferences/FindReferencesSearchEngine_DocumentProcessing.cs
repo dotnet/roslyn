@@ -55,12 +55,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 //try
                 //{
+                var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
                         symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
-                        await HandleLocationAsync(symbol, location, cancellationToken).ConfigureAwait(false);
+                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
                 //}
                 //finally

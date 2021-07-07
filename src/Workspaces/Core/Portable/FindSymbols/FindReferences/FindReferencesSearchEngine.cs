@@ -69,10 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
 
-                var searchSymbol = MapToAppropriateSymbol(symbol);
-                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false);
-                if (sourceSymbol != null)
-                    searchSymbol = sourceSymbol;
+                var searchSymbol = await MapToAppropriateSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
                 // Keep track of the initial symbol group corresponding to search-symbol.  Any references to this group
                 // will always be reported.
@@ -103,6 +100,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     allSymbols.AddRange(exactSymbols);
                     allSymbols.AddRange(upSymbols);
                     allSymbols.AddRange(downSymbols);
+
+                    await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
                     projectTasks.Add(Task.Factory.StartNew(async () =>
                     {
@@ -177,6 +176,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        private async Task ReportGroupsAsync(HashSet<ISymbol> allSymbols, CancellationToken cancellationToken)
+        {
+            foreach (var symbol in allSymbols)
+            {
+                if (!_symbolToGroup.ContainsKey(symbol))
+                {
+                    var group = await GetSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                    foreach (var groupSymbol in group.Symbols)
+                        Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
+
+                    await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
         private async Task InheritanceCascadeAsync(
             HashSet<ISymbol> exactSymbols,
             HashSet<ISymbol> upSymbols,
@@ -211,7 +225,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var symbol in symbols)
                 {
-                    downSymbols.Add(symbol);
                     foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false))
                         downSymbols.Add(linked);
                 }
@@ -407,16 +420,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             async Task AddSymbolsIfMissingAsync(ISymbol symbol)
             {
-                AddSymbolIfMissing(symbol);
-
                 foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false))
-                    AddSymbolIfMissing(linked);
-            }
-
-            void AddSymbolIfMissing(ISymbol symbol)
-            {
-                if (result.Add(symbol))
-                    stack.Push(symbol);
+                {
+                    var mapped = await MapToAppropriateSymbolAsync(linked, cancellationToken).ConfigureAwait(false);
+                    if (result.Add(mapped))
+                        stack.Push(mapped);
+                }
             }
         }
 
@@ -529,41 +538,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         Debug.Assert(set.Add(tuple));
                 }
             }
-        }
-
-        private async ValueTask HandleLocationAsync(ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
-        {
-            var group = await ReportPotentialDefinitionAsync(symbol, cancellationToken).ConfigureAwait(false);
-            await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<SymbolGroup> ReportPotentialDefinitionAsync(ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // See if this symbol is already associated with a symbol group.
-            if (!_symbolToGroup.TryGetValue(symbol, out var group))
-            {
-                // If not, compute the group it should be associated with.
-                group = await GetSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
-                var first = false;
-
-                // now try to update our mapping.
-                lock (_symbolToGroup)
-                {
-                    // Another thread may have beat us, so only do this if we're actually the first to get here.
-                    if (!_symbolToGroup.TryGetValue(symbol, out _))
-                    {
-                        first = true;
-                        foreach (var groupSymbol in group.Symbols)
-                            Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
-                    }
-                }
-
-                // If we were the first report to result in a group, then report that.
-                if (first)
-                    await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
-            }
-
-            return group;
         }
     }
 }

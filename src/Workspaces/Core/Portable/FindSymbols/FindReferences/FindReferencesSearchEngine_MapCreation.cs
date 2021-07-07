@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         //    }
         //}
 
-        private static ISymbol MapToAppropriateSymbol(ISymbol symbol)
+        private async Task<ISymbol> MapToAppropriateSymbolAsync(ISymbol symbol, CancellationToken cancellationToken)
         {
             // Never search for an alias.  Always search for it's target.  Note: if the caller was
             // actually searching for an alias, they can always get that information out in the end
@@ -317,7 +317,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 searchSymbol = symbol.ContainingType;
 
             Contract.ThrowIfNull(searchSymbol);
-            return searchSymbol;
+
+            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false);
+            return sourceSymbol ?? searchSymbol;
         }
     }
 }
