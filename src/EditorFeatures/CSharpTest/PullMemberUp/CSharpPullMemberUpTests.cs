@@ -1564,6 +1564,79 @@ namespace ClassLibrary1
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithDuplicateNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+
+namespace ClassLibrary1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
         {
             var testText = @"
