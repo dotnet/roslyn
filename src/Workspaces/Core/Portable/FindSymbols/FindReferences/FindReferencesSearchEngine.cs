@@ -5,9 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -18,8 +16,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<ISymbol>>>;
-
     internal partial class FindReferencesSearchEngine
     {
         private readonly Solution _solution;
@@ -67,6 +63,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
 
+                // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
+                // we'll expand this set as we dicover new symbols to search for in each project.
                 var symbolSet = await SymbolSet.CreateAsync(this, symbol, cancellationToken).ConfigureAwait(false);
 
                 // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
@@ -75,6 +73,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (projectsToSearch.Count == 0)
                     return;
 
+                // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
+                // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
+                // while we're processing each project linearly to update the symbol set we're searching for, we still
+                // then process the projects in parallel once we know the set of symbols we're searching for in that
+                // project.
                 var dependencyGraph = _solution.GetProjectDependencyGraph();
                 await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
 
@@ -87,78 +90,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         continue;
 
                     // As we walk each project, attempt to grow the search set appropriately up and down the 
-                    // inheritance hierarchy.
+                    // inheritance hierarchy.  Note: this has to happen serially which is why we do it in this
+                    // loop and not inside the concurrent project processing that happens below.
                     await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
 
+                    // Grab a copy of all the symbols we need to search for in this project.  Make sure we've notified
+                    // all clients that these are the symbols we're searching for.
                     var allSymbols = symbolSet.GetAllSymbols();
                     await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                    projectTasks.Add(Task.Factory.StartNew(async () =>
-                    {
-                        await ProcessProjectAsync(currentProject, allSymbols, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                    projectTasks.Add(Task.Factory.StartNew(
+                        () => ProcessProjectAsync(currentProject, allSymbols, cancellationToken),
+                        cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
 
+                // Now, wait for all projects to complete.
                 await Task.WhenAll(projectTasks).ConfigureAwait(false);
-
-                //var symbolOrigination = DependentProjectsFinder.GetSymbolOrigination(_solution, searchSymbol, cancellationToken);
-                //var initialProject = symbolOrigination.sourceProject ?? projectsToSearch.First();
-
-
-
-                //var downSymbols = await DetermineDownSymbolsAsync(searchSymbol, cancellationToken).ConfigureAwait(false);
-
-                // Determine the set of symbols higher up in the search-symbol's inheritance hierarchy.  References to
-                // these groups will always be reported.  However any reference to a subtype of these (that is not a
-                // subtype of the exact group) will only be reported if UnidirectionalHierarchyCascade is false.  In
-                // other words, if you have the following hierarchy:
-                //
-                //      A
-                //     / \
-                //    B   C
-                //   / \
-                //  D   E
-                //
-                // And 'B' is the search symbol.  Then 'A' will be in the 'up group'.  References to 'A' or 'B' will
-                // always be reported.  Subtypes of 'A' will be reported depending on the value of
-                // UnidirectionalHierarchyCascade.  If UnidirectionalHierarchyCascade is false then all subtypes will be
-                // reported (i.e. D, E, and C).  If UnidirectionalHierarchyCascade is true, then only 'B' and 'D' will
-                // be reported (C will not be).
-
-                //using var _2 = ArrayBuilder<Task<(ISymbol symbol, ImmutableArray<Document> documents)>>.GetInstance(out var tasks);
-                //foreach (var project in projects)
-                //{
-                //    foreach (var exactSymbol in exactSymbols)
-                //    {
-                //        foreach (var finder in _finders)
-                //        {
-                //            tasks.Add(Task.Factory.StartNew(async () =>
-                //            {
-                //                var documents = await finder.DetermineDocumentsToSearchAsync(exactSymbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
-                //                return (exactSymbol, documents);
-                //            }, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
-                //        }
-                //    }
-                //}
-
-                //await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                //var projectToDocumentMap = new ProjectToDocumentMap();
-                //foreach (var task in tasks)
-                //{
-                //    var (groupSymbol, documents) = await task.ConfigureAwait(false);
-                //    foreach (var document in documents)
-                //    {
-                //        projectToDocumentMap.GetOrAdd(document.Project, s_createDocumentMap)
-                //                            .MultiAdd(document, groupSymbol);
-                //    }
-                //}
-
-                ////var projectMap = await CreateProjectMapAsync(symbols, cancellationToken).ConfigureAwait(false);
-                ////var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap, cancellationToken).ConfigureAwait(false);
-                ////ValidateProjectToDocumentMap(projectToDocumentMap);
-
-                //await ProcessAsync(exactGroup, upGroup, projectToDocumentMap, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -172,19 +119,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (!_symbolToGroup.ContainsKey(symbol))
                 {
-                    var group = await GetSymbolGroupAsync(symbol, cancellationToken).ConfigureAwait(false);
+                    var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+                    var group = new SymbolGroup(linkedSymbols);
+
                     foreach (var groupSymbol in group.Symbols)
                         Contract.ThrowIfFalse(_symbolToGroup.TryAdd(groupSymbol, group));
 
                     await _progress.OnDefinitionFoundAsync(group, cancellationToken).ConfigureAwait(false);
                 }
             }
-        }
-        private async Task<SymbolGroup> GetSymbolGroupAsync(ISymbol currentSymbol, CancellationToken cancellationToken)
-        {
-            var symbols = await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false);
-            var group = new SymbolGroup(symbols);
-            return group;
         }
 
         private async Task<HashSet<Project>> GetProjectsToSearchAsync(
@@ -223,114 +166,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             finally
             {
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        //internal static async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> InheritanceCascadeAsync(
-        //    ISymbol symbol,
-        //    Solution solution,
-        //    ImmutableHashSet<Project>? projects,
-        //    FindReferencesCascadeDirection cascadeDirection,
-        //    CancellationToken cancellationToken)
-        //{
-        //    if (symbol.IsImplementableMember())
-        //    {
-        //        // We have an interface method.  Walk down the inheritance hierarchy and find all implementations of
-        //        // that method and cascade to them.
-        //        var result = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
-        //            ? await SymbolFinder.FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-        //        return result.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
-        //    }
-        //    else
-        //    {
-        //        // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
-        //        // or explicitly implements and cascade to those.
-        //        var interfaceMembersImplemented = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
-        //            ? await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-
-        //        // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
-        //        // We only need to go up or down one level.  Then, when we're finding references on
-        //        // those members, we'll end up traversing the entire hierarchy.
-        //        var overrides = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
-        //            ? await SymbolFinder.FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-
-        //        var overriddenMember = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
-        //            ? symbol.GetOverriddenMember()
-        //            : null;
-
-        //        var interfaceMembersImplementedWithDirection = interfaceMembersImplemented.SelectAsArray(s => (s, FindReferencesCascadeDirection.Up));
-        //        var overridesWithDirection = overrides.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
-        //        var overriddenMemberWithDirection = (overriddenMember!, FindReferencesCascadeDirection.Up);
-
-        //        return overriddenMember == null
-        //            ? interfaceMembersImplementedWithDirection.Concat(overridesWithDirection)
-        //            : interfaceMembersImplementedWithDirection.Concat(overridesWithDirection).Concat(overriddenMemberWithDirection);
-        //    }
-        //}
-
-        //internal static async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> InheritanceCascadeAsync(
-        //    ISymbol symbol,
-        //    Solution solution,
-        //    ImmutableHashSet<Project>? projects,
-        //    FindReferencesCascadeDirection cascadeDirection,
-        //    CancellationToken cancellationToken)
-        //{
-        //    if (symbol.IsImplementableMember())
-        //    {
-        //        // We have an interface method.  Walk down the inheritance hierarchy and find all implementations of
-        //        // that method and cascade to them.
-        //        var result = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
-        //            ? await SymbolFinder.FindMemberImplementationsArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-        //        return result.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
-        //    }
-        //    else
-        //    {
-        //        // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
-        //        // or explicitly implements and cascade to those.
-        //        var interfaceMembersImplemented = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
-        //            ? await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-
-        //        // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
-        //        // We only need to go up or down one level.  Then, when we're finding references on
-        //        // those members, we'll end up traversing the entire hierarchy.
-        //        var overrides = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
-        //            ? await SymbolFinder.FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
-        //            : ImmutableArray<ISymbol>.Empty;
-
-        //        var overriddenMember = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
-        //            ? symbol.GetOverriddenMember()
-        //            : null;
-
-        //        var interfaceMembersImplementedWithDirection = interfaceMembersImplemented.SelectAsArray(s => (s, FindReferencesCascadeDirection.Up));
-        //        var overridesWithDirection = overrides.SelectAsArray(s => (s, FindReferencesCascadeDirection.Down));
-        //        var overriddenMemberWithDirection = (overriddenMember!, FindReferencesCascadeDirection.Up);
-
-        //        return overriddenMember == null
-        //            ? interfaceMembersImplementedWithDirection.Concat(overridesWithDirection)
-        //            : interfaceMembersImplementedWithDirection.Concat(overridesWithDirection).Concat(overriddenMemberWithDirection);
-        //    }
-        //}
-
-        [Conditional("DEBUG")]
-        private static void ValidateProjectToDocumentMap(
-            ProjectToDocumentMap projectToDocumentMap)
-        {
-            var set = new HashSet<ISymbol>();
-
-            foreach (var documentMap in projectToDocumentMap.Values)
-            {
-                foreach (var documentToFinderList in documentMap)
-                {
-                    set.Clear();
-
-                    foreach (var tuple in documentToFinderList.Value)
-                        Debug.Assert(set.Add(tuple));
-                }
             }
         }
     }
