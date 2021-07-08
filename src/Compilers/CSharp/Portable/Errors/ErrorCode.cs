@@ -1964,23 +1964,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LineSpanDirectiveEndLessThanStart = 8939,
         ERR_WrongArityAsyncReturn = 8940,
 
-        #endregion
+        ERR_InterpolatedStringHandlerMethodReturnMalformed = 8941,
+        ERR_InterpolatedStringHandlerMethodReturnInconsistent = 8942,
+        ERR_NullInvalidInterpolatedStringHandlerArgumentName = 8943,
+        ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName = 8944,
+        ERR_InvalidInterpolatedStringHandlerArgumentName = 8945,
+        ERR_TypeIsNotAnInterpolatedStringHandlerType = 8946,
+        WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 8947,
+        ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 8948,
+        ERR_InterpolatedStringHandlerArgumentAttributeMalformed = 8949,
+        ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 8950,
+        ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 8951,
+        ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 8952,
+        ERR_InterpolatedStringHandlerCreationCannotUseDynamic = 8953,
 
-        ERR_InterpolatedStringHandlerMethodReturnMalformed = 9001,
-        ERR_InterpolatedStringHandlerMethodReturnInconsistent = 9002,
-        ERR_InterpolatedStringHandlerInvalidCreateMethod = 9003,
-        ERR_NullInvalidInterpolatedStringHandlerArgumentName = 9004,
-        ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName = 9005,
-        ERR_InvalidInterpolatedStringHandlerArgumentName = 9006,
-        ERR_TypeIsNotAnInterpolatedStringHandlerType = 9007,
-        ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments = 9008,
-        WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 9009,
-        ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 9010,
-        ERR_InterpolatedStringHandlerArgumentAttributeMalformed = 9011,
-        ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 9012,
-        ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 9013,
-        ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 9014,
-        ERR_InterpolatedStringHandlerCreationCannotUseDynamic = 9015,
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

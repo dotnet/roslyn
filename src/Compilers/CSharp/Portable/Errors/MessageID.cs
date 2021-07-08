@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
 
-        IDS_FeatureImprovedInterpolatedStrings = MessageBase + 13000, // PROTOTYPE(interp-string): condense
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
         IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
         IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
@@ -232,6 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMemebers = MessageBase + 12806,
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
+        IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
     }
 
     // Message IDs may refer to strings that need to be localized.

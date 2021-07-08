@@ -642,16 +642,6 @@
         <target state="new">An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments">
-        <source>'{0}' does not have a constructor that takes {1} arguments.</source>
-        <target state="new">'{0}' does not have a constructor that takes {1} arguments.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterpolatedStringHandlerInvalidCreateMethod">
-        <source>Interpolated string handler type '{0}' does not have a valid 'Create' method.</source>
-        <target state="new">Interpolated string handler type '{0}' does not have a valid 'Create' method.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterpolatedStringHandlerMethodReturnInconsistent">
         <source>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</source>
         <target state="new">Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</target>

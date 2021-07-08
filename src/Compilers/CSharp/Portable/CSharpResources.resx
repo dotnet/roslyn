@@ -6668,9 +6668,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterpolatedStringHandlerMethodReturnInconsistent" xml:space="preserve">
     <value>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
   </data>
-  <data name="ERR_InterpolatedStringHandlerInvalidCreateMethod" xml:space="preserve">
-    <value>Interpolated string handler type '{0}' does not have a valid 'Create' method.</value>
-  </data> 
   <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
     <value>Identifier or a simple member access expected.</value>
   </data>
@@ -6697,9 +6694,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TypeIsNotAnInterpolatedStringHandlerType" xml:space="preserve">
     <value>'{0}' is not an interpolated string handler type.</value>
-  </data>
-  <data name="ERR_InterpolatedStringHandlerIncorrectNumberOfConstructorArguments" xml:space="preserve">
-    <value>'{0}' does not have a constructor that takes {1} arguments.</value>
   </data>
   <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter" xml:space="preserve">
     <value>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>

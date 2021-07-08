@@ -1621,13 +1621,13 @@ public struct CustomHandler {}
                 // (4,31): error CS1061: 'CustomHandler' does not contain a definition for 'AppendLiteral' and no accessible extension method 'AppendLiteral' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
                 // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "literal").WithArguments("CustomHandler", "AppendLiteral").WithLocation(4, 31),
-                // (4,31): error CS9001: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
+                // (4,31): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
                 // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "literal").WithArguments("?.()").WithLocation(4, 31),
                 // (4,38): error CS1061: 'CustomHandler' does not contain a definition for 'AppendFormatted' and no accessible extension method 'AppendFormatted' accepting a first argument of type 'CustomHandler' could be found (are you missing a using directive or an assembly reference?)
                 // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "{i}").WithArguments("CustomHandler", "AppendFormatted").WithLocation(4, 38),
-                // (4,38): error CS9001: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
+                // (4,38): error CS8941: Interpolated string handler method '?.()' is malformed. It does not return 'void' or 'bool'.
                 // CustomHandler /*<bind>*/c = $"literal{i}"/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{i}").WithArguments("?.()").WithLocation(4, 38)
             };
@@ -1825,7 +1825,7 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var expectedDiagnostics = new[] {
-                // (4,16): error CS9015: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+                // (4,16): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
                 // M(d, /*<bind>*/$"{1}literal"/*</bind>*/);
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""{1}literal""").WithArguments("CustomHandler").WithLocation(4, 16)
             };
