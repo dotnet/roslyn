@@ -10080,6 +10080,27 @@ record  struct  R(int X);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LineSpanDirective()
+        {
+            var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
+            await AssertFormatAsync(
+@"class Program
+{
+	static void Main()
+	{
+#line (1, 1) - (1, 100) 5 ""a.razor""
+	}
+}",
+@"class Program
+{
+    static void Main()
+    {
+#line (1,1)-(1,100) 5 ""a.razor""
+    }
+}", changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FileScopedNamespace()
         {
             await AssertFormatAsync(

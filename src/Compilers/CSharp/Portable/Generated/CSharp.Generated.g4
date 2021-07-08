@@ -1189,7 +1189,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
-  | line_directive_trivia
+  | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
   | pragma_checksum_directive_trivia
@@ -1243,8 +1243,21 @@ error_directive_trivia
   : '#' 'error'
   ;
 
+line_or_span_directive_trivia
+  : line_directive_trivia
+  | line_span_directive_trivia
+  ;
+
 line_directive_trivia
   : '#' 'line' (numeric_literal_token | 'default' | 'hidden') string_literal_token?
+  ;
+
+line_span_directive_trivia
+  : '#' 'line' line_directive_position '-' line_directive_position numeric_literal_token? string_literal_token
+  ;
+
+line_directive_position
+  : '(' numeric_literal_token ',' numeric_literal_token ')'
   ;
 
 load_directive_trivia

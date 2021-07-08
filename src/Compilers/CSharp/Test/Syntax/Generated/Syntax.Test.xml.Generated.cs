@@ -691,6 +691,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.LineDirectiveTriviaSyntax GenerateLineDirectiveTrivia()
             => InternalSyntaxFactory.LineDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.LineKeyword), InternalSyntaxFactory.Literal(null, "1", 1, null), null, InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
+        private static Syntax.InternalSyntax.LineDirectivePositionSyntax GenerateLineDirectivePosition()
+            => InternalSyntaxFactory.LineDirectivePosition(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), InternalSyntaxFactory.Literal(null, "1", 1, null), InternalSyntaxFactory.Token(SyntaxKind.CommaToken), InternalSyntaxFactory.Literal(null, "1", 1, null), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        private static Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax GenerateLineSpanDirectiveTrivia()
+            => InternalSyntaxFactory.LineSpanDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.LineKeyword), GenerateLineDirectivePosition(), InternalSyntaxFactory.Token(SyntaxKind.MinusToken), GenerateLineDirectivePosition(), null, InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+
         private static Syntax.InternalSyntax.PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
             => InternalSyntaxFactory.PragmaWarningDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.PragmaKeyword), InternalSyntaxFactory.Token(SyntaxKind.WarningKeyword), InternalSyntaxFactory.Token(SyntaxKind.DisableKeyword), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ExpressionSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
@@ -3606,6 +3612,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.LineKeyword, node.LineKeyword.Kind);
             Assert.Equal(SyntaxKind.NumericLiteralToken, node.Line.Kind);
             Assert.Null(node.File);
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
+            Assert.Equal(new bool(), node.IsActive);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionFactoryAndProperties()
+        {
+            var node = GenerateLineDirectivePosition();
+
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, node.Line.Kind);
+            Assert.Equal(SyntaxKind.CommaToken, node.CommaToken.Kind);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, node.Character.Kind);
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateLineSpanDirectiveTrivia();
+
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
+            Assert.Equal(SyntaxKind.LineKeyword, node.LineKeyword.Kind);
+            Assert.NotNull(node.Start);
+            Assert.Equal(SyntaxKind.MinusToken, node.MinusToken.Kind);
+            Assert.NotNull(node.End);
+            Assert.Null(node.CharacterOffset);
+            Assert.Equal(SyntaxKind.StringLiteralToken, node.File.Kind);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
 
@@ -9606,6 +9644,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestLineDirectivePositionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionIdentityRewriter()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestPragmaWarningDirectiveTriviaTokenDeleteRewriter()
         {
             var oldNode = GeneratePragmaWarningDirectiveTrivia();
@@ -10446,6 +10536,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static LineDirectiveTriviaSyntax GenerateLineDirectiveTrivia()
             => SyntaxFactory.LineDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), SyntaxFactory.Literal("1", 1), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+
+        private static LineDirectivePositionSyntax GenerateLineDirectivePosition()
+            => SyntaxFactory.LineDirectivePosition(SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.Literal("1", 1), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Literal("1", 1), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        private static LineSpanDirectiveTriviaSyntax GenerateLineSpanDirectiveTrivia()
+            => SyntaxFactory.LineSpanDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), GenerateLineDirectivePosition(), SyntaxFactory.Token(SyntaxKind.MinusToken), GenerateLineDirectivePosition(), default(SyntaxToken), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
         private static PragmaWarningDirectiveTriviaSyntax GeneratePragmaWarningDirectiveTrivia()
             => SyntaxFactory.PragmaWarningDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.PragmaKeyword), SyntaxFactory.Token(SyntaxKind.WarningKeyword), SyntaxFactory.Token(SyntaxKind.DisableKeyword), new SeparatedSyntaxList<ExpressionSyntax>(), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
@@ -13365,6 +13461,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithLineKeyword(node.LineKeyword).WithLine(node.Line).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionFactoryAndProperties()
+        {
+            var node = GenerateLineDirectivePosition();
+
+            Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, node.Line.Kind());
+            Assert.Equal(SyntaxKind.CommaToken, node.CommaToken.Kind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, node.Character.Kind());
+            Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
+            var newNode = node.WithOpenParenToken(node.OpenParenToken).WithLine(node.Line).WithCommaToken(node.CommaToken).WithCharacter(node.Character).WithCloseParenToken(node.CloseParenToken);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaFactoryAndProperties()
+        {
+            var node = GenerateLineSpanDirectiveTrivia();
+
+            Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind());
+            Assert.Equal(SyntaxKind.LineKeyword, node.LineKeyword.Kind());
+            Assert.NotNull(node.Start);
+            Assert.Equal(SyntaxKind.MinusToken, node.MinusToken.Kind());
+            Assert.NotNull(node.End);
+            Assert.Equal(SyntaxKind.None, node.CharacterOffset.Kind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, node.File.Kind());
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
+            Assert.Equal(new bool(), node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithLineKeyword(node.LineKeyword).WithStart(node.Start).WithMinusToken(node.MinusToken).WithEnd(node.End).WithCharacterOffset(node.CharacterOffset).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
 
@@ -19355,6 +19483,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLineDirectiveTriviaIdentityRewriter()
         {
             var oldNode = GenerateLineDirectiveTrivia();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineDirectivePositionIdentityRewriter()
+        {
+            var oldNode = GenerateLineDirectivePosition();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaTokenDeleteRewriter()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestLineSpanDirectiveTriviaIdentityRewriter()
+        {
+            var oldNode = GenerateLineSpanDirectiveTrivia();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
