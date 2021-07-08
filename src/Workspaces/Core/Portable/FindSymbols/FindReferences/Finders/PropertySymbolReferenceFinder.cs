@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             var forEachDocuments = IsForEachProperty(symbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
@@ -71,9 +71,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments)
-                                    .Concat(elementAccessDocument)
-                                    .Concat(indexerMemberCrefDocument);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)
@@ -110,8 +109,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindIndexerReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
-            return nameReferences.Concat(forEachReferences)
-                                 .Concat(indexerReferences);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(

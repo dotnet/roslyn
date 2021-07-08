@@ -7,12 +7,14 @@ trigger:
 - demos/*
 
 # Branches that trigger builds on PR
-pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+pr: none
+# Temporarily disabling richnav job on PRs
+# pr:
+# - main
+# - main-vs-deps
+# - release/*
+# - features/*
+# - demos/*
 
 jobs:
 - job: RichCodeNav_Indexing

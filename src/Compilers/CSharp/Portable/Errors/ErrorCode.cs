@@ -1207,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //WRN_PDBConstantStringValueTooLong = 7063,     gave up on this warning
         ERR_CantOpenIcon = 7064,
         ERR_ErrorBuildingWin32Resources = 7065,
-        ERR_IteratorInInteractive = 7066,
+        // ERR_IteratorInInteractive = 7066,
         ERR_BadAttributeParamDefaultArgument = 7067,
         ERR_MissingTypeInSource = 7068,
         ERR_MissingTypeInAssembly = 7069,
@@ -1468,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
-        ERR_AttributesInLocalFuncDecl = 8205,
+        // ERR_AttributesInLocalFuncDecl = 8205,
         ERR_TypeForwardedToMultipleAssemblies = 8206,
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
@@ -1960,11 +1960,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BuilderAttributeDisallowed = 8935,
         ERR_FeatureNotAvailableInVersion10 = 8936,
         ERR_SimpleProgramIsEmpty = 8937,
+        ERR_LineSpanDirectiveInvalidValue = 8938,
+        ERR_LineSpanDirectiveEndLessThanStart = 8939,
+        ERR_WrongArityAsyncReturn = 8940,
 
-        ERR_MultipleFileScopedNamespace = 8940,
-        ERR_FileScopedAndNormalNamespace = 8941,
-        ERR_FileScopedNamespaceNotBeforeAllMembers = 8942,
-
+        ERR_MultipleFileScopedNamespace = 8954,
+        ERR_FileScopedAndNormalNamespace = 8955,
+        ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
 
         #endregion
 

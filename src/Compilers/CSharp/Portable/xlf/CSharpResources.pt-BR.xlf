@@ -687,6 +687,16 @@
         <target state="translated">O método '{0}' com um bloco do iterador deve ser 'async' para retornar '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
+        <source>The #line directive end position must be greater than or equal to the start position</source>
+        <target state="new">The #line directive end position must be greater than or equal to the start position</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
+        <source>The #line directive value is missing or out of range</source>
+        <target state="new">The #line directive value is missing or out of range</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nenhuma sobrecarga de '{0}' corresponde ao ponteiro de função '{1}'</target>
@@ -1097,6 +1107,11 @@
         <target state="translated">'{0}' foi atribuído com 'UnmanagedCallersOnly' e não pode ser convertido em um tipo delegado. Obtenha um ponteiro de função para esse método.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_WrongArityAsyncReturn">
+        <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
+        <target state="new">A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="HDN_DuplicateWithGlobalUsing">
         <source>The using directive for '{0}' appeared previously as global using</source>
         <target state="new">The using directive for '{0}' appeared previously as global using</target>
@@ -1155,6 +1170,11 @@
       <trans-unit id="IDS_FeatureLambdaReturnType">
         <source>lambda return type</source>
         <target state="new">lambda return type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureLineSpanDirective">
+        <source>line span directive</source>
+        <target state="new">line span directive</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -9244,11 +9264,6 @@ Você pode suprimir o aviso se tiver certeza de que não vai querer aguardar a c
         <target state="translated">O melhor método Adicionar sobrecarregado "{0}" para o elemento do inicializador de coleção está obsoleto. {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IteratorInInteractive">
-        <source>Yield statements may not appear at the top level in interactive code.</source>
-        <target state="translated">Instruções yield podem não aparecer no nível superior no código interativo.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SecurityAttributeInvalidTarget">
         <source>Security attribute '{0}' is not valid on this declaration type. Security attributes are only valid on assembly, type and method declarations.</source>
         <target state="translated">Atributo de segurança "{0}" não é válido neste tipo de declaração. Atributos de segurança são somente válidos em declarações de assembly, tipo e método.</target>
@@ -10775,11 +10790,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_BadAsyncMethodBuilderTaskProperty">
         <source>For type '{0}' to be used as an AsyncMethodBuilder for type '{1}', its Task property should return type '{1}' instead of type '{2}'.</source>
         <target state="translated">Para o tipo '{0}' a ser usado como um AsyncMethodBuilder para o tipo '{1}', sua propriedade Task deve retornar o tipo '{1}' em vez do tipo '{2}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributesInLocalFuncDecl">
-        <source>Attributes are not allowed on local function parameters or type parameters</source>
-        <target state="translated">Os atributos não são permitidos em parâmetros de função local ou parâmetros de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeForwardedToMultipleAssemblies">
