@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
-        protected internal override bool IsEnabled => true;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSuggestionTaggerProvider(
