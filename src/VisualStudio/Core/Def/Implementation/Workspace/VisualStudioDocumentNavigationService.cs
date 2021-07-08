@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
                                                                      .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
-                                                                     .GetAwaiter().GetResult();
+                                                                     .AsTask().GetAwaiter().GetResult();
 
                     if (generatedDocument != null)
                     {
