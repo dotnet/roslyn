@@ -18,19 +18,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private sealed class UnidirectionalSymbolSet : SymbolSet
         {
+            private readonly HashSet<ISymbol> _initialAndDownSymbols;
+
             /// <summary>
             /// When we're doing a unidirectional find-references, the initial set of up-symbols can never change.
             /// That's because we have computed the up set entirely up front, and no down symbols can produce new
             /// up-symbols (as going down then up would not be unidirectional).
             /// </summary>
             private readonly ImmutableHashSet<ISymbol> _upSymbols;
-            private readonly HashSet<ISymbol> _initialAndDownSymbols;
 
-            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> upSymbols, HashSet<ISymbol> initialSymbols)
+            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
                 : base(engine)
             {
-                _upSymbols = upSymbols.ToImmutableHashSet();
                 _initialAndDownSymbols = initialSymbols;
+                _upSymbols = upSymbols.ToImmutableHashSet();
             }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
