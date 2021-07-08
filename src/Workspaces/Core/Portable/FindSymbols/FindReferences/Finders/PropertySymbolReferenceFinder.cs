@@ -73,11 +73,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IPropertySymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(
                 symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
@@ -123,11 +120,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async Task<ImmutableArray<FinderLocation>> FindIndexerReferencesAsync(
-            IPropertySymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
+            FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             if (options.AssociatePropertyReferencesWithSpecificAccessor)
             {
