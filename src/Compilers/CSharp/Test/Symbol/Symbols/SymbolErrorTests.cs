@@ -10656,12 +10656,12 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,13): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("struct field initializers").WithLocation(12, 13),
-                // (13,13): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
+                // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "i").WithArguments("struct field initializers").WithLocation(13, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
                 // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
                 //         int i = 7;           // CS8036
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
@@ -10669,7 +10669,7 @@ interface IA
                 //         static int s = 2;    // no error
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
                 //         int i = 7;           // CS8036
@@ -10697,17 +10697,17 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-                // (5,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,16): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
                 //         public S1() {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(5, 16),
-                // (9,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(5, 16),
+                // (9,13): error CS8026: Feature 'parameterless struct constructors' is not available in C# 5. Please use language version 10.0 or greater.
                 //             S2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(9, 13),
-                // (9,13): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(9, 13),
+                // (9,13): error CS8938: The parameterless struct constructor must be 'public'.
                 //             S2() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (9,13): error CS8918: The parameterless struct constructor must be 'public'.
                 //             S2() { }

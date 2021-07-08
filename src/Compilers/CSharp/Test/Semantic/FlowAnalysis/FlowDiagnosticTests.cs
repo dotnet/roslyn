@@ -925,9 +925,9 @@ public struct A
 }
 ";
             CreateCompilation(program, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,7): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,7): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     A a = new A(); // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("struct field initializers").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 7),
                 // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
                 //     A a = new A(); // CS8036
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
@@ -1269,14 +1269,14 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (3,16): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int P { get; set; } = 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("struct field initializers").WithLocation(3, 16),
-                // (5,20): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
+                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public decimal R { get; } = 300;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("struct field initializers").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -1297,11 +1297,11 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (5,20): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public decimal R { get; } = 300;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("struct field initializers").WithLocation(5, 20));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 

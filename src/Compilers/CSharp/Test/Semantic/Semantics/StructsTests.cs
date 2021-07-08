@@ -27,9 +27,9 @@ public struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,7): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,7): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     A a = new A();   // CS8036
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("struct field initializers").WithLocation(4, 7),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 7),
                 // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
                 //     A a = new A();   // CS8036
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
@@ -53,11 +53,11 @@ struct S {
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (3,25): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,25): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     event System.Action E = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("struct field initializers").WithLocation(3, 25));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "E").WithArguments("struct field initializers", "10.0").WithLocation(3, 25));
 
-            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics();
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
@@ -602,20 +602,20 @@ public struct X1
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (4,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,13): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     private X()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("parameterless struct constructors").WithLocation(4, 13),
-                // (4,13): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 13),
+                // (4,13): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private X()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
-                // (11,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (11,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     X1()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X1").WithArguments("parameterless struct constructors").WithLocation(11, 5),
-                // (11,5): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X1").WithArguments("parameterless struct constructors", "10.0").WithLocation(11, 5),
+                // (11,5): error CS8938: The parameterless struct constructor must be 'public'.
                 //     X1()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X1").WithLocation(11, 5));
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,13): error CS8918: The parameterless struct constructor must be 'public'.
                 //     private X()
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "X").WithLocation(4, 13),
@@ -634,14 +634,14 @@ public struct X1
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
-                // (3,16): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int I { get { throw null; } set {} } = 9;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I").WithArguments("struct field initializers").WithLocation(3, 16));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
 
-            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;

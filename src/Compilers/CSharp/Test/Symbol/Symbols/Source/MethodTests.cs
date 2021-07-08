@@ -48,12 +48,12 @@ class A {
         public void NoParameterlessCtorForStruct()
         {
             var text = "struct A { A() {} }";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // struct A { A() {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("parameterless struct constructors").WithLocation(1, 12),
-                // (1,12): error CS8918: The parameterless struct constructor must be 'public'.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A").WithArguments("parameterless struct constructors", "10.0").WithLocation(1, 12),
+                // (1,12): error CS8938: The parameterless struct constructor must be 'public'.
                 // struct A { A() {} }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
         }

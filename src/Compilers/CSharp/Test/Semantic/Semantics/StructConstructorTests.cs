@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S() { Initialized = true; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("parameterless struct constructors").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 12));
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceA);
             comp.VerifyDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -96,60 +96,60 @@ public class C
     private struct F2 { private F2() { } }
     private struct F3 { F3() { } }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,29): error CS8918: The parameterless struct constructor must be 'public'.
+                // (2,29): error CS8938: The parameterless struct constructor must be 'public'.
                 // public struct A1 { internal A1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A1").WithLocation(2, 29),
-                // (3,28): error CS8918: The parameterless struct constructor must be 'public'.
+                // (3,28): error CS8938: The parameterless struct constructor must be 'public'.
                 // public struct A2 { private A2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A2").WithLocation(3, 28),
-                // (4,20): error CS8918: The parameterless struct constructor must be 'public'.
+                // (4,20): error CS8938: The parameterless struct constructor must be 'public'.
                 // public struct A3 { A3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A3").WithLocation(4, 20),
-                // (7,31): error CS8918: The parameterless struct constructor must be 'public'.
+                // (7,31): error CS8938: The parameterless struct constructor must be 'public'.
                 // internal struct B1 { internal B1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B1").WithLocation(7, 31),
-                // (8,30): error CS8918: The parameterless struct constructor must be 'public'.
+                // (8,30): error CS8938: The parameterless struct constructor must be 'public'.
                 // internal struct B2 { private B2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B2").WithLocation(8, 30),
-                // (9,22): error CS8918: The parameterless struct constructor must be 'public'.
+                // (9,22): error CS8938: The parameterless struct constructor must be 'public'.
                 // internal struct B3 { B3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B3").WithLocation(9, 22),
-                // (14,45): error CS8918: The parameterless struct constructor must be 'public'.
+                // (14,45): error CS8938: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C1 { internal C1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C1").WithLocation(14, 45),
-                // (15,44): error CS8918: The parameterless struct constructor must be 'public'.
+                // (15,44): error CS8938: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C2 { private C2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C2").WithLocation(15, 44),
-                // (16,36): error CS8918: The parameterless struct constructor must be 'public'.
+                // (16,36): error CS8938: The parameterless struct constructor must be 'public'.
                 //     internal protected struct C3 { C3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C3").WithLocation(16, 36),
-                // (19,36): error CS8918: The parameterless struct constructor must be 'public'.
+                // (19,36): error CS8938: The parameterless struct constructor must be 'public'.
                 //     protected struct D1 { internal D1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D1").WithLocation(19, 36),
-                // (20,35): error CS8918: The parameterless struct constructor must be 'public'.
+                // (20,35): error CS8938: The parameterless struct constructor must be 'public'.
                 //     protected struct D2 { private D2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D2").WithLocation(20, 35),
-                // (21,27): error CS8918: The parameterless struct constructor must be 'public'.
+                // (21,27): error CS8938: The parameterless struct constructor must be 'public'.
                 //     protected struct D3 { D3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D3").WithLocation(21, 27),
-                // (24,44): error CS8918: The parameterless struct constructor must be 'public'.
+                // (24,44): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private protected struct E1 { internal E1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E1").WithLocation(24, 44),
-                // (25,43): error CS8918: The parameterless struct constructor must be 'public'.
+                // (25,43): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private protected struct E2 { private E2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E2").WithLocation(25, 43),
-                // (26,35): error CS8918: The parameterless struct constructor must be 'public'.
+                // (26,35): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private protected struct E3 { E3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E3").WithLocation(26, 35),
-                // (29,34): error CS8918: The parameterless struct constructor must be 'public'.
+                // (29,34): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private struct F1 { internal F1() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F1").WithLocation(29, 34),
-                // (30,33): error CS8918: The parameterless struct constructor must be 'public'.
+                // (30,33): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private struct F2 { private F2() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F2").WithLocation(30, 33),
-                // (31,25): error CS8918: The parameterless struct constructor must be 'public'.
+                // (31,25): error CS8938: The parameterless struct constructor must be 'public'.
                 //     private struct F3 { F3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F3").WithLocation(31, 25));
         }
@@ -212,9 +212,9 @@ $@"public struct S
     {accessibility}
     S() {{ }}
 }}";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(sourceA);
             comp.VerifyDiagnostics(
-                // (4,5): error CS8918: The parameterless struct constructor must be 'public'.
+                // (4,5): error CS8938: The parameterless struct constructor must be 'public'.
                 //     S() { }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S").WithLocation(4, 5));
 
@@ -242,10 +242,10 @@ $@"public struct S
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CreateNew<S>").WithArguments("Program.CreateNew<T>()", "T", "S").WithLocation(8, 13),
             };
 
-            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -279,7 +279,7 @@ partial class Program
         Console.WriteLine(CreateNew<S>().Initialized);
     }
 }";
-            CompileAndVerify(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview, expectedOutput: "True");
+            CompileAndVerify(new[] { sourceA, sourceB }, expectedOutput: "True");
         }
 
         [Fact]
@@ -308,7 +308,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"True
 True");
             verifier.VerifyIL("S1..ctor()",
@@ -374,7 +374,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"True
 True");
             verifier.VerifyIL("S1..ctor()",
@@ -457,7 +457,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"new S0().Initialized: False
 S0.GetTrue()
 new S0(null).Initialized: False
@@ -556,7 +556,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"False
 True
 False
@@ -651,7 +651,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+            var verifier = CompileAndVerify(source, expectedOutput:
 @"False
 False
 True
@@ -716,9 +716,9 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (13,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S1() { Y = 1; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(13, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(13, 12),
                 // (13,12): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
                 //     public S1() { Y = 1; }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(13, 12),
@@ -726,7 +726,7 @@ class Program
                 //     public S2(object y) { Y = y; }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.X").WithLocation(20, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (13,12): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
                 //     public S1() { Y = 1; }
@@ -774,20 +774,20 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (5,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     object X = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("struct field initializers").WithLocation(5, 12),
-                // (11,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(5, 12),
+                // (11,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     object X = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("struct field initializers").WithLocation(11, 12),
-                // (13,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "X").WithArguments("struct field initializers", "10.0").WithLocation(11, 12),
+                // (13,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public S2() { Y = 1; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(13, 12),
-                // (19,12): error CS8652: The feature 'struct field initializers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(13, 12),
+                // (19,12): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     object Y = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Y").WithArguments("struct field initializers").WithLocation(19, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Y").WithArguments("struct field initializers", "10.0").WithLocation(19, 12));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput:
@@ -891,7 +891,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"(1, )
 (2, 2)
 (, )
@@ -1042,7 +1042,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"(1, )
 (2, 2)
 (, )
@@ -1159,7 +1159,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"1
 2
 0");
@@ -1205,7 +1205,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput:
 @"1
 2
 0");
@@ -1301,7 +1301,7 @@ class Program
 }";
 
             // PROTOTYPE: S1..ctor() is not being called.
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"0
 0
 2");
@@ -1351,7 +1351,7 @@ public struct S3
     public int X = 3;
     public S3(object _) { }
 }";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib40);
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
             var refA = comp.ToMetadataReference();
 
             var typeA = comp.GetMember<FieldSymbol>("S1.X").Type;
@@ -1411,7 +1411,7 @@ struct S3
     public S3() { F3 = GetValue(); }
     static object? GetValue() => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller
                 //     public S1() { }
@@ -1451,7 +1451,7 @@ static class Utils
 {
     internal static object? GetValue() => null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,17): warning CS8601: Possible null reference assignment.
                 //     object F0 = Utils.GetValue();
@@ -1504,7 +1504,7 @@ unsafe struct S5
     public S5() { X = 5; }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
                 //     public S3() { }
@@ -1536,12 +1536,12 @@ class Program
     static void G3(S3 s = new()) { }
     static void G4(S4 s = new()) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,22): error CS8918: The parameterless struct constructor must be 'public'.
+                // (3,22): error CS8938: The parameterless struct constructor must be 'public'.
                 // struct S3 { internal S3() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S3").WithLocation(3, 22),
-                // (4,21): error CS8918: The parameterless struct constructor must be 'public'.
+                // (4,21): error CS8938: The parameterless struct constructor must be 'public'.
                 // struct S4 { private S4() { } }
                 Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S4").WithLocation(4, 21),
                 // (12,27): error CS1736: Default parameter value for 's' must be a compile-time constant
@@ -1585,7 +1585,7 @@ class Program
     static void G2(S2 s = new()) { }
     static void G3(S3 s = new()) { }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (20,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void G1(S1 s = new()) { }
@@ -1619,7 +1619,7 @@ class Program
     const object s1 = new S1();
     const object s2 = new S2();
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,23): error CS0133: The expression being assigned to 'Program.d0' must be constant
                 //     const object d0 = default(S0);
@@ -1667,7 +1667,7 @@ public struct S2
 {
     object F = 2;
 }";
-            var comp = CreateCompilationWithMscorlib40(sourceA, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithMscorlib40(sourceA);
             var refA = comp.EmitToImageReference(embedInteropTypes: true);
 
             var sourceB =
@@ -1680,7 +1680,7 @@ public struct S2
         var s2 = i.F2();
     }
 }";
-            comp = CreateCompilationWithMscorlib40(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithMscorlib40(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics(
                 // (6,18): error CS1757: Embedded interop struct 'S1' can contain only public instance fields.
                 //         var s1 = i.F1();
