@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
                 // set of documents to search, we only bother with those.
                 var projectsToSearch = await GetProjectsToSearchAsync(symbolSet.GetAllSymbols(), cancellationToken).ConfigureAwait(false);
-                if (projectsToSearch.Count == 0)
-                    return;
 
                 // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
                 // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
