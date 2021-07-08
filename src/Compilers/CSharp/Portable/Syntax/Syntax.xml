@@ -1458,6 +1458,7 @@
     <Kind Name="ParenthesizedLambdaExpression"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="ReturnType" Type="TypeSyntax" Optional="true"/>
     <Field Name="ParameterList" Type="ParameterListSyntax">
       <PropertyComment>
         <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
@@ -4734,12 +4735,16 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
-  <Node Name="LineDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+  <AbstractNode Name="LineOrSpanDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Field Name="LineKeyword" Type="SyntaxToken" />
+    <Field Name="File" Type="SyntaxToken" Optional="true" />
+  </AbstractNode>
+  <Node Name="LineDirectiveTriviaSyntax" Base="LineOrSpanDirectiveTriviaSyntax">
     <Kind Name="LineDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
       <Kind Name="HashToken"/>
     </Field>
-    <Field Name="LineKeyword" Type="SyntaxToken">
+    <Field Name="LineKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="LineKeyword"/>
     </Field>
     <Field Name="Line" Type="SyntaxToken">
@@ -4747,7 +4752,49 @@
       <Kind Name="DefaultKeyword"/>
       <Kind Name="HiddenKeyword"/>
     </Field>
-    <Field Name="File" Type="SyntaxToken" Optional="true">
+    <Field Name="File" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="StringLiteralToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="LineDirectivePositionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="LineDirectivePosition"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Line" Type="SyntaxToken">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="CommaToken" Type="SyntaxToken">
+      <Kind Name="CommaToken"/>
+    </Field>
+    <Field Name="Character" Type="SyntaxToken">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="LineSpanDirectiveTriviaSyntax" Base="LineOrSpanDirectiveTriviaSyntax">
+    <Kind Name="LineSpanDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="LineKeyword" Type="SyntaxToken" Override="true">
+      <Kind Name="LineKeyword"/>
+    </Field>
+     <Field Name="Start" Type="LineDirectivePositionSyntax" />
+     <Field Name="MinusToken" Type="SyntaxToken">
+      <Kind Name="MinusToken"/>
+    </Field>
+    <Field Name="End" Type="LineDirectivePositionSyntax" />
+    <Field Name="CharacterOffset" Type="SyntaxToken"  Optional="true">
+      <Kind Name="NumericLiteralToken"/>
+    </Field>
+    <Field Name="File" Type="SyntaxToken" Override="true">
       <Kind Name="StringLiteralToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">

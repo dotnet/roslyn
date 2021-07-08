@@ -3271,6 +3271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class ParenthesizedLambdaExpressionSyntax : LambdaExpressionSyntax
     {
         private SyntaxNode? attributeLists;
+        private TypeSyntax? returnType;
         private ParameterListSyntax? parameterList;
         private BlockSyntax? block;
         private ExpressionSyntax? expressionBody;
@@ -3291,31 +3292,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
+        public TypeSyntax? ReturnType => GetRed(ref this.returnType, 2);
+
         /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
-        public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 2)!;
+        public ParameterListSyntax ParameterList => GetRed(ref this.parameterList, 3)!;
 
         /// <summary>SyntaxToken representing equals greater than.</summary>
-        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(3), GetChildIndex(3));
+        public override SyntaxToken ArrowToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ParenthesizedLambdaExpressionSyntax)this.Green).arrowToken, GetChildPosition(4), GetChildIndex(4));
 
         /// <summary>
         /// BlockSyntax node representing the body of the lambda.
         /// Only one of Block or ExpressionBody will be non-null.
         /// </summary>
-        public override BlockSyntax? Block => GetRed(ref this.block, 4);
+        public override BlockSyntax? Block => GetRed(ref this.block, 5);
 
         /// <summary>
         /// ExpressionSyntax node representing the body of the lambda.
         /// Only one of Block or ExpressionBody will be non-null.
         /// </summary>
-        public override ExpressionSyntax? ExpressionBody => GetRed(ref this.expressionBody, 5);
+        public override ExpressionSyntax? ExpressionBody => GetRed(ref this.expressionBody, 6);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
-                2 => GetRed(ref this.parameterList, 2)!,
-                4 => GetRed(ref this.block, 4),
-                5 => GetRed(ref this.expressionBody, 5),
+                2 => GetRed(ref this.returnType, 2),
+                3 => GetRed(ref this.parameterList, 3)!,
+                5 => GetRed(ref this.block, 5),
+                6 => GetRed(ref this.expressionBody, 6),
                 _ => null,
             };
 
@@ -3323,20 +3327,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => this.attributeLists,
-                2 => this.parameterList,
-                4 => this.block,
-                5 => this.expressionBody,
+                2 => this.returnType,
+                3 => this.parameterList,
+                5 => this.block,
+                6 => this.expressionBody,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, arrowToken, block, expressionBody);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -3345,16 +3350,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override LambdaExpressionSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
-        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithReturnType(TypeSyntax? returnType) => Update(this.AttributeLists, this.Modifiers, returnType, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
+        public ParenthesizedLambdaExpressionSyntax WithParameterList(ParameterListSyntax parameterList) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, parameterList, this.ArrowToken, this.Block, this.ExpressionBody);
         internal override LambdaExpressionSyntax WithArrowTokenCore(SyntaxToken arrowToken) => WithArrowToken(arrowToken);
-        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithArrowToken(SyntaxToken arrowToken) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, arrowToken, this.Block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithBlockCore(BlockSyntax? block) => WithBlock(block);
-        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithBlock(BlockSyntax? block) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, block, this.ExpressionBody);
         internal override AnonymousFunctionExpressionSyntax WithExpressionBodyCore(ExpressionSyntax? expressionBody) => WithExpressionBody(expressionBody);
-        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
+        public new ParenthesizedLambdaExpressionSyntax WithExpressionBody(ExpressionSyntax? expressionBody) => Update(this.AttributeLists, this.Modifiers, this.ReturnType, this.ParameterList, this.ArrowToken, this.Block, expressionBody);
 
         internal override LambdaExpressionSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParenthesizedLambdaExpressionSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -15132,13 +15138,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UndefDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.UndefKeyword, this.Name, this.EndOfDirectiveToken, isActive);
     }
 
+    public abstract partial class LineOrSpanDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    {
+        internal LineOrSpanDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public abstract SyntaxToken LineKeyword { get; }
+        public LineOrSpanDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => WithLineKeywordCore(lineKeyword);
+        internal abstract LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword);
+
+        public abstract SyntaxToken File { get; }
+        public LineOrSpanDirectiveTriviaSyntax WithFile(SyntaxToken file) => WithFileCore(file);
+        internal abstract LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file);
+
+        public new LineOrSpanDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => (LineOrSpanDirectiveTriviaSyntax)WithHashTokenCore(hashToken);
+        public new LineOrSpanDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => (LineOrSpanDirectiveTriviaSyntax)WithEndOfDirectiveTokenCore(endOfDirectiveToken);
+    }
+
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.LineDirectiveTrivia"/></description></item>
     /// </list>
     /// </remarks>
-    public sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    public sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
     {
 
         internal LineDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -15148,11 +15173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
 
-        public SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
 
         public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectiveTriviaSyntax)this.Green).line, GetChildPosition(2), GetChildIndex(2));
 
-        public SyntaxToken File
+        public override SyntaxToken File
         {
             get
             {
@@ -15186,12 +15211,151 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
         public new LineDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
-        public LineDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword) => WithLineKeyword(lineKeyword);
+        public new LineDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Line, this.File, this.EndOfDirectiveToken, this.IsActive);
         public LineDirectiveTriviaSyntax WithLine(SyntaxToken line) => Update(this.HashToken, this.LineKeyword, line, this.File, this.EndOfDirectiveToken, this.IsActive);
-        public LineDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Line, file, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file) => WithFile(file);
+        public new LineDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Line, file, this.EndOfDirectiveToken, this.IsActive);
         internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
         public new LineDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, endOfDirectiveToken, this.IsActive);
         public LineDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Line, this.File, this.EndOfDirectiveToken, isActive);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineDirectivePosition"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class LineDirectivePositionSyntax : CSharpSyntaxNode
+    {
+
+        internal LineDirectivePositionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OpenParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).openParenToken, Position, 0);
+
+        public SyntaxToken Line => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).line, GetChildPosition(1), GetChildIndex(1));
+
+        public SyntaxToken CommaToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).commaToken, GetChildPosition(2), GetChildIndex(2));
+
+        public SyntaxToken Character => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).character, GetChildPosition(3), GetChildIndex(3));
+
+        public SyntaxToken CloseParenToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineDirectivePositionSyntax)this.Green).closeParenToken, GetChildPosition(4), GetChildIndex(4));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectivePosition(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineDirectivePosition(this);
+
+        public LineDirectivePositionSyntax Update(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || line != this.Line || commaToken != this.CommaToken || character != this.Character || closeParenToken != this.CloseParenToken)
+            {
+                var newNode = SyntaxFactory.LineDirectivePosition(openParenToken, line, commaToken, character, closeParenToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public LineDirectivePositionSyntax WithOpenParenToken(SyntaxToken openParenToken) => Update(openParenToken, this.Line, this.CommaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithLine(SyntaxToken line) => Update(this.OpenParenToken, line, this.CommaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCommaToken(SyntaxToken commaToken) => Update(this.OpenParenToken, this.Line, commaToken, this.Character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCharacter(SyntaxToken character) => Update(this.OpenParenToken, this.Line, this.CommaToken, character, this.CloseParenToken);
+        public LineDirectivePositionSyntax WithCloseParenToken(SyntaxToken closeParenToken) => Update(this.OpenParenToken, this.Line, this.CommaToken, this.Character, closeParenToken);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.LineSpanDirectiveTrivia"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
+    {
+        private LineDirectivePositionSyntax? start;
+        private LineDirectivePositionSyntax? end;
+
+        internal LineSpanDirectiveTriviaSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public override SyntaxToken HashToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).hashToken, Position, 0);
+
+        public override SyntaxToken LineKeyword => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).lineKeyword, GetChildPosition(1), GetChildIndex(1));
+
+        public LineDirectivePositionSyntax Start => GetRed(ref this.start, 2)!;
+
+        public SyntaxToken MinusToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).minusToken, GetChildPosition(3), GetChildIndex(3));
+
+        public LineDirectivePositionSyntax End => GetRed(ref this.end, 4)!;
+
+        public SyntaxToken CharacterOffset
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).characterOffset;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(5), GetChildIndex(5)) : default;
+            }
+        }
+
+        public override SyntaxToken File => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).file, GetChildPosition(6), GetChildIndex(6));
+
+        public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(7), GetChildIndex(7));
+
+        public override bool IsActive => ((Syntax.InternalSyntax.LineSpanDirectiveTriviaSyntax)this.Green).IsActive;
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                2 => GetRed(ref this.start, 2)!,
+                4 => GetRed(ref this.end, 4)!,
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                2 => this.start,
+                4 => this.end,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineSpanDirectiveTrivia(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitLineSpanDirectiveTrivia(this);
+
+        public LineSpanDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || lineKeyword != this.LineKeyword || start != this.Start || minusToken != this.MinusToken || end != this.End || characterOffset != this.CharacterOffset || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
+            {
+                var newNode = SyntaxFactory.LineSpanDirectiveTrivia(hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
+        public new LineSpanDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithLineKeywordCore(SyntaxToken lineKeyword) => WithLineKeyword(lineKeyword);
+        public new LineSpanDirectiveTriviaSyntax WithLineKeyword(SyntaxToken lineKeyword) => Update(this.HashToken, lineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithStart(LineDirectivePositionSyntax start) => Update(this.HashToken, this.LineKeyword, start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithMinusToken(SyntaxToken minusToken) => Update(this.HashToken, this.LineKeyword, this.Start, minusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithEnd(LineDirectivePositionSyntax end) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, end, this.CharacterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithCharacterOffset(SyntaxToken characterOffset) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, characterOffset, this.File, this.EndOfDirectiveToken, this.IsActive);
+        internal override LineOrSpanDirectiveTriviaSyntax WithFileCore(SyntaxToken file) => WithFile(file);
+        public new LineSpanDirectiveTriviaSyntax WithFile(SyntaxToken file) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, file, this.EndOfDirectiveToken, this.IsActive);
+        internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
+        public new LineSpanDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, endOfDirectiveToken, this.IsActive);
+        public LineSpanDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.LineKeyword, this.Start, this.MinusToken, this.End, this.CharacterOffset, this.File, this.EndOfDirectiveToken, isActive);
     }
 
     /// <remarks>

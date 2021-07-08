@@ -1133,6 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
                 }
             }
+
             return false;
         }
 
@@ -1145,6 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 isFirstAccessor = list.Accessors[0] == declaration;
                 return true;
             }
+
             return false;
         }
 
@@ -1179,7 +1181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);
 
-                    // Either old or new property/indexer has an expression body (or both do).
+                    // Certain updates of a property/indexer node affects its accessors.
+                    // Return all affected symbols for these updates.
+
+                    // 1) Old or new property/indexer has an expression body:
                     //   int this[...] => expr;
                     //   int this[...] { get => expr; }
                     //   int P => expr;
@@ -1195,6 +1200,36 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol), (oldGetterSymbol, newGetterSymbol)));
                     }
+
+                    // 2) Property/indexer declarations differ in readonly keyword.
+                    if (oldNode is PropertyDeclarationSyntax oldProperty && newNode is PropertyDeclarationSyntax newProperty && DiffersInReadOnlyModifier(oldProperty.Modifiers, newProperty.Modifiers) ||
+                        oldNode is IndexerDeclarationSyntax oldIndexer && newNode is IndexerDeclarationSyntax newIndexer && DiffersInReadOnlyModifier(oldIndexer.Modifiers, newIndexer.Modifiers))
+                    {
+                        Debug.Assert(oldSymbol is IPropertySymbol);
+                        Debug.Assert(newSymbol is IPropertySymbol);
+
+                        var oldPropertySymbol = (IPropertySymbol)oldSymbol;
+                        var newPropertySymbol = (IPropertySymbol)newSymbol;
+
+                        using var _ = ArrayBuilder<(ISymbol?, ISymbol?)>.GetInstance(out var builder);
+
+                        builder.Add((oldPropertySymbol, newPropertySymbol));
+
+                        if (oldPropertySymbol.GetMethod != null && newPropertySymbol.GetMethod != null && oldPropertySymbol.GetMethod.IsReadOnly != newPropertySymbol.GetMethod.IsReadOnly)
+                        {
+                            builder.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod));
+                        }
+
+                        if (oldPropertySymbol.SetMethod != null && newPropertySymbol.SetMethod != null && oldPropertySymbol.SetMethod.IsReadOnly != newPropertySymbol.SetMethod.IsReadOnly)
+                        {
+                            builder.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod));
+                        }
+
+                        return OneOrMany.Create(builder.ToImmutable());
+                    }
+
+                    static bool DiffersInReadOnlyModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
+                        => (oldModifiers.IndexOf(SyntaxKind.ReadOnlyKeyword) >= 0) != (newModifiers.IndexOf(SyntaxKind.ReadOnlyKeyword) >= 0);
 
                     break;
 
@@ -1249,6 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         parameterSymbol = invokeMethodSymbol.ContainingSymbol;
                     }
+
                     return parameterSymbol;
                 }
 
@@ -2298,6 +2334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Insert);
                         }
+
                         return;
 
                     case SyntaxKind.EnumMemberDeclaration:
@@ -2318,6 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Insert);
                         }
+
                         return;
                 }
 
@@ -2409,6 +2447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Delete);
                         }
+
                         return;
 
                     case SyntaxKind.TypeParameter:
@@ -2427,6 +2466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Delete);
                         }
+
                         return;
                 }
 
@@ -2564,6 +2604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         {
                             ReportError(RudeEditKind.Update);
                         }
+
                         return;
 
                     case SyntaxKind.TypeParameterList:
@@ -2589,19 +2630,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(TypeDeclarationSyntax oldNode, TypeDeclarationSyntax newNode)
             {
-                if (oldNode.Kind() != newNode.Kind())
-                {
-                    ReportError(RudeEditKind.TypeKindUpdate);
-                    return;
-                }
-
-                // Allow partial keyword to be added or removed.
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.PartialKeyword, ignore2: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
                 {
                     ReportError(RudeEditKind.Renamed);
@@ -2622,12 +2650,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.BaseList, newNode.BaseList))
                 {
                     ReportError(RudeEditKind.EnumUnderlyingTypeUpdate);
@@ -2640,12 +2662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
             {
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2663,12 +2679,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (oldNode.Kind() != newNode.Kind())
                 {
                     ReportError(RudeEditKind.FieldKindUpdate);
-                    return;
-                }
-
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
                     return;
                 }
             }
@@ -2729,13 +2739,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                // Ignore async keyword when matching modifiers. Async checks are done in ComputeBodyMatch.
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.AsyncKeyword, ignore2: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2757,15 +2760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConversionOperatorDeclarationSyntax oldNode, ConversionOperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.ImplicitOrExplicitKeyword, newNode.ImplicitOrExplicitKeyword))
                 {
-                    ReportError(RudeEditKind.Renamed);
+                    ReportError(RudeEditKind.ModifiersUpdate);
                     return;
                 }
 
@@ -2784,12 +2781,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(OperatorDeclarationSyntax oldNode, OperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.OperatorToken, newNode.OperatorToken))
                 {
                     ReportError(RudeEditKind.Renamed);
@@ -2811,12 +2802,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(AccessorDeclarationSyntax oldNode, AccessorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (oldNode.Kind() != newNode.Kind())
                 {
                     ReportError(RudeEditKind.AccessorKindUpdate);
@@ -2852,12 +2837,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConstructorDeclarationSyntax oldNode, ConstructorDeclarationSyntax newNode)
             {
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 ClassifyMethodBodyRudeUpdate(
                     (SyntaxNode?)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
                     (SyntaxNode?)newNode.Body ?? newNode.ExpressionBody?.Expression,
@@ -2876,12 +2855,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(PropertyDeclarationSyntax oldNode, PropertyDeclarationSyntax newNode)
             {
-                if (!AreModifiersEquivalent(oldNode.Modifiers, newNode.Modifiers, ignore: SyntaxKind.UnsafeKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2936,12 +2909,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(IndexerDeclarationSyntax oldNode, IndexerDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2954,16 +2921,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.ExpressionBody, newNode.ExpressionBody));
+                if (SyntaxFactory.AreEquivalent(oldNode.ExpressionBody, newNode.ExpressionBody))
+                {
+                    var oldBody = SyntaxUtilities.TryGetEffectiveGetterBody(oldNode.ExpressionBody, oldNode.AccessorList);
+                    var newBody = SyntaxUtilities.TryGetEffectiveGetterBody(newNode.ExpressionBody, newNode.AccessorList);
 
-                var oldBody = SyntaxUtilities.TryGetEffectiveGetterBody(oldNode.ExpressionBody, oldNode.AccessorList);
-                var newBody = SyntaxUtilities.TryGetEffectiveGetterBody(newNode.ExpressionBody, newNode.AccessorList);
-
-                ClassifyMethodBodyRudeUpdate(
-                    oldBody,
-                    newBody,
-                    containingMethod: null,
-                    containingType: (TypeDeclarationSyntax?)newNode.Parent);
+                    ClassifyMethodBodyRudeUpdate(
+                        oldBody,
+                        newBody,
+                        containingMethod: null,
+                        containingType: (TypeDeclarationSyntax?)newNode.Parent);
+                }
             }
 
             private void ClassifyUpdate(TypeParameterSyntax oldNode, TypeParameterSyntax newNode)

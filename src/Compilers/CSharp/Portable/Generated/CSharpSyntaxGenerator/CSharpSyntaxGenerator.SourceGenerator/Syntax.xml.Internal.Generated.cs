@@ -6691,15 +6691,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
         internal readonly GreenNode? attributeLists;
         internal readonly GreenNode? modifiers;
+        internal readonly TypeSyntax? returnType;
         internal readonly ParameterListSyntax parameterList;
         internal readonly SyntaxToken arrowToken;
         internal readonly BlockSyntax? block;
         internal readonly ExpressionSyntax? expressionBody;
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6709,6 +6710,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6726,11 +6732,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6740,6 +6746,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6757,10 +6768,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        internal ParenthesizedLambdaExpressionSyntax(SyntaxKind kind, GreenNode? attributeLists, GreenNode? modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
           : base(kind)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             if (attributeLists != null)
             {
                 this.AdjustFlagsAndWidth(attributeLists);
@@ -6770,6 +6781,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 this.AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            if (returnType != null)
+            {
+                this.AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             this.AdjustFlagsAndWidth(parameterList);
             this.parameterList = parameterList;
@@ -6789,6 +6805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
         public override Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> Modifiers => new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken>(this.modifiers);
+        public TypeSyntax? ReturnType => this.returnType;
         /// <summary>ParameterListSyntax node representing the list of parameters for the lambda expression.</summary>
         public ParameterListSyntax ParameterList => this.parameterList;
         /// <summary>SyntaxToken representing equals greater than.</summary>
@@ -6809,10 +6826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 0 => this.attributeLists,
                 1 => this.modifiers,
-                2 => this.parameterList,
-                3 => this.arrowToken,
-                4 => this.block,
-                5 => this.expressionBody,
+                2 => this.returnType,
+                3 => this.parameterList,
+                4 => this.arrowToken,
+                5 => this.block,
+                6 => this.expressionBody,
                 _ => null,
             };
 
@@ -6821,11 +6839,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParenthesizedLambdaExpression(this);
         public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitParenthesizedLambdaExpression(this);
 
-        public ParenthesizedLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
+        public ParenthesizedLambdaExpressionSyntax Update(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax block, ExpressionSyntax expressionBody)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || returnType != this.ReturnType || parameterList != this.ParameterList || arrowToken != this.ArrowToken || block != this.Block || expressionBody != this.ExpressionBody)
             {
-                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, arrowToken, block, expressionBody);
+                var newNode = SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, arrowToken, block, expressionBody);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -6839,15 +6857,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.parameterList, this.arrowToken, this.block, this.expressionBody, diagnostics, GetAnnotations());
 
         internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
+            => new ParenthesizedLambdaExpressionSyntax(this.Kind, this.attributeLists, this.modifiers, this.returnType, this.parameterList, this.arrowToken, this.block, this.expressionBody, GetDiagnostics(), annotations);
 
         internal ParenthesizedLambdaExpressionSyntax(ObjectReader reader)
           : base(reader)
         {
-            this.SlotCount = 6;
+            this.SlotCount = 7;
             var attributeLists = (GreenNode?)reader.ReadValue();
             if (attributeLists != null)
             {
@@ -6859,6 +6877,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 AdjustFlagsAndWidth(modifiers);
                 this.modifiers = modifiers;
+            }
+            var returnType = (TypeSyntax?)reader.ReadValue();
+            if (returnType != null)
+            {
+                AdjustFlagsAndWidth(returnType);
+                this.returnType = returnType;
             }
             var parameterList = (ParameterListSyntax)reader.ReadValue();
             AdjustFlagsAndWidth(parameterList);
@@ -6885,6 +6909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             base.WriteTo(writer);
             writer.WriteValue(this.attributeLists);
             writer.WriteValue(this.modifiers);
+            writer.WriteValue(this.returnType);
             writer.WriteValue(this.parameterList);
             writer.WriteValue(this.arrowToken);
             writer.WriteValue(this.block);
@@ -32183,7 +32208,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal sealed partial class LineDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    internal abstract partial class LineOrSpanDirectiveTriviaSyntax : DirectiveTriviaSyntax
+    {
+        internal LineOrSpanDirectiveTriviaSyntax(SyntaxKind kind, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+        }
+
+        internal LineOrSpanDirectiveTriviaSyntax(SyntaxKind kind)
+          : base(kind)
+        {
+        }
+
+        protected LineOrSpanDirectiveTriviaSyntax(ObjectReader reader)
+          : base(reader)
+        {
+        }
+
+        public abstract SyntaxToken LineKeyword { get; }
+
+        public abstract SyntaxToken? File { get; }
+    }
+
+    internal sealed partial class LineDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
     {
         internal readonly SyntaxToken hashToken;
         internal readonly SyntaxToken lineKeyword;
@@ -32254,9 +32301,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         public override SyntaxToken HashToken => this.hashToken;
-        public SyntaxToken LineKeyword => this.lineKeyword;
+        public override SyntaxToken LineKeyword => this.lineKeyword;
         public SyntaxToken Line => this.line;
-        public SyntaxToken? File => this.file;
+        public override SyntaxToken? File => this.file;
         public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
         public override bool IsActive => this.isActive;
 
@@ -32338,6 +32385,342 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         static LineDirectiveTriviaSyntax()
         {
             ObjectBinder.RegisterTypeReader(typeof(LineDirectiveTriviaSyntax), r => new LineDirectiveTriviaSyntax(r));
+        }
+    }
+
+    internal sealed partial class LineDirectivePositionSyntax : CSharpSyntaxNode
+    {
+        internal readonly SyntaxToken openParenToken;
+        internal readonly SyntaxToken line;
+        internal readonly SyntaxToken commaToken;
+        internal readonly SyntaxToken character;
+        internal readonly SyntaxToken closeParenToken;
+
+        internal LineDirectivePositionSyntax(SyntaxKind kind, SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(character);
+            this.character = character;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal LineDirectivePositionSyntax(SyntaxKind kind, SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(character);
+            this.character = character;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal LineDirectivePositionSyntax(SyntaxKind kind, SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+          : base(kind)
+        {
+            this.SlotCount = 5;
+            this.AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            this.AdjustFlagsAndWidth(line);
+            this.line = line;
+            this.AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            this.AdjustFlagsAndWidth(character);
+            this.character = character;
+            this.AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        public SyntaxToken OpenParenToken => this.openParenToken;
+        public SyntaxToken Line => this.line;
+        public SyntaxToken CommaToken => this.commaToken;
+        public SyntaxToken Character => this.character;
+        public SyntaxToken CloseParenToken => this.closeParenToken;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.openParenToken,
+                1 => this.line,
+                2 => this.commaToken,
+                3 => this.character,
+                4 => this.closeParenToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LineDirectivePositionSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineDirectivePosition(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineDirectivePosition(this);
+
+        public LineDirectivePositionSyntax Update(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+            if (openParenToken != this.OpenParenToken || line != this.Line || commaToken != this.CommaToken || character != this.Character || closeParenToken != this.CloseParenToken)
+            {
+                var newNode = SyntaxFactory.LineDirectivePosition(openParenToken, line, commaToken, character, closeParenToken);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new LineDirectivePositionSyntax(this.Kind, this.openParenToken, this.line, this.commaToken, this.character, this.closeParenToken, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new LineDirectivePositionSyntax(this.Kind, this.openParenToken, this.line, this.commaToken, this.character, this.closeParenToken, GetDiagnostics(), annotations);
+
+        internal LineDirectivePositionSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 5;
+            var openParenToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(openParenToken);
+            this.openParenToken = openParenToken;
+            var line = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(line);
+            this.line = line;
+            var commaToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(commaToken);
+            this.commaToken = commaToken;
+            var character = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(character);
+            this.character = character;
+            var closeParenToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(closeParenToken);
+            this.closeParenToken = closeParenToken;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.openParenToken);
+            writer.WriteValue(this.line);
+            writer.WriteValue(this.commaToken);
+            writer.WriteValue(this.character);
+            writer.WriteValue(this.closeParenToken);
+        }
+
+        static LineDirectivePositionSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(LineDirectivePositionSyntax), r => new LineDirectivePositionSyntax(r));
+        }
+    }
+
+    internal sealed partial class LineSpanDirectiveTriviaSyntax : LineOrSpanDirectiveTriviaSyntax
+    {
+        internal readonly SyntaxToken hashToken;
+        internal readonly SyntaxToken lineKeyword;
+        internal readonly LineDirectivePositionSyntax start;
+        internal readonly SyntaxToken minusToken;
+        internal readonly LineDirectivePositionSyntax end;
+        internal readonly SyntaxToken? characterOffset;
+        internal readonly SyntaxToken file;
+        internal readonly SyntaxToken endOfDirectiveToken;
+        internal readonly bool isActive;
+
+        internal LineSpanDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken? characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 8;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(start);
+            this.start = start;
+            this.AdjustFlagsAndWidth(minusToken);
+            this.minusToken = minusToken;
+            this.AdjustFlagsAndWidth(end);
+            this.end = end;
+            if (characterOffset != null)
+            {
+                this.AdjustFlagsAndWidth(characterOffset);
+                this.characterOffset = characterOffset;
+            }
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+        }
+
+        internal LineSpanDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken? characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 8;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(start);
+            this.start = start;
+            this.AdjustFlagsAndWidth(minusToken);
+            this.minusToken = minusToken;
+            this.AdjustFlagsAndWidth(end);
+            this.end = end;
+            if (characterOffset != null)
+            {
+                this.AdjustFlagsAndWidth(characterOffset);
+                this.characterOffset = characterOffset;
+            }
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+        }
+
+        internal LineSpanDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken? characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+          : base(kind)
+        {
+            this.SlotCount = 8;
+            this.AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            this.AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            this.AdjustFlagsAndWidth(start);
+            this.start = start;
+            this.AdjustFlagsAndWidth(minusToken);
+            this.minusToken = minusToken;
+            this.AdjustFlagsAndWidth(end);
+            this.end = end;
+            if (characterOffset != null)
+            {
+                this.AdjustFlagsAndWidth(characterOffset);
+                this.characterOffset = characterOffset;
+            }
+            this.AdjustFlagsAndWidth(file);
+            this.file = file;
+            this.AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = isActive;
+        }
+
+        public override SyntaxToken HashToken => this.hashToken;
+        public override SyntaxToken LineKeyword => this.lineKeyword;
+        public LineDirectivePositionSyntax Start => this.start;
+        public SyntaxToken MinusToken => this.minusToken;
+        public LineDirectivePositionSyntax End => this.end;
+        public SyntaxToken? CharacterOffset => this.characterOffset;
+        public override SyntaxToken File => this.file;
+        public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
+        public override bool IsActive => this.isActive;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.hashToken,
+                1 => this.lineKeyword,
+                2 => this.start,
+                3 => this.minusToken,
+                4 => this.end,
+                5 => this.characterOffset,
+                6 => this.file,
+                7 => this.endOfDirectiveToken,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.LineSpanDirectiveTriviaSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitLineSpanDirectiveTrivia(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitLineSpanDirectiveTrivia(this);
+
+        public LineSpanDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken != this.HashToken || lineKeyword != this.LineKeyword || start != this.Start || minusToken != this.MinusToken || end != this.End || characterOffset != this.CharacterOffset || file != this.File || endOfDirectiveToken != this.EndOfDirectiveToken)
+            {
+                var newNode = SyntaxFactory.LineSpanDirectiveTrivia(hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new LineSpanDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.start, this.minusToken, this.end, this.characterOffset, this.file, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new LineSpanDirectiveTriviaSyntax(this.Kind, this.hashToken, this.lineKeyword, this.start, this.minusToken, this.end, this.characterOffset, this.file, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+
+        internal LineSpanDirectiveTriviaSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 8;
+            var hashToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(hashToken);
+            this.hashToken = hashToken;
+            var lineKeyword = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(lineKeyword);
+            this.lineKeyword = lineKeyword;
+            var start = (LineDirectivePositionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(start);
+            this.start = start;
+            var minusToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(minusToken);
+            this.minusToken = minusToken;
+            var end = (LineDirectivePositionSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(end);
+            this.end = end;
+            var characterOffset = (SyntaxToken?)reader.ReadValue();
+            if (characterOffset != null)
+            {
+                AdjustFlagsAndWidth(characterOffset);
+                this.characterOffset = characterOffset;
+            }
+            var file = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(file);
+            this.file = file;
+            var endOfDirectiveToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(endOfDirectiveToken);
+            this.endOfDirectiveToken = endOfDirectiveToken;
+            this.isActive = (bool)reader.ReadBoolean();
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.hashToken);
+            writer.WriteValue(this.lineKeyword);
+            writer.WriteValue(this.start);
+            writer.WriteValue(this.minusToken);
+            writer.WriteValue(this.end);
+            writer.WriteValue(this.characterOffset);
+            writer.WriteValue(this.file);
+            writer.WriteValue(this.endOfDirectiveToken);
+            writer.WriteBoolean(this.isActive);
+        }
+
+        static LineSpanDirectiveTriviaSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(LineSpanDirectiveTriviaSyntax), r => new LineSpanDirectiveTriviaSyntax(r));
         }
     }
 
@@ -33456,6 +33839,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -33692,6 +34077,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node) => this.DefaultVisit(node);
         public virtual void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node) => this.DefaultVisit(node);
@@ -33868,7 +34255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((SyntaxToken)Visit(node.RefKeyword), (ExpressionSyntax)Visit(node.Expression));
 
         public override CSharpSyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax)Visit(node.ReturnType), (ParameterListSyntax)Visit(node.ParameterList), (SyntaxToken)Visit(node.ArrowToken), (BlockSyntax)Visit(node.Block), (ExpressionSyntax)Visit(node.ExpressionBody));
 
         public override CSharpSyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OpenBraceToken), VisitList(node.Expressions), (SyntaxToken)Visit(node.CloseBraceToken));
@@ -34379,6 +34766,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override CSharpSyntaxNode VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
             => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.LineKeyword), (SyntaxToken)Visit(node.Line), (SyntaxToken)Visit(node.File), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
+
+        public override CSharpSyntaxNode VisitLineDirectivePosition(LineDirectivePositionSyntax node)
+            => node.Update((SyntaxToken)Visit(node.OpenParenToken), (SyntaxToken)Visit(node.Line), (SyntaxToken)Visit(node.CommaToken), (SyntaxToken)Visit(node.Character), (SyntaxToken)Visit(node.CloseParenToken));
+
+        public override CSharpSyntaxNode VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node)
+            => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.LineKeyword), (LineDirectivePositionSyntax)Visit(node.Start), (SyntaxToken)Visit(node.MinusToken), (LineDirectivePositionSyntax)Visit(node.End), (SyntaxToken)Visit(node.CharacterOffset), (SyntaxToken)Visit(node.File), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
 
         public override CSharpSyntaxNode VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
             => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.PragmaKeyword), (SyntaxToken)Visit(node.WarningKeyword), (SyntaxToken)Visit(node.DisableOrRestoreKeyword), VisitList(node.ErrorCodes), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
@@ -35695,7 +36088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -35703,7 +36096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, parameterList, arrowToken, block, expressionBody, this.context);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, returnType, parameterList, arrowToken, block, expressionBody, this.context);
         }
 
         public InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -39193,6 +39586,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive, this.context);
         }
 
+        public LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+#if DEBUG
+            if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+            if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (line == null) throw new ArgumentNullException(nameof(line));
+            if (line.Kind != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(line));
+            if (commaToken == null) throw new ArgumentNullException(nameof(commaToken));
+            if (commaToken.Kind != SyntaxKind.CommaToken) throw new ArgumentException(nameof(commaToken));
+            if (character == null) throw new ArgumentNullException(nameof(character));
+            if (character.Kind != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(character));
+            if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+            if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+#endif
+
+            return new LineDirectivePositionSyntax(SyntaxKind.LineDirectivePosition, openParenToken, line, commaToken, character, closeParenToken, this.context);
+        }
+
+        public LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken? characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+#if DEBUG
+            if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+            if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+            if (lineKeyword == null) throw new ArgumentNullException(nameof(lineKeyword));
+            if (lineKeyword.Kind != SyntaxKind.LineKeyword) throw new ArgumentException(nameof(lineKeyword));
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (minusToken == null) throw new ArgumentNullException(nameof(minusToken));
+            if (minusToken.Kind != SyntaxKind.MinusToken) throw new ArgumentException(nameof(minusToken));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+            if (characterOffset != null)
+            {
+                switch (characterOffset.Kind)
+                {
+                    case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(characterOffset));
+                }
+            }
+            if (file == null) throw new ArgumentNullException(nameof(file));
+            if (file.Kind != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
+            if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+            if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+            return new LineSpanDirectiveTriviaSyntax(SyntaxKind.LineSpanDirectiveTrivia, hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive, this.context);
+        }
+
         public PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
 #if DEBUG
@@ -40608,7 +41048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<AttributeListSyntax> attributeLists, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<SyntaxToken> modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
 #if DEBUG
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
@@ -40616,7 +41056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (arrowToken.Kind != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
 #endif
 
-            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, parameterList, arrowToken, block, expressionBody);
+            return new ParenthesizedLambdaExpressionSyntax(SyntaxKind.ParenthesizedLambdaExpression, attributeLists.Node, modifiers.Node, returnType, parameterList, arrowToken, block, expressionBody);
         }
 
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -44106,6 +44546,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new LineDirectiveTriviaSyntax(SyntaxKind.LineDirectiveTrivia, hashToken, lineKeyword, line, file, endOfDirectiveToken, isActive);
         }
 
+        public static LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+#if DEBUG
+            if (openParenToken == null) throw new ArgumentNullException(nameof(openParenToken));
+            if (openParenToken.Kind != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (line == null) throw new ArgumentNullException(nameof(line));
+            if (line.Kind != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(line));
+            if (commaToken == null) throw new ArgumentNullException(nameof(commaToken));
+            if (commaToken.Kind != SyntaxKind.CommaToken) throw new ArgumentException(nameof(commaToken));
+            if (character == null) throw new ArgumentNullException(nameof(character));
+            if (character.Kind != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(character));
+            if (closeParenToken == null) throw new ArgumentNullException(nameof(closeParenToken));
+            if (closeParenToken.Kind != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+#endif
+
+            return new LineDirectivePositionSyntax(SyntaxKind.LineDirectivePosition, openParenToken, line, commaToken, character, closeParenToken);
+        }
+
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken? characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+#if DEBUG
+            if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
+            if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+            if (lineKeyword == null) throw new ArgumentNullException(nameof(lineKeyword));
+            if (lineKeyword.Kind != SyntaxKind.LineKeyword) throw new ArgumentException(nameof(lineKeyword));
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (minusToken == null) throw new ArgumentNullException(nameof(minusToken));
+            if (minusToken.Kind != SyntaxKind.MinusToken) throw new ArgumentException(nameof(minusToken));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+            if (characterOffset != null)
+            {
+                switch (characterOffset.Kind)
+                {
+                    case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.None: break;
+                    default: throw new ArgumentException(nameof(characterOffset));
+                }
+            }
+            if (file == null) throw new ArgumentNullException(nameof(file));
+            if (file.Kind != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
+            if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
+            if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+#endif
+
+            return new LineSpanDirectiveTriviaSyntax(SyntaxKind.LineSpanDirectiveTrivia, hashToken, lineKeyword, start, minusToken, end, characterOffset, file, endOfDirectiveToken, isActive);
+        }
+
         public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)
         {
 #if DEBUG
@@ -44458,6 +44945,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(DefineDirectiveTriviaSyntax),
                 typeof(UndefDirectiveTriviaSyntax),
                 typeof(LineDirectiveTriviaSyntax),
+                typeof(LineDirectivePositionSyntax),
+                typeof(LineSpanDirectiveTriviaSyntax),
                 typeof(PragmaWarningDirectiveTriviaSyntax),
                 typeof(PragmaChecksumDirectiveTriviaSyntax),
                 typeof(ReferenceDirectiveTriviaSyntax),

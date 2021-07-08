@@ -693,6 +693,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
         public virtual TResult? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a LineDirectivePositionSyntax node.</summary>
+        public virtual TResult? VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineSpanDirectiveTriviaSyntax node.</summary>
+        public virtual TResult? VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
         public virtual TResult? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
@@ -1392,6 +1398,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a LineDirectiveTriviaSyntax node.</summary>
         public virtual void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a LineDirectivePositionSyntax node.</summary>
+        public virtual void VisitLineDirectivePosition(LineDirectivePositionSyntax node) => this.DefaultVisit(node);
+
+        /// <summary>Called when the visitor visits a LineSpanDirectiveTriviaSyntax node.</summary>
+        public virtual void VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a PragmaWarningDirectiveTriviaSyntax node.</summary>
         public virtual void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node) => this.DefaultVisit(node);
 
@@ -1579,7 +1591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.RefKeyword), (ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
 
         public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
+            => node.Update(VisitList(node.AttributeLists), VisitList(node.Modifiers), (TypeSyntax?)Visit(node.ReturnType), (ParameterListSyntax?)Visit(node.ParameterList) ?? throw new ArgumentNullException("parameterList"), VisitToken(node.ArrowToken), (BlockSyntax?)Visit(node.Block), (ExpressionSyntax?)Visit(node.ExpressionBody));
 
         public override SyntaxNode? VisitInitializerExpression(InitializerExpressionSyntax node)
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Expressions), VisitToken(node.CloseBraceToken));
@@ -2090,6 +2102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SyntaxNode? VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), VisitToken(node.Line), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
+
+        public override SyntaxNode? VisitLineDirectivePosition(LineDirectivePositionSyntax node)
+            => node.Update(VisitToken(node.OpenParenToken), VisitToken(node.Line), VisitToken(node.CommaToken), VisitToken(node.Character), VisitToken(node.CloseParenToken));
+
+        public override SyntaxNode? VisitLineSpanDirectiveTrivia(LineSpanDirectiveTriviaSyntax node)
+            => node.Update(VisitToken(node.HashToken), VisitToken(node.LineKeyword), (LineDirectivePositionSyntax?)Visit(node.Start) ?? throw new ArgumentNullException("start"), VisitToken(node.MinusToken), (LineDirectivePositionSyntax?)Visit(node.End) ?? throw new ArgumentNullException("end"), VisitToken(node.CharacterOffset), VisitToken(node.File), VisitToken(node.EndOfDirectiveToken), node.IsActive);
 
         public override SyntaxNode? VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
             => node.Update(VisitToken(node.HashToken), VisitToken(node.PragmaKeyword), VisitToken(node.WarningKeyword), VisitToken(node.DisableOrRestoreKeyword), VisitList(node.ErrorCodes), VisitToken(node.EndOfDirectiveToken), node.IsActive);
@@ -3092,20 +3110,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.RefExpression(SyntaxFactory.Token(SyntaxKind.RefKeyword), expression);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
         {
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
-            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
+            return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), returnType == null ? null : (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
-        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
+        public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? returnType, ParameterListSyntax parameterList, BlockSyntax? block, ExpressionSyntax? expressionBody)
+            => SyntaxFactory.ParenthesizedLambdaExpression(attributeLists, modifiers, returnType, parameterList, SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), block, expressionBody);
 
         /// <summary>Creates a new ParenthesizedLambdaExpressionSyntax instance.</summary>
         public static ParenthesizedLambdaExpressionSyntax ParenthesizedLambdaExpression()
-            => SyntaxFactory.ParenthesizedLambdaExpression(default, default(SyntaxTokenList), SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
+            => SyntaxFactory.ParenthesizedLambdaExpression(default, default(SyntaxTokenList), default, SyntaxFactory.ParameterList(), SyntaxFactory.Token(SyntaxKind.EqualsGreaterThanToken), default, default);
 
         /// <summary>Creates a new InitializerExpressionSyntax instance.</summary>
         public static InitializerExpressionSyntax InitializerExpression(SyntaxKind kind, SyntaxToken openBraceToken, SeparatedSyntaxList<ExpressionSyntax> expressions, SyntaxToken closeBraceToken)
@@ -6089,6 +6107,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new LineDirectiveTriviaSyntax instance.</summary>
         public static LineDirectiveTriviaSyntax LineDirectiveTrivia(SyntaxToken line, bool isActive)
             => SyntaxFactory.LineDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), line, default, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+        /// <summary>Creates a new LineDirectivePositionSyntax instance.</summary>
+        public static LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken openParenToken, SyntaxToken line, SyntaxToken commaToken, SyntaxToken character, SyntaxToken closeParenToken)
+        {
+            if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
+            if (line.Kind() != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(line));
+            if (commaToken.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(commaToken));
+            if (character.Kind() != SyntaxKind.NumericLiteralToken) throw new ArgumentException(nameof(character));
+            if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            return (LineDirectivePositionSyntax)Syntax.InternalSyntax.SyntaxFactory.LineDirectivePosition((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)line.Node!, (Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.SyntaxToken)character.Node!, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new LineDirectivePositionSyntax instance.</summary>
+        public static LineDirectivePositionSyntax LineDirectivePosition(SyntaxToken line, SyntaxToken character)
+            => SyntaxFactory.LineDirectivePosition(SyntaxFactory.Token(SyntaxKind.OpenParenToken), line, SyntaxFactory.Token(SyntaxKind.CommaToken), character, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(SyntaxToken hashToken, SyntaxToken lineKeyword, LineDirectivePositionSyntax start, SyntaxToken minusToken, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, SyntaxToken endOfDirectiveToken, bool isActive)
+        {
+            if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
+            if (lineKeyword.Kind() != SyntaxKind.LineKeyword) throw new ArgumentException(nameof(lineKeyword));
+            if (start == null) throw new ArgumentNullException(nameof(start));
+            if (minusToken.Kind() != SyntaxKind.MinusToken) throw new ArgumentException(nameof(minusToken));
+            if (end == null) throw new ArgumentNullException(nameof(end));
+            switch (characterOffset.Kind())
+            {
+                case SyntaxKind.NumericLiteralToken:
+                case SyntaxKind.None: break;
+                default: throw new ArgumentException(nameof(characterOffset));
+            }
+            if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
+            if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            return (LineSpanDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LineSpanDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)lineKeyword.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)start.Green, (Syntax.InternalSyntax.SyntaxToken)minusToken.Node!, (Syntax.InternalSyntax.LineDirectivePositionSyntax)end.Green, (Syntax.InternalSyntax.SyntaxToken?)characterOffset.Node, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
+        }
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(LineDirectivePositionSyntax start, LineDirectivePositionSyntax end, SyntaxToken characterOffset, SyntaxToken file, bool isActive)
+            => SyntaxFactory.LineSpanDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), start, SyntaxFactory.Token(SyntaxKind.MinusToken), end, characterOffset, file, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
+
+        /// <summary>Creates a new LineSpanDirectiveTriviaSyntax instance.</summary>
+        public static LineSpanDirectiveTriviaSyntax LineSpanDirectiveTrivia(LineDirectivePositionSyntax start, LineDirectivePositionSyntax end, SyntaxToken file, bool isActive)
+            => SyntaxFactory.LineSpanDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LineKeyword), start, SyntaxFactory.Token(SyntaxKind.MinusToken), end, default, file, SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), isActive);
 
         /// <summary>Creates a new PragmaWarningDirectiveTriviaSyntax instance.</summary>
         public static PragmaWarningDirectiveTriviaSyntax PragmaWarningDirectiveTrivia(SyntaxToken hashToken, SyntaxToken pragmaKeyword, SyntaxToken warningKeyword, SyntaxToken disableOrRestoreKeyword, SeparatedSyntaxList<ExpressionSyntax> errorCodes, SyntaxToken endOfDirectiveToken, bool isActive)

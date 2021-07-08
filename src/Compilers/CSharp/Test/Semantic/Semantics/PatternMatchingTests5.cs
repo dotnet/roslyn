@@ -522,7 +522,7 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, DiagnosticDescription.None, parseOptions: TestOptions.RegularPreview);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, DiagnosticDescription.None, parseOptions: TestOptions.Regular10);
         }
 
         [Fact]
@@ -684,7 +684,7 @@ Block[B2] - Exit
     Statements (0)
 ";
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.Regular10);
         }
 
         [Fact]
@@ -1503,9 +1503,9 @@ class C
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyEmitDiagnostics(
-                // (8,22): error CS8652: The feature 'extended property patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,22): error CS8773: Feature 'extended property patterns' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         _ = this is (Property.Property: null, Property: null);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Property.Property").WithArguments("extended property patterns").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property.Property").WithArguments("extended property patterns", "10.0").WithLocation(8, 22),
                 // (8,22): error CS1001: Identifier expected
                 //         _ = this is (Property.Property: null, Property: null);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "Property.Property").WithLocation(8, 22),
