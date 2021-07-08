@@ -1330,13 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region "GetDeclaredSymbol overloads for MemberDeclarationSyntax and its subtypes"
 
-        /// <summary>
-        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for the declaration
-        /// assembly.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a namespace.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The namespace symbol that was declared by the namespace declaration.</returns>
+        /// <inheritdoc/>
         public override INamespaceSymbol GetDeclaredSymbol(NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             CheckSyntaxNode(declarationSyntax);
@@ -1344,7 +1338,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
         }
 
-        private NamespaceSymbol GetDeclaredNamespace(NamespaceDeclarationSyntax declarationSyntax)
+        /// <inheritdoc/>
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default)
+        {
+            CheckSyntaxNode(declarationSyntax);
+
+            return GetDeclaredNamespace(declarationSyntax).GetPublicSymbol();
+        }
+
+        private NamespaceSymbol GetDeclaredNamespace(BaseNamespaceDeclarationSyntax declarationSyntax)
         {
             Debug.Assert(declarationSyntax != null);
 
@@ -1429,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbol GetDeclaredNamespaceOrType(CSharpSyntaxNode declarationSyntax)
         {
-            var namespaceDeclarationSyntax = declarationSyntax as NamespaceDeclarationSyntax;
+            var namespaceDeclarationSyntax = declarationSyntax as BaseNamespaceDeclarationSyntax;
             if (namespaceDeclarationSyntax != null)
             {
                 return GetDeclaredNamespace(namespaceDeclarationSyntax);
@@ -2273,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (memberDeclaration.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
                 // top-level namespace:
-                if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration)
+                if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration)
                 {
                     return _compilation.Assembly.GlobalNamespace;
                 }
@@ -2304,7 +2306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a namespace or a type in an explicitly declared namespace:
-            if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
+            if (memberDeclaration.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration
+                || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
             {
                 return container;
             }

@@ -450,15 +450,15 @@ public interface A {
             Assert.Equal(RefKind.Out, p2.RefKind);
         }
 
-        [Fact]
-        public void InterfaceImplementsCrossTrees()
+        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        public void InterfaceImplementsCrossTrees(string ob, string cb)
         {
             var text1 =
 @"using System;
 using System.Collections.Generic;
 
 namespace NS
-{
+" + ob + @"
   public class Abc {}
 
   public interface IGoo<T>
@@ -477,14 +477,14 @@ namespace NS
     void M21(); 
     Abc M22(ref Abc p);
   }
-}";
+" + cb;
 
             var text2 =
 @"using System;
 using System.Collections.Generic;
 
 namespace NS.NS1
-{
+" + ob + @"
   public class Impl : I2, IGoo<string>, I1
   {
     void IGoo<string>.M(ref string p) { }
@@ -498,7 +498,7 @@ namespace NS.NS1
   {
     void IGoo<T>.M(ref T t) {}
   }
-}";
+" + cb;
 
             var comp = CreateCompilation(new[] { text1, text2 });
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());

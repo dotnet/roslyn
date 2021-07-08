@@ -390,13 +390,42 @@ class C
             var tree = Parse(text);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
-            Assert.Equal(3, errors.Length);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1514: { expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 10),
+                // (1,10): error CS1513: } expected
+                // namespace
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 10));
 
             var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
 
             var nsSyntax = nsArray[0] as NamespaceDeclarationSyntax;
+            var symbol = model.GetDeclaredSymbol(nsSyntax);
+            Assert.Equal(string.Empty, symbol.Name);
+        }
+
+        [WorkItem(539740, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539740")]
+        [Fact]
+        public void FileScopedNamespaceWithoutName()
+        {
+            var text = "namespace;";
+            var tree = Parse(text);
+            var comp = CreateCompilation(tree);
+            var model = comp.GetSemanticModel(tree);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS1001: Identifier expected
+                // namespace;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 10));
+
+            var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration)).ToArray();
+            Assert.Equal(1, nsArray.Length);
+
+            var nsSyntax = nsArray[0] as FileScopedNamespaceDeclarationSyntax;
             var symbol = model.GetDeclaredSymbol(nsSyntax);
             Assert.Equal(string.Empty, symbol.Name);
         }
