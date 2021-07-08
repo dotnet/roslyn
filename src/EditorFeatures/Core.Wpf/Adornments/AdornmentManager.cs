@@ -22,20 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.
     /// </summary>
-    internal class AdornmentManager<T> where T : GraphicsTag
+    internal abstract class AdornmentManager<T> where T : GraphicsTag
     {
         private readonly object _invalidatedSpansLock = new object();
 
         private readonly IThreadingContext _threadingContext;
-
-        /// <summary>View that created us.</summary>
-        private readonly IWpfTextView _textView;
-
-        /// <summary>Layer where we draw adornments.</summary>
-        private readonly IAdornmentLayer _adornmentLayer;
-
-        /// <summary>Aggregator that tells us where to draw.</summary>
-        private readonly ITagAggregator<T> _tagAggregator;
 
         /// <summary>Notification system about operations we do</summary>
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -43,21 +34,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// <summary>Spans that are invalidated, and need to be removed from the layer..</summary>
         private List<IMappingSpan> _invalidatedSpans;
 
-        public static AdornmentManager<T> Create(
-            IThreadingContext threadingContext,
-            IWpfTextView textView,
-            IViewTagAggregatorFactoryService aggregatorService,
-            IAsynchronousOperationListener asyncListener,
-            string adornmentLayerName)
-        {
-            Contract.ThrowIfNull(threadingContext);
-            Contract.ThrowIfNull(textView);
-            Contract.ThrowIfNull(aggregatorService);
-            Contract.ThrowIfNull(adornmentLayerName);
-            Contract.ThrowIfNull(asyncListener);
+        /// <summary>View that created us.</summary>
+        protected IWpfTextView TextView { get; }
 
-            return new AdornmentManager<T>(threadingContext, textView, aggregatorService, asyncListener, adornmentLayerName);
-        }
+        /// <summary>Layer where we draw adornments.</summary>
+        protected IAdornmentLayer AdornmentLayer { get; }
+
+        /// <summary>Aggregator that tells us where to draw.</summary>
+        protected ITagAggregator<T> TagAggregator { get; }
+
+        /// <summary>
+        /// MUST BE CALLED ON UI THREAD!!!!   This method touches WPF.
+        /// 
+        /// This is where we apply visuals to the text. 
+        /// 
+        /// It happens when another region of the view becomes visible or there is a change in tags.
+        /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
+        /// </summary>        
+        protected abstract void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags);
 
         internal AdornmentManager(
             IThreadingContext threadingContext,
@@ -73,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             Contract.ThrowIfNull(asyncListener);
 
             _threadingContext = threadingContext;
-            _textView = textView;
-            _adornmentLayer = textView.GetAdornmentLayer(adornmentLayerName);
+            TextView = textView;
+            AdornmentLayer = textView.GetAdornmentLayer(adornmentLayerName);
             textView.LayoutChanged += OnLayoutChanged;
             _asyncListener = asyncListener;
 
@@ -82,20 +76,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             Contract.ThrowIfFalse(textView.VisualElement.Dispatcher.CheckAccess());
             textView.Closed += OnTextViewClosed;
 
-            _tagAggregator = tagAggregatorFactoryService.CreateTagAggregator<T>(textView);
+            TagAggregator = tagAggregatorFactoryService.CreateTagAggregator<T>(textView);
 
-            _tagAggregator.TagsChanged += OnTagsChanged;
+            TagAggregator.TagsChanged += OnTagsChanged;
         }
 
         private void OnTextViewClosed(object sender, System.EventArgs e)
         {
             // release the aggregator
-            _tagAggregator.TagsChanged -= OnTagsChanged;
-            _tagAggregator.Dispose();
+            TagAggregator.TagsChanged -= OnTagsChanged;
+            TagAggregator.Dispose();
 
             // unhook from view
-            _textView.Closed -= OnTextViewClosed;
-            _textView.LayoutChanged -= OnLayoutChanged;
+            TextView.Closed -= OnTextViewClosed;
+            TextView.LayoutChanged -= OnLayoutChanged;
 
             // At this point, this object should be available for garbage collection.
         }
@@ -110,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             using (_asyncListener.BeginAsyncOperation(GetType() + ".OnLayoutChanged"))
             {
                 // Make sure we're on the UI thread.
-                Contract.ThrowIfFalse(_textView.VisualElement.Dispatcher.CheckAccess());
+                Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
 
                 var reformattedSpans = e.NewOrReformattedSpans;
-                var viewSnapshot = _textView.TextSnapshot;
+                var viewSnapshot = TextView.TextSnapshot;
 
                 // No need to remove tags as these spans are reformatted anyways.
                 UpdateSpans_CallOnlyOnUIThread(reformattedSpans, removeOldTags: false);
@@ -182,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                 if (needToScheduleUpdate)
                 {
                     // schedule an update
-                    _threadingContext.JoinableTaskFactory.WithPriority(_textView.VisualElement.Dispatcher, DispatcherPriority.Render).RunAsync(async () =>
+                    _threadingContext.JoinableTaskFactory.WithPriority(TextView.VisualElement.Dispatcher, DispatcherPriority.Render).RunAsync(async () =>
                     {
                         using (_asyncListener.BeginAsyncOperation(GetType() + ".OnTagsChanged.2"))
                         {
@@ -205,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_UpdateInvalidSpans, CancellationToken.None))
             {
                 // this method should only run on UI thread as we do WPF here.
-                Contract.ThrowIfFalse(_textView.VisualElement.Dispatcher.CheckAccess());
+                Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
 
                 List<IMappingSpan> invalidated;
                 lock (_invalidatedSpansLock)
@@ -214,109 +208,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     _invalidatedSpans = null;
                 }
 
-                if (_textView.IsClosed)
+                if (TextView.IsClosed)
                 {
                     return; // already closed
                 }
 
                 if (invalidated != null)
                 {
-                    var viewSnapshot = _textView.TextSnapshot;
+                    var viewSnapshot = TextView.TextSnapshot;
                     var invalidatedNormalized = TranslateAndNormalize(invalidated, viewSnapshot);
                     UpdateSpans_CallOnlyOnUIThread(invalidatedNormalized, removeOldTags: true);
-                }
-            }
-        }
-
-        /// <summary>
-        /// MUST BE CALLED ON UI THREAD!!!!   This method touches WPF.
-        /// 
-        /// This is where we apply visuals to the text. 
-        /// 
-        /// It happens when another region of the view becomes visible or there is a change in tags.
-        /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
-        /// </summary>        
-        private void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
-        {
-            Contract.ThrowIfNull(changedSpanCollection);
-
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(_textView.VisualElement.Dispatcher.CheckAccess());
-
-            var viewSnapshot = _textView.TextSnapshot;
-            var visualSnapshot = _textView.VisualSnapshot;
-
-            var viewLines = _textView.TextViewLines;
-            if (viewLines == null || viewLines.Count == 0)
-            {
-                return; // nothing to draw on
-            }
-
-            // removing is a separate pass from adding so that new stuff is not removed.
-            if (removeOldTags)
-            {
-                foreach (var changedSpan in changedSpanCollection)
-                {
-                    // is there any effect on the view?
-                    if (viewLines.IntersectsBufferSpan(changedSpan))
-                    {
-                        _adornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
-                    }
-                }
-            }
-
-            foreach (var changedSpan in changedSpanCollection)
-            {
-                // is there any effect on the view?
-                if (!viewLines.IntersectsBufferSpan(changedSpan))
-                {
-                    continue;
-                }
-
-                var tagSpans = _tagAggregator.GetTags(changedSpan);
-                foreach (var tagMappingSpan in tagSpans)
-                {
-                    // We don't want to draw line separators if they would intersect a collapsed outlining
-                    // region.  So we test if we can map the start of the line separator up to our visual 
-                    // snapshot. If we can't, then we just skip it.
-                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
-                    if (point == null)
-                    {
-                        continue;
-                    }
-
-                    var mappedPoint = _textView.BufferGraph.MapUpToSnapshot(
-                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, _textView.VisualSnapshot);
-                    if (mappedPoint == null)
-                    {
-                        continue;
-                    }
-
-                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, viewSnapshot, out var span))
-                    {
-                        continue;
-                    }
-
-                    if (!viewLines.IntersectsBufferSpan(span))
-                    {
-                        // span is outside of the view so we will not get geometry for it, but may 
-                        // spent a lot of time trying.
-                        continue;
-                    }
-
-                    // add the visual to the adornment layer.
-                    var geometry = viewLines.GetMarkerGeometry(span);
-                    if (geometry != null)
-                    {
-                        var tag = tagMappingSpan.Tag;
-                        var graphicsResult = tag.GetGraphics(_textView, geometry);
-                        _adornmentLayer.AddAdornment(
-                            behavior: AdornmentPositioningBehavior.TextRelative,
-                            visualSpan: span,
-                            tag: tag,
-                            adornment: graphicsResult.VisualElement,
-                            removedCallback: delegate { graphicsResult.Dispose(); });
-                    }
                 }
             }
         }
@@ -325,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         // topology, originally single span may be mapped into several spans. Visual adornments do
         // not make much sense on disjoint spans. We will not decorate spans that could not make it
         // in one piece.
-        private static bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
+        protected static bool TryMapToSingleSnapshotSpan(IMappingSpan mappingSpan, ITextSnapshot viewSnapshot, out SnapshotSpan span)
         {
             // IMappingSpan.GetSpans is a surprisingly expensive function that allocates multiple
             // lists and collection if the view buffer is same as anchor we could just map the

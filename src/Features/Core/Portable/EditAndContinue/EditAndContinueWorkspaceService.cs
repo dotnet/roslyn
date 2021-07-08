@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var debuggingSession in GetActiveDebuggingSessions())
             {
                 // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document));
+                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
             }
         }
 
