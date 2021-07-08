@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
             {
-                //try
-                //{
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {
@@ -62,11 +60,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (_, location) in references)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
-                //}
-                //finally
-                //{
-                //    await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
-                //}
             }
         }
     }
