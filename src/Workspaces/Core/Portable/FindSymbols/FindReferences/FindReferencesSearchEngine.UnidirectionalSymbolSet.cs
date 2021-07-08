@@ -26,37 +26,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly ImmutableHashSet<ISymbol> _upSymbols;
             private readonly HashSet<ISymbol> _initialAndDownSymbols;
 
-            public UnidirectionalSymbolSet(Solution solution, HashSet<ISymbol> upSymbols, HashSet<ISymbol> initialSymbols)
-                : base(solution)
+            public UnidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> upSymbols, HashSet<ISymbol> initialSymbols)
+                : base(engine)
             {
                 _upSymbols = upSymbols.ToImmutableHashSet();
                 _initialAndDownSymbols = initialSymbols;
-            }
-
-            public static async Task<SymbolSet> CreateAsync(
-                Solution solution, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
-            {
-                // Walk and find all the symbols above the starting symbol set. 
-                var upSymbols = await GetAllUpSymbolsAsync(solution, initialSymbols, cancellationToken).ConfigureAwait(false);
-                return new UnidirectionalSymbolSet(solution, upSymbols, initialSymbols);
-            }
-
-            private static async Task<HashSet<ISymbol>> GetAllUpSymbolsAsync(
-                Solution solution, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
-            {
-                var workQueue = new Stack<ISymbol>();
-                PushAll(workQueue, initialSymbols);
-
-                var upSymbols = new HashSet<ISymbol>();
-
-                var allProjects = solution.Projects.ToImmutableHashSet();
-                while (workQueue.Count > 0)
-                {
-                    var currentSymbol = workQueue.Pop();
-                    await AddUpSymbolsAsync(solution, currentSymbol, upSymbols, workQueue, allProjects, cancellationToken).ConfigureAwait(false);
-                }
-
-                return upSymbols;
             }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()

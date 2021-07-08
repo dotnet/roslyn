@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly ImmutableArray<ISymbol> _symbols;
 
-            public NonCascadingSymbolSet(Solution solution, ISymbol searchSymbol) : base(solution)
+            public NonCascadingSymbolSet(FindReferencesSearchEngine engine, ISymbol searchSymbol) : base(engine)
             {
                 _symbols = ImmutableArray.Create(searchSymbol);
             }

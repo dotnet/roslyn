@@ -18,12 +18,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private sealed class BidirectionalSymbolSet : SymbolSet
         {
-            private readonly HashSet<ISymbol> _allSymbols;
+            private readonly HashSet<ISymbol> _allSymbols = new();
 
-            public BidirectionalSymbolSet(Solution solution, HashSet<ISymbol> initialSymbols)
-                : base(solution)
+            public BidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
+                : base(engine)
             {
-                _allSymbols = initialSymbols;
+                _allSymbols.AddRange(initialSymbols);
+                _allSymbols.AddRange(upSymbols);
             }
 
             public override ImmutableArray<ISymbol> GetAllSymbols()
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // For each symbol we're examining try to walk both up and down from it to see if we discover any
                     // new symbols in this project.  As long as we keep finding symbols, we'll keep searching.
                     await AddDownSymbolsAsync(current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
-                    await AddUpSymbolsAsync(project.Solution, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
+                    await AddUpSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
