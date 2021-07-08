@@ -1242,7 +1242,7 @@ interface J {}";
         }
 
         [Fact]
-        public void Type_Base_Partial_InsertDelete()
+        public void Type_Base_Partial_InsertDeleteAndUpdate()
         {
             var srcA1 = "partial class C { }";
             var srcB1 = "";

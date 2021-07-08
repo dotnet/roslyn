@@ -2891,4 +2891,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
     <value>Changing return type of '{0}' will prevent the debug session from continuing.</value>
   </data>
+  <data name="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Changing type parameters of '{0}' will prevent the debug session from continuing.</value>
+  </data>
 </root>

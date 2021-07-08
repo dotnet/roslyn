@@ -2339,6 +2339,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                oldMethod.ReturnsByRefReadonly == newMethod.ReturnsByRefReadonly &&
                s_assemblyEqualityComparer.ReturnTypeEquals(oldMethod, newMethod);
 
+        private static bool TypeParametersEquivalent(ImmutableArray<ITypeParameterSymbol> oldParameters, ImmutableArray<ITypeParameterSymbol> newParameters)
+            => oldParameters.SequenceEqual(newParameters, (oldParameter, newParameter) =>
+                oldParameter.ConstraintTypes.SequenceEqual(newParameter.ConstraintTypes, (x, y) => s_assemblyEqualityComparer.Equals(x, y)) &&
+                oldParameter.Name == newParameter.Name &&
+                oldParameter.HasReferenceTypeConstraint == newParameter.HasReferenceTypeConstraint &&
+                oldParameter.HasValueTypeConstraint == newParameter.HasValueTypeConstraint &&
+                oldParameter.HasConstructorConstraint == newParameter.HasConstructorConstraint &&
+                oldParameter.HasNotNullConstraint == newParameter.HasNotNullConstraint &&
+                oldParameter.HasUnmanagedTypeConstraint == newParameter.HasUnmanagedTypeConstraint &&
+                oldParameter.Variance == newParameter.Variance);
+
         protected static bool MemberSignaturesEquivalent(
             ISymbol? oldMember,
             ISymbol? newMember,
@@ -4902,9 +4913,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
             EditAndContinueCapabilities capabilities,
-            out bool hasErrors,
+            out bool hasSignatureErrors,
             CancellationToken cancellationToken)
         {
+            hasSignatureErrors = false;
+
             var newLambda = GetLambda(newLambdaBody);
             var oldLambda = GetLambda(oldLambdaBody);
 
@@ -4913,41 +4926,63 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // queries are analyzed separately
             if (!IsNestedFunction(newLambda))
             {
-                hasErrors = false;
+                return;
+            }
+
+            if (IsLocalFunction(oldLambda) != IsLocalFunction(newLambda))
+            {
+                ReportUpdateRudeEdit(diagnostics, RudeEditKind.SwitchBetweenLambdaAndLocalFunction, newLambda);
+                hasSignatureErrors = true;
                 return;
             }
 
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
-            ReportCustomAttributeRudeEdits(diagnostics, oldLambdaSymbol, newLambdaSymbol, capabilities, out _, out _);
-
-            RudeEditKind rudeEdit;
-            if (IsLocalFunction(oldLambdaBody) != IsLocalFunction(newLambdaBody))
+            // signature validation:
+            if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
             {
-                rudeEdit = RudeEditKind.SwitchBetweenLambdaAndLocalFunction;
-            }
-            else if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
-            {
-                rudeEdit = RudeEditKind.ChangingLambdaParameters;
+                ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingLambdaParameters, newLambda);
+                hasSignatureErrors = true;
             }
             else if (!ReturnTypesEquivalent(oldLambdaSymbol, newLambdaSymbol))
             {
-                rudeEdit = RudeEditKind.ChangingLambdaReturnType;
+                ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingLambdaReturnType, newLambda);
+                hasSignatureErrors = true;
             }
-            else
+            else if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters))
             {
-                hasErrors = false;
+                ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingTypeParameters, newLambda);
+                hasSignatureErrors = true;
+            }
+
+            if (hasSignatureErrors)
+            {
                 return;
             }
 
+            // custom attributes
+
+            ReportCustomAttributeRudeEdits(diagnostics, oldLambdaSymbol, newLambdaSymbol, capabilities, out _, out _);
+
+            for (var i = 0; i < oldLambdaSymbol.Parameters.Length; i++)
+            {
+                ReportCustomAttributeRudeEdits(diagnostics, oldLambdaSymbol.Parameters[i], newLambdaSymbol.Parameters[i], capabilities, out _, out _);
+            }
+
+            for (var i = 0; i < oldLambdaSymbol.TypeParameters.Length; i++)
+            {
+                ReportCustomAttributeRudeEdits(diagnostics, oldLambdaSymbol.TypeParameters[i], newLambdaSymbol.TypeParameters[i], capabilities, out _, out _);
+            }
+        }
+
+        private void ReportUpdateRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, RudeEditKind rudeEdit, SyntaxNode newNode)
+        {
             diagnostics.Add(new RudeEditDiagnostic(
                 rudeEdit,
-                GetDiagnosticSpan(newLambda, EditKind.Update),
-                newLambda,
-                new[] { GetDisplayName(newLambda) }));
-
-            hasErrors = true;
+                GetDiagnosticSpan(newNode, EditKind.Update),
+                newNode,
+                new[] { GetDisplayName(newNode) }));
         }
 
         private static ITypeSymbol GetType(ISymbol localOrParameter)

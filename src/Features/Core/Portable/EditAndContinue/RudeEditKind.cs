@@ -133,5 +133,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ChangeImplicitMainReturnType = 102,
         ChangingParameterTypes = 103,
         ChangingReturnType = 104,
+        ChangingTypeParameters = 105,
     }
 }

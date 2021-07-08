@@ -7059,7 +7059,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
         }
 
         [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
@@ -7436,7 +7437,7 @@ interface I
                 "Insert [A]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7451,7 +7452,7 @@ interface I
                 "Insert [B]@11");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7466,7 +7467,7 @@ interface I
                 "Delete [A]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7481,7 +7482,7 @@ interface I
                 "Delete [A]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7495,7 +7496,61 @@ interface I
                 "Update [A]@9 -> [B]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Theory]
+        [InlineData("Enum", "Delegate")]
+        [InlineData("IDisposable", "IDisposable, new()")]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Update(string oldConstraint, string newConstraint)
+        {
+            var src1 = "void L<A>() where A : " + oldConstraint + " {}";
+            var src2 = "void L<A>() where A : " + newConstraint + " {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [where A : " + oldConstraint + "]@14 -> [where A : " + newConstraint + "]@14");
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Theory]
+        [InlineData("nonnull")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("new()")]
+        [InlineData("unmanaged")]
+        [InlineData("System.IDisposable")]
+        [InlineData("System.Delegate")]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Delete(string oldConstraint)
+        {
+            var src1 = "void L<A>() where A : " + oldConstraint + " {}";
+            var src2 = "void L<A>() {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where A : " + oldConstraint + "]@14");
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Add()
+        {
+            var src1 = "void L<A,B>() where A : new() {}";
+            var src2 = "void L<A,B>() where A : new() where B : System.IDisposable {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where B : System.IDisposable]@32");
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7509,7 +7564,8 @@ interface I
                 "Reorder [B]@11 -> @9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         [Fact]
@@ -7525,7 +7581,7 @@ interface I
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter));
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         #endregion

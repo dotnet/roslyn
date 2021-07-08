@@ -245,6 +245,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">Durch Änderungen an der Sichtbarkeit von "{0}" wird die Fortsetzung der Debugsitzung verhindert.</target>
