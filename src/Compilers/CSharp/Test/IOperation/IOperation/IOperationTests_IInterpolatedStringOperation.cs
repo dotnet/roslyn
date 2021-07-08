@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public partial class IOperationTests : SemanticModelTestBase
     {
         private static CSharpTestSource GetSource(string code, bool hasDefaultHandler)
-            => hasDefaultHandler 
+            => hasDefaultHandler
                 ? new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }
                 : code;
 
