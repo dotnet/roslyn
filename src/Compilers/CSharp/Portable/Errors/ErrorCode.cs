@@ -1964,10 +1964,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LineSpanDirectiveEndLessThanStart = 8939,
         ERR_WrongArityAsyncReturn = 8940,
 
-        ERR_MultipleFileScopedNamespace = 8940,
-        ERR_FileScopedAndNormalNamespace = 8941,
-        ERR_FileScopedNamespaceNotBeforeAllMembers = 8942,
-
+        ERR_MultipleFileScopedNamespace = 8954,
+        ERR_FileScopedAndNormalNamespace = 8955,
+        ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
 
         #endregion
 

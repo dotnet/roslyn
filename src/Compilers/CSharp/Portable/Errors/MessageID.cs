@@ -230,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMemebers = MessageBase + 12806,
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
-        IDS_FeatureFileScopedNamespace = MessageBase + 12808,
+
+        IDS_FeatureFileScopedNamespace = MessageBase + 12809,
     }
 
     // Message IDs may refer to strings that need to be localized.
