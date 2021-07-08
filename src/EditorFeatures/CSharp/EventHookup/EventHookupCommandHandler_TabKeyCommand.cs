@@ -188,7 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             var eventHookupExpression = plusEqualsToken.GetAncestor<AssignmentExpressionSyntax>();
 
             var textToInsert = eventHandlerMethodName + ";";
-            if (!eventHookupExpression.IsInStaticContext())
+            // Don't add "this." if it's a top-level statement program. The simplifier won't simplify it as it contains errors.
+            // https://github.com/dotnet/roslyn/issues/40974
+            if (!eventHookupExpression.IsInStaticContext() && eventHookupExpression.FirstAncestorOrSelf<GlobalStatementSyntax>() == null)
             {
                 // This will be simplified later if it's not needed.
                 textToInsert = "this." + textToInsert;
