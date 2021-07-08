@@ -143,33 +143,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     stack.Push(symbol);
             }
 
-            /// <summary>
-            /// Adds the symbols from <paramref name="from"/> (and all linked versions of them) to <paramref
-            /// name="to"/>.  If the symbol was not already in <paramref name="to"/> it is also added to
-            /// <paramref name="workQueue"/> to continue cascading.
-            /// </summary>
-            protected static async Task AddLinkedSymbolsToAsync(
-                Solution solution, ImmutableArray<ISymbol> from, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
-            {
-                foreach (var symbol in from)
-                    await AddLinkedSymbolsToAsync(solution, symbol, to, workQueue, cancellationToken).ConfigureAwait(false);
-            }
-
-            /// <summary>
-            /// Adds all the symbols 'lniked' to <paramref name="symbol"/> in the given. The symbols found are added to
-            /// <paramref name="to"/>.  If <paramref name="to"/> did not contain that symbol, then it is also added to
-            /// <paramref name="workQueue"/> to allow fixed point algorithms to continue.
-            /// </summary>
-            protected static async Task AddLinkedSymbolsToAsync(
-                Solution solution, ISymbol symbol, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
-            {
-                foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
-                {
-                    if (to.Add(linked))
-                        workQueue.Push(linked);
-                }
-            }
-
             protected static async Task AddCascadedAndLinkedSymbolsToAsync(
                 FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
@@ -182,12 +155,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 foreach (var finder in engine._finders)
                 {
-                    await AddLinkedSymbolsToAsync(
-                        engine._solution, await finder.DetermineCascadedSymbolsAsync(symbol, engine._solution, engine._options, cancellationToken).ConfigureAwait(false),
-                        to, workQueue, cancellationToken).ConfigureAwait(false);
+                    var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, engine._solution, engine._options, cancellationToken).ConfigureAwait(false);
+                    foreach (var cascade in cascaded)
+                        await AddLinkedSymbolsToAsync(cascade).ConfigureAwait(false);
                 }
 
-                await AddLinkedSymbolsToAsync(engine._solution, symbol, to, workQueue, cancellationToken).ConfigureAwait(false);
+                await AddLinkedSymbolsToAsync(symbol).ConfigureAwait(false);
+
+                return;
+
+                // Adds all the symbols 'lniked' to <paramref name="symbol"/> in the given. The symbols found are added
+                // to <paramref name="to"/>.  If <paramref name="to"/> did not contain that symbol, then it is also
+                // added to <paramref name="workQueue"/> to allow fixed point algorithms to continue.
+                async Task AddLinkedSymbolsToAsync(ISymbol symbol)
+                {
+                    foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, engine._solution, cancellationToken).ConfigureAwait(false))
+                    {
+                        if (to.Add(linked))
+                            workQueue.Push(linked);
+                    }
+                }
             }
 
             private static bool InvolvesInheritance(ISymbol symbol)
