@@ -6,8 +6,8 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -16,12 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     {
         protected override void CollectBlockSpans(
             TypeDeclarationSyntax typeDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptionProvider optionProvider,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, spans, isMetadataAsSource);
+            CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, ref spans, optionProvider);
 
             if (!typeDeclaration.OpenBraceToken.IsMissing &&
                 !typeDeclaration.CloseBraceToken.IsMissing)
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // Collapse to Definitions doesn't collapse type nodes, but a Toggle All Outlining would collapse groups
                 // of types to the compressed form of not showing blank lines. All kinds of types are grouped together
                 // in Metadata as Source.
-                var compressEmptyLines = isMetadataAsSource
+                var compressEmptyLines = optionProvider.IsMetadataAsSource
                     && (!nextSibling.IsNode || nextSibling.AsNode() is BaseTypeDeclarationSyntax);
 
                 spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             if (!typeDeclaration.CloseBraceToken.IsMissing)
             {
                 var leadingTrivia = typeDeclaration.CloseBraceToken.LeadingTrivia;
-                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
+                CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, ref spans);
             }
         }
     }

@@ -105,6 +105,11 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 return;
             }
 
+            if (calleeMethodSymbol.IsVararg)
+            {
+                return;
+            }
+
             if (calleeMethodSymbol.DeclaredAccessibility != Accessibility.Private)
             {
                 return;
@@ -590,7 +595,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public MySolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, null)
+                : base(title, createChangedSolution)
             {
             }
         }

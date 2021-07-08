@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDeclarationExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
@@ -57,7 +57,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [var i1] [var i2]
@@ -67,7 +66,6 @@ Block[B0] - Entry
         Statements (0)
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
-
         Next (Regular) Block[B2]
     Block[B2] - Block
         Predecessors: [B1]
@@ -76,7 +74,6 @@ Block[B0] - Entry
               Value: 
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
-
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
@@ -85,7 +82,6 @@ Block[B0] - Entry
               Value: 
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
                   Children(0)
-
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
@@ -94,20 +90,14 @@ Block[B0] - Entry
               Expression: 
                 IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'M2(b ? out  ... out var i2)')
                   Children(3):
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? ')
-                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          (NoConversion)
-                        Operand: 
-                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? ')
+                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? ')
                       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var) (Syntax: 'var i1')
                         ILocalReferenceOperation: i1 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'i1')
                       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var) (Syntax: 'var i2')
                         ILocalReferenceOperation: i2 (IsDeclaration: True) (OperationKind.LocalReference, Type: var) (Syntax: 'i2')
-
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

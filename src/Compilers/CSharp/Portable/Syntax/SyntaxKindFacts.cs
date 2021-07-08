@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:
@@ -344,6 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 default:
@@ -1119,7 +1121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.OrKeyword:
                 case SyntaxKind.AndKeyword:
                 case SyntaxKind.NotKeyword:
-                case SyntaxKind.DataKeyword:
                 case SyntaxKind.WithKeyword:
                 case SyntaxKind.InitKeyword:
                 case SyntaxKind.RecordKeyword:
@@ -1234,8 +1235,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.OrKeyword;
                 case "not":
                     return SyntaxKind.NotKeyword;
-                case "data":
-                    return SyntaxKind.DataKeyword;
                 case "with":
                     return SyntaxKind.WithKeyword;
                 case "init":
@@ -1671,8 +1670,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "or";
                 case SyntaxKind.NotKeyword:
                     return "not";
-                case SyntaxKind.DataKeyword:
-                    return "data";
                 case SyntaxKind.WithKeyword:
                     return "with";
                 case SyntaxKind.InitKeyword:

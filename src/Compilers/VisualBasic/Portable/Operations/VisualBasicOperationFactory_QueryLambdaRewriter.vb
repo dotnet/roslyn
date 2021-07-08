@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             End Function
 
             Public Overrides Function VisitParameter(node As BoundParameter) As BoundNode
-                If (node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod).GetValueOrDefault() AndAlso Not _uniqueNodes.Add(node) Then
+                If If(node.ParameterSymbol?.ContainingSymbol.IsQueryLambdaMethod, False) AndAlso Not _uniqueNodes.Add(node) Then
                     Dim wasCompilerGenerated As Boolean = node.WasCompilerGenerated
                     node = New BoundParameter(node.Syntax, node.ParameterSymbol, node.IsLValue, node.SuppressVirtualCalls, node.Type, node.HasErrors)
                     If wasCompilerGenerated Then

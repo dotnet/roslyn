@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
 
             if (ShouldReportCrashDumps(source))
             {
-                FatalError.ReportWithoutCrash(exception);
+                FatalError.ReportAndCatch(exception);
             }
         }
 

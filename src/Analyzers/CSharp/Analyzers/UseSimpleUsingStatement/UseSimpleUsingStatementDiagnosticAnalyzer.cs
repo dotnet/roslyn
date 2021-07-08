@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     {
         public UseSimpleUsingStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
+                   EnforceOnBuildValues.UseSimpleUsingStatement,
                    CSharpCodeStyleOptions.PreferSimpleUsingStatement,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

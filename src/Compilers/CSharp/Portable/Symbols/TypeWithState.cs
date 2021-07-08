@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public readonly TypeSymbol? Type;
         public readonly NullableFlowState State;
-        // https://github.com/dotnet/roslyn/issues/41964: [MemberNotNullWhen(true, nameof(Type))]
+        [MemberNotNullWhen(false, nameof(Type))]
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (Type?.IsTypeParameterDisallowingAnnotationInCSharp8() == true)
             {
                 var type = TypeWithAnnotations.Create(Type, NullableAnnotation.NotAnnotated);
-                return State == NullableFlowState.MaybeDefault ? type.SetIsAnnotated(compilation) : type;
+                return (State == NullableFlowState.MaybeDefault || asAnnotatedType) ? type.SetIsAnnotated(compilation) : type;
             }
             NullableAnnotation annotation = asAnnotatedType ?
                 (Type?.IsValueType == true ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated) :

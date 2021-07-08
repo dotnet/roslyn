@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-       Name = nameof(ReplacePropertyWithMethodsCodeRefactoringProvider)), Shared]
+       Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
     internal class ReplacePropertyWithMethodsCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string GetPrefix = "Get";
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                     }
-                    else if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(parent))
+                    else if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(parent))
                     {
                         editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                             ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));

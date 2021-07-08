@@ -24,11 +24,13 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Operator = 8 -> Microsof
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Parameter = 20 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Property = 13 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RaiseAccessor = 28 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RemoveAccessor = 27 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Variable = 21 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.DeclarationModifiers() -> void
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAbstract.get -> bool
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAsync.get -> bool
@@ -74,10 +76,10 @@ static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.New.get -> M
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.None.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator &(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
-static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator -(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
-static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator +(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator -(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Override.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Partial.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.ReadOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers

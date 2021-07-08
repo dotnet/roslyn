@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2877,6 +2878,40 @@ class B
 {
     protected int i }",
 index: 1);
+        }
+
+        [WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateCorrectFieldNaming()
+        {
+            var options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
+            await TestInRegularAndScriptAsync(
+    @"class Class
+{
+    void M(int i)
+    {
+        D d = new [|D|](i);
+    }
+}",
+    @"class Class
+{
+    void M(int i)
+    {
+        D d = new D(i);
+    }
+}
+
+internal class D
+{
+    private int _i;
+
+    public D(int i)
+    {
+        _i = i;
+    }
+}",
+    index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]

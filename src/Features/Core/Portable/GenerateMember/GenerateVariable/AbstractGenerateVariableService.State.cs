@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsInConstructor = DetermineIsInConstructor(semanticDocument, simpleName);
                 IsInMemberContext =
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
-                    syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                    syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
 
                 ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
 

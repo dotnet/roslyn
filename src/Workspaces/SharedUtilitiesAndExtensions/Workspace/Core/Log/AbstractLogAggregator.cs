@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -20,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         private static int s_globalId;
 
         private readonly ConcurrentDictionary<object, T> _map = new(concurrencyLevel: 2, capacity: 2);
+        private readonly Func<object, T> _createCounter;
+
+        protected AbstractLogAggregator()
+        {
+            _createCounter = _ => CreateCounter();
+        }
 
         protected abstract T CreateCounter();
 
@@ -63,8 +71,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         IEnumerator IEnumerable.GetEnumerator()
             => this.GetEnumerator();
 
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279909", AllowCaptures = false)]
         protected T GetCounter(object key)
-            => _map.GetOrAdd(key, _ => CreateCounter());
+            => _map.GetOrAdd(key, _createCounter);
 
         protected bool TryGetCounter(object key, out T counter)
         {

@@ -9,6 +9,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:u="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
              xmlns:dest="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface"
+             xmlns:controls="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls"
              mc:Ignorable="d" 
              d:DesignHeight="380" d:DesignWidth="460"
              Height="380" Width="460"
@@ -39,7 +40,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ContentPresenter Grid.Row="0" Content="{Binding ElementName=dialog, Path=DestinationControl}" />
+        <controls:NewTypeDestinationSelection x:Name="DestinationControl"  Grid.Row="0" ViewModel="{Binding ElementName=dialog, Path=ViewModel.DestinationViewModel}" />
 
         <GroupBox x:Uid="MemberSelectionGroupBox"
                   x:Name="MemberSelectionGroupBox"

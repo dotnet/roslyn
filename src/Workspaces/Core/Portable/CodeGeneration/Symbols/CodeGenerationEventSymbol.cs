@@ -14,21 +14,21 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public IMethodSymbol AddMethod { get; }
-        public IMethodSymbol RemoveMethod { get; }
-        public IMethodSymbol RaiseMethod { get; }
+        public IMethodSymbol? AddMethod { get; }
+        public IMethodSymbol? RemoveMethod { get; }
+        public IMethodSymbol? RaiseMethod { get; }
 
         public CodeGenerationEventSymbol(
-            INamedTypeSymbol containingType,
+            INamedTypeSymbol? containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
             string name,
-            IMethodSymbol addMethod,
-            IMethodSymbol removeMethod,
-            IMethodSymbol raiseMethod)
+            IMethodSymbol? addMethod,
+            IMethodSymbol? removeMethod,
+            IMethodSymbol? raiseMethod)
             : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;

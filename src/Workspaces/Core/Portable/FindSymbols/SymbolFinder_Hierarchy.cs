@@ -68,12 +68,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
-            for (var current = member; current != null; current = current.OverriddenMember())
+            for (var current = member; current != null; current = current.GetOverriddenMember())
             {
-                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
-                {
+                if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
-            // public and non static.
+            // public
             if (symbol != null)
             {
                 var explicitImplementations = symbol.ExplicitInterfaceImplementations();
@@ -105,7 +103,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return explicitImplementations;
                 }
                 else if (
-                    symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic &&
+                    symbol.DeclaredAccessibility == Accessibility.Public &&
                     (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
                 {
                     // Interface implementation is a tricky thing.  A method may implement an interface

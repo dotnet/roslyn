@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
-                   option: null,    // Analyzer is currently disabled
+                   EnforceOnBuildValues.InlineIsTypeWithoutName,
+                   CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+                   LanguageNames.CSharp,
                    new LocalizableResourceString(
                        nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
@@ -67,22 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var isExpression = (BinaryExpressionSyntax)context.Node;
-
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            var workspace = options?.Services.Workspace;
-            if (workspace == null)
-            {
-                return;
-            }
-
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var styleOption = context.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
                 // User has disabled this feature.
                 return;
             }
+
+            var isExpression = (BinaryExpressionSyntax)context.Node;
 
             // See if this is an 'is' expression that would be handled by the analyzer.  If so
             // we don't need to do anything.

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -14,7 +12,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -39,36 +36,38 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public abstract string DisplayName { get; }
         protected abstract string ScopeDescription { get; }
         protected abstract FunctionId FunctionId { get; }
-        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context);
+        protected abstract Task FindActionAsync(TLanguageService service, Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken);
 
         public CommandState GetCommandState(TCommandArgs args)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var findUsagesService = document?.GetLanguageService<TLanguageService>();
+            var findUsagesService = GetService(document);
             return findUsagesService != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
 
+        protected abstract TLanguageService? GetService(Document? document);
+
         public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, ScopeDescription))
             {
-                var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                var subjectBuffer = args.SubjectBuffer;
+                var caret = args.TextView.GetCaretPoint(subjectBuffer);
                 if (!caret.HasValue)
                     return false;
 
-                var subjectBuffer = args.SubjectBuffer;
-                if (!subjectBuffer.TryGetWorkspace(out var workspace))
+                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
                     return false;
 
-                var service = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<TLanguageService>();
+                var service = GetService(document);
                 if (service == null)
                     return false;
 
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
-                    context.OperationContext, _threadingContext);
+                document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(context.OperationContext, _threadingContext);
                 if (document == null)
                     return false;
 
@@ -78,14 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         private void ExecuteCommand(
-           Document document, int caretPosition,
+           Document document,
+           int caretPosition,
            TLanguageService service,
            CommandExecutionContext context)
         {
             if (service != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
-                string messageToShow = null;
+                string? messageToShow = null;
 
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
                 using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), userCancellationToken))
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     // wait context. That means the command system won't attempt to show its own wait dialog 
                     // and also will take it into consideration when measuring command handling duration.
                     context.OperationContext.TakeOwnership();
-                    var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+                    var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
                     notificationService.SendNotification(
                         message: messageToShow,
                         title: DisplayName,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
         }
 
-        private async Task<string> NavigateToOrPresentResultsAsync(
+        private async Task<string?> NavigateToOrPresentResultsAsync(
             Document document,
             int caretPosition,
             TLanguageService service,
@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             // the individual TLanguageService.  Once we get the results back we'll then decide 
             // what to do with them.  If we get only a single result back, then we'll just go 
             // directly to it.  Otherwise, we'll present the results in the IStreamingFindUsagesPresenter.
-            var context = new SimpleFindUsagesContext(cancellationToken);
+            var context = new SimpleFindUsagesContext();
 
-            await FindActionAsync(service, document, caretPosition, context).ConfigureAwait(false);
+            await FindActionAsync(service, document, caretPosition, context, cancellationToken).ConfigureAwait(false);
             if (context.Message != null)
                 return context.Message;
 
             await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions()).ConfigureAwait(false);
+                _threadingContext, document.Project.Solution.Workspace, context.SearchTitle, context.GetDefinitions(), cancellationToken).ConfigureAwait(false);
             return null;
         }
     }

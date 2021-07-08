@@ -373,8 +373,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitClassDeclaration(node);
                     }
 
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
+                    return GetUpdatedTypeDeclaration(node);
+                }
+
+                public override SyntaxNode VisitRecordDeclaration(RecordDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitRecordDeclaration(node);
+                    }
+
+                    return GetUpdatedTypeDeclaration(node);
                 }
 
                 public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
@@ -384,8 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         return base.VisitStructDeclaration(node);
                     }
 
-                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
-                    return node.WithMembers(newMembers);
+                    return GetUpdatedTypeDeclaration(node);
                 }
 
                 public override SyntaxNode VisitAccessorList(AccessorListSyntax node)
@@ -408,6 +416,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     var newMembers = VisitList(ReplaceMembers(node.Members, global: true));
+                    return node.WithMembers(newMembers);
+                }
+
+                private SyntaxNode GetUpdatedTypeDeclaration(TypeDeclarationSyntax node)
+                {
+                    var newMembers = VisitList(ReplaceMembers(node.Members, global: false));
                     return node.WithMembers(newMembers);
                 }
             }

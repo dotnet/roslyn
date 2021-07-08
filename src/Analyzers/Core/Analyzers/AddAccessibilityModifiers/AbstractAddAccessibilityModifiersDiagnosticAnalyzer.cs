@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     {
         protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
+                   EnforceOnBuildValues.AddAccessibilityModifiers,
                    CodeStyleOptions2.RequireAccessibilityModifiers,
                    new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
 
         Public Sub New()
             MyBase.New(IDEDiagnosticIds.UseIsNotExpressionDiagnosticId,
+                   EnforceOnBuildValues.UseIsNotExpression,
                    VisualBasicCodeStyleOptions.PreferIsNotExpression,
                    LanguageNames.VisualBasic,
                    New LocalizableResourceString(

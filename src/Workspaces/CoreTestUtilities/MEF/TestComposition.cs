@@ -9,8 +9,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -126,6 +126,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private ComposableCatalog GetCatalog()
             => ExportProviderCache.CreateAssemblyCatalog(Assemblies, ExportProviderCache.CreateResolver()).WithoutPartsOfTypes(ExcludedPartTypes).WithParts(Parts);
+
+        public CompositionConfiguration GetCompositionConfiguration()
+            => CompositionConfiguration.Create(GetCatalog());
 
         public TestComposition Add(TestComposition composition)
             => AddAssemblies(composition.Assemblies).AddParts(composition.Parts).AddExcludedPartTypes(composition.ExcludedPartTypes);

@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
+            Debug.Assert(arguments.Diagnostics is BindingDiagnosticBag);
 
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
             {
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
-                arguments.Diagnostics.Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
+                ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else
             {
@@ -120,5 +121,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsImplicitlyDeclared
             => true;
+
+        internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        {
+            base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
+
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            {
+                CheckForFieldTargetedAttribute(diagnostics);
+            }
+        }
+
+        private void CheckForFieldTargetedAttribute(BindingDiagnosticBag diagnostics)
+        {
+            var languageVersion = this.DeclaringCompilation.LanguageVersion;
+            if (languageVersion.AllowAttributesOnBackingFields())
+            {
+                return;
+            }
+
+            foreach (var attribute in AttributeDeclarationSyntaxList)
+            {
+                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                {
+                    diagnostics.Add(
+                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                        attribute.Target.Location);
+                }
+            }
+        }
     }
 }

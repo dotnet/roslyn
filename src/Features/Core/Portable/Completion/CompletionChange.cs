@@ -17,11 +17,16 @@ namespace Microsoft.CodeAnalysis.Completion
     public sealed class CompletionChange
     {
         /// <summary>
-        /// The text change to be applied to the document.
+        /// The text change to be applied to the document.  This must always be supplied and is useful for hosts that
+        /// can apply a large text change efficiently while only making minimal edits to a file.
         /// </summary>
         public TextChange TextChange { get; }
 
-        [Obsolete("Use TextChange instead", error: true)]
+        /// <summary>
+        /// Individual smaller text changes that are more fine grained than the total <see cref="TextChange"/> value.
+        /// This can be useful for host that do not support diffing changes to find minimal edits.  Even if this is 
+        /// provided, <see cref="TextChange"/> must still be provided as well.
+        /// </summary>
         public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
@@ -37,34 +42,48 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool IncludesCommitCharacter { get; }
 
-        private CompletionChange(ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
-            : this(textChanges.Single(), newPosition, includesCommitCharacter)
-        {
-        }
-
-        private CompletionChange(TextChange textChange, int? newPosition, bool includesCommitCharacter)
+        private CompletionChange(
+            TextChange textChange, ImmutableArray<TextChange> textChanges, int? newPosition, bool includesCommitCharacter)
         {
             TextChange = textChange;
             NewPosition = newPosition;
             IncludesCommitCharacter = includesCommitCharacter;
+            TextChanges = textChanges.NullToEmpty();
+            if (TextChanges.IsEmpty)
+                TextChanges = ImmutableArray.Create(textChange);
         }
 
         /// <summary>
         /// Creates a new <see cref="CompletionChange"/> instance.
         /// </summary>
         /// <param name="textChanges">The text changes to be applied to the document.</param>
-        /// <param name="newPosition">The new caret position after the change has been applied. 
-        /// If null then the caret position is not specified and will be determined by the completion host.</param>
-        /// <param name="includesCommitCharacter">True if the changes include the typed character that caused the <see cref="CompletionItem"/> to be committed.
-        /// If false, the completion host will determine if and where the commit character is inserted into the document.</param>
-        /// <returns></returns>
-        [Obsolete("Use Create overload that only takes a single TextChange", error: true)]
+        /// <param name="newPosition">The new caret position after the change has been applied. If null then the caret
+        /// position is not specified and will be determined by the completion host.</param>
+        /// <param name="includesCommitCharacter">True if the changes include the typed character that caused the <see
+        /// cref="CompletionItem"/> to be committed. If false, the completion host will determine if and where the
+        /// commit character is inserted into the document.</param>
+        /// <remarks>
+        /// This factory method is only valid when <paramref name="textChanges"/> has a single entry in it.  If there
+        /// are multiple entries, <see cref="Create(TextChange, ImmutableArray{TextChange}, int?, bool)"/> must be called instead,
+        /// with both the individual text changes, and an aggregated text change for hosts that only support that.
+        /// </remarks>
+        [Obsolete("Use Create overload that takes a single TextChange and multiple TextChanges instead", error: true)]
         public static CompletionChange Create(
             ImmutableArray<TextChange> textChanges,
             int? newPosition = null,
             bool includesCommitCharacter = false)
         {
-            return new CompletionChange(textChanges, newPosition, includesCommitCharacter);
+            return new CompletionChange(textChanges.Single(), textChanges, newPosition, includesCommitCharacter);
+        }
+
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
+        public static CompletionChange Create(
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads
+            TextChange textChange,
+            int? newPosition = null,
+            bool includesCommitCharacter = false)
+        {
+            return new CompletionChange(textChange, textChanges: default, newPosition, includesCommitCharacter);
         }
 
 #pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
@@ -73,32 +92,35 @@ namespace Microsoft.CodeAnalysis.Completion
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 #pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
             TextChange textChange,
+            ImmutableArray<TextChange> textChanges,
             int? newPosition = null,
             bool includesCommitCharacter = false)
         {
-            return new CompletionChange(textChange, newPosition, includesCommitCharacter);
+            return new CompletionChange(textChange, textChanges, newPosition, includesCommitCharacter);
         }
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="TextChange"/> property changed.
         /// </summary>
-        [Obsolete("Use WithTextChange instead", error: true)]
-        public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
-            => new(textChanges, NewPosition, IncludesCommitCharacter);
-
         public CompletionChange WithTextChange(TextChange textChange)
-            => new(textChange, NewPosition, IncludesCommitCharacter);
+            => new(textChange, TextChanges, NewPosition, IncludesCommitCharacter);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="TextChanges"/> property changed.
+        /// </summary>
+        public CompletionChange WithTextChanges(ImmutableArray<TextChange> textChanges)
+            => new(TextChange, textChanges, NewPosition, IncludesCommitCharacter);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="NewPosition"/> property changed.
         /// </summary>
         public CompletionChange WithNewPosition(int? newPostion)
-            => new(TextChange, newPostion, IncludesCommitCharacter);
+            => new(TextChange, TextChanges, newPostion, IncludesCommitCharacter);
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionChange"/> with the <see cref="IncludesCommitCharacter"/> property changed.
         /// </summary>
         public CompletionChange WithIncludesCommitCharacter(bool includesCommitCharacter)
-            => new(TextChange, NewPosition, includesCommitCharacter);
+            => new(TextChange, TextChanges, NewPosition, includesCommitCharacter);
     }
 }

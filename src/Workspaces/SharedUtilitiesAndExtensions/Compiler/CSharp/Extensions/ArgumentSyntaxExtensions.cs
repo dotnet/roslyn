@@ -21,20 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return default;
         }
 
-        public static RefKind GetRefKind(this ArgumentSyntax argument)
-        {
-            switch (argument?.RefKindKeyword.Kind())
+        public static RefKind GetRefKind(this ArgumentSyntax? argument)
+            => argument?.RefKindKeyword.Kind() switch
             {
-                case SyntaxKind.RefKeyword:
-                    return RefKind.Ref;
-                case SyntaxKind.OutKeyword:
-                    return RefKind.Out;
-                case SyntaxKind.InKeyword:
-                    return RefKind.In;
-                default:
-                    return RefKind.None;
-            }
-        }
+                SyntaxKind.RefKeyword => RefKind.Ref,
+                SyntaxKind.OutKeyword => RefKind.Out,
+                SyntaxKind.InKeyword => RefKind.In,
+                _ => RefKind.None,
+            };
 
         /// <summary>
         /// Returns the parameter to which this argument is passed. If <paramref name="allowParams"/>

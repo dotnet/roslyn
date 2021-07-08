@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.Rename
                         var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                             solution,
                             (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
-                            callbackTarget: null,
                             cancellationToken).ConfigureAwait(false);
 
                         if (result.HasValue && result.Value != null)
@@ -203,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Rename
                     await ReferenceProcessing.GetRenamableDefinitionLocationsAsync(referencedSymbol.Definition, symbol, solution, cancellationToken).ConfigureAwait(false));
 
                 locations.AddAll(
-                    await referencedSymbol.Locations.SelectManyAsync<ReferenceLocation, RenameLocation>(
+                    await referencedSymbol.Locations.SelectManyInParallelAsync(
                         (l, c) => ReferenceProcessing.GetRenamableReferenceLocationsAsync(referencedSymbol.Definition, symbol, l, solution, c),
                         cancellationToken).ConfigureAwait(false));
             }

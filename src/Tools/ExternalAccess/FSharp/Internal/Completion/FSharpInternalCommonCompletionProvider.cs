@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
             return _provider.GetTextChangeAsync(base.GetTextChangeAsync, selectedItem, ch, cancellationToken);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
             return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
         }

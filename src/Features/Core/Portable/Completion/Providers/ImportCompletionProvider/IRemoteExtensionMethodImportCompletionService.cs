@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             int position,
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
+            ImmutableArray<string> targetTypesSymbolKeyData,
             bool forceIndexCreation,
             CancellationToken cancellationToken);
     }

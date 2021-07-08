@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         internal static void ApplyDocumentChanges(this Workspace workspace, Document newDocument, CancellationToken cancellationToken)
         {
             var oldSolution = workspace.CurrentSolution;
-            var oldDocument = oldSolution.GetDocument(newDocument.Id);
+            var oldDocument = oldSolution.GetRequiredDocument(newDocument.Id);
             var changes = newDocument.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken);
             var newSolution = oldSolution.UpdateDocument(newDocument.Id, changes, cancellationToken);
             workspace.TryApplyChanges(newSolution);
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
         internal static Solution UpdateDocument(this Solution solution, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken)
         {
-            var oldDocument = solution.GetDocument(id);
+            var oldDocument = solution.GetRequiredDocument(id);
             var oldText = oldDocument.GetTextSynchronously(cancellationToken);
             var newText = oldText.WithChanges(textChanges);
             return solution.WithDocumentText(id, newText, PreservationMode.PreserveIdentity);

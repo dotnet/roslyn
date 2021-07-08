@@ -2,12 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Microsoft.VisualStudio.Text.PatternMatching
+Imports Roslyn.Test.EditorUtilities.NavigateTo
 
 #Disable Warning BC40000 ' MatchKind is obsolete
 
@@ -24,16 +28,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestNoItemsForEmptyFile(testHost As TestHost) As Task
-            Await TestAsync(testHost, "", Async Function(w)
-                                              Assert.Empty(Await _aggregator.GetItemsAsync("Hello"))
-                                          End Function)
+        Public Async Function TestNoItemsForEmptyFile(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "", Async Function(w)
+                                                           Assert.Empty(Await _aggregator.GetItemsAsync("Hello"))
+                                                       End Function)
         End Function
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindClass(testHost As TestHost) As Task
-            Await TestAsync(testHost,
+        Public Async Function TestFindClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition,
 "Class Goo
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single()
@@ -43,8 +47,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindVerbatimClass(testHost As TestHost) As Task
-            Await TestAsync(testHost,
+        Public Async Function TestFindVerbatimClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition,
 "Class [Class]
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("class")).Single()
@@ -57,8 +61,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindNestedClass(testHost As TestHost) As Task
-            Await TestAsync(testHost,
+        Public Async Function TestFindNestedClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition,
 "Class Alpha
 Class Beta
 Class Gamma
@@ -72,8 +76,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindMemberInANestedClass(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Alpha
+        Public Async Function TestFindMemberInANestedClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Alpha
 Class Beta
 Class Gamma
 Sub DoSomething()
@@ -89,8 +93,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindGenericConstrainedClass(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo(Of M As IComparable)
+        Public Async Function TestFindGenericConstrainedClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo(Of M As IComparable)
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Goo")).Single()
                 VerifyNavigateToResultItem(item, "Goo", "[|Goo|](Of M)", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
@@ -99,8 +103,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindGenericConstrainedMethod(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo(Of M As IComparable)
+        Public Async Function TestFindGenericConstrainedMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo(Of M As IComparable)
 Public Sub Bar(Of T As IComparable)()
 End Sub
 End Class", Async Function(w)
@@ -111,8 +115,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindPartialClass(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Partial Public Class Goo
+        Public Async Function TestFindPartialClass(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Partial Public Class Goo
 Private a As Integer
 End Class
 Partial Class Goo
@@ -133,8 +137,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindClassInNamespace(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Namespace Bar
+        Public Async Function TestFindClassInNamespace(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Namespace Bar
 Class Goo
 End Class
 End Namespace", Async Function(w)
@@ -145,8 +149,8 @@ End Namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindStruct(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Structure Bar
+        Public Async Function TestFindStruct(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Structure Bar
 End Structure", Async Function(w)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("B")).Single()
                     VerifyNavigateToResultItem(item, "Bar", "[|B|]ar", PatternMatchKind.Prefix, NavigateToItemKind.Structure, Glyph.StructureInternal)
@@ -155,8 +159,8 @@ End Structure", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindEnum(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Enum Colors
+        Public Async Function TestFindEnum(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Enum Colors
 Red
 Green
 Blue
@@ -168,8 +172,8 @@ End Enum", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindEnumMember(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Enum Colors
+        Public Async Function TestFindEnumMember(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Enum Colors
 Red
 Green
 Blue
@@ -181,8 +185,8 @@ End Enum", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindField1(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindField1(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Bar As Integer
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Ba")).Single()
@@ -192,8 +196,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindField2(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindField2(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Bar As Integer
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("ba")).Single()
@@ -203,8 +207,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindField3(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindField3(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Bar As Integer
 End Class", Async Function(w)
                 Assert.Empty(Await _aggregator.GetItemsAsync("ar"))
@@ -213,8 +217,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindVerbatimField(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindVerbatimField(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private [string] As String
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("string")).Single()
@@ -227,8 +231,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindConstField(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindConstField(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Const bar As String = ""bar""
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("bar")).Single()
@@ -238,8 +242,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindIndexer(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindIndexer(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private arr As Integer()
 Default Public Property Item(ByVal i As Integer) As Integer
 Get
@@ -258,8 +262,8 @@ End Class", Async Function(w)
         <Theory>
         <CombinatorialData>
         <WorkItem(780993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/780993")>
-        Public Async Function TestFindEvent(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindEvent(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Public Event Bar as EventHandler
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
@@ -269,8 +273,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindNormalProperty(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindNormalProperty(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Property Name As String
 Get
 Return String.Empty
@@ -285,8 +289,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindAutoImplementedProperty(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindAutoImplementedProperty(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Property Name As String
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Name")).Single()
@@ -296,8 +300,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindMethod(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Sub DoSomething()
 End Sub
 End Class", Async Function(w)
@@ -308,8 +312,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindVerbatimMethod(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindVerbatimMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Sub [Sub]()
 End Sub
 End Class", Async Function(w)
@@ -323,8 +327,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindParameterizedMethod(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindParameterizedMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private Sub DoSomething(ByVal i As Integer, s As String)
 End Sub
 End Class", Async Function(w)
@@ -335,8 +339,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindConstructor(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindConstructor(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Sub New()
 End Sub
 End Class", Async Function(w)
@@ -347,8 +351,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindStaticConstructor(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindStaticConstructor(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Shared Sub New()
 End Sub
 End Class", Async Function(w)
@@ -359,8 +363,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindDestructor(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindDestructor(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Implements IDisposable
 Public Sub Dispose() Implements IDisposable.Dispose
 End Sub
@@ -378,8 +382,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindPartialMethods(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Partial Class Goo
+        Public Async Function TestFindPartialMethods(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Partial Class Goo
 Partial Private Sub Bar()
 End Sub
 End Class
@@ -403,20 +407,20 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindPartialMethodDefinitionOnly(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Partial Class Goo
+        Public Async Function TestFindPartialMethodDefinitionOnly(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Partial Class Goo
 Partial Private Sub Bar()
 End Sub
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_1_2, "Goo", "test1.vb", "Test"))
             End Function)
         End Function
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindPartialMethodImplementationOnly(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Partial Class Goo
+        Public Async Function TestFindPartialMethodImplementationOnly(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Partial Class Goo
 Private Sub Bar()
 End Sub
 End Class", Async Function(w)
@@ -427,8 +431,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindOverriddenMethods(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class BaseGoo
+        Public Async Function TestFindOverriddenMethods(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class BaseGoo
 Public Overridable Sub Bar()
 End Sub
 End Class
@@ -452,8 +456,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern1(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern1(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -474,8 +478,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern2(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern2(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -495,8 +499,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern3(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern3(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -517,8 +521,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern4(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern4(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -539,8 +543,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern5(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern5(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -561,8 +565,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDottedPattern6(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern6(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz
 sub Quux()
@@ -581,8 +585,8 @@ end namespace", Async Function(w)
         <Theory>
         <CombinatorialData>
         <WorkItem(7855, "https://github.com/dotnet/Roslyn/issues/7855")>
-        Public Async Function TestDottedPattern7(testHost As TestHost) As Task
-            Await TestAsync(testHost, "namespace Goo
+        Public Async Function TestDottedPattern7(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "namespace Goo
 namespace Bar
 class Baz(of X, Y, Z)
 sub Quux()
@@ -603,8 +607,8 @@ end namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindInterface(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Public Interface IGoo
+        Public Async Function TestFindInterface(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Public Interface IGoo
 End Interface", Async Function(w)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("IG")).Single()
                     VerifyNavigateToResultItem(item, "IGoo", "[|IG|]oo", PatternMatchKind.Prefix, NavigateToItemKind.Interface, Glyph.InterfacePublic)
@@ -613,8 +617,8 @@ End Interface", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindDelegateInNamespace(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Namespace Goo
+        Public Async Function TestFindDelegateInNamespace(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Namespace Goo
 Delegate Sub DoStuff()
 End Namespace", Async Function(w)
                     Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("DoStuff")).Single()
@@ -624,8 +628,8 @@ End Namespace", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindLambdaExpression(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindLambdaExpression(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Dim sqr As Func(Of Integer, Integer) = Function(x) x*x
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sqr")).Single()
@@ -635,8 +639,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindModule(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Module ModuleTest
+        Public Async Function TestFindModule(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Module ModuleTest
 End Module", Async Function(w)
                  Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("MT")).Single()
                  VerifyNavigateToResultItem(item, "ModuleTest", "[|M|]odule[|T|]est", PatternMatchKind.CamelCaseExact, NavigateToItemKind.Module, Glyph.ModuleInternal)
@@ -645,8 +649,8 @@ End Module", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindLineContinuationMethod(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindLineContinuationMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Public Sub Bar(x as Integer,
 y as Integer)
 End Sub", Async Function(w)
@@ -657,8 +661,8 @@ End Sub", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindArray(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindArray(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 Private itemArray as object()
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("itemArray")).Single
@@ -668,8 +672,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindClassAndMethodWithSameName(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class Goo
+        Public Async Function TestFindClassAndMethodWithSameName(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class Goo
 End Class
 Class Test
 Private Sub Goo()
@@ -677,8 +681,8 @@ End Sub
 End Class", Async Function(w)
                 Dim expectedItems = New List(Of NavigateToItem) From
                     {
-                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
-                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                     }
 
                 Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Goo")).ToList()
@@ -690,8 +694,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindMethodNestedInGenericTypes(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Class A(Of T)
+        Public Async Function TestFindMethodNestedInGenericTypes(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Class A(Of T)
 Class B
 Structure C(Of U)
 Sub M()
@@ -704,11 +708,22 @@ End Class", Async Function(w)
             End Function)
         End Function
 
+        <Theory>
+        <CombinatorialData>
+        Public Async Function TestFindAbstractMethod(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "MustInherit Class A
+Public MustOverride Sub M()
+End Class", Async Function(w)
+                Dim item = (Await _aggregator.GetItemsAsync("M")).Single
+                VerifyNavigateToResultItem(item, "M", "[|M|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "A", "Test"))
+            End Function)
+        End Function
+
         <WorkItem(1111131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1111131")>
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Namespace Global.MyNS
+        Public Async Function TestFindClassInNamespaceWithGlobalPrefix(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Namespace Global.MyNS
 Public Class C
 End Class
 End Namespace", Async Function(w)
@@ -720,8 +735,8 @@ End Namespace", Async Function(w)
         <WorkItem(1121267, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1121267")>
         <Theory>
         <CombinatorialData>
-        Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Namespace Global
+        Public Async Function TestFindClassInGlobalNamespace(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Namespace Global
 Public Class C(Of T)
 End Class
 End Namespace", Async Function(w)
@@ -733,8 +748,8 @@ End Namespace", Async Function(w)
         <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
         <Theory>
         <CombinatorialData>
-        Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost) As Task
-            Await TestAsync(testHost, "Module Program
+        Public Async Function TestConstructorNotParentedByTypeBlock(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "Module Program
 End Module
 Public Sub New()
 End Sub", Async Function(w)
@@ -746,9 +761,9 @@ End Sub", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestStartStopSanity(testHost As TestHost) As Task
+        Public Async Function TestStartStopSanity(testHost As TestHost, composition As Composition) As Task
             ' Verify that multiple calls to start/stop don't blow up
-            Await TestAsync(testHost, "Public Class Goo
+            Await TestAsync(testHost, composition, "Public Class Goo
 End Class", Async Function(w)
                 ' Do one query
                 Assert.Single(Await _aggregator.GetItemsAsync("Goo"))
@@ -765,8 +780,8 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDescriptionItems(testHost As TestHost) As Task
-            Await TestAsync(testHost, "
+        Public Async Function TestDescriptionItems(testHost As TestHost, composition As Composition) As Task
+            Await TestAsync(testHost, composition, "
 Public Class Goo
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
@@ -788,7 +803,7 @@ End Class", Async Function(w)
 
         <Theory>
         <CombinatorialData>
-        Public Async Function TestDescriptionItemsFilePath(testHost As TestHost) As Task
+        Public Async Function TestDescriptionItemsFilePath(testHost As TestHost, composition As Composition) As Task
             Using workspace = CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -797,7 +812,7 @@ Public Class Goo
 End Class
                         </Document>
                     </Project>
-                </Workspace>, testHost, createTrackingService:=Nothing)
+                </Workspace>, testHost, DefaultComposition)
 
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("G")).Single()
                 Dim itemDisplay As INavigateToItemDisplay = item.DisplayFactory.CreateItemDisplay(item)
@@ -813,6 +828,226 @@ End Class
                 assertDescription("File:", workspace.Documents.Single().FilePath)
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "VisualBasicAssembly1")
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeWhenAllAreTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem),
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainerWithNestedType(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludePartialWithNoContents(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonPartialOnlyContainingNestedTypes(testHost As TestHost, composition As Composition) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Class Outer
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, DefaultComposition)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
             End Using
         End Function
     End Class

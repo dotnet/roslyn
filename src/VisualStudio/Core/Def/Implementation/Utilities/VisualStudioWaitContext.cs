@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -14,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {
+    [Obsolete]
     internal sealed partial class VisualStudioWaitContext : IWaitContext
     {
         private const int DelayToShowDialogSecs = 2;
@@ -115,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 
         private void UpdateDialog()
         {
-            _dialog.UpdateProgress(
+            ((IVsThreadedWaitDialog2)_dialog).UpdateProgress(
                 this.ProgressTracker.Description ?? _message,
                 szProgressText: null,
                 szStatusBarText: null,
@@ -129,10 +131,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         {
             _dialog.EndWaitDialog(out var canceled);
 
+            // Let the global operation object know that we completed with/without user cancelling.  If the user
+            // canceled, we won't call 'Done', and so calling 'Dispose' will log that we didn't complete fully.
             if (canceled == 0)
-            {
                 _registration.Done();
-            }
 
             _registration.Dispose();
         }

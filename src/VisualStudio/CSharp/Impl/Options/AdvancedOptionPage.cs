@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -17,7 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             var componentModel = (IComponentModel)this.Site.GetService(typeof(SComponentModel));
-            return new AdvancedOptionPageControl(optionStore, componentModel);
+            var workspace = componentModel.GetService<VisualStudioWorkspace>();
+            return new AdvancedOptionPageControl(optionStore, componentModel, workspace.Services.GetService<IExperimentationService>());
         }
     }
 }

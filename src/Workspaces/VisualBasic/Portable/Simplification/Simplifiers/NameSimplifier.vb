@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     ' QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                     ' In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
                     If nameHasNoAlias AndAlso aliasInfo Is Nothing AndAlso Not name.Parent.IsKind(SyntaxKind.QualifiedName) Then
-                        Dim type = semanticModel.GetTypeInfo(name).Type
+                        Dim type = semanticModel.GetTypeInfo(name, cancellationToken).Type
                         If type IsNot Nothing Then
                             Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
                             If keywordKind <> SyntaxKind.None Then
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Private Shared Function TryOmitModuleName(name As QualifiedNameSyntax, semanticModel As SemanticModel, <Out()> ByRef replacementNode As ExpressionSyntax, <Out()> ByRef issueSpan As TextSpan, cancellationToken As CancellationToken) As Boolean
             If name.IsParentKind(SyntaxKind.QualifiedName) Then
-                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax)).Symbol
+                Dim symbolForName = semanticModel.GetSymbolInfo(DirectCast(name.Parent, QualifiedNameSyntax), cancellationToken).Symbol
 
                 ' in case this QN is used in a "New NSName.ModuleName.MemberName()" expression
                 ' the returned symbol is a constructor. Then we need to get the containing type.
@@ -433,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             If name.IsKind(SyntaxKind.GenericName) Then
                 If (name.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="Nullable(Of T)"
                    (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso name.Parent?.IsParentKind(SyntaxKind.CrefReference)) OrElse ' cref="System.Nullable(Of T)"
-                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso (name.Parent?.IsParentKind(SyntaxKind.QualifiedName)).GetValueOrDefault() AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
+                   (name.IsParentKind(SyntaxKind.QualifiedName) AndAlso If(name.Parent?.IsParentKind(SyntaxKind.QualifiedName), False) AndAlso name.Parent.Parent?.IsParentKind(SyntaxKind.CrefReference)) Then  ' cref="System.Nullable(Of T).Value"
                     ' Unfortunately, unlike in corresponding C# case, we need syntax based checking to detect these cases because of bugs in the VB SemanticModel.
                     ' See https://github.com/dotnet/roslyn/issues/2196, https://github.com/dotnet/roslyn/issues/2197
                     Return False

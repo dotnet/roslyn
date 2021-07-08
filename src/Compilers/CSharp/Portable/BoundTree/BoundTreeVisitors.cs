@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_InsufficientStack, GetTooLongOrComplexExpressionErrorLocation(Node));
             }
 
+            public void AddAnError(BindingDiagnosticBag diagnostics)
+            {
+                diagnostics.Add(ErrorCode.ERR_InsufficientStack, GetTooLongOrComplexExpressionErrorLocation(Node));
+            }
+
             public static Location GetTooLongOrComplexExpressionErrorLocation(BoundNode node)
             {
                 SyntaxNode syntax = node.Syntax;
@@ -202,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (recursionDepth > 1 || !ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException())
             {
-                StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+                EnsureSufficientExecutionStack(recursionDepth);
 
                 result = VisitExpressionWithoutStackGuard(node);
             }
@@ -216,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             recursionDepth--;
             return result;
+        }
+
+        protected virtual void EnsureSufficientExecutionStack(int recursionDepth)
+        {
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
         }
 
         protected virtual bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

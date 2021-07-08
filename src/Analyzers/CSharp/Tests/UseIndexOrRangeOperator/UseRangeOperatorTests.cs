@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -153,24 +152,22 @@ class C
 
             // Adding a dependency with internal definitions of Index and Range should not break the feature
             var source1 = "namespace System { internal struct Index { } internal struct Range { } }";
-            var dependencyReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(null, CancellationToken.None);
 
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(dependencyReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
                 FixedCode = fixedSource,
             }.RunAsync();
@@ -940,6 +937,104 @@ public class Test
     public object M(C c)
         => { rangeCode };
 }}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStringMethod()
+        {
+            var source =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => Substring([|1, x - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => this[1..x];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = new ReferenceAssemblies("nostdlib"),
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOnThis()
+        {
+            var source =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => Slice([|1, x - 1|]);
+}";
+            var fixedSource =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => this[1..x];
+}";
+
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,

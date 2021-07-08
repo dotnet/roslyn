@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
             _text = new Lazy<SourceText?>(ReadText);
         }
 
-        private SourceText ReadText()
+        private SourceText? ReadText()
         {
             var diagnostics = new List<DiagnosticInfo>();
             var text = _compiler.TryReadFileContent(_sourceFile, diagnostics);

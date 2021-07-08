@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
             }
 
-            return FatalError.Report(exception);
+            return FatalError.ReportAndPropagate(exception);
         }
     }
 }

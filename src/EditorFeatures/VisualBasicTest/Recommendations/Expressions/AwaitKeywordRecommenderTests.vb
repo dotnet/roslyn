@@ -5,41 +5,41 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class AwaitKeywordRecommenderTests
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InSynchronousMethodTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub InSynchronousMethodTest()
+            VerifyRecommendationsContain(<File>
 Class C
      Sub Goo()
         Dim z = |
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InMethodStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub InMethodStatementTest()
+            VerifyRecommendationsContain(<File>
 Class C
     Async Sub Goo()
         |
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InMethodExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub InMethodExpressionTest()
+            VerifyRecommendationsContain(<File>
 Class C
     Async Sub Goo()
         Dim z = |
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInCatchTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotInCatchTest()
+            VerifyRecommendationsMissing(<File>
 Class C
     Async Sub Goo()
         Try
@@ -50,11 +50,11 @@ Class C
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInCatchExceptionFilterTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotInCatchExceptionFilterTest()
+            VerifyRecommendationsMissing(<File>
 Class C
     Async Sub Goo()
         Try
@@ -64,11 +64,11 @@ Class C
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function InCatchNestedDelegateTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub InCatchNestedDelegateTest()
+            VerifyRecommendationsContain(<File>
 Class C
     Async Sub Goo()
         Try
@@ -79,11 +79,11 @@ Class C
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInFinallyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotInFinallyTest()
+            VerifyRecommendationsMissing(<File>
 Class C
     Async Sub Goo()
         Try
@@ -94,11 +94,11 @@ Class C
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInSyncLockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotInSyncLockTest()
+            VerifyRecommendationsMissing(<File>
 Class C
     Async Sub Goo()
         SyncLock True
@@ -107,7 +107,7 @@ Class C
     End Sub
 End Class
                                          </File>, "Await")
-        End Function
+        End Sub
     End Class
 End Namespace
 

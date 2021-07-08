@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _unreported; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (_unreported)
             {
-                return this.ErrorInfo;
+                return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
             }
 
-            return null;
+            return default;
         }
 
         public override int Arity
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return commonTypeKind;
         }
 
-        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol? t2, TypeCompareKind comparison)
         {
             if (ReferenceEquals(this, t2))
             {
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return
-                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison, isValueTypeOverrideOpt) :
+                ((object)this.ContainingType != null ? this.ContainingType.Equals(other.ContainingType, comparison) :
                  (object?)this.ContainingSymbol == null ? (object?)other.ContainingSymbol == null : this.ContainingSymbol.Equals(other.ContainingSymbol)) &&
                 this.Name == other.Name && this.Arity == other.Arity;
         }

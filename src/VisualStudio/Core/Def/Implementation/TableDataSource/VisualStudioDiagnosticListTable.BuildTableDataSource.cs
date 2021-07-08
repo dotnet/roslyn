@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -124,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly DiagnosticTableEntriesSource _source;
 
                     public TableEntriesSnapshot(
-                        DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items) :
-                        base(version, items, ImmutableArray<ITrackingPoint>.Empty)
+                        DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items)
+                        : base(version, items, ImmutableArray<ITrackingPoint>.Empty)
                     {
                         _source = source;
                     }
@@ -176,7 +178,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Message;
                                 return content != null;
                             case StandardTableKeyNames.DocumentName:
-                                content = GetFileName(data.DataLocation?.OriginalFilePath, data.DataLocation?.MappedFilePath);
+                                content = data.DataLocation?.GetFilePath();
                                 return content != null;
                             case StandardTableKeyNames.Line:
                                 content = data.DataLocation?.MappedStartLine ?? 0;
@@ -209,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab, bool activate)
+                    public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
                     {
                         var item = GetItem(index);
                         if (item?.DocumentId == null)
@@ -221,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         var solution = item.Workspace.CurrentSolution;
 
                         return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate);
+                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
                     }
 
                     private DocumentId GetProperDocumentId(DiagnosticTableItem item)

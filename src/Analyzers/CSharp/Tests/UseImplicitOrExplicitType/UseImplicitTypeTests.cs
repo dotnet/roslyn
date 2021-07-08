@@ -2803,7 +2803,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-        public async Task DoNotSuggestVarForTargetTypedNew()
+        public async Task DoNotSuggestVarForImplicitObjectCreation()
         {
             await TestMissingInRegularAndScriptAsync(
 @"using System;

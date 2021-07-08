@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var solutionCrawlerService = _workspace.Services.GetService<ISolutionCrawlerService>();
             if (solutionCrawlerService != null)
             {
-                var analyzer = ((IIncrementalAnalyzerProvider)this).CreateIncrementalAnalyzer(_workspace);
+                var analyzer = ((IIncrementalAnalyzerProvider)this).CreateIncrementalAnalyzer(_workspace)!;
                 solutionCrawlerService.Reanalyze(_workspace, analyzer, projectIds: null, documentIds: null, highPriority: false);
             }
         }

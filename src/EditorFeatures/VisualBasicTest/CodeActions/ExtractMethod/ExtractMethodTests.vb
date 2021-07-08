@@ -438,7 +438,7 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(13042, "https://github.com/dotnet/roslyn/issues/13042")>
         Public Async Function TestTuples() As Task
 
@@ -475,7 +475,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithNames() As Task
 
@@ -507,7 +507,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")>
         Public Async Function TestTupleDeclarationWithSomeNames() As Task
 
@@ -539,7 +539,7 @@ End Namespace")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         <WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")>
         Public Async Function TestTupleWith1Arity() As Task
 
@@ -573,7 +573,7 @@ End Structure")
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames() As Task
             Await TestAsync(
 "Class Program
@@ -605,7 +605,7 @@ End Namespace", TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBa
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), CompilerTrait(CompilerFeature.Tuples)>
         Public Async Function TestTupleWithInferredNames_WithVB15() As Task
             Await TestAsync(
 "Class Program

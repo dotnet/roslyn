@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TextSpan? span,
             CompilationWithAnalyzers compilationWithAnalyzers,
             Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnostics,
-            Func<DiagnosticAnalyzer, bool> getIsCompilationEndAnalyzer,
             Action<Diagnostic> reportDiagnostic,
             CancellationToken cancellationToken);
     }

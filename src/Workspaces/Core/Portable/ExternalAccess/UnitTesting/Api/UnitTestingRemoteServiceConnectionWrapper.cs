@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
+    [Obsolete]
     internal readonly struct UnitTestingRemoteServiceConnectionWrapper : IDisposable
     {
         internal RemoteServiceConnection UnderlyingObject { get; }

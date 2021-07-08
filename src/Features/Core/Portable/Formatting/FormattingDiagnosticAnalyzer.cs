@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public FormattingDiagnosticAnalyzer()
             : base(
                 IDEDiagnosticIds.FormattingDiagnosticId,
+                EnforceOnBuildValues.Formatting,
                 option: null,   // No unique option to configure diagnosticId
                 new LocalizableResourceString(nameof(FeaturesResources.Fix_formatting), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 new LocalizableResourceString(nameof(FeaturesResources.Fix_formatting), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
         {
-            if (!(context.Options is WorkspaceAnalyzerOptions workspaceAnalyzerOptions))
+            if (context.Options is not WorkspaceAnalyzerOptions workspaceAnalyzerOptions)
             {
                 return;
             }

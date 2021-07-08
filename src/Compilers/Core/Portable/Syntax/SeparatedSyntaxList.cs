@@ -566,7 +566,9 @@ namespace Microsoft.CodeAnalysis
             get { return _list.ToArray(); }
         }
 
+#pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()
+#pragma warning restore RS0041 // uses oblivious reference types
         {
             return new Enumerator(this);
         }

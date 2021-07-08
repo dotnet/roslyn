@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -35,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
             }
 
-            public int GetHashCode(ISymbol x, int currentHash)
+            public int GetHashCode(ISymbol? x, int currentHash)
             {
                 if (x == null)
                     return 0;
@@ -258,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public int CombineHashCodes(ITypeParameterSymbol x, int currentHash)
             {
                 Debug.Assert(
-                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod)) ||
+                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod!)) ||
                     (x.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(x.ContainingType)) ||
                     x.TypeParameterKind == TypeParameterKind.Cref);
 

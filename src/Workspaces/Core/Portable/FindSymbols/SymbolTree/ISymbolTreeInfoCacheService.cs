@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         /// <summary>
         /// Returns null if the info cannot be retrieved from the cache.
         /// </summary>
-        Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken);
+        ValueTask<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken);
     }
 }

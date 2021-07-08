@@ -205,9 +205,9 @@ End Class
     <methods>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="1"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="1"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="1"/>
+                <entry offset="0x0" startLine="109" startColumn="9" endLine="109" endColumn="25" document="1"/>
+                <entry offset="0x1" startLine="110" startColumn="13" endLine="110" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="111" startColumn="9" endLine="111" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
@@ -215,10 +215,10 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="1"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="1"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="1"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="1"/>
+                <entry offset="0x0" startLine="128" startColumn="26" endLine="128" endColumn="97" document="1"/>
+                <entry offset="0xa" startLine="139" startColumn="26" endLine="139" endColumn="95" document="1"/>
+                <entry offset="0x14" startLine="150" startColumn="26" endLine="150" endColumn="136" document="1"/>
+                <entry offset="0x1e" startLine="286" startColumn="26" endLine="286" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -231,9 +231,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="1"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="123" startColumn="13" endLine="123" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="124" startColumn="17" endLine="124" endColumn="62" document="1"/>
+                <entry offset="0xe" startLine="125" startColumn="13" endLine="125" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -247,9 +247,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="1"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="135" startColumn="13" endLine="135" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="136" startColumn="17" endLine="136" endColumn="57" document="1"/>
+                <entry offset="0xe" startLine="137" startColumn="13" endLine="137" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -263,9 +263,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="1"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="146" startColumn="13" endLine="146" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="147" startColumn="17" endLine="147" endColumn="58" document="1"/>
+                <entry offset="0xe" startLine="148" startColumn="13" endLine="148" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -279,9 +279,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="1"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="1"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="239" startColumn="14" endLine="239" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="240" startColumn="17" endLine="240" endColumn="67" document="1"/>
+                <entry offset="0xe" startLine="241" startColumn="13" endLine="241" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -305,9 +305,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="1"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="1"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="249" startColumn="13" endLine="249" endColumn="75" document="1"/>
+                <entry offset="0x1" startLine="250" startColumn="17" endLine="250" endColumn="40" document="1"/>
+                <entry offset="0x10" startLine="251" startColumn="13" endLine="251" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name="My"/>
@@ -321,9 +321,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="1"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="1"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="253" startColumn="13" endLine="253" endColumn="63" document="1"/>
+                <entry offset="0x1" startLine="254" startColumn="17" endLine="254" endColumn="42" document="1"/>
+                <entry offset="0xa" startLine="255" startColumn="13" endLine="255" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -337,9 +337,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="1"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="1"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="257" startColumn="13" endLine="257" endColumn="72" document="1"/>
+                <entry offset="0x1" startLine="258" startColumn="17" endLine="258" endColumn="46" document="1"/>
+                <entry offset="0xe" startLine="259" startColumn="13" endLine="259" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -353,9 +353,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="1"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="1"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="261" startColumn="13" endLine="261" endColumn="59" document="1"/>
+                <entry offset="0x1" startLine="262" startColumn="17" endLine="262" endColumn="39" document="1"/>
+                <entry offset="0xa" startLine="263" startColumn="13" endLine="263" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -370,13 +370,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="1"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="1"/>
+                <entry offset="0x0" startLine="266" startColumn="12" endLine="266" endColumn="95" document="1"/>
+                <entry offset="0x1" startLine="267" startColumn="17" endLine="267" endColumn="44" document="1"/>
                 <entry offset="0xb" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="1"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="1"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="1"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="1"/>
+                <entry offset="0xe" startLine="268" startColumn="21" endLine="268" endColumn="35" document="1"/>
+                <entry offset="0x16" startLine="269" startColumn="17" endLine="269" endColumn="21" document="1"/>
+                <entry offset="0x17" startLine="270" startColumn="21" endLine="270" endColumn="36" document="1"/>
+                <entry offset="0x1b" startLine="272" startColumn="13" endLine="272" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -385,9 +385,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="1"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="1"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="275" startColumn="13" endLine="275" endColumn="71" document="1"/>
+                <entry offset="0x1" startLine="276" startColumn="17" endLine="276" endColumn="35" document="1"/>
+                <entry offset="0x8" startLine="277" startColumn="13" endLine="277" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -395,9 +395,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="1"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="1"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="281" startColumn="13" endLine="281" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="282" startColumn="16" endLine="282" endColumn="28" document="1"/>
+                <entry offset="0x8" startLine="283" startColumn="13" endLine="283" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -411,12 +411,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="1"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="1"/>
+                <entry offset="0x0" startLine="343" startColumn="17" endLine="343" endColumn="20" document="1"/>
+                <entry offset="0x1" startLine="344" startColumn="21" endLine="344" endColumn="59" document="1"/>
                 <entry offset="0xf" hidden="true" document="1"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="1"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="1"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="1"/>
+                <entry offset="0x12" startLine="344" startColumn="60" endLine="344" endColumn="87" document="1"/>
+                <entry offset="0x1c" startLine="345" startColumn="21" endLine="345" endColumn="47" document="1"/>
+                <entry offset="0x24" startLine="346" startColumn="17" endLine="346" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -425,9 +425,9 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="1"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="1"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="352" startColumn="13" endLine="352" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="353" startColumn="17" endLine="353" endColumn="29" document="1"/>
+                <entry offset="0x8" startLine="354" startColumn="13" endLine="354" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4015,9 +4015,9 @@ End Class
     <methods>
         <method containingType="My.MyComputer" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="107" startColumn="9" endLine="107" endColumn="25" document="1"/>
-                <entry offset="0x1" startLine="108" startColumn="13" endLine="108" endColumn="25" document="1"/>
-                <entry offset="0x8" startLine="109" startColumn="9" endLine="109" endColumn="16" document="1"/>
+                <entry offset="0x0" startLine="109" startColumn="9" endLine="109" endColumn="25" document="1"/>
+                <entry offset="0x1" startLine="110" startColumn="13" endLine="110" endColumn="25" document="1"/>
+                <entry offset="0x8" startLine="111" startColumn="9" endLine="111" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <currentnamespace name="My"/>
@@ -4025,10 +4025,10 @@ End Class
         </method>
         <method containingType="My.MyProject" name=".cctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="126" startColumn="26" endLine="126" endColumn="97" document="1"/>
-                <entry offset="0xa" startLine="137" startColumn="26" endLine="137" endColumn="95" document="1"/>
-                <entry offset="0x14" startLine="148" startColumn="26" endLine="148" endColumn="136" document="1"/>
-                <entry offset="0x1e" startLine="284" startColumn="26" endLine="284" endColumn="105" document="1"/>
+                <entry offset="0x0" startLine="128" startColumn="26" endLine="128" endColumn="97" document="1"/>
+                <entry offset="0xa" startLine="139" startColumn="26" endLine="139" endColumn="95" document="1"/>
+                <entry offset="0x14" startLine="150" startColumn="26" endLine="150" endColumn="136" document="1"/>
+                <entry offset="0x1e" startLine="286" startColumn="26" endLine="286" endColumn="105" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -4041,9 +4041,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="121" startColumn="13" endLine="121" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="122" startColumn="17" endLine="122" endColumn="62" document="1"/>
-                <entry offset="0xe" startLine="123" startColumn="13" endLine="123" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="123" startColumn="13" endLine="123" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="124" startColumn="17" endLine="124" endColumn="62" document="1"/>
+                <entry offset="0xe" startLine="125" startColumn="13" endLine="125" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -4057,9 +4057,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="133" startColumn="13" endLine="133" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="134" startColumn="17" endLine="134" endColumn="57" document="1"/>
-                <entry offset="0xe" startLine="135" startColumn="13" endLine="135" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="135" startColumn="13" endLine="135" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="136" startColumn="17" endLine="136" endColumn="57" document="1"/>
+                <entry offset="0xe" startLine="137" startColumn="13" endLine="137" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -4073,9 +4073,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="144" startColumn="13" endLine="144" endColumn="16" document="1"/>
-                <entry offset="0x1" startLine="145" startColumn="17" endLine="145" endColumn="58" document="1"/>
-                <entry offset="0xe" startLine="146" startColumn="13" endLine="146" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="146" startColumn="13" endLine="146" endColumn="16" document="1"/>
+                <entry offset="0x1" startLine="147" startColumn="17" endLine="147" endColumn="58" document="1"/>
+                <entry offset="0xe" startLine="148" startColumn="13" endLine="148" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -4089,9 +4089,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="237" startColumn="14" endLine="237" endColumn="17" document="1"/>
-                <entry offset="0x1" startLine="238" startColumn="17" endLine="238" endColumn="67" document="1"/>
-                <entry offset="0xe" startLine="239" startColumn="13" endLine="239" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="239" startColumn="14" endLine="239" endColumn="17" document="1"/>
+                <entry offset="0x1" startLine="240" startColumn="17" endLine="240" endColumn="67" document="1"/>
+                <entry offset="0xe" startLine="241" startColumn="13" endLine="241" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyComputer" methodName=".ctor"/>
@@ -4125,9 +4125,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="247" startColumn="13" endLine="247" endColumn="75" document="1"/>
-                <entry offset="0x1" startLine="248" startColumn="17" endLine="248" endColumn="40" document="1"/>
-                <entry offset="0x10" startLine="249" startColumn="13" endLine="249" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="249" startColumn="13" endLine="249" endColumn="75" document="1"/>
+                <entry offset="0x1" startLine="250" startColumn="17" endLine="250" endColumn="40" document="1"/>
+                <entry offset="0x10" startLine="251" startColumn="13" endLine="251" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x12">
                 <currentnamespace name="My"/>
@@ -4141,9 +4141,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="251" startColumn="13" endLine="251" endColumn="63" document="1"/>
-                <entry offset="0x1" startLine="252" startColumn="17" endLine="252" endColumn="42" document="1"/>
-                <entry offset="0xa" startLine="253" startColumn="13" endLine="253" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="253" startColumn="13" endLine="253" endColumn="63" document="1"/>
+                <entry offset="0x1" startLine="254" startColumn="17" endLine="254" endColumn="42" document="1"/>
+                <entry offset="0xa" startLine="255" startColumn="13" endLine="255" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4157,9 +4157,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="255" startColumn="13" endLine="255" endColumn="72" document="1"/>
-                <entry offset="0x1" startLine="256" startColumn="17" endLine="256" endColumn="46" document="1"/>
-                <entry offset="0xe" startLine="257" startColumn="13" endLine="257" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="257" startColumn="13" endLine="257" endColumn="72" document="1"/>
+                <entry offset="0x1" startLine="258" startColumn="17" endLine="258" endColumn="46" document="1"/>
+                <entry offset="0xe" startLine="259" startColumn="13" endLine="259" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4173,9 +4173,9 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="259" startColumn="13" endLine="259" endColumn="59" document="1"/>
-                <entry offset="0x1" startLine="260" startColumn="17" endLine="260" endColumn="39" document="1"/>
-                <entry offset="0xa" startLine="261" startColumn="13" endLine="261" endColumn="25" document="1"/>
+                <entry offset="0x0" startLine="261" startColumn="13" endLine="261" endColumn="59" document="1"/>
+                <entry offset="0x1" startLine="262" startColumn="17" endLine="262" endColumn="39" document="1"/>
+                <entry offset="0xa" startLine="263" startColumn="13" endLine="263" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xc">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4190,13 +4190,13 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="264" startColumn="12" endLine="264" endColumn="95" document="1"/>
-                <entry offset="0x1" startLine="265" startColumn="17" endLine="265" endColumn="44" document="1"/>
+                <entry offset="0x0" startLine="266" startColumn="12" endLine="266" endColumn="95" document="1"/>
+                <entry offset="0x1" startLine="267" startColumn="17" endLine="267" endColumn="44" document="1"/>
                 <entry offset="0xb" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="266" startColumn="21" endLine="266" endColumn="35" document="1"/>
-                <entry offset="0x16" startLine="267" startColumn="17" endLine="267" endColumn="21" document="1"/>
-                <entry offset="0x17" startLine="268" startColumn="21" endLine="268" endColumn="36" document="1"/>
-                <entry offset="0x1b" startLine="270" startColumn="13" endLine="270" endColumn="25" document="1"/>
+                <entry offset="0xe" startLine="268" startColumn="21" endLine="268" endColumn="35" document="1"/>
+                <entry offset="0x16" startLine="269" startColumn="17" endLine="269" endColumn="21" document="1"/>
+                <entry offset="0x17" startLine="270" startColumn="21" endLine="270" endColumn="36" document="1"/>
+                <entry offset="0x1b" startLine="272" startColumn="13" endLine="272" endColumn="25" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1d">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4205,9 +4205,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name="Dispose__Instance__" parameterNames="instance">
             <sequencePoints>
-                <entry offset="0x0" startLine="273" startColumn="13" endLine="273" endColumn="71" document="1"/>
-                <entry offset="0x1" startLine="274" startColumn="17" endLine="274" endColumn="35" document="1"/>
-                <entry offset="0x8" startLine="275" startColumn="13" endLine="275" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="275" startColumn="13" endLine="275" endColumn="71" document="1"/>
+                <entry offset="0x1" startLine="276" startColumn="17" endLine="276" endColumn="35" document="1"/>
+                <entry offset="0x8" startLine="277" startColumn="13" endLine="277" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4215,9 +4215,9 @@ End Class
         </method>
         <method containingType="My.MyProject+MyWebServices" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="279" startColumn="13" endLine="279" endColumn="29" document="1"/>
-                <entry offset="0x1" startLine="280" startColumn="16" endLine="280" endColumn="28" document="1"/>
-                <entry offset="0x8" startLine="281" startColumn="13" endLine="281" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="281" startColumn="13" endLine="281" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="282" startColumn="16" endLine="282" endColumn="28" document="1"/>
+                <entry offset="0x8" startLine="283" startColumn="13" endLine="283" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4231,12 +4231,12 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="341" startColumn="17" endLine="341" endColumn="20" document="1"/>
-                <entry offset="0x1" startLine="342" startColumn="21" endLine="342" endColumn="59" document="1"/>
+                <entry offset="0x0" startLine="343" startColumn="17" endLine="343" endColumn="20" document="1"/>
+                <entry offset="0x1" startLine="344" startColumn="21" endLine="344" endColumn="59" document="1"/>
                 <entry offset="0xf" hidden="true" document="1"/>
-                <entry offset="0x12" startLine="342" startColumn="60" endLine="342" endColumn="87" document="1"/>
-                <entry offset="0x1c" startLine="343" startColumn="21" endLine="343" endColumn="47" document="1"/>
-                <entry offset="0x24" startLine="344" startColumn="17" endLine="344" endColumn="24" document="1"/>
+                <entry offset="0x12" startLine="344" startColumn="60" endLine="344" endColumn="87" document="1"/>
+                <entry offset="0x1c" startLine="345" startColumn="21" endLine="345" endColumn="47" document="1"/>
+                <entry offset="0x24" startLine="346" startColumn="17" endLine="346" endColumn="24" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4245,9 +4245,9 @@ End Class
         </method>
         <method containingType="My.MyProject+ThreadSafeObjectProvider`1" name=".ctor">
             <sequencePoints>
-                <entry offset="0x0" startLine="350" startColumn="13" endLine="350" endColumn="29" document="1"/>
-                <entry offset="0x1" startLine="351" startColumn="17" endLine="351" endColumn="29" document="1"/>
-                <entry offset="0x8" startLine="352" startColumn="13" endLine="352" endColumn="20" document="1"/>
+                <entry offset="0x0" startLine="352" startColumn="13" endLine="352" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="353" startColumn="17" endLine="353" endColumn="29" document="1"/>
+                <entry offset="0x8" startLine="354" startColumn="13" endLine="354" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="My.MyProject+MyWebServices" methodName="Equals" parameterNames="o"/>
@@ -4322,13 +4322,13 @@ End Class
     <methods>
         <method containingType="My.MyApplication" name="Main" parameterNames="Args">
             <sequencePoints>
-                <entry offset="0x0" startLine="76" startColumn="9" endLine="76" endColumn="55" document="1"/>
-                <entry offset="0x1" startLine="77" startColumn="13" endLine="77" endColumn="16" document="1"/>
-                <entry offset="0x2" startLine="78" startColumn="16" endLine="78" endColumn="133" document="1"/>
-                <entry offset="0xf" startLine="79" startColumn="13" endLine="79" endColumn="20" document="1"/>
-                <entry offset="0x11" startLine="80" startColumn="13" endLine="80" endColumn="20" document="1"/>
-                <entry offset="0x12" startLine="81" startColumn="13" endLine="81" endColumn="37" document="1"/>
-                <entry offset="0x1e" startLine="82" startColumn="9" endLine="82" endColumn="16" document="1"/>
+                <entry offset="0x0" startLine="78" startColumn="9" endLine="78" endColumn="55" document="1"/>
+                <entry offset="0x1" startLine="79" startColumn="13" endLine="79" endColumn="16" document="1"/>
+                <entry offset="0x2" startLine="80" startColumn="16" endLine="80" endColumn="133" document="1"/>
+                <entry offset="0xf" startLine="81" startColumn="13" endLine="81" endColumn="20" document="1"/>
+                <entry offset="0x11" startLine="82" startColumn="13" endLine="82" endColumn="20" document="1"/>
+                <entry offset="0x12" startLine="83" startColumn="13" endLine="83" endColumn="37" document="1"/>
+                <entry offset="0x1e" startLine="84" startColumn="9" endLine="84" endColumn="16" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x1f">
                 <currentnamespace name="My"/>
@@ -4611,9 +4611,9 @@ End Class"
                 Dim Compilation = CreateEmptyCompilation("")
                 Dim result = Compilation.Emit(outStream, options:=New EmitOptions(pdbFilePath:="test\\?.pdb", debugInformationFormat:=DebugInformationFormat.Embedded))
 
-                Assert.False(result.Success)
-                ' // error BC2032: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                result.Diagnostics.Verify(Diagnostic(ERRID.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1))
+                ' This is fine because EmitOptions just controls what is written into the PE file and it's 
+                ' valid for this to be an illegal file name (path map can easily create these).
+                Assert.True(result.Success)
             End Using
         End Sub
 

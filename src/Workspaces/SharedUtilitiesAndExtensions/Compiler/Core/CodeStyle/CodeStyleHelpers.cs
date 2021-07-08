@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -13,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleHelpers
     {
-        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption2<string> option)
+        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, CodeStyleOption2<string> defaultValue, [NotNullWhen(true)] out CodeStyleOption2<string>? option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out var value, out var notificationOpt))
+                    arg, defaultValue.Notification, out var value, out var notification))
             {
-                option = new CodeStyleOption2<string>(value, notificationOpt ?? NotificationOption2.Silent);
+                option = new CodeStyleOption2<string>(value, notification);
                 return true;
             }
 
@@ -26,55 +25,50 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return false;
         }
 
-        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption2<bool> option)
+        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, CodeStyleOption2<bool> defaultValue, out CodeStyleOption2<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
-                    arg, out var value, out var notificationOpt))
+                    arg, defaultValue.Notification, out var value, out var notification))
             {
                 // First value has to be true or false.  Anything else is unsupported.
                 if (bool.TryParse(value, out var isEnabled))
                 {
-                    // We allow 'false' to be provided without a notification option.  However,
-                    // 'true' must always be provided with a notification option.
-                    if (isEnabled == false)
-                    {
-                        notificationOpt ??= NotificationOption2.Silent;
-                        option = new CodeStyleOption2<bool>(false, notificationOpt);
-                        return true;
-                    }
-                    else if (notificationOpt != null)
-                    {
-                        option = new CodeStyleOption2<bool>(true, notificationOpt);
-                        return true;
-                    }
+                    option = new CodeStyleOption2<bool>(isEnabled, notification);
+                    return true;
                 }
             }
 
-            option = CodeStyleOption2<bool>.Default;
+            option = defaultValue;
             return false;
         }
+
+        /// <summary>
+        /// Given an editor-config code-style-option, gives back the core value part of the 
+        /// option.  For example, if the option is "true:error" or "true" then "true" will be returned
+        /// in <paramref name="value"/>.
+        /// </summary>
+        public static bool TryGetCodeStyleValue(
+            string arg, [NotNullWhen(true)] out string? value)
+            => TryGetCodeStyleValueAndOptionalNotification(arg, defaultNotification: NotificationOption2.None, out value, out _);
 
         /// <summary>
         /// Given an editor-config code-style-option, gives back the constituent parts of the 
         /// option.  For example, if the option is "true:error" then "true" will be returned
         /// in <paramref name="value"/> and <see cref="NotificationOption2.Error"/> will be returned
-        /// in <paramref name="notificationOpt"/>.  Note that users are allowed to not provide
-        /// a NotificationOption, so <paramref name="notificationOpt"/> may be null.  The caller
-        /// of this method must decide what to do in that case.
+        /// in <paramref name="notification"/>.  Note that users are allowed to not provide
+        /// a NotificationOption, so <paramref name="notification"/> will default to <paramref name="defaultNotification"/>.
         /// </summary>
         public static bool TryGetCodeStyleValueAndOptionalNotification(
-            string arg, out string value, out NotificationOption2 notificationOpt)
+            string arg, NotificationOption2 defaultNotification, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out NotificationOption2? notification)
         {
             var args = arg.Split(':');
             Debug.Assert(args.Length > 0);
 
-            // We allow a single value to be provided in some cases.  For example users 
-            // can provide 'false' without supplying a notification as well.  Allow the 
-            // caller of this to determine what to do in this case.
+            // We allow a single value to be provided without an explicit notification.
             if (args.Length == 1)
             {
                 value = args[0].Trim();
-                notificationOpt = null;
+                notification = defaultNotification;
                 return true;
             }
 
@@ -85,18 +79,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (TryParseNotification(args[1], out var localNotification))
                 {
                     value = args[0].Trim();
-                    notificationOpt = localNotification;
+                    notification = localNotification;
                     return true;
                 }
             }
 
             // We only support 0 or 1 args.  Anything else can't be parsed properly.
             value = null;
-            notificationOpt = null;
+            notification = null;
             return false;
         }
 
-        public static bool TryParseNotification(string value, out NotificationOption2 notification)
+        private static bool TryParseNotification(string value, out NotificationOption2 notification)
         {
             switch (value.Trim())
             {
@@ -158,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     new EditorConfigStorageLocation<CodeStyleOption2<UnusedValuePreference>>(
                         editorConfigName,
                         s => ParseUnusedExpressionAssignmentPreference(s, defaultValue),
-                        o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue.Value)),
+                        o => GetUnusedExpressionAssignmentPreferenceEditorConfigString(o, defaultValue)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{name}Preference")});
 
         private static Optional<CodeStyleOption2<UnusedValuePreference>> ParseUnusedExpressionAssignmentPreference(
@@ -166,20 +160,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOption2<UnusedValuePreference> defaultCodeStyleOption)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
-                out var value, out var notificationOpt))
+                    defaultCodeStyleOption.Notification, out var value, out var notification))
             {
                 return new CodeStyleOption2<UnusedValuePreference>(
-                    s_unusedExpressionAssignmentPreferenceMap.GetValueOrDefault(value), notificationOpt ?? defaultCodeStyleOption.Notification);
+                    s_unusedExpressionAssignmentPreferenceMap.GetValueOrDefault(value), notification);
             }
 
             return s_preferNoneUnusedValuePreference;
         }
 
-        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption2<UnusedValuePreference> option, UnusedValuePreference defaultPreference)
+        private static string GetUnusedExpressionAssignmentPreferenceEditorConfigString(CodeStyleOption2<UnusedValuePreference> option, CodeStyleOption2<UnusedValuePreference> defaultValue)
         {
             Debug.Assert(s_unusedExpressionAssignmentPreferenceMap.ContainsValue(option.Value));
-            var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultPreference);
-            return $"{value}:{option.Notification.ToEditorConfigString()}";
+            var value = s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(option.Value) ?? s_unusedExpressionAssignmentPreferenceMap.GetKeyOrDefault(defaultValue.Value);
+            return $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
         }
+
+        internal static string GetEditorConfigStringNotificationPart<T>(CodeStyleOption2<T> option, CodeStyleOption2<T> defaultValue)
+            => option.Notification != defaultValue.Notification
+                ? $":{option.Notification.ToEditorConfigString()}"
+                : string.Empty;
     }
 }

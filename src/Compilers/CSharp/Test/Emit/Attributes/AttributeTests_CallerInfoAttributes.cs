@@ -5,7 +5,9 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -623,7 +625,7 @@ line: 17
 
   .method public hidebysig static void  LogCallerLineNumber3([opt] string lineNumber) cil managed
   {
-	.param [1] = """"
+	.param [1] = ""hello""
 	.custom instance void [mscorlib]System.Runtime.CompilerServices.CallerLineNumberAttribute::.ctor() = ( 01 00 00 00 ) 
     // Code size       19 (0x13)
     .maxstack  8
@@ -666,7 +668,7 @@ class Driver {
             var expected = @"
 line: 7
 line: 42
-line:
+line: hello
 ";
 
             MetadataReference libReference = CompileIL(iLSource);
@@ -1881,7 +1883,7 @@ using System.Runtime.InteropServices;
 
 public class Goo: Attribute
 {
-    public Goo([Goo] int y = 0) {}
+    public Goo([Goo] int y = 1) {}
 }
 
 class Test
@@ -1889,11 +1891,46 @@ class Test
     public static void Main() { }
 }
 ";
-
-            var expected = @"";
-
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: expected);
+            CompileAndVerify(compilation, expectedOutput: "");
+
+            var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
+            Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
+            var attr = ctor.Parameters.Single().GetAttributes().Single();
+            Assert.Equal(ctor, attr.AttributeConstructor);
+            Assert.Equal(1, attr.CommonConstructorArguments.Length);
+            // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
+            Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
+        }
+
+        [Fact]
+        public void TestRecursiveAttribute2()
+        {
+            string source = @"
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+public class Goo: Attribute
+{
+    public Goo([Goo, Optional, DefaultParameterValue(1)] int y) {}
+}
+
+class Test
+{
+    public static void Main() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "");
+
+            var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
+            Assert.Equal(MethodKind.Constructor, ctor.MethodKind);
+            var attr = ctor.Parameters.Single().GetAttributes()[0];
+            Assert.Equal(ctor, attr.AttributeConstructor);
+            Assert.Equal(1, attr.CommonConstructorArguments.Length);
+            // We want to ensure that we don't accidentally use default(T) instead of the real default value for the parameter.
+            Assert.Equal(1, attr.CommonConstructorArguments[0].Value);
         }
 
 
@@ -2754,19 +2791,22 @@ class Test
             var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
                 // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int"),
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int").WithLocation(7, 38),
                 // C:\filename(7,53): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int"),
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(7, 53),
                 // C:\filename(8,21): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'string'
                 //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string"),
-                // C:\filename(8,38): warning CS7074: The CallerFilePathAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "string").WithLocation(8, 21),
+                // C:\filename(8,38): warning CS7082: The CallerFilePathAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("s"),
-                // C:\filename(8,53): warning CS7073: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, "CallerFilePath").WithArguments("s").WithLocation(8, 38),
+                // C:\filename(8,53): warning CS7081: The CallerMemberNameAttribute applied to parameter 's' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 //     static void M2([CallerLineNumber,CallerFilePath,CallerMemberName] string s = null) { Console.WriteLine(s); }
-                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s"));
+                Diagnostic(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, "CallerMemberName").WithArguments("s").WithLocation(8, 53),
+                // C:\filename(13,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         M2();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M2()").WithArguments("int", "string").WithLocation(13, 9));
         }
 
         [WorkItem(604367, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/604367")]

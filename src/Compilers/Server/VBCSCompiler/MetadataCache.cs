@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private ImmutableArray<ModuleMetadata> GetAllModules(ModuleMetadata manifestModule, string assemblyDir)
         {
-            ArrayBuilder<ModuleMetadata> moduleBuilder = null;
+            ArrayBuilder<ModuleMetadata>? moduleBuilder = null;
 
             foreach (string moduleName in manifestModule.GetModuleNames())
             {
@@ -48,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     moduleBuilder.Add(manifestModule);
                 }
 
-                var module = CreateModuleMetadata(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName), prefetchEntireImage: false);
+                var module = CreateModuleMetadata(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!, prefetchEntireImage: false);
                 moduleBuilder.Add(module);
             }
 
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Check if we have an entry in the dictionary.
             FileKey? fileKey = GetUniqueFileKey(fullPath);
 
-            Metadata metadata;
+            Metadata? metadata;
             if (fileKey.HasValue && _metadataCache.TryGetValue(fileKey.Value, out metadata) && metadata != null)
             {
                 return metadata;
@@ -74,10 +72,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             else
             {
+                Debug.Assert(fileKey.HasValue);
                 var primaryModule = CreateModuleMetadata(fullPath, prefetchEntireImage: false);
 
                 // Get all the modules, and load them. Create an assembly metadata.
-                var allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath));
+                var allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath)!);
                 Metadata result = AssemblyMetadata.Create(allModules);
 
                 result = _metadataCache.GetOrAdd(fileKey.Value, result);
@@ -114,9 +113,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private static readonly MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
 
+        public new string FilePath { get; }
+
         public CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
             : base(properties, fullPath)
         {
+            FilePath = fullPath;
         }
 
         protected override DocumentationProvider CreateDocumentationProvider()

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                 useDecompiler = false;
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                         {
                             useDecompiler = false;
                         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                     // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
                     // to retry this a few times.
-                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath);
+                    var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
                     while (!Directory.Exists(directoryToCreate))
                     {
                         try
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         internal async Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            MetadataAsSourceGeneratedFileInfo fileInfo;
+            MetadataAsSourceGeneratedFileInfo? fileInfo;
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
-            // WARANING: do not touch any state fields outside the lock.
+            // WARNING: do not touch any state fields outside the lock.
             var solution = fileInfo.Workspace.CurrentSolution;
             var project = solution.GetProject(fileInfo.SourceProjectId);
             if (project == null)
@@ -418,6 +418,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             return false;
         }
+
+        public Workspace? TryGetWorkspace() => _workspace;
 
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {

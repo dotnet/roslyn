@@ -364,37 +364,42 @@ class Query
             ).VerifyIL(
                 "<>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.Equals",
 @"{
-  // Code size       83 (0x53)
+  // Code size       89 (0x59)
   .maxstack  3
   .locals init (<>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar> V_0)
   IL_0000:  ldarg.1
   IL_0001:  isinst     ""<>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0051
-  IL_000a:  call       ""System.Collections.Generic.EqualityComparer<<Length>j__TPar> System.Collections.Generic.EqualityComparer<<Length>j__TPar>.Default.get""
-  IL_000f:  ldarg.0
-  IL_0010:  ldfld      ""<Length>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<Length>i__Field""
-  IL_0015:  ldloc.0
-  IL_0016:  ldfld      ""<Length>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<Length>i__Field""
-  IL_001b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<Length>j__TPar>.Equals(<Length>j__TPar, <Length>j__TPar)""
-  IL_0020:  brfalse.s  IL_0051
-  IL_0022:  call       ""System.Collections.Generic.EqualityComparer<<at1>j__TPar> System.Collections.Generic.EqualityComparer<<at1>j__TPar>.Default.get""
-  IL_0027:  ldarg.0
-  IL_0028:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
-  IL_002d:  ldloc.0
-  IL_002e:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
-  IL_0033:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<at1>j__TPar>.Equals(<at1>j__TPar, <at1>j__TPar)""
-  IL_0038:  brfalse.s  IL_0051
-  IL_003a:  call       ""System.Collections.Generic.EqualityComparer<<C>j__TPar> System.Collections.Generic.EqualityComparer<<C>j__TPar>.Default.get""
-  IL_003f:  ldarg.0
-  IL_0040:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
-  IL_0045:  ldloc.0
-  IL_0046:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
-  IL_004b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<C>j__TPar>.Equals(<C>j__TPar, <C>j__TPar)""
-  IL_0050:  ret
-  IL_0051:  ldc.i4.0
-  IL_0052:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  beq.s      IL_0057
+  IL_000b:  ldloc.0
+  IL_000c:  brfalse.s  IL_0055
+  IL_000e:  call       ""System.Collections.Generic.EqualityComparer<<Length>j__TPar> System.Collections.Generic.EqualityComparer<<Length>j__TPar>.Default.get""
+  IL_0013:  ldarg.0
+  IL_0014:  ldfld      ""<Length>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<Length>i__Field""
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      ""<Length>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<Length>i__Field""
+  IL_001f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<Length>j__TPar>.Equals(<Length>j__TPar, <Length>j__TPar)""
+  IL_0024:  brfalse.s  IL_0055
+  IL_0026:  call       ""System.Collections.Generic.EqualityComparer<<at1>j__TPar> System.Collections.Generic.EqualityComparer<<at1>j__TPar>.Default.get""
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
+  IL_0031:  ldloc.0
+  IL_0032:  ldfld      ""<at1>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<at1>i__Field""
+  IL_0037:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<at1>j__TPar>.Equals(<at1>j__TPar, <at1>j__TPar)""
+  IL_003c:  brfalse.s  IL_0055
+  IL_003e:  call       ""System.Collections.Generic.EqualityComparer<<C>j__TPar> System.Collections.Generic.EqualityComparer<<C>j__TPar>.Default.get""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
+  IL_0049:  ldloc.0
+  IL_004a:  ldfld      ""<C>j__TPar <>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.<C>i__Field""
+  IL_004f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<C>j__TPar>.Equals(<C>j__TPar, <C>j__TPar)""
+  IL_0054:  ret
+  IL_0055:  ldc.i4.0
+  IL_0056:  ret
+  IL_0057:  ldc.i4.1
+  IL_0058:  ret
 }"
             ).VerifyIL(
                 "<>f__AnonymousType1<<Length>j__TPar, <at1>j__TPar, <C>j__TPar>.GetHashCode",
@@ -653,13 +658,21 @@ class Query
             ).VerifyIL(
                 "<>f__AnonymousType0.Equals",
 @"{
-  // Code size       10 (0xa)
+  // Code size       18 (0x12)
   .maxstack  2
+  .locals init (<>f__AnonymousType0 V_0)
   IL_0000:  ldarg.1
   IL_0001:  isinst     ""<>f__AnonymousType0""
-  IL_0006:  ldnull
-  IL_0007:  cgt.un
-  IL_0009:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  beq.s      IL_0010
+  IL_000b:  ldloc.0
+  IL_000c:  ldnull
+  IL_000d:  cgt.un
+  IL_000f:  ret
+  IL_0010:  ldc.i4.1
+  IL_0011:  ret
 }"
             ).VerifyIL(
                 "<>f__AnonymousType0.GetHashCode",
@@ -789,37 +802,42 @@ class Query
             ).VerifyIL(
                 "<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.Equals",
 @"{
-  // Code size       83 (0x53)
+  // Code size       89 (0x59)
   .maxstack  3
   .locals init (<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar> V_0)
   IL_0000:  ldarg.1
   IL_0001:  isinst     ""<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0051
-  IL_000a:  call       ""System.Collections.Generic.EqualityComparer<<ToString>j__TPar> System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Default.get""
-  IL_000f:  ldarg.0
-  IL_0010:  ldfld      ""<ToString>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<ToString>i__Field""
-  IL_0015:  ldloc.0
-  IL_0016:  ldfld      ""<ToString>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<ToString>i__Field""
-  IL_001b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Equals(<ToString>j__TPar, <ToString>j__TPar)""
-  IL_0020:  brfalse.s  IL_0051
-  IL_0022:  call       ""System.Collections.Generic.EqualityComparer<<Equals>j__TPar> System.Collections.Generic.EqualityComparer<<Equals>j__TPar>.Default.get""
-  IL_0027:  ldarg.0
-  IL_0028:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
-  IL_002d:  ldloc.0
-  IL_002e:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
-  IL_0033:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<Equals>j__TPar>.Equals(<Equals>j__TPar, <Equals>j__TPar)""
-  IL_0038:  brfalse.s  IL_0051
-  IL_003a:  call       ""System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar> System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar>.Default.get""
-  IL_003f:  ldarg.0
-  IL_0040:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
-  IL_0045:  ldloc.0
-  IL_0046:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
-  IL_004b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar>.Equals(<GetHashCode>j__TPar, <GetHashCode>j__TPar)""
-  IL_0050:  ret
-  IL_0051:  ldc.i4.0
-  IL_0052:  ret
+  IL_0007:  ldarg.0
+  IL_0008:  ldloc.0
+  IL_0009:  beq.s      IL_0057
+  IL_000b:  ldloc.0
+  IL_000c:  brfalse.s  IL_0055
+  IL_000e:  call       ""System.Collections.Generic.EqualityComparer<<ToString>j__TPar> System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Default.get""
+  IL_0013:  ldarg.0
+  IL_0014:  ldfld      ""<ToString>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<ToString>i__Field""
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      ""<ToString>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<ToString>i__Field""
+  IL_001f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<ToString>j__TPar>.Equals(<ToString>j__TPar, <ToString>j__TPar)""
+  IL_0024:  brfalse.s  IL_0055
+  IL_0026:  call       ""System.Collections.Generic.EqualityComparer<<Equals>j__TPar> System.Collections.Generic.EqualityComparer<<Equals>j__TPar>.Default.get""
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
+  IL_0031:  ldloc.0
+  IL_0032:  ldfld      ""<Equals>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<Equals>i__Field""
+  IL_0037:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<Equals>j__TPar>.Equals(<Equals>j__TPar, <Equals>j__TPar)""
+  IL_003c:  brfalse.s  IL_0055
+  IL_003e:  call       ""System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar> System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar>.Default.get""
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
+  IL_0049:  ldloc.0
+  IL_004a:  ldfld      ""<GetHashCode>j__TPar <>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.<GetHashCode>i__Field""
+  IL_004f:  callvirt   ""bool System.Collections.Generic.EqualityComparer<<GetHashCode>j__TPar>.Equals(<GetHashCode>j__TPar, <GetHashCode>j__TPar)""
+  IL_0054:  ret
+  IL_0055:  ldc.i4.0
+  IL_0056:  ret
+  IL_0057:  ldc.i4.1
+  IL_0058:  ret
 }"
             ).VerifyIL(
                 "<>f__AnonymousType0<<ToString>j__TPar, <Equals>j__TPar, <GetHashCode>j__TPar>.GetHashCode",

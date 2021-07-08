@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
-        private const int MaxResults = 3;
+        private const int MaxResults = 5;
 
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;

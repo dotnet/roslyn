@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public CSharpUseExplicitTypeDiagnosticAnalyzer()
             : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                   enforceOnBuild: EnforceOnBuildValues.UseExplicitType,
                    title: s_Title,
                    message: s_Message)
         {

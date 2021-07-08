@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     internal class TestRequest
     {
         public string MethodName { get; }
-        public int RequestOrder { get; set; }
 
         public TestRequest(string methodName)
         {

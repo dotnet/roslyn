@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
-            if (items?.Any() == true)
+            if (!items.IsDefaultOrEmpty)
             {
                 context.IsExclusive = true;
                 context.AddItems(items);

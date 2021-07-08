@@ -1828,7 +1828,6 @@ struct S
                 Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
                 Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
-                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9));
         }
 

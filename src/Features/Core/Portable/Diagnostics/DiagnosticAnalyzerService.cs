@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedTasks.False;
         }
 
-        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
+            Document document, TextSpan? range, string? diagnosticId = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
@@ -167,16 +168,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-        }
-
-        public async Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer diagnosticAnalyzer, Project project, CancellationToken cancellationToken)
-        {
-            if (_map.TryGetValue(project.Solution.Workspace, out var analyzer))
-            {
-                return await analyzer.IsCompilationEndAnalyzerAsync(diagnosticAnalyzer, project, cancellationToken).ConfigureAwait(false);
-            }
-
-            return false;
         }
 
         public bool ContainsDiagnostics(Workspace workspace, ProjectId projectId)

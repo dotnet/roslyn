@@ -261,6 +261,8 @@ class X
                         case ErrorCode.WRN_RecordNamedDisallowed:
                         case ErrorCode.WRN_ParameterNotNullIfNotNull:
                         case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
+                        case ErrorCode.WRN_DoNotCompareFunctionPointers:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -334,6 +336,7 @@ class X
                         case ErrorCode.WRN_ParameterDisallowsNull:
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
+                        case ErrorCode.WRN_AnalyzerReferencesFramework:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -355,6 +358,10 @@ class X
                         case ErrorCode.WRN_ReturnTypeIsStaticClass:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
                             Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PartialMethodTypeDifference:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
+                            Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -413,6 +420,10 @@ class X
                     ErrorCode.WRN_ReturnTypeIsStaticClass,
                     ErrorCode.WRN_RecordNamedDisallowed,
                     ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
+                    ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
+                    ErrorCode.WRN_DoNotCompareFunctionPointers,
+                    ErrorCode.WRN_PartialMethodTypeDifference,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
@@ -2285,6 +2296,7 @@ class Program
         }
 
         [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

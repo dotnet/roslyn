@@ -13,6 +13,7 @@
     <ItemGroup>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
+      <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64S" HostSuffix="" HostIdSuffix="S" />
 
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithBitness.Identity)%(_ServicesWithBitness.FileSuffix).servicehub.service.json">
         <Content>

@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -15,45 +14,22 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     /// This is useful for cases where acquiring an entire snapshot might be expensive (for example, during 
     /// solution load), but querying the data is still desired.
     /// </summary>
-    internal readonly struct DocumentKey
-    {
-        public readonly ProjectKey Project;
-
-        public readonly DocumentId Id;
-        public readonly string FilePath;
-        public readonly string Name;
-
-        public DocumentKey(ProjectKey project, DocumentId id, string filePath, string name)
-        {
-            Project = project;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
-
-        public static explicit operator DocumentKey(Document document)
-            => new((ProjectKey)document.Project, document.Id, document.FilePath, document.Name);
-
-        public SerializableDocumentKey Dehydrate()
-            => new(Project.Dehydrate(), Id, FilePath, Name);
-    }
-
     [DataContract]
-    internal readonly struct SerializableDocumentKey
+    internal readonly struct DocumentKey : IEqualityComparer<DocumentKey>
     {
         [DataMember(Order = 0)]
-        public readonly SerializableProjectKey Project;
+        public readonly ProjectKey Project;
 
         [DataMember(Order = 1)]
         public readonly DocumentId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        public SerializableDocumentKey(SerializableProjectKey project, DocumentId id, string filePath, string name)
+        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
             Id = id;
@@ -61,7 +37,16 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             Name = name;
         }
 
-        public DocumentKey Rehydrate()
-            => new(Project.Rehydrate(), Id, FilePath, Name);
+        public static DocumentKey ToDocumentKey(Document document)
+            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
+
+        public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
+            => new(projectKey, state.Id, state.FilePath, state.Name);
+
+        public bool Equals(DocumentKey x, DocumentKey y)
+            => x.Id == y.Id;
+
+        public int GetHashCode(DocumentKey obj)
+            => obj.Id.GetHashCode();
     }
 }

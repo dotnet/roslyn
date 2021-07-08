@@ -37,8 +37,10 @@ namespace Microsoft.CodeAnalysis.Rename
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<ComplexifiedSpan>> _documentToComplexifiedSpansMap;
         private readonly ImmutableDictionary<DocumentId, ImmutableArray<RelatedLocation>> _documentToRelatedLocationsMap;
 
+#nullable disable warnings
         public ConflictResolution(string errorMessage) : this()
             => ErrorMessage = errorMessage;
+#nullable enable warnings
 
         public ConflictResolution(
             Solution oldSolution,

@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
         }
 

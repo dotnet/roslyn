@@ -7,22 +7,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime.Remoting;
-using System.Text;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -30,16 +26,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
     {
         private readonly HostWorkspaceServices _workspaceServices;
         private readonly InProcRemoteServices _inprocServices;
+        private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
         private readonly RemoteEndPoint _endPoint;
         private readonly TraceSource _logger;
 
-        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, TraceListener? traceListener, RemoteHostTestData testData)
+        public static async Task<RemoteHostClient> CreateAsync(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
         {
             var inprocServices = new InProcRemoteServices(services, traceListener, testData);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownServiceHubService.RemoteHost).ConfigureAwait(false);
 
-            var instance = new InProcRemoteHostClient(services, inprocServices, remoteHostStream);
+            var instance = new InProcRemoteHostClient(services, inprocServices, callbackDispatchers, remoteHostStream);
 
             // make sure connection is done right
             var uiCultureLCIDE = 0;
@@ -59,9 +56,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private InProcRemoteHostClient(
             HostWorkspaceServices services,
             InProcRemoteServices inprocServices,
+            RemoteServiceCallbackDispatcherRegistry callbackDispatchers,
             Stream stream)
         {
             _workspaceServices = services;
+            _callbackDispatchers = callbackDispatchers;
             _logger = new TraceSource("Default");
 
             _inprocServices = inprocServices;
@@ -103,27 +102,19 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
             => _inprocServices.RegisterService(serviceName, serviceCreator);
 
-        public override async ValueTask<RemoteServiceConnection<T>> CreateConnectionAsync<T>(object? callbackTarget, CancellationToken cancellationToken)
+        public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var options = new ServiceActivationOptions();
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+            var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
-            if (callbackTarget is not null)
-            {
-                options.ClientRpcTarget = callbackTarget;
-            }
-
-            var assetStorage = _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var descriptor = ServiceDescriptors.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8);
-
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-#pragma warning disable ISB001 // Dispose of proxies - caller disposes
-            var proxy = await _inprocServices.ServiceBroker.GetProxyAsync<T>(descriptor, options, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-
-            Contract.ThrowIfNull(proxy);
-            return new BrokeredServiceConnection<T>(proxy, assetStorage, _workspaceServices.GetRequiredService<IErrorReportingService>(), shutdownCancellationService: null);
+            return new BrokeredServiceConnection<T>(
+                descriptor,
+                callbackTarget,
+                callbackDispatcher,
+                _inprocServices.ServiceBrokerClient,
+                _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
+                _workspaceServices.GetRequiredService<IErrorReportingService>(),
+                shutdownCancellationService: null);
         }
 
         public override async Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken)
@@ -140,6 +131,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             // we are asked to disconnect. unsubscribe and dispose to disconnect
             _endPoint.Disconnected -= OnDisconnected;
             _endPoint.Dispose();
+
+            _inprocServices.Dispose();
 
             base.Dispose();
         }
@@ -216,11 +209,11 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
                 clientConnection.StartListening();
 
-                return new ValueTask<T?>(clientConnection.ConstructRpcClient<T>());
+                return ValueTaskFactory.FromResult((T?)clientConnection.ConstructRpcClient<T>());
             }
         }
 
-        private sealed class InProcRemoteServices
+        private sealed class InProcRemoteServices : IDisposable
         {
             public readonly ServiceProvider ServiceProvider;
             private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
@@ -229,6 +222,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             private readonly Dictionary<string, WellKnownServiceHubService> _serviceNameMap = new();
 
             public readonly IServiceBroker ServiceBroker;
+            public readonly ServiceBrokerClient ServiceBrokerClient;
 
             public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
@@ -245,9 +239,16 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 ServiceProvider = new ServiceProvider(remoteLogger, testData);
 
                 ServiceBroker = new InProcServiceBroker(this);
+#pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
+                ServiceBrokerClient = new ServiceBrokerClient(ServiceBroker);
+#pragma warning restore
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 RegisterService(WellKnownServiceHubService.RemoteHost, (s, p, o) => new RemoteHostService(s, p));
+#pragma warning restore
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
+                RegisterRemoteBrokeredService(new RemoteAssetSynchronizationService.Factory());
+                RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
@@ -262,20 +263,26 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
                 RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
-                RegisterService(WellKnownServiceHubService.LanguageServer, (s, p, o) => new LanguageServer(s, p));
+                RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
+                RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
+                RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
             }
+
+            public void Dispose()
+                => ServiceBrokerClient.Dispose();
 
             public RemoteHostTestData TestData => ServiceProvider.TestData;
 
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8), name.WellKnownService);
+                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)
@@ -292,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             public void RegisterRemoteBrokeredService(BrokeredServiceBase.IFactory serviceFactory)
             {
-                var moniker = ServiceDescriptors.GetServiceDescriptor(serviceFactory.ServiceType, isRemoteHost64Bit: IntPtr.Size == 8).Moniker;
+                var moniker = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(serviceFactory.ServiceType).Moniker;
                 _remoteBrokeredServicesMap.Add(moniker, serviceFactory);
             }
 
@@ -383,14 +390,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 public override void EndWrite(IAsyncResult asyncResult) => _stream.EndWrite(asyncResult);
 
                 public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => _stream.CopyToAsync(destination, bufferSize, cancellationToken);
-
-                public override object InitializeLifetimeService()
-                    => throw new NotSupportedException();
-
-#if !NETCOREAPP
-                public override ObjRef CreateObjRef(Type requestedType)
-                    => throw new NotSupportedException();
-#endif
 
                 public override void Close()
                 {

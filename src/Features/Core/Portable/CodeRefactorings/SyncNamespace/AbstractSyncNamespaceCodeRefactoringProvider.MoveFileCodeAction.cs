@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                             rootFolderInfo.AddFolder(folders);
                         }
                     }
+
                     return rootFolderInfo;
                 }
             }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.Type.IsNullableType())
             {
-                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, operand, fromEnd);
+                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, operand, fromEnd);
             }
 
             ArrayBuilder<BoundExpression> sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // new Index(operand, fromEnd: true)
             BoundExpression boundOperandGetValueOrDefault = MakeOptimizedGetValueOrDefault(operand.Syntax, operand);
-            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, binderOpt: null, boundOperandGetValueOrDefault, fromEnd);
+            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, boundOperandGetValueOrDefault, fromEnd);
 
             if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
             {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(new Index(operand, fromEnd: true))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, indexCreation);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, indexCreation);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);

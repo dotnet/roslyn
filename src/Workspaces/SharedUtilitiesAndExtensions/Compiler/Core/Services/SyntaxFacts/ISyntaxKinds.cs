@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
         int LogicalOrExpression { get; }
@@ -126,15 +127,24 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
+        int FieldDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
         int ParameterList { get; }
+
+        #endregion
+
+        #region clauses
+
+        int EqualsValueClause { get; }
+
         #endregion
 
         #region other
 
         int Interpolation { get; }
+        int InterpolatedStringText { get; }
 
         #endregion
     }

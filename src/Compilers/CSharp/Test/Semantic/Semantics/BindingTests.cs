@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -245,30 +244,40 @@ class B
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
+                //         a.E += a.E;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "a.E").WithArguments("E", "method group").WithLocation(11, 9),
-                // (12,13): error CS0019: Operator '!=' cannot be applied to operands of type 'method group' and '<null>'
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a.E != null").WithArguments("!=", "method group", "<null>").WithLocation(12, 13),
-                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                // (14,15): error CS1503: Argument 1: cannot convert from 'method group' to 'A'
+                //             M(a.E);
                 Diagnostic(ErrorCode.ERR_BadArgType, "a.E").WithArguments("1", "method group", "A").WithLocation(14, 15),
-                // (15, 15): error CS0119: 'A.E()' is a 'method', which is not valid in the given context
+                // (15,15): error CS0119: 'A.E()' is a method, which is not valid in the given context
+                //             a.E.ToString();
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("A.E()", "method").WithLocation(15, 15),
                 // (16,17): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
+                //             o = !a.E;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!a.E").WithArguments("!", "method group").WithLocation(16, 17),
                 // (17,26): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = a.E ?? a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(17, 26),
                 // (19,11): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 11),
                 // (19,18): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         a.F += a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(19, 18),
                 // (20,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //         if (a.F != null)
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(20, 15),
                 // (22,17): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             M(a.F);
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(22, 17),
                 // (23,15): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             a.F.ToString();
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(23, 15),
                 // (24,20): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = !a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(24, 20),
                 // (25,39): error CS0122: 'A.F()' is inaccessible due to its protection level
+                //             o = (o != null) ? a.E : a.F;
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("A.F()").WithLocation(25, 39));
         }
 
@@ -908,7 +917,7 @@ namespace test
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario01()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario01()
         {
             // Two interfaces, neither implemented with alias - should have 2 errors each squiggling a different interface type.            
             string scenarioCode = @"
@@ -942,7 +951,7 @@ namespace test
         }
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario02()
         {
             // Two interfaces, only the  second is implemented 
             string scenarioCode = @"
@@ -972,7 +981,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario03()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario03()
         {
             // Two interfaces, only the first is implemented
             string scenarioCode = @"
@@ -1002,7 +1011,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario04()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario04()
         {
             // Two interfaces, neither implemented but formatting of interfaces are on different lines
             string scenarioCode = @"
@@ -1033,7 +1042,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario05()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario05()
         {
             // Inherited Interface scenario 
             // With methods not implemented in both base and derived.
@@ -1064,7 +1073,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario06()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario06()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"
@@ -1092,7 +1101,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario07()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario07()
         {
             // Inherited Interface scenario - different order. 
             string scenarioCode = @"
@@ -1120,7 +1129,7 @@ interface IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario08()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario08()
         {
             // Inherited Interface scenario
             string scenarioCode = @"
@@ -1149,7 +1158,7 @@ interface IDerived2: IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario09()
+        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario09()
         {
             // Inherited Interface scenario.           
             string scenarioCode = @"
@@ -1184,7 +1193,7 @@ public interface IDerived : IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario10()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario10()
         {
             // Inherited Interface scenario.
             string scenarioCode = @"
@@ -1225,7 +1234,7 @@ public interface IDerived : IBase2, IBase3
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario11()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario11()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"
@@ -1875,9 +1884,10 @@ class C : I
                 // (9,17): error CS0238: 'C.M3<T>()' cannot be sealed because it is not an override
                 //     sealed void M3<T>() { }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("C.M3<T>()").WithLocation(9, 17),
-                // (10,34): error CS0112: A static member 'C.M4<T>()' cannot be marked as override, virtual, or abstract
+                // (10,34): error CS0112: A static member cannot be marked as 'virtual'
                 //     internal static virtual void M4<T>() { }
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("C.M4<T>()").WithLocation(10, 34));
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M4").WithArguments("virtual").WithLocation(10, 34)
+                );
         }
 
         [WorkItem(542391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542391")]
@@ -2161,7 +2171,7 @@ class C<T> : System.Attribute { }";
 {
     partial void I.M();
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (3,20): error CS0754: A partial method may not explicitly implement an interface method
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),

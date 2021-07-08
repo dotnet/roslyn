@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(F, originalMethod, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics, useFinalizerBookkeeping: false)
         {
             _current = current;
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stateMachineType = (IteratorStateMachine)F.CurrentType;
             var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(state));
 
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod.GetCciAdapter());
             return finallyMethod;
         }
 

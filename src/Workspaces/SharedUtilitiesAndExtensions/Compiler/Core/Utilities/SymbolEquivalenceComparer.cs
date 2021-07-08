@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// However, one can ask if two symbols are equivalent even if their assemblies differ.
     /// </summary>
     internal partial class SymbolEquivalenceComparer :
-        IEqualityComparer<ISymbol>
+        IEqualityComparer<ISymbol?>
     {
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
@@ -45,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true);
         public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false);
 
-        private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
+        private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparerOpt;
         private readonly bool _tupleNamesMustMatch;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
 
         internal SymbolEquivalenceComparer(
-            IEqualityComparer<IAssemblySymbol> assemblyComparerOpt,
+            IEqualityComparer<IAssemblySymbol>? assemblyComparerOpt,
             bool distinguishRefFromOut,
             bool tupleNamesMustMatch)
         {
@@ -127,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)
+        public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies = null)
             => GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         /// <summary>
         /// Compares given symbols <paramref name="x"/> and <paramref name="y"/> for equivalence.
         /// </summary>
-        public bool Equals(ISymbol x, ISymbol y)
+        public bool Equals(ISymbol? x, ISymbol? y)
             => EqualsCore(x, y, equivalentTypesWithDifferingAssemblies: null);
 
         /// <summary>
@@ -142,20 +140,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// These equivalent named type key-value pairs represent possibly equivalent forwarded types, but this API doesn't perform any type forwarding equivalence checks. 
         /// </summary>
         /// <remarks>This API is only supported for <see cref="SymbolEquivalenceComparer.IgnoreAssembliesInstance"/>.</remarks>
-        public bool Equals(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+        public bool Equals(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             Debug.Assert(_assemblyComparerOpt == null);
             return EqualsCore(x, y, equivalentTypesWithDifferingAssemblies);
         }
 
-        private bool EqualsCore(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+        private bool EqualsCore(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             => GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
-        public int GetHashCode(ISymbol x)
+        public int GetHashCode(ISymbol? x)
             => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
 
         private static ISymbol UnwrapAlias(ISymbol symbol)
-            => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol alias) ? alias.Target : symbol;
+            => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol? alias) ? alias.Target : symbol;
 
         private static SymbolKind GetKindAndUnwrapAlias(ref ISymbol symbol)
         {
@@ -176,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             => symbol.Equals(symbol.ConstructedFrom);
 
         private static bool IsObjectType(ISymbol symbol)
-            => symbol.IsKind(SymbolKind.NamedType, out ITypeSymbol typeSymbol) && typeSymbol.SpecialType == SpecialType.System_Object;
+            => symbol.IsKind(SymbolKind.NamedType, out ITypeSymbol? typeSymbol) && typeSymbol.SpecialType == SpecialType.System_Object;
 
         private static bool CheckContainingType(IMethodSymbol x)
         {

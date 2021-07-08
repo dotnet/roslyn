@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveRedundantEquality;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveRedundantEquality
@@ -219,6 +220,21 @@ public class C
     }
 }";
             await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+        }
+
+        [Fact]
+        [WorkItem(48236, "https://github.com/dotnet/roslyn/issues/48236")]
+        public async Task TestNullableValueTypes_DoesntCrash()
+        {
+            var code = @"
+public class C
+{
+    public bool M1(int? x)
+    {
+        return x == null;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(code);
         }
     }
 }

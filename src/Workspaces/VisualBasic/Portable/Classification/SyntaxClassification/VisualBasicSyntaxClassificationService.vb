@@ -44,8 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim root = syntaxTree.GetRoot(cancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
         End Sub
 

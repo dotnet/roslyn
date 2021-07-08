@@ -64,12 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _logService = new LogService(threadingContext, (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
         }
 
-        protected override void EnableService()
+        protected override Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             // When our service is enabled hook up to package source changes.
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+            return Task.CompletedTask;
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
@@ -94,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private async Task UpdateSourceInBackgroundAsync(string sourceName, CancellationToken cancellationToken)
         {
             var engine = await GetEngineAsync(cancellationToken).ConfigureAwait(false);
-            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, cancellationToken).ConfigureAwait(false);
+            await engine.UpdateContinuouslyAsync(sourceName, _localSettingsDirectory, _logService, cancellationToken).ConfigureAwait(false);
         }
 
         public async ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(

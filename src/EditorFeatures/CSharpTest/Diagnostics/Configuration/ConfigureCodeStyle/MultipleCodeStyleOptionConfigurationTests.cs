@@ -88,7 +88,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 
 # IDE0008: Use explicit type
-csharp_style_var_elsewhere = true:silent
+csharp_style_var_elsewhere = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -142,6 +142,52 @@ csharp_style_var_for_built_in_types = true:suggestion    ; Comment3
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RuleExists_True_WithoutSeveritySuffix()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // { csharp_style_var_when_type_is_apparent, csharp_style_var_for_built_in_types, csharp_style_var_elsewhere }
+        [|var obj = new Program1();|]
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]    # Comment1
+csharp_style_var_elsewhere = false    ; Comment2
+csharp_style_var_for_built_in_types = true    ; Comment3
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // { csharp_style_var_when_type_is_apparent, csharp_style_var_for_built_in_types, csharp_style_var_elsewhere }
+        var obj = new Program1();
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]    # Comment1
+csharp_style_var_elsewhere = true    ; Comment2
+csharp_style_var_for_built_in_types = true    ; Comment3
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_InvalidHeader_True()
             {
@@ -183,7 +229,7 @@ csharp_style_var_elsewhere = false:suggestion
 [*.cs]
 
 # IDE0008: Use explicit type
-csharp_style_var_elsewhere = true:silent
+csharp_style_var_elsewhere = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -274,7 +320,7 @@ class Program1
 csharp_style_var_when_type_is_apparent_error = false:suggestion
 
 # IDE0008: Use explicit type
-csharp_style_var_elsewhere = true:silent
+csharp_style_var_elsewhere = true
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -325,7 +371,7 @@ class Program1
         <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
 
 # IDE0008: Use explicit type
-csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_for_built_in_types = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -377,6 +423,50 @@ csharp_style_var_for_built_in_types = false:silent
                 await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
             }
 
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
+            public async Task ConfigureEditorconfig_RuleExists_False_WithoutSeveritySuffix()
+            {
+                var input = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // { csharp_style_var_when_type_is_apparent, csharp_style_var_for_built_in_types, csharp_style_var_elsewhere }
+        [|var obj = new Program1();|]
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_var_for_built_in_types = true
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                var expected = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+         <Document FilePath=""z:\\file.cs"">
+class Program1
+{
+    static void Main()
+    {
+        // { csharp_style_var_when_type_is_apparent, csharp_style_var_for_built_in_types, csharp_style_var_elsewhere }
+        var obj = new Program1();
+    }
+}
+        </Document>
+        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+csharp_style_var_for_built_in_types = false
+</AnalyzerConfigDocument>
+    </Project>
+</Workspace>";
+
+                await TestInRegularAndScriptAsync(input, expected, CodeActionIndex);
+            }
+
             [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
             public async Task ConfigureEditorconfig_InvalidHeader_False()
             {
@@ -418,7 +508,7 @@ csharp_style_var_for_built_in_types = true:silent
 [*.cs]
 
 # IDE0008: Use explicit type
-csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_for_built_in_types = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";
@@ -509,7 +599,7 @@ class Program1
 csharp_style_var_for_built_in_types_error = false:silent
 
 # IDE0008: Use explicit type
-csharp_style_var_for_built_in_types = false:silent
+csharp_style_var_for_built_in_types = false
 </AnalyzerConfigDocument>
     </Project>
 </Workspace>";

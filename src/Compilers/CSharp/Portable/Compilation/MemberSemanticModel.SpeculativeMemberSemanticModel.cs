@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public SpeculativeMemberSemanticModel(SyntaxTreeSemanticModel parentSemanticModel, Symbol owner, TypeSyntax root, Binder rootBinder, NullableWalker.SnapshotManager snapshotManagerOpt, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt, int position)
                 : base(root, owner, rootBinder, containingSemanticModelOpt: null, parentSemanticModelOpt: parentSemanticModel, snapshotManagerOpt, parentRemappedSymbolsOpt, speculatedPosition: position)
             {
+                Debug.Assert(parentSemanticModel is not null);
             }
 
             protected override NullableWalker.SnapshotManager GetSnapshotManager()
@@ -46,12 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, initialState: null, diagnostics, createSnapshots: false, out snapshotManager, ref remappedSymbols);
             }
 
-#if DEBUG
             protected override void AnalyzeBoundNodeNullability(BoundNode boundRoot, Binder binder, DiagnosticBag diagnostics, bool createSnapshots)
             {
                 NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol as MethodSymbol, boundRoot, binder, diagnostics, createSnapshots);
             }
-#endif
+
+            protected override bool IsNullableAnalysisEnabled()
+            {
+                return _parentSemanticModelOpt.IsNullableAnalysisEnabledAtSpeculativePosition(OriginalPositionForSpeculation, Root);
+            }
 
             internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
             {

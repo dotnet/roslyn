@@ -373,10 +373,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             else
             {
                 var overrideMembersSet = new HashSet<ISymbol>();
-                for (var symbol = selectedMember; symbol != null; symbol = symbol.OverriddenMember())
-                {
+                for (var symbol = selectedMember; symbol != null; symbol = symbol.GetOverriddenMember())
                     overrideMembersSet.Add(symbol);
-                }
 
                 // Since the destination and selectedMember may belong different language, so use SymbolEquivalenceComparer as comparer
                 return overrideMembersSet.Intersect(destination.GetMembers(), SymbolEquivalenceComparer.Instance).Any();

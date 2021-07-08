@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const bool ignoreInterfaceImplementationChanges = true;
 
             wasAmbiguous = false;
-            if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
+            if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges) || method.IsStatic)
             {
                 return null;
             }
@@ -1069,8 +1069,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private static bool IsOverriddenSymbolAccessible(Symbol overridden, NamedTypeSymbol overridingContainingType)
         {
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return AccessCheck.IsSymbolAccessible(overridden.OriginalDefinition, overridingContainingType.OriginalDefinition, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return AccessCheck.IsSymbolAccessible(overridden.OriginalDefinition, overridingContainingType.OriginalDefinition, ref discardedUseSiteInfo);
         }
     }
 }

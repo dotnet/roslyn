@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,15 +26,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
-            return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
+            return GetDocuments(solution, documentUri, clientName: null);
         }
 
-        public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
         {
-            return GetDocuments<TextDocument>(solution, documentUri, (s, i) => s.GetRequiredTextDocument(i));
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+
+            return FilterDocumentsByClientName(documents, clientName);
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -46,37 +50,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            return documentIds.SelectAsArray(id => getDocument(solution, id));
+            return documentIds;
         }
 
-        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
         {
-            var solution = provider.GetCurrentSolutionForMainWorkspace();
-            if (textDocument != null)
-            {
-                var document = provider.GetDocument(textDocument, clientName);
-                var solutionOfDocument = document?.Project.Solution;
-
-                return (document, solutionOfDocument ?? solution);
-            }
-
-            return (null, solution);
-        }
-
-        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
-        {
-            return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
-        }
-
-        public static ImmutableArray<TextDocument> GetTextDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
-        {
-            return GetDocuments<TextDocument>(solutionProvider, uri, (s, u, c) => s.GetTextDocuments(u), clientName);
-        }
-
-        private static ImmutableArray<T> GetDocuments<T>(this ILspSolutionProvider solutionProvider, Uri uri, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
-        {
-            var documents = getDocuments(solutionProvider, uri, clientName);
-
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
             {
@@ -96,40 +74,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
-        {
-            return GetDocument<Document>(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
-        }
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+            => solution.GetDocument(documentIdentifier, clientName: null);
 
-        public static TextDocument? GetTextDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            return GetDocument<TextDocument>(solutionProvider, documentIdentifier, (s, d, c) => s.GetTextDocuments(d, c), clientName);
-        }
-
-        private static T? GetDocument<T>(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName = null) where T : TextDocument
-        {
-            var documents = getDocuments(solutionProvider, documentIdentifier.Uri, clientName);
-
+            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
             if (documents.Length == 0)
             {
                 return null;
             }
 
+            return documents.FindDocumentInProjectContext(documentIdentifier);
+        }
+
+        public static Document FindDocumentInProjectContext(this ImmutableArray<Document> documents, TextDocumentIdentifier documentIdentifier)
+        {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
-                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier)
+                if (documentIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
                 {
-                    if (vsDocumentIdentifier.ProjectContext != null)
-                    {
-                        var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
-                        var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
+                    var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
+                    var matchingDocument = documents.FirstOrDefault(d => d.Project.Id == projectId);
 
-                        if (matchingDocument != null)
-                        {
-                            return matchingDocument;
-                        }
+                    if (matchingDocument != null)
+                    {
+                        return matchingDocument;
                     }
+                }
+                else
+                {
+                    // We were not passed a project context.  This can happen when the LSP powered NavBar is not enabled.
+                    // This branch should be removed when we're using the LSP based navbar in all scenarios.
+
+                    var solution = documents.First().Project.Solution;
+                    // Lookup which of the linked documents is currently active in the workspace.
+                    var documentIdInCurrentContext = solution.Workspace.GetDocumentIdInCurrentContext(documents.First().Id);
+                    return solution.GetRequiredDocument(documentIdInCurrentContext);
                 }
             }
 
@@ -145,7 +127,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return text.Lines.GetPosition(linePosition);
         }
 
-        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
+        public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
         {
             if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
             {
@@ -153,6 +135,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return false;
+        }
+
+        public static bool HasCompletionListDataCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.Data;
+        }
+
+        public static bool HasCompletionListCommitCharactersCapability(this ClientCapabilities clientCapabilities)
+        {
+            if (!TryGetVSCompletionListSetting(clientCapabilities, out var completionListSetting))
+            {
+                return false;
+            }
+
+            return completionListSetting.CommitCharacters;
         }
 
         public static string GetMarkdownLanguageName(this Document document)
@@ -174,5 +176,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+
+        public static bool IsRazorDocument(this Document document)
+        {
+            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
+            // belongs to them.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null;
+        }
+
+        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSCompletionListSetting? completionListSetting)
+        {
+            if (clientCapabilities is not VSClientCapabilities vsClientCapabilities)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            var textDocumentCapability = vsClientCapabilities.TextDocument;
+            if (textDocumentCapability == null)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            if (textDocumentCapability.Completion is not VSCompletionSetting vsCompletionSetting)
+            {
+                completionListSetting = null;
+                return false;
+            }
+
+            completionListSetting = vsCompletionSetting.CompletionList;
+            if (completionListSetting == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

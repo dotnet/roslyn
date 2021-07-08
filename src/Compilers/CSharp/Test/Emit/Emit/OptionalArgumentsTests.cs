@@ -227,7 +227,7 @@ partial class C
                 var argument = attribute.ConstructorArguments.Last();
                 Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name);
                 Assert.Equal(expectedDefault, argument.Value);
-                Assert.Equal(hasDefault, ((Cci.IParameterDefinition)parameter).HasDefaultValue);
+                Assert.Equal(hasDefault, ((Cci.IParameterDefinition)parameter.GetCciAdapter()).HasDefaultValue);
             }
             if (hasDefault)
             {

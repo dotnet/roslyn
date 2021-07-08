@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 
@@ -14,11 +11,40 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal interface IRecommendationService : ILanguageService
     {
-        Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+        RecommendedSymbols GetRecommendedSymbolsAtPosition(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
             OptionSet options,
             CancellationToken cancellationToken);
+    }
+
+    internal readonly struct RecommendedSymbols
+    {
+        private readonly ImmutableArray<ISymbol> _namedSymbols;
+        private readonly ImmutableArray<ISymbol> _unnamedSymbols;
+
+        /// <summary>
+        /// The named symbols to recommend.
+        /// </summary>
+        public ImmutableArray<ISymbol> NamedSymbols => _namedSymbols.NullToEmpty();
+
+        /// <summary>
+        /// The unnamed symbols to recommend.  For example, operators, conversions and indexers.
+        /// </summary>
+        public ImmutableArray<ISymbol> UnnamedSymbols => _unnamedSymbols.NullToEmpty();
+
+        public RecommendedSymbols(ImmutableArray<ISymbol> namedSymbols)
+            : this(namedSymbols, default)
+        {
+        }
+
+        public RecommendedSymbols(
+            ImmutableArray<ISymbol> namedSymbols,
+            ImmutableArray<ISymbol> unnamedSymbols = default)
+        {
+            _namedSymbols = namedSymbols;
+            _unnamedSymbols = unnamedSymbols;
+        }
     }
 }

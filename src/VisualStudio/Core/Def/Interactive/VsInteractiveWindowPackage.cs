@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using FatalError = InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError;
+using InteractiveHostFatalError = InteractiveHost::Microsoft.CodeAnalysis.ErrorReporting.FatalError;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
@@ -49,34 +49,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Assumes.Present(_componentModel);
             Assumes.Present(menuCommandService);
 
-            FatalError.Handler = WatsonReporter.ReportFatal;
-            FatalError.NonFatalHandler = WatsonReporter.ReportNonFatal;
+            // Set both handlers to non-fatal Watson. Never fail-fast the VS process.
+            // Any exception that is not recovered from shall be propagated.
+            var nonFatalHandler = new Action<Exception>(WatsonReporter.ReportNonFatal);
+            var fatalHandler = nonFatalHandler;
+
+            InteractiveHostFatalError.Handler = fatalHandler;
+            InteractiveHostFatalError.NonFatalHandler = nonFatalHandler;
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
 
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
-            SetErrorHandlers(typeof(IInteractiveWindow).Assembly);
-            SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly);
+            SetErrorHandlers(typeof(IInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
+            SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
 
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
 
             InitializeMenuCommands(menuCommandService);
         }
 
-        private static void SetErrorHandlers(Assembly assembly)
+        private static void SetErrorHandlers(Assembly assembly, Action<Exception> fatalHandler, Action<Exception> nonFatalHandler)
         {
-            Debug.Assert(FatalError.Handler != null);
-            Debug.Assert(FatalError.NonFatalHandler != null);
-            Debug.Assert(Logger.GetLogger() != null);
-
             var type = assembly.GetType("Microsoft.VisualStudio.InteractiveWindow.FatalError", throwOnError: true).GetTypeInfo();
 
             var handlerSetter = type.GetDeclaredMethod("set_Handler");
             var nonFatalHandlerSetter = type.GetDeclaredMethod("set_NonFatalHandler");
 
-            handlerSetter.Invoke(null, new object[] { new Action<Exception>(FailFast.OnFatalException) });
-            nonFatalHandlerSetter.Invoke(null, new object[] { new Action<Exception>(WatsonReporter.ReportNonFatal) });
+            handlerSetter.Invoke(null, new object[] { fatalHandler });
+            nonFatalHandlerSetter.Invoke(null, new object[] { nonFatalHandler });
         }
 
         protected TVsInteractiveWindowProvider InteractiveWindowProvider

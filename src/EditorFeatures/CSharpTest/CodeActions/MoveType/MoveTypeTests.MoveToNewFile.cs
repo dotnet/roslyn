@@ -1387,5 +1387,72 @@ partial class Class1
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
+
+        [WorkItem(50329, "https://github.com/dotnet/roslyn/issues/50329")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveRecordToNewFilePreserveUsings()
+        {
+            var code =
+@"using System;
+
+[||]record CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"using System;
+
+record CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveClassInTopLevelStatements()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+
+class [||]C
+{
+    public string Hello => ""Hello"";
+}";
+
+            var codeAfterMove = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+";
+
+            var expectedDocumentName = "C.cs";
+            var destinationDocumentText = @"class C
+{
+    public string Hello => ""Hello"";
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MissingInTopLevelStatementsOnly()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new object();
+[||]Console.WriteLine(c.ToString());
+";
+
+            await TestMissingAsync(code);
+        }
     }
 }

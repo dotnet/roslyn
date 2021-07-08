@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1666,6 +1667,23 @@ class B
     public int Length { get; set; }
 }";
             await TestSelectionAsync(code);
+        }
+
+        [WorkItem(1228916, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1228916")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task DontCrashPastEndOfLine()
+        {
+            //                    11 1
+            //          012345678901 2
+            var code = "class C { }\r\n";
+
+            // Markup parsing doesn't produce the right spans here, so supply one ourselves.
+            // Can be removed when https://github.com/dotnet/roslyn-sdk/issues/637 is fixed
+
+            // This span covers just the "\n"
+            var span = new TextSpan(12, 1);
+
+            await TestSelectionAsync(code, expectedFail: true, textSpanOverride: span);
         }
     }
 }

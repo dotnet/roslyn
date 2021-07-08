@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
             public override string Id => Descriptor.Id;
 
-            public override string GetMessage(IFormatProvider formatProvider = null)
+            public override string GetMessage(IFormatProvider? formatProvider = null)
             {
                 // Diagnostic '{0}: {1}' was programmatically suppressed by a DiagnosticSuppressor with suppression ID '{2}' and justification '{3}'
                 var localizableMessageFormat = s_suppressionDiagnosticDescriptor.MessageFormat.ToString(formatProvider);
@@ -67,9 +65,9 @@ namespace Microsoft.CodeAnalysis
             public override int WarningLevel => GetDefaultWarningLevel(DiagnosticSeverity.Info);
             public override Location Location => _originalDiagnostic.Location;
             public override IReadOnlyList<Location> AdditionalLocations => _originalDiagnostic.AdditionalLocations;
-            public override ImmutableDictionary<string, string> Properties => ImmutableDictionary<string, string>.Empty;
+            public override ImmutableDictionary<string, string?> Properties => ImmutableDictionary<string, string?>.Empty;
 
-            public override bool Equals(Diagnostic obj)
+            public override bool Equals(Diagnostic? obj)
             {
                 if (ReferenceEquals(this, obj))
                 {
@@ -87,10 +85,7 @@ namespace Microsoft.CodeAnalysis
                     Equals(_suppressionJustification, other._suppressionJustification);
             }
 
-            public override bool Equals(object obj)
-            {
-                return this.Equals(obj as Diagnostic);
-            }
+            public override bool Equals(object? obj) => obj is Diagnostic diagnostic && Equals(diagnostic);
 
             public override int GetHashCode()
             {

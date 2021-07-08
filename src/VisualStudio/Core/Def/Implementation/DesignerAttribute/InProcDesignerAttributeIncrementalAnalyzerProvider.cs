@@ -25,6 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new InProcDesignerAttributeIncrementalAnalyzer(workspace, _listener);
+            => new InProcDesignerAttributeIncrementalAnalyzer(_listener);
     }
 }

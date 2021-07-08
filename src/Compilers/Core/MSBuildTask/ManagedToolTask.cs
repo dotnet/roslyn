@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Resources;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -34,6 +35,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// "Native" in this context means "native invocation", and running the executable directly.
         /// </summary>
         protected abstract string PathToNativeTool { get; }
+
+        protected ManagedToolTask(ResourceManager resourceManager)
+            : base(resourceManager)
+        {
+        }
 
         /// <summary>
         /// GenerateCommandLineCommands generates the actual OS-level arguments:

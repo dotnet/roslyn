@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -112,6 +112,20 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             Cci.IDefinition Cci.IReference.AsDefinition(EmitContext context)
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
             }
         }
     }

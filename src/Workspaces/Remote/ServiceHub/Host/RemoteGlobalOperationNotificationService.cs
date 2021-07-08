@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         public void OnStarted()
             => Started?.Invoke(this, EventArgs.Empty);
 
-        public void OnStopped(IReadOnlyList<string> operations, bool cancelled)
-            => Stopped?.Invoke(this, new GlobalOperationEventArgs(operations, cancelled));
+        public void OnStopped(ImmutableArray<string> operations)
+            => Stopped?.Invoke(this, new GlobalOperationEventArgs(operations));
     }
 }

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseIsNullCheck), [Shared]>
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider(Of ExpressionSyntax)
 

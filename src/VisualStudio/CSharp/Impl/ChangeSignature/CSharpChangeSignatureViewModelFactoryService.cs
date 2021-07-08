@@ -30,6 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ChangeSignature
         {
             var parts = new List<SymbolDisplayPart>();
 
+            // TO-DO: We need to add proper colorization for added parameters:
+            // https://github.com/dotnet/roslyn/issues/47986
             var isPredefinedType = SyntaxFactory.ParseExpression(addedParameterViewModel.Type).Kind() == SyntaxKind.PredefinedType;
             var typePartKind = isPredefinedType ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ClassName;
 

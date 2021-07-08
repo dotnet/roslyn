@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
-                return _underlyingField.OriginalDefinition;
+                return _underlyingField.OriginalDefinition.GetCciAdapter();
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
             var customModifiers = oldType.CustomModifiers;
-            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
 
             if (customModifiers.Length == 0)
             {

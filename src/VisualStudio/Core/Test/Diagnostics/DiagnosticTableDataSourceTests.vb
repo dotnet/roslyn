@@ -7,8 +7,8 @@ Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -17,7 +17,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities
@@ -675,103 +674,104 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticService)())
                 Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
 
-                Dim updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener, CancellationToken.None)
+                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener, CancellationToken.None)
 
-                Dim tableManagerProvider = New TestTableManagerProvider()
-                Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, updateSource, tableManagerProvider)
+                    Dim tableManagerProvider = New TestTableManagerProvider()
+                    Dim table = New VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable(workspace, updateSource, tableManagerProvider)
 
-                Dim document1 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj1").Documents.First()
-                Dim document2 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj2").Documents.First()
+                    Dim document1 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj1").Documents.First()
+                    Dim document2 = workspace.CurrentSolution.Projects.First(Function(p) p.Name = "Proj2").Documents.First()
 
-                Dim diagnostic1 = CreateItem(document1.Id)
-                Dim diagnostic2 = CreateItem(document2.Id)
+                    Dim diagnostic1 = CreateItem(document1.Id)
+                    Dim diagnostic2 = CreateItem(document2.Id)
 
-                updateSource.AddNewErrors(
-                    document1.Project.Id,
-                    New DiagnosticData(
-                        diagnostic1.Id,
-                        diagnostic1.Category,
-                        diagnostic1.Message,
-                        diagnostic1.ENUMessageForBingSearch,
-                        diagnostic1.Severity,
-                        diagnostic1.DefaultSeverity,
-                        diagnostic1.IsEnabledByDefault,
-                        diagnostic1.WarningLevel,
-                        diagnostic1.CustomTags,
-                        diagnostic1.Properties,
-                        diagnostic1.ProjectId,
-                        New DiagnosticDataLocation(
-                            Nothing,
-                            diagnostic1.DataLocation.SourceSpan,
-                            diagnostic1.DataLocation.OriginalFilePath,
-                            diagnostic1.DataLocation.OriginalStartLine,
-                            diagnostic1.DataLocation.OriginalStartColumn,
-                            diagnostic1.DataLocation.OriginalEndLine,
-                            diagnostic1.DataLocation.OriginalEndColumn,
-                            diagnostic1.DataLocation.MappedFilePath,
-                            diagnostic1.DataLocation.MappedStartLine,
-                            diagnostic1.DataLocation.MappedStartColumn,
-                            diagnostic1.DataLocation.MappedEndLine,
-                            diagnostic1.DataLocation.MappedEndColumn),
-                        diagnostic1.AdditionalLocations,
-                        diagnostic1.Language,
-                        diagnostic1.Title,
-                        diagnostic1.Description,
-                        diagnostic1.HelpLink,
-                        diagnostic1.IsSuppressed))
+                    updateSource.AddNewErrors(
+                        document1.Project.Id,
+                        New DiagnosticData(
+                            diagnostic1.Id,
+                            diagnostic1.Category,
+                            diagnostic1.Message,
+                            diagnostic1.ENUMessageForBingSearch,
+                            diagnostic1.Severity,
+                            diagnostic1.DefaultSeverity,
+                            diagnostic1.IsEnabledByDefault,
+                            diagnostic1.WarningLevel,
+                            diagnostic1.CustomTags,
+                            diagnostic1.Properties,
+                            diagnostic1.ProjectId,
+                            New DiagnosticDataLocation(
+                                Nothing,
+                                diagnostic1.DataLocation.SourceSpan,
+                                diagnostic1.DataLocation.OriginalFilePath,
+                                diagnostic1.DataLocation.OriginalStartLine,
+                                diagnostic1.DataLocation.OriginalStartColumn,
+                                diagnostic1.DataLocation.OriginalEndLine,
+                                diagnostic1.DataLocation.OriginalEndColumn,
+                                diagnostic1.DataLocation.MappedFilePath,
+                                diagnostic1.DataLocation.MappedStartLine,
+                                diagnostic1.DataLocation.MappedStartColumn,
+                                diagnostic1.DataLocation.MappedEndLine,
+                                diagnostic1.DataLocation.MappedEndColumn),
+                            diagnostic1.AdditionalLocations,
+                            diagnostic1.Language,
+                            diagnostic1.Title,
+                            diagnostic1.Description,
+                            diagnostic1.HelpLink,
+                            diagnostic1.IsSuppressed))
 
-                updateSource.AddNewErrors(
-                    document2.Project.Id,
-                    New DiagnosticData(
-                        diagnostic2.Id,
-                        diagnostic2.Category,
-                        diagnostic2.Message,
-                        diagnostic2.ENUMessageForBingSearch,
-                        diagnostic2.Severity,
-                        diagnostic2.Severity,
-                        diagnostic2.IsEnabledByDefault,
-                        diagnostic2.WarningLevel,
-                        diagnostic2.CustomTags,
-                        diagnostic2.Properties,
-                        diagnostic2.ProjectId,
-                        New DiagnosticDataLocation(
-                            Nothing,
-                            diagnostic2.DataLocation.SourceSpan,
-                            diagnostic2.DataLocation.OriginalFilePath,
-                            diagnostic2.DataLocation.OriginalStartLine,
-                            diagnostic2.DataLocation.OriginalStartColumn,
-                            diagnostic2.DataLocation.OriginalEndLine,
-                            diagnostic2.DataLocation.OriginalEndColumn,
-                            diagnostic2.DataLocation.MappedFilePath,
-                            diagnostic2.DataLocation.MappedStartLine,
-                            diagnostic2.DataLocation.MappedStartColumn,
-                            diagnostic2.DataLocation.MappedEndLine,
-                            diagnostic2.DataLocation.MappedEndColumn),
-                        diagnostic2.AdditionalLocations,
-                        diagnostic2.Language,
-                        diagnostic2.Title,
-                        diagnostic2.Description,
-                        diagnostic2.HelpLink,
-                        diagnostic2.IsSuppressed))
+                    updateSource.AddNewErrors(
+                        document2.Project.Id,
+                        New DiagnosticData(
+                            diagnostic2.Id,
+                            diagnostic2.Category,
+                            diagnostic2.Message,
+                            diagnostic2.ENUMessageForBingSearch,
+                            diagnostic2.Severity,
+                            diagnostic2.Severity,
+                            diagnostic2.IsEnabledByDefault,
+                            diagnostic2.WarningLevel,
+                            diagnostic2.CustomTags,
+                            diagnostic2.Properties,
+                            diagnostic2.ProjectId,
+                            New DiagnosticDataLocation(
+                                Nothing,
+                                diagnostic2.DataLocation.SourceSpan,
+                                diagnostic2.DataLocation.OriginalFilePath,
+                                diagnostic2.DataLocation.OriginalStartLine,
+                                diagnostic2.DataLocation.OriginalStartColumn,
+                                diagnostic2.DataLocation.OriginalEndLine,
+                                diagnostic2.DataLocation.OriginalEndColumn,
+                                diagnostic2.DataLocation.MappedFilePath,
+                                diagnostic2.DataLocation.MappedStartLine,
+                                diagnostic2.DataLocation.MappedStartColumn,
+                                diagnostic2.DataLocation.MappedEndLine,
+                                diagnostic2.DataLocation.MappedEndColumn),
+                            diagnostic2.AdditionalLocations,
+                            diagnostic2.Language,
+                            diagnostic2.Title,
+                            diagnostic2.Description,
+                            diagnostic2.HelpLink,
+                            diagnostic2.IsSuppressed))
 
-                updateSource.OnSolutionBuildCompleted()
+                    updateSource.OnSolutionBuildCompleted()
 
-                Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
+                    Await DirectCast(listener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
 
-                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+                    Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                    Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
-                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
-                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(2, snapshot.Count)
+                    Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                    Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                    Assert.Equal(2, snapshot.Count)
 
-                Dim filename As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
-                Assert.Equal("test", filename)
+                    Dim filename As Object = Nothing
+                    Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.DocumentName, filename))
+                    Assert.Equal("test", filename)
 
-                Dim projectname As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
-                Assert.Equal("Proj1", projectname)
+                    Dim projectname As Object = Nothing
+                    Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, projectname))
+                    Assert.Equal("Proj1", projectname)
+                End Using
             End Using
         End Function
 
@@ -821,7 +821,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticService.DiagnosticsUpdated
 
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, reportSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+            <Obsolete>
+            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
+                Return GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken)
+            End Function
+
+            Public Function GetPullDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
+                Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
+            End Function
+
+            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+                Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
+            End Function
+
+            Private Function GetDiagnostics(
+                    workspace As Workspace,
+                    projectId As ProjectId,
+                    documentId As DocumentId,
+                    includeSuppressedDiagnostics As Boolean) As ImmutableArray(Of DiagnosticData)
                 Assert.NotNull(workspace)
 
                 Dim diagnostics As ImmutableArray(Of DiagnosticData)
@@ -834,14 +851,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     diagnostics = Items.ToImmutableArrayOrEmpty()
                 End If
 
-                If Not reportSuppressedDiagnostics Then
+                If Not includeSuppressedDiagnostics Then
                     diagnostics = diagnostics.WhereAsArray(Function(d) Not d.IsSuppressed)
                 End If
 
                 Return diagnostics
             End Function
 
-            Public Function GetDiagnosticsArgs(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetDiagnosticBuckets
+            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
+                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            End Function
+
+            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+                Return GetDiagnosticsBuckets(workspace, projectId, documentId)
+            End Function
+
+            Private Function GetDiagnosticsBuckets(
+                    workspace As Workspace,
+                    projectId As ProjectId,
+                    documentId As DocumentId) As ImmutableArray(Of DiagnosticBucket)
                 Assert.NotNull(workspace)
 
                 Dim diagnosticsArgs As ImmutableArray(Of DiagnosticBucket)

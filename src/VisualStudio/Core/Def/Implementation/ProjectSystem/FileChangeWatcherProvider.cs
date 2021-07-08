@@ -30,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    var fileChangeService = (IVsAsyncFileChangeEx)await serviceProvider.GetServiceAsync(typeof(SVsFileChangeEx)).ConfigureAwait(true);
+                    var fileChangeService = (IVsAsyncFileChangeEx?)await serviceProvider.GetServiceAsync(typeof(SVsFileChangeEx)).ConfigureAwait(true);
+                    Assumes.Present(fileChangeService);
                     _fileChangeService.SetResult(fileChangeService);
                 });
         }

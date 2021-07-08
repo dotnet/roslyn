@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         // Put configurations/suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
+        internal override CodeActionPriority Priority => CodeActionPriority.Lowest;
 
         /// <summary>
         /// Additional priority associated with all configuration and suppression code actions.

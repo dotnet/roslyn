@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Partial Friend NotInheritable Class AnonymousTypeManager
 
-        Private Class AnonymousTypeOrDelegateTypeParameterSymbol
+        Private NotInheritable Class AnonymousTypeOrDelegateTypeParameterSymbol
             Inherits TypeParameterSymbol
 
             Private ReadOnly _container As AnonymousTypeOrDelegateTemplateSymbol
@@ -108,6 +108,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend Overrides Sub EnsureAllConstraintsAreResolved()
             End Sub
 
+            Public Overrides Function GetHashCode() As Integer
+                Return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Me)
+            End Function
+
+            Public Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+                Return other Is Me
+            End Function
         End Class
 
     End Class

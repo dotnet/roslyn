@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { CurrentLocalTime_internal_protected_set = value };
+            return new CSharpCompilationOptions(this) { CurrentLocalTime = value };
         }
 
         internal CSharpCompilationOptions WithDebugPlusMode(bool debugPlusMode)
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { DebugPlusMode_internal_protected_set = debugPlusMode };
+            return new CSharpCompilationOptions(this) { DebugPlusMode = debugPlusMode };
         }
 
         public new CSharpCompilationOptions WithMetadataImportOptions(MetadataImportOptions value)
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions_internal_protected_set = value };
+            return new CSharpCompilationOptions(this) { ReferencesSupersedeLowerVersions = value };
         }
 
         public new CSharpCompilationOptions WithXmlReferenceResolver(XmlReferenceResolver? resolver)

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 str = str.TrimStart();
                 if (str.StartsWith(docCommentPrefix, StringComparison.Ordinal))
                 {
-                    str = str.Substring(docCommentPrefix.Length);
+                    str = str[docCommentPrefix.Length..];
                 }
 
                 list.Object.Add(str);

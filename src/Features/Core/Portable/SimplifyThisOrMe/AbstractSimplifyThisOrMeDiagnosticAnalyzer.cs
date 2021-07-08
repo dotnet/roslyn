@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                   EnforceOnBuildValues.RemoveQualification,
                    ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var syntaxFacts = GetSyntaxFacts();
             var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
-            if (!(expr is TThisExpressionSyntax))
+            if (expr is not TThisExpressionSyntax)
             {
                 return;
             }

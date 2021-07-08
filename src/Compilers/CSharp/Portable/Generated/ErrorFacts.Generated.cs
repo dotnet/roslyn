@@ -249,9 +249,11 @@
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                case ErrorCode.WRN_PartialMethodTypeDifference:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                 case ErrorCode.WRN_PrecedenceInversion:
+                case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                 case ErrorCode.WRN_RecordNamedDisallowed:
                 case ErrorCode.WRN_UnassignedThisAutoProperty:
@@ -265,6 +267,8 @@
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
                 case ErrorCode.WRN_ParameterIsStaticClass:
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                case ErrorCode.WRN_UnreadRecordParameter:
+                case ErrorCode.WRN_DoNotCompareFunctionPointers:
                     return true;
                 default:
                     return false;
@@ -305,6 +309,7 @@
             {
                 case ErrorCode.HDN_UnusedUsingDirective:
                 case ErrorCode.HDN_UnusedExternAlias:
+                case ErrorCode.HDN_DuplicateWithGlobalUsing:
                     return true;
                 default:
                     return false;

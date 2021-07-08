@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : new GlobalExpressionVariable(containingType, modifiers, typeSyntax, name, syntaxReference, location);
         }
 
-
         protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList => default(SyntaxList<AttributeListSyntax>);
         protected override TypeSyntax TypeSyntax => (TypeSyntax)_typeSyntaxOpt?.GetSyntax();
         protected override SyntaxTokenList ModifiersTokenList => default(SyntaxTokenList);
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override ConstantValue MakeConstantValue(
             HashSet<SourceFieldSymbolWithSyntaxReference> dependencies,
             bool earlyDecodingWellKnownAttributes,
-            DiagnosticBag diagnostics) => null;
+            BindingDiagnosticBag diagnostics) => null;
 
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = this.DeclaringCompilation;
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             TypeWithAnnotations type;
             bool isVar;
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeWithAnnotations type)
+        private TypeWithAnnotations SetType(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, TypeWithAnnotations type)
         {
             var originalType = _lazyType?.Value.DefaultType;
 
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeChecks(type.Type, diagnostics);
 
-                compilation.DeclarationDiagnostics.AddRange(diagnostics);
+                AddDeclarationDiagnostics(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
             }
             return _lazyType.Value;
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag diagnostics)
+        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, BindingDiagnosticBag diagnostics)
         {
             return SetType(DeclaringCompilation, diagnostics, type);
         }
@@ -191,7 +190,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 fieldsBeingBound = new ConsList<FieldSymbol>(this, fieldsBeingBound);
 
                 binder = new ImplicitlyTypedFieldBinder(binder, fieldsBeingBound);
-                var diagnostics = DiagnosticBag.GetInstance();
 
                 switch (nodeToBind.Kind())
                 {
@@ -199,15 +197,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // This occurs, for example, in
                         // int x, y[out var Z, 1 is int I];
                         // for (int x, y[out var Z, 1 is int I]; ;) {}
-                        binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, diagnostics);
+                        binder.BindDeclaratorArguments((VariableDeclaratorSyntax)nodeToBind, BindingDiagnosticBag.Discarded);
                         break;
 
                     default:
-                        binder.BindExpression((ExpressionSyntax)nodeToBind, diagnostics);
+                        binder.BindExpression((ExpressionSyntax)nodeToBind, BindingDiagnosticBag.Discarded);
                         break;
                 }
-
-                diagnostics.Free();
             }
         }
     }

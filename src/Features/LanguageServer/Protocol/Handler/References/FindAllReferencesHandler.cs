@@ -12,26 +12,37 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspMethod(LSP.Methods.TextDocumentReferencesName, mutatesSolutionState: false), Shared]
-    internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSReferenceItem[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentReferencesName)]
+    internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.ReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindAllReferencesHandler(IMetadataAsSourceFileService metadataAsSourceFileService)
+        public FindAllReferencesHandler(
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.LanguageServer);
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+        public override string Method => LSP.Methods.TextDocumentReferencesName;
 
-        public async Task<LSP.VSReferenceItem[]> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+
+        public override async Task<LSP.ReferenceItem[]?> HandleRequestAsync(ReferenceParams referenceParams, RequestContext context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.ClientCapabilities.HasVisualStudioLspCapability());
 
@@ -41,19 +52,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<LSP.VSReferenceItem>();
             }
 
+            using var progress = BufferedProgress.Create<VSReferenceItem>(referenceParams.PartialResultToken);
+
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new FindUsagesLSPContext(
-                referenceParams.PartialResultToken, document, position, _metadataAsSourceFileService, cancellationToken);
+                progress, document, position, _metadataAsSourceFileService, _asyncListener, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
-            await findUsagesService.FindReferencesAsync(document, position, findUsagesContext).ConfigureAwait(false);
-            await findUsagesContext.OnCompletedAsync().ConfigureAwait(false);
+            await findUsagesService.FindReferencesAsync(document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
+            await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
 
-            // The results have already been reported to the client, so we don't need to return anything here.
-            return Array.Empty<LSP.VSReferenceItem>();
+            return progress.GetValues();
         }
     }
 }

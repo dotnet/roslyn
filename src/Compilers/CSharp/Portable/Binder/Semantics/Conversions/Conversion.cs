@@ -9,6 +9,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -374,6 +375,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         && deconstruction.DeconstructMethodInfo.Invocation is BoundCall call)
                     {
                         return call.Method;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        internal TypeParameterSymbol? ConstrainedToTypeOpt
+        {
+            get
+            {
+                var uncommonData = _uncommonData;
+                if (uncommonData != null && uncommonData._conversionMethod is null)
+                {
+                    var conversionResult = uncommonData._conversionResult;
+                    if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                    {
+                        UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                        return analysis.ConstrainedToTypeOpt;
                     }
                 }
 

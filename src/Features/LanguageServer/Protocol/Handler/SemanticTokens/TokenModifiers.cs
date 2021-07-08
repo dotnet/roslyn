@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
@@ -17,5 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     {
         None = 0,
         Static = 1,
+        ReassignedVariable = 2,
     }
 }

@@ -605,9 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -624,10 +624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -644,11 +644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
@@ -706,20 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var attributes = GetAttributes();
-                var result = ImmutableHashSet<string>.Empty;
-                foreach (var attribute in attributes)
-                {
-                    if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
-                    {
-                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
-                        {
-                            result = result.Add(parameterName);
-                        }
-                    }
-                }
-
-                return result;
+                return _moduleSymbol.Module.GetStringValuesOfNotNullIfNotNullAttribute(_handle);
             }
         }
 

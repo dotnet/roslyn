@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
     /// </summary>
     internal enum UnifiedSuggestedActionSetPriority
     {
-        None = 0,
+        Lowest = 0, // Corresponds to SuggestedActionSetPriority.None
         Low = 1,
         Medium = 2,
         High = 3

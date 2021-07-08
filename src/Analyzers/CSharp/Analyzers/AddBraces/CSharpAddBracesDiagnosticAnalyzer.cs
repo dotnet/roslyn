@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
     {
         public CSharpAddBracesDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.AddBracesDiagnosticId,
+                   EnforceOnBuildValues.AddBraces,
                    CSharpCodeStyleOptions.PreferBraces,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Add_braces), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),

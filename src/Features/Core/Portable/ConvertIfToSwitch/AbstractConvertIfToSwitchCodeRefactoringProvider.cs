@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var ifOperation = semanticModel.GetOperation(ifStatement);
-            if (!(ifOperation is IConditionalOperation { Parent: IBlockOperation parentBlock }))
+            if (ifOperation is not IConditionalOperation { Parent: IBlockOperation parentBlock })
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             }
 
             var analyzer = CreateAnalyzer(syntaxFactsService, ifStatement.SyntaxTree.Options);
-            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan().Slice(index));
+            var (sections, target) = analyzer.AnalyzeIfStatementSequence(operations.AsSpan()[index..]);
             if (sections.IsDefaultOrEmpty)
             {
                 return;

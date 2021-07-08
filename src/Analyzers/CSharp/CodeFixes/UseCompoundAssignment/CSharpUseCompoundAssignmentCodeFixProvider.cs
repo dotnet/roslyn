@@ -6,11 +6,12 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.UseCompoundAssignment;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCompoundAssignment), Shared]
     internal class CSharpUseCompoundAssignmentCodeFixProvider
         : AbstractUseCompoundAssignmentCodeFixProvider<SyntaxKind, AssignmentExpressionSyntax, ExpressionSyntax>
     {
@@ -28,6 +29,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             SyntaxKind assignmentOpKind, ExpressionSyntax left, SyntaxToken syntaxToken, ExpressionSyntax right)
         {
             return SyntaxFactory.AssignmentExpression(assignmentOpKind, left, syntaxToken, right);
+        }
+
+        protected override ExpressionSyntax Increment(ExpressionSyntax left, bool postfix)
+            => postfix
+                ? Postfix(SyntaxKind.PostIncrementExpression, left)
+                : Prefix(SyntaxKind.PreIncrementExpression, left);
+
+        protected override ExpressionSyntax Decrement(ExpressionSyntax left, bool postfix)
+            => postfix
+                ? Postfix(SyntaxKind.PostDecrementExpression, left)
+                : Prefix(SyntaxKind.PreDecrementExpression, left);
+
+        private static ExpressionSyntax Postfix(SyntaxKind kind, ExpressionSyntax operand)
+            => SyntaxFactory.PostfixUnaryExpression(kind, operand);
+
+        private static ExpressionSyntax Prefix(SyntaxKind kind, ExpressionSyntax operand)
+            => SyntaxFactory.PrefixUnaryExpression(kind, operand);
+
+        protected override bool PreferPostfix(ISyntaxFactsService syntaxFacts, AssignmentExpressionSyntax currentAssignment)
+        {
+            // in `for (...; x = x + 1)` we prefer to translate that idiomatically as `for (...; x++)`
+            if (currentAssignment.Parent is ForStatementSyntax forStatement &&
+                forStatement.Incrementors.Contains(currentAssignment))
+            {
+                return true;
+            }
+
+            return base.PreferPostfix(syntaxFacts, currentAssignment);
         }
     }
 }

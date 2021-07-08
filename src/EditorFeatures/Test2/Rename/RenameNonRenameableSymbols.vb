@@ -492,7 +492,7 @@ End Class
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInDeclaration(host As RenameTestHost)
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -545,7 +545,7 @@ namespace System
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteral(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                    <Workspace>
@@ -598,7 +598,7 @@ namespace System
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInFieldAccess(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
        <Workspace>
@@ -649,7 +649,7 @@ namespace System
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/14600")>
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteralRegress14600(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
                    <Workspace>
@@ -702,5 +702,28 @@ namespace System
 
 #End Region
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolDefinedInSourceGeneratedDocument(host As RenameTestHost)
+            Using workspace = CreateWorkspaceWithWaiter(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class Program
+{
+    private $$C _c;
+}
+                           </Document>
+                           <DocumentFromSourceGenerator>
+class C
+{
+}
+                           </DocumentFromSourceGenerator>
+                       </Project>
+                   </Workspace>, host)
+
+                AssertTokenNotRenamable(workspace)
+            End Using
+        End Sub
     End Class
 End Namespace

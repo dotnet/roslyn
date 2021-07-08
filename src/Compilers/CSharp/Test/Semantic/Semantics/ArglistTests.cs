@@ -1634,7 +1634,7 @@ class Program
         Console.WriteLine(a);
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
 
@@ -1657,7 +1657,7 @@ class Program
         Test(__arglist(a));
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
     }

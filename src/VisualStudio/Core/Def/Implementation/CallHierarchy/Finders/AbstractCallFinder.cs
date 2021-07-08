@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
                 {
                     completionErrorMessage = EditorFeaturesResources.Canceled;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     completionErrorMessage = e.Message;
                 }
@@ -114,12 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
         {
             if (scope == CallHierarchySearchScope.CurrentDocument || scope == CallHierarchySearchScope.CurrentProject)
             {
-                var documentTrackingService = project.Solution.Workspace.Services.GetService<IDocumentTrackingService>();
-                if (documentTrackingService == null)
-                {
-                    return null;
-                }
-
+                var documentTrackingService = project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 var activeDocument = documentTrackingService.TryGetActiveDocument();
                 if (activeDocument != null)
                 {

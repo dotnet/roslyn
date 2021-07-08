@@ -58,7 +58,7 @@ namespace Roslyn.Utilities
         {
             var taskArray = tasks.AsArray();
             if (taskArray.Length == 0)
-                return new ValueTask<T[]>(Array.Empty<T>());
+                return ValueTaskFactory.FromResult(Array.Empty<T>());
 
             var allCompletedSuccessfully = true;
             for (var i = 0; i < taskArray.Length; i++)
@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
                     result[i] = taskArray[i].Result;
                 }
 
-                return new ValueTask<T[]>(result);
+                return ValueTaskFactory.FromResult(result);
             }
             else
             {

@@ -372,7 +372,8 @@ MustOverride Sub M()
         End Sub
 
         <WorkItem(578141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578141")>
-        <Fact()>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
             MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib40({VisualBasicSyntaxTree.ParseText(<![CDATA[

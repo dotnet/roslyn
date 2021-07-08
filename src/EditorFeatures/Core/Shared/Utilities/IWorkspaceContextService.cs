@@ -12,7 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal interface IWorkspaceContextService : IWorkspaceService
     {
         /// <summary>
-        /// Used to determine if running as a client in a cloud connected environment.
+        /// Determines if LSP is being used as the editor.
+        /// Used to disable non-LSP editor feature integration.
+        /// </summary>
+        bool IsInLspEditorContext();
+
+        /// <summary>
+        /// Determines if the VS instance is being as a cloud environment client.
         /// </summary>
         bool IsCloudEnvironmentClient();
     }
@@ -26,18 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
         }
 
+        public bool IsInLspEditorContext() => false;
+
         public bool IsCloudEnvironmentClient() => false;
-    }
-
-    [ExportWorkspaceService(typeof(IWorkspaceContextService), WorkspaceKind.CloudEnvironmentClientWorkspace), Shared]
-    internal sealed class CloudEnvironmentWorkspaceContextService : IWorkspaceContextService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CloudEnvironmentWorkspaceContextService()
-        {
-        }
-
-        public bool IsCloudEnvironmentClient() => true;
     }
 }

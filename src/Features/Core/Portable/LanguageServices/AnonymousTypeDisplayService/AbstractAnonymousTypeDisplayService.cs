@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
     {
-        public abstract IEnumerable<SymbolDisplayPart> GetAnonymousTypeParts(
+        public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static string GenerateAnonymousTypeName(int current)
         {
             var c = (char)('a' + current);
-            if (c >= 'a' && c <= 'z')
+            if (c is >= 'a' and <= 'z')
             {
                 return "'" + c.ToString();
             }

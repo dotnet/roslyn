@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isNamespaceContext,
             bool isNamespaceDeclarationNameContext,
             bool isPreProcessorDirectiveContext,
+            bool isPreProcessorExpressionContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
             bool isAnyExpressionContext,
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsNamespaceContext = isNamespaceContext;
             this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
+            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
             this.IsAnyExpressionContext = isAnyExpressionContext;
@@ -92,6 +94,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsNamespaceDeclarationNameContext { get; }
 
         public bool IsPreProcessorDirectiveContext { get; }
+        public bool IsPreProcessorExpressionContext { get; }
 
         public bool IsRightOfNameSeparator { get; }
         public bool IsStatementContext { get; }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -59,10 +57,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _textViewWindowInProc.GetCurrentClassifications();
 
         public string GetQuickInfo()
-        {
-            WaitForQuickInfo();
-            return _textViewWindowInProc.GetQuickInfo();
-        }
+            => _textViewWindowInProc.GetQuickInfo();
 
         public void VerifyTags(string tagTypeName, int expectedCount)
             => _textViewWindowInProc.VerifyTags(tagTypeName, expectedCount);
@@ -118,9 +113,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         }
 
         public void InvokeQuickInfo()
-        {
-            _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.QuickInfo);
-        }
+            => _textViewWindowInProc.InvokeQuickInfo();
     }
 }

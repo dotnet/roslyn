@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -33,8 +31,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         // if someone needs to create a pool;
         public static ObjectPool<PooledHashSet<T>> CreatePool(IEqualityComparer<T> equalityComparer)
         {
-            ObjectPool<PooledHashSet<T>> pool = null;
-            pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool, equalityComparer), 128);
+            ObjectPool<PooledHashSet<T>>? pool = null;
+            pool = new ObjectPool<PooledHashSet<T>>(() => new PooledHashSet<T>(pool!, equalityComparer), 128);
             return pool;
         }
 

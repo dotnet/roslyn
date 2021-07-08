@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -1209,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //WRN_PDBConstantStringValueTooLong = 7063,     gave up on this warning
         ERR_CantOpenIcon = 7064,
         ERR_ErrorBuildingWin32Resources = 7065,
-        ERR_IteratorInInteractive = 7066,
+        // ERR_IteratorInInteractive = 7066,
         ERR_BadAttributeParamDefaultArgument = 7067,
         ERR_MissingTypeInSource = 7068,
         ERR_MissingTypeInAssembly = 7069,
@@ -1228,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerLineNumberPreferredOverCallerFilePath = 7082,
         ERR_InvalidDynamicCondition = 7083,
         ERR_WinRtEventPassedByRef = 7084,
-        ERR_ByRefReturnUnsupported = 7085,
+        //ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
         ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
@@ -1441,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
         ERR_DiscardTypeInferenceFailed = 8183,
-        ERR_MixedDeconstructionUnsupported = 8184,
+        // ERR_MixedDeconstructionUnsupported = 8184,
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
@@ -1470,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
-        ERR_AttributesInLocalFuncDecl = 8205,
+        // ERR_AttributesInLocalFuncDecl = 8205,
         ERR_TypeForwardedToMultipleAssemblies = 8206,
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
@@ -1721,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
-        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
@@ -1747,9 +1745,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1782,6 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterDisallowsNull = 8777,
         WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,
@@ -1838,6 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
 
-        // Available = 8850,
+        WRN_AnalyzerReferencesFramework = 8850,
 
         // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
         // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
@@ -1859,7 +1859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1918,9 +1918,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InitCannotBeReadonly = 8903,
 
+        ERR_UnexpectedVarianceStaticMember = 8904,
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
+
+        ERR_EqualityContractRequiresGetter = 8906,
+        WRN_UnreadRecordParameter = 8907,
+        ERR_BadFieldTypeInRecord = 8908,
+
+        WRN_DoNotCompareFunctionPointers = 8909,
+        ERR_RecordAmbigCtor = 8910,
+        ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
+
         #endregion diagnostics introduced for C# 9.0
 
-        ERR_UnexpectedVarianceStaticMember = 9100,
+        #region diagnostics introduced for C# 10.0
+
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
+        ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
+        ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
+
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces = 8919,
+        ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers = 8920,
+        ERR_BadAbstractUnaryOperatorSignature = 8921,
+        ERR_BadAbstractIncDecSignature = 8922,
+        ERR_BadAbstractIncDecRetType = 8923,
+        ERR_BadAbstractBinaryOperatorSignature = 8924,
+        ERR_BadAbstractShiftOperatorSignature = 8925,
+        ERR_BadAbstractStaticMemberAccess = 8926,
+        ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 8927,
+        ERR_CloseUnimplementedInterfaceMemberNotStatic = 8928,
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 8929,
+        ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
+        ERR_AbstractConversionNotInvolvingContainedType = 8931,
+        ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
+        HDN_DuplicateWithGlobalUsing = 8933,
+        ERR_CantConvAnonMethReturnType = 8934,
+        ERR_BuilderAttributeDisallowed = 8935,
+        ERR_FeatureNotAvailableInVersion10 = 8936,
+        ERR_SimpleProgramIsEmpty = 8937,
+        ERR_LineSpanDirectiveInvalidValue = 8938,
+        ERR_LineSpanDirectiveEndLessThanStart = 8939,
+        ERR_WrongArityAsyncReturn = 8940,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

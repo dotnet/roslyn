@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,13 +73,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return Task.FromResult(sortedItems);
         }
 
-        public Task<FilteredCompletionModel> UpdateCompletionListAsync(
+        public Task<FilteredCompletionModel?> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
             => Task.FromResult(UpdateCompletionList(session, data, cancellationToken));
 
-        private FilteredCompletionModel UpdateCompletionList(
+        // We might need to handle large amount of items with import completion enabled,
+        // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
+        // Set the size of pool to 1 because we don't expect UpdateCompletionListAsync to be
+        // called concurrently, which essentially makes the pooled list a singleton,
+        // but we still use ObjectPool for concurrency handling just to be robust.
+        private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool
+                = new(factory: () => new(), size: 1);
+
+        private FilteredCompletionModel? UpdateCompletionList(
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
@@ -125,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // 2. a non-empty set of expanders are unselected
             var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => !(f.Filter is CompletionExpander));
 
-            var selectedNonExpanderFilters = nonExpanderFilterStates.Where(f => f.IsSelected).SelectAsArray(f => f.Filter);
+            var selectedNonExpanderFilters = nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
             var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;
 
-            var unselectedExpanders = data.SelectedFilters.Where(f => !f.IsSelected && f.Filter is CompletionExpander).SelectAsArray(f => f.Filter);
+            var unselectedExpanders = data.SelectedFilters.SelectAsArray(f => !f.IsSelected && f.Filter is CompletionExpander, f => f.Filter);
             var needToFilterExpanded = unselectedExpanders.Length > 0;
 
             if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
@@ -170,86 +175,97 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var options = document?.Project.Solution.Options;
-            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document.Project.Language) ?? false;
+            var highlightMatchingPortions = options?.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, document?.Project.Language) ?? false;
             // Nothing to highlight if user hasn't typed anything yet.
             highlightMatchingPortions = highlightMatchingPortions && filterText.Length > 0;
 
             // Use a monotonically increasing integer to keep track the original alphabetical order of each item.
             var currentIndex = 0;
-            var builder = ArrayBuilder<MatchResult>.GetInstance();
 
-            foreach (var item in data.InitialSortedList)
+            var initialListOfItemsToBeIncluded = s_listOfMatchResultPool.Allocate();
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
+                // Filter items based on the selected filters and matching.
+                foreach (var item in data.InitialSortedList)
                 {
-                    continue;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (needToFilter && ShouldBeFilteredOutOfCompletionList(item, selectedNonExpanderFilters))
+                    {
+                        continue;
+                    }
+
+                    if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
+                    {
+                        continue;
+                    }
+
+                    if (TryCreateMatchResult(
+                        completionHelper,
+                        item,
+                        filterText,
+                        initialRoslynTriggerKind,
+                        filterReason,
+                        _recentItemsManager.RecentItems,
+                        highlightMatchingPortions: highlightMatchingPortions,
+                        currentIndex,
+                        out var matchResult))
+                    {
+                        initialListOfItemsToBeIncluded.Add(matchResult);
+                        currentIndex++;
+                    }
                 }
 
-                if (needToFilterExpanded && ShouldBeFilteredOutOfExpandedCompletionList(item, unselectedExpanders))
+                if (initialListOfItemsToBeIncluded.Count == 0)
                 {
-                    continue;
+                    return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
                 }
 
-                if (TryCreateMatchResult(
-                    completionHelper,
-                    item,
+                // Sort the items by pattern matching results.
+                // Note that we want to preserve the original alphabetical order for items with same pattern match score,
+                // but `List<T>.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
+                // to `MatchResult` to achieve this.
+                initialListOfItemsToBeIncluded.Sort(MatchResult<VSCompletionItem>.SortingComparer);
+
+                var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document?.Project.Language) ?? true;
+
+                var updatedFilters = showCompletionItemFilters
+                    ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
+                    : ImmutableArray<CompletionFilterWithState>.Empty;
+
+                // If this was deletion, then we control the entire behavior of deletion ourselves.
+                if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
+                {
+                    return HandleDeletionTrigger(reason, initialListOfItemsToBeIncluded, filterText, updatedFilters, hasSuggestedItemOptions, highlightMatchingPortions, completionHelper);
+                }
+
+                Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
+                if (completionService == null)
+                {
+                    filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
+                }
+                else
+                {
+                    filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
+                }
+
+                return HandleNormalFiltering(
+                    filterMethod,
                     filterText,
-                    initialRoslynTriggerKind,
+                    updatedFilters,
                     filterReason,
-                    _recentItemsManager.RecentItems,
-                    highlightMatchingPortions: highlightMatchingPortions,
-                    ref currentIndex,
-                    out var matchResult))
-                {
-                    builder.Add(matchResult);
-                }
+                    data.Trigger.Character,
+                    initialListOfItemsToBeIncluded,
+                    hasSuggestedItemOptions,
+                    highlightMatchingPortions,
+                    completionHelper);
             }
-
-            if (builder.Count == 0)
+            finally
             {
-                return HandleAllItemsFilteredOut(reason, data.SelectedFilters, completionRules);
+                // Don't call ClearAndFree, which resets the capacity to a default value.
+                initialListOfItemsToBeIncluded.Clear();
+                s_listOfMatchResultPool.Free(initialListOfItemsToBeIncluded);
             }
-
-            // Sort the items by pattern matching results.
-            // Note that we want to preserve the original alphabetical order for items with same pattern match score,
-            // but `ArrayBuilder.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
-            // to `MatchResult` to achieve this.
-            builder.Sort(MatchResult.SortingComparer);
-
-            var initialListOfItemsToBeIncluded = builder.ToImmutableAndFree();
-
-            var showCompletionItemFilters = options?.GetOption(CompletionOptions.ShowCompletionItemFilters, document.Project.Language) ?? true;
-
-            var updatedFilters = showCompletionItemFilters
-                ? GetUpdatedFilters(initialListOfItemsToBeIncluded, data.SelectedFilters)
-                : ImmutableArray<CompletionFilterWithState>.Empty;
-
-            // If this was deletion, then we control the entire behavior of deletion ourselves.
-            if (initialRoslynTriggerKind == CompletionTriggerKind.Deletion)
-            {
-                return HandleDeletionTrigger(data.Trigger.Reason, initialListOfItemsToBeIncluded, filterText, updatedFilters);
-            }
-
-            Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod;
-            if (completionService == null)
-            {
-                filterMethod = (itemsWithPatternMatches, text) => CompletionService.FilterItems(completionHelper, itemsWithPatternMatches);
-            }
-            else
-            {
-                filterMethod = (itemsWithPatternMatches, text) => completionService.FilterItems(document, itemsWithPatternMatches, text);
-            }
-
-            return HandleNormalFiltering(
-                filterMethod,
-                filterText,
-                updatedFilters,
-                filterReason,
-                data.Trigger.Character,
-                initialListOfItemsToBeIncluded,
-                hasSuggestedItemOptions);
 
             static bool ShouldBeFilteredOutOfCompletionList(VSCompletionItem item, ImmutableArray<CompletionFilter> activeNonExpanderFilters)
             {
@@ -291,14 +307,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return position > 0 && snapshot[position - 1] == '.';
         }
 
-        private FilteredCompletionModel HandleNormalFiltering(
+        private FilteredCompletionModel? HandleNormalFiltering(
             Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> filterMethod,
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionFilterReason filterReason,
             char typeChar,
-            ImmutableArray<MatchResult> itemsInList,
-            bool hasSuggestedItemOptions)
+            List<MatchResult<VSCompletionItem>> itemsInList,
+            bool hasSuggestedItemOptions,
+            bool highlightMatchingPortions,
+            CompletionHelper completionHelper)
         {
             // Not deletion.  Defer to the language to decide which item it thinks best
             // matches the text typed so far.
@@ -310,8 +328,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var chosenItems = filterMethod(matchingItems, filterText);
 
             int selectedItemIndex;
-            VSCompletionItem uniqueItem = null;
-            MatchResult bestOrFirstMatchResult;
+            VSCompletionItem? uniqueItem = null;
+            MatchResult<VSCompletionItem> bestOrFirstMatchResult;
 
             if (chosenItems.Length == 0)
             {
@@ -321,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 var longestCommonPrefixLength = bestOrFirstMatchResult.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(filterText);
 
-                for (var i = 1; i < itemsInList.Length; ++i)
+                for (var i = 1; i < itemsInList.Count; ++i)
                 {
                     var item = itemsInList[i];
                     var commonPrefixLength = item.RoslynCompletionItem.FilterText.GetCaseInsensitivePrefixLength(filterText);
@@ -354,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (deduplicatedListCount == 1 &&
                     filterText.Length > 0)
                 {
-                    uniqueItem = itemsInList[selectedItemIndex].VSCompletionItem;
+                    uniqueItem = itemsInList[selectedItemIndex].EditorCompletionItem;
                 }
             }
 
@@ -377,17 +395,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
             return new FilteredCompletionModel(
-                GetHighlightedList(itemsInList), selectedItemIndex, filters,
+                GetHighlightedList(itemsInList, filterText, highlightMatchingPortions, completionHelper), selectedItemIndex, filters,
                 updateSelectionHint, centerSelection: true, uniqueItem);
         }
 
-        private static FilteredCompletionModel HandleDeletionTrigger(
+        private static FilteredCompletionModel? HandleDeletionTrigger(
             CompletionTriggerReason filterTriggerKind,
-            ImmutableArray<MatchResult> matchResults,
+            List<MatchResult<VSCompletionItem>> matchResults,
             string filterText,
-            ImmutableArray<CompletionFilterWithState> filters)
+            ImmutableArray<CompletionFilterWithState> filters,
+            bool hasSuggestedItemOptions,
+            bool highlightMatchingSpans,
+            CompletionHelper completionHelper)
         {
-            var matchingItems = matchResults.WhereAsArray(r => r.MatchedFilterText);
+            var matchingItems = matchResults.Where(r => r.MatchedFilterText);
             if (filterTriggerKind == CompletionTriggerReason.Insertion &&
                 !matchingItems.Any())
             {
@@ -400,7 +421,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return null;
             }
 
-            MatchResult? bestMatchResult = null;
+            MatchResult<VSCompletionItem>? bestMatchResult = null;
             var moreThanOneMatchWithSamePriority = false;
             foreach (var currentMatchResult in matchingItems)
             {
@@ -439,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 //   text that originally appeared before the dot
                 // * deleting through a word from the end keeps that word selected
                 // This also preserves the behavior the VB had through Dev12.
-                hardSelect = bestMatchResult.Value.VSCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
+                hardSelect = !hasSuggestedItemOptions && bestMatchResult.Value.EditorCompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
                 index = matchResults.IndexOf(bestMatchResult.Value);
             }
             else
@@ -449,17 +470,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             return new FilteredCompletionModel(
-                GetHighlightedList(matchResults), index, filters,
+                GetHighlightedList(matchResults, filterText, highlightMatchingSpans, completionHelper), index, filters,
                 hardSelect ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected,
                 centerSelection: true,
-                uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().VSCompletionItem);
+                uniqueItem: moreThanOneMatchWithSamePriority ? null : bestMatchResult.GetValueOrDefault().EditorCompletionItem);
         }
 
-        private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(ImmutableArray<MatchResult> matchResults)
-            => matchResults.SelectAsArray(matchResult =>
-            new CompletionItemWithHighlight(matchResult.VSCompletionItem, matchResult.HighlightedSpans));
+        private static ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(
+            List<MatchResult<VSCompletionItem>> matchResults,
+            string filterText,
+            bool highlightMatchingPortions,
+            CompletionHelper completionHelper)
+        {
+            return matchResults.SelectAsArray(matchResult =>
+            {
+                var highlightedSpans = GetHighlightedSpans(matchResult, completionHelper, filterText, highlightMatchingPortions);
+                return new CompletionItemWithHighlight(matchResult.EditorCompletionItem, highlightedSpans);
+            });
 
-        private static FilteredCompletionModel HandleAllItemsFilteredOut(
+            static ImmutableArray<Span> GetHighlightedSpans(
+                MatchResult<VSCompletionItem> matchResult,
+                CompletionHelper completionHelper,
+                string filterText,
+                bool highlightMatchingPortions)
+            {
+                if (highlightMatchingPortions)
+                {
+                    if (matchResult.RoslynCompletionItem.HasDifferentFilterText)
+                    {
+                        // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
+                        // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
+                        // However, if the Roslyn item's FilterText is different from its DisplayText,
+                        // we need to do the match against the display text of the VS item directly to get the highlighted spans.
+                        return completionHelper.GetHighlightedSpans(
+                            matchResult.EditorCompletionItem.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
+                    }
+
+                    var patternMatch = matchResult.PatternMatch;
+                    if (patternMatch.HasValue)
+                    {
+                        // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
+                        // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
+                        return patternMatch.Value.MatchedSpans.SelectAsArray(s_highlightSpanGetter, matchResult.RoslynCompletionItem);
+                    }
+                }
+
+                // If there's no match for Roslyn item's filter text which is identical to its display text,
+                // then we can safely assume there'd be no matching to VS item's display text.
+                return ImmutableArray<Span>.Empty;
+            }
+        }
+
+        private static FilteredCompletionModel? HandleAllItemsFilteredOut(
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             CompletionRules completionRules)
@@ -490,11 +552,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         private static ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            ImmutableArray<MatchResult> filteredList,
+            List<MatchResult<VSCompletionItem>> filteredList,
             ImmutableArray<CompletionFilterWithState> filters)
         {
             // See which filters might be enabled based on the typed code
-            var textFilteredFilters = filteredList.SelectMany(n => n.VSCompletionItem.Filters).ToImmutableHashSet();
+            using var _ = PooledHashSet<CompletionFilter>.GetInstance(out var textFilteredFilters);
+            textFilteredFilters.AddRange(filteredList.SelectMany(n => n.EditorCompletionItem.Filters));
 
             // When no items are available for a given filter, it becomes unavailable.
             // Expanders always appear available as long as it's presented.
@@ -508,9 +571,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private static RoslynCompletionItem GetBestCompletionItemBasedOnMRU(
             ImmutableArray<RoslynCompletionItem> chosenItems, ImmutableArray<string> recentItems)
         {
-            // Try to find the chosen item has been most
-            // recently used.
-            var bestItem = chosenItems.FirstOrDefault();
+            // Try to find the chosen item has been most recently used.
+            var bestItem = chosenItems.First();
             for (int i = 0, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
@@ -578,123 +640,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionFilterReason filterReason,
             ImmutableArray<string> recentItems,
             bool highlightMatchingPortions,
-            ref int currentIndex,
-            out MatchResult matchResult)
+            int currentIndex,
+            out MatchResult<VSCompletionItem> matchResult)
         {
             var roslynItem = GetOrAddRoslynCompletionItem(item);
-
-            // Get the match of the given completion item for the pattern provided so far. 
-            // A completion item is checked against the pattern by see if it's 
-            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
-            // against terms like "IList" and not IList<>.
-            // Note that the check on filter text length is purely for efficiency, we should 
-            // get the same result with or without it.
-            var patternMatch = filterText.Length > 0
-                ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans: highlightMatchingPortions, CultureInfo.CurrentCulture)
-                : null;
-
-            var matchedFilterText = MatchesFilterText(
-                roslynItem,
-                filterText,
-                initialTriggerKind,
-                filterReason,
-                recentItems,
-                patternMatch);
-
-            // If the item didn't match the filter text, we still keep it in the list
-            // if one of two things is true:
-            //
-            //  1. The user has typed nothing or only typed a single character.  In this case they might
-            //     have just typed the character to get completion.  Filtering out items
-            //     here is not desirable.
-            //
-            //  2. They brought up completion with ctrl-j or through deletion.  In these
-            //     cases we just always keep all the items in the list.
-            if (matchedFilterText ||
-                initialTriggerKind == CompletionTriggerKind.Deletion ||
-                initialTriggerKind == CompletionTriggerKind.Invoke ||
-                filterText.Length <= 1)
-            {
-                matchResult = new MatchResult(
-                    roslynItem, item, matchedFilterText: matchedFilterText,
-                    patternMatch: patternMatch, index: currentIndex++, GetHighlightedSpans());
-
-                return true;
-            }
-
-            matchResult = default;
-            return false;
-
-            ImmutableArray<Span> GetHighlightedSpans()
-            {
-                if (!highlightMatchingPortions)
-                {
-                    return ImmutableArray<Span>.Empty;
-                }
-
-                if (roslynItem.HasDifferentFilterText)
-                {
-                    // The PatternMatch in MatchResult is calculated based on Roslyn item's FilterText, 
-                    // which can be used to calculate highlighted span for VSCompletion item's DisplayText w/o doing the matching again.
-                    // However, if the Roslyn item's FilterText is different from its DisplayText,
-                    // we need to do the match against the display text of the VS item directly to get the highlighted spans.
-                    return completionHelper.GetHighlightedSpans(
-                        item.DisplayText, filterText, CultureInfo.CurrentCulture).SelectAsArray(s => s.ToSpan());
-                }
-
-                if (patternMatch.HasValue)
-                {
-                    // Since VS item's display text is created as Prefix + DisplayText + Suffix, 
-                    // we can calculate the highlighted span by adding an offset that is the length of the Prefix.
-                    return patternMatch.Value.MatchedSpans
-                        .SelectAsArray(s => s.MoveTo(roslynItem.DisplayTextPrefix?.Length ?? 0).ToSpan());
-                }
-
-                // If there's no match for Roslyn item's filter text which is identical to its display text,
-                // then we can safely assume there'd be no matching to VS item's display text.
-                return ImmutableArray<Span>.Empty;
-            }
+            return CompletionHelper.TryCreateMatchResult(completionHelper, roslynItem, item, filterText, initialTriggerKind, filterReason, recentItems, highlightMatchingPortions, currentIndex, out matchResult);
         }
 
-        private static bool MatchesFilterText(
-            RoslynCompletionItem item,
-            string filterText,
-            CompletionTriggerKind initialTriggerKind,
-            CompletionFilterReason filterReason,
-            ImmutableArray<string> recentItems,
-            PatternMatch? patternMatch)
-        {
-            // For the deletion we bake in the core logic for how matching should work.
-            // This way deletion feels the same across all languages that opt into deletion 
-            // as a completion trigger.
-
-            // Specifically, to avoid being too aggressive when matching an item during 
-            // completion, we require that the current filter text be a prefix of the 
-            // item in the list.
-            if (filterReason == CompletionFilterReason.Deletion &&
-                initialTriggerKind == CompletionTriggerKind.Deletion)
-            {
-                return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
-            }
-
-            // If the user hasn't typed anything, and this item was preselected, or was in the
-            // MRU list, then we definitely want to include it.
-            if (filterText.Length == 0)
-            {
-                if (item.Rules.MatchPriority > MatchPriority.Default)
-                {
-                    return true;
-                }
-
-                if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
-                {
-                    return true;
-                }
-            }
-
-            // Otherwise, the item matches filter text if a pattern match is returned.
-            return patternMatch != null;
-        }
+        // PERF: Create a singleton to avoid lambda allocation on hot path
+        private static readonly Func<TextSpan, RoslynCompletionItem, Span> s_highlightSpanGetter
+            = (span, item) => span.MoveTo(item.DisplayTextPrefix?.Length ?? 0).ToSpan();
 
         private static bool IsHardSelection(
             string filterText,

@@ -28,11 +28,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Try
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         contextPosition:=position,
                         rules:=s_itemRules))
                 Next
-            Catch e As Exception When FatalError.ReportWithoutCrashUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
                 ' nop
             End Try
         End Function
@@ -230,6 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Else
                 change = New TextChange(symbolItem.Span, insertionText)
             End If
+
             Return Task.FromResult(Of TextChange?)(change)
         End Function
     End Class

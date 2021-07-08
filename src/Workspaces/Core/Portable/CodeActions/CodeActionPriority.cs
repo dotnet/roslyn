@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         //
         // Summary:
-        //     No particular priority.
-        None = 0,
+        //     Lowest priority suggestion.
+        Lowest = 0,
         //
         // Summary:
         //     Low priority suggestion.

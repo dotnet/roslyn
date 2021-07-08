@@ -21,18 +21,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         where TLanguageKindEnum : struct
         where TParenthesizedExpressionSyntax : SyntaxNode
     {
-
-        /// <summary>
-        /// A diagnostic descriptor used to squiggle and message the span.
-        /// </summary>
-        private static readonly DiagnosticDescriptor s_diagnosticDescriptor = CreateDescriptorWithId(
-                IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
-                new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                isUnnecessary: true);
-
         protected AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer()
-            : base(ImmutableArray.Create(s_diagnosticDescriptor))
+            : base(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId,
+                  EnforceOnBuildValues.RemoveUnnecessaryParentheses,
+                  new LocalizableResourceString(nameof(AnalyzersResources.Remove_unnecessary_parentheses), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  new LocalizableResourceString(nameof(AnalyzersResources.Parentheses_can_be_removed), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+                  isUnnecessary: true)
         {
         }
 
@@ -46,14 +40,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKind());
 
         protected abstract bool CanRemoveParentheses(
-            TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
+            TParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, CancellationToken cancellationToken,
             out PrecedenceKind precedence, out bool clarifiesPrecedence);
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
+            var cancellationToken = context.CancellationToken;
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
-            if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
+            if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel, cancellationToken,
                     out var precedence, out var clarifiesPrecedence))
             {
                 return;
@@ -117,8 +112,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 parenthesizedExpression.GetLastToken().GetLocation());
 
             context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_diagnosticDescriptor,
-                GetDiagnosticSquiggleLocation(parenthesizedExpression, context.CancellationToken),
+                Descriptor,
+                AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<TLanguageKindEnum, TParenthesizedExpressionSyntax>.GetDiagnosticSquiggleLocation(parenthesizedExpression, cancellationToken),
                 severity,
                 additionalLocations,
                 additionalUnnecessaryLocations));

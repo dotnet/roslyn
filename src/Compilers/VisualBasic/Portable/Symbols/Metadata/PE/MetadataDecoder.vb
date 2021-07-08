@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
-            Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
+            Catch e As Exception When FatalError.ReportAndPropagate(e) ' Trying to get more useful Watson dumps.
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function
@@ -361,8 +361,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                         ' Let's use a trick. To make sure the kind is the same, make sure
                         ' base type is the same.
-                        Dim baseSpecialType As SpecialType = (candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType).GetValueOrDefault()
-                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> (baseType?.SpecialType).GetValueOrDefault() Then
+                        Dim baseSpecialType As SpecialType = If(candidate.BaseTypeNoUseSiteDiagnostics?.SpecialType, SpecialType.None)
+                        If baseSpecialType = SpecialType.None OrElse baseSpecialType <> If(baseType?.SpecialType, SpecialType.None) Then
                             Continue For
                         End If
 
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Debug.Assert(Not targetTypeSymbol.IsTupleType)
 
-            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, Nothing) Then
+            If scope IsNot Nothing AndAlso Not TypeSymbol.Equals(targetTypeSymbol, scope, TypeCompareKind.ConsiderEverything) AndAlso Not targetTypeSymbol.IsBaseTypeOrInterfaceOf(scope, CompoundUseSiteInfo(Of AssemblySymbol).Discarded) Then
                 Return Nothing
             End If
 
@@ -458,8 +458,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             ' (We're not just using a different type - we're also changing the type context.)
-            Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol)
-            Return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly)
+            Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol.OriginalDefinition)
+
+            Dim definition = memberRefDecoder.FindMember(memberRef, methodsOnly)
+
+            If definition IsNot Nothing AndAlso Not targetTypeSymbol.IsDefinition Then
+                Return definition.AsMember(DirectCast(targetTypeSymbol, NamedTypeSymbol))
+            End If
+
+            Return definition
         End Function
 
         Protected Overrides Sub EnqueueTypeSymbolInterfacesAndBaseTypes(typeDefsToSearch As Queue(Of TypeDefinitionHandle), typeSymbolsToSearch As Queue(Of TypeSymbol), typeSymbol As TypeSymbol)

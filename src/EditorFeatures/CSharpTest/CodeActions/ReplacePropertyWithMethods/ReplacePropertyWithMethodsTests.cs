@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -1882,6 +1880,94 @@ class C
     {
         var t = new Tweet();
         var t1 = new Tweet
+        {
+            {|Conflict:Tweet|} = t.GetTweet()
+        };
+    }
+}");
+        }
+
+        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestReferenceInImplicitObjectInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Tweet
+{
+    public string [||]Tweet { get; }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        Tweet t1 = new()
+        {
+            Tweet = t.Tweet
+        };
+    }
+}",
+@"public class Tweet
+{
+    private readonly string tweet;
+
+    public string GetTweet()
+    {
+        return tweet;
+    }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        Tweet t1 = new()
+        {
+            {|Conflict:Tweet|} = t.GetTweet()
+        };
+    }
+}");
+        }
+
+        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestReferenceInWithInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Tweet
+{
+    public string [||]Tweet { get; }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = t with
+        {
+            Tweet = t.Tweet
+        };
+    }
+}",
+@"public class Tweet
+{
+    private readonly string tweet;
+
+    public string GetTweet()
+    {
+        return tweet;
+    }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = t with
         {
             {|Conflict:Tweet|} = t.GetTweet()
         };

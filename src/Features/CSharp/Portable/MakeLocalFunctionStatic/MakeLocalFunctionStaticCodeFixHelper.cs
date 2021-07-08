@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            Contract.ThrowIfNull(localFunctionSymbol, "We should have gotten a method symbol for a local function.");
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
@@ -166,20 +167,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
         private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
-        {
-            var parameters = ArrayBuilder<(IParameterSymbol, ISymbol)>.GetInstance(captures.Length);
-
-            foreach (var symbol in captures)
+            => captures.SelectAsArray(static c =>
             {
-                parameters.Add((CodeGenerationSymbolFactory.CreateParameterSymbol(
+                var symbolType = c.GetSymbolType();
+                Contract.ThrowIfNull(symbolType);
+                return (CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
-                    type: symbol.GetSymbolType(),
-                    name: symbol.Name.ToCamelCase()), symbol));
-            }
-
-            return parameters.ToImmutableAndFree();
-        }
+                    type: symbolType,
+                    name: c.Name.ToCamelCase()), c);
+            });
     }
 }

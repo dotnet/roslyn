@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -27,14 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return IsDynamicTypeContext(position, context, cancellationToken);
         }
 
-        public Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (IsValidContext(position, context, cancellationToken))
-            {
-                return Task.FromResult(SpecializedCollections.SingletonEnumerable(new RecommendedKeyword("dynamic")));
-            }
-
-            return SpecializedTasks.Null<IEnumerable<RecommendedKeyword>>();
+            return IsValidContext(position, context, cancellationToken)
+                ? ImmutableArray.Create(new RecommendedKeyword("dynamic"))
+                : ImmutableArray<RecommendedKeyword>.Empty;
         }
 
         protected static bool IsDynamicTypeContext(

@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                  EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
                   language: language,
                   title: title)
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return;
             }
+
             var location = parent.GetLocation();
             var options = context.Compilation.Options;
             context.ReportDiagnostic(
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
         {
             // Cast to a typeof operation & check parent is a property reference and member access
             var typeofOperation = (ITypeOfOperation)operation;
-            if (!(operation.Parent is IPropertyReferenceOperation))
+            if (operation.Parent is not IPropertyReferenceOperation)
             {
                 return false;
             }
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             // Check Parent is a .Name access
             var operationParent = (IPropertyReferenceOperation)operation.Parent;
             var parentProperty = operationParent.Property.Name;
-            if (parentProperty != nameof(System.Type.Name) && parentProperty != "Name")
+            if (parentProperty is not nameof(System.Type.Name))
             {
                 return false;
             }
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return false;
             }
+
             return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
     }

@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Symbols;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -281,6 +282,11 @@ namespace Microsoft.Cci
         /// Containing namespace or null if this namespace is global.
         /// </summary>
         INamespace ContainingNamespace { get; }
+
+        /// <summary>
+        /// Returns underlying internal symbol object, if any.
+        /// </summary>
+        INamespaceSymbolInternal GetInternalSymbol();
     }
 
     /// <summary>

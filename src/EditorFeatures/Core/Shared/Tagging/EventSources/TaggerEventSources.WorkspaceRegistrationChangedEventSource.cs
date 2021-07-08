@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
@@ -13,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class WorkspaceRegistrationChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public WorkspaceRegistrationChangedEventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 

@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Null DefaultArguments doesn't indicate that Arguments is non-null, but if DefaultArguments is non-null we must have some arguments.
             Debug.Assert(DefaultArguments.IsNull OrElse Not Arguments.IsEmpty)
 
-            If isLifted.GetValueOrDefault AndAlso Not Method.ReturnType.IsNullableType() Then
+            If isLifted.GetValueOrDefault() AndAlso Not Method.ReturnType.IsNullableType() Then
                 Debug.Assert(OverloadResolution.CanLiftType(Method.ReturnType) AndAlso
                              Type.IsNullableType() AndAlso
                              Type.GetNullableUnderlyingType().IsSameTypeIgnoringAll(Method.ReturnType))

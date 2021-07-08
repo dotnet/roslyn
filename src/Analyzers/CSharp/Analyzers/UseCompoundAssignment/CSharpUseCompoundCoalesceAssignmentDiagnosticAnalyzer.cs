@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     {
         public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {

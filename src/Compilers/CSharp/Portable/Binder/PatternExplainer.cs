@@ -301,6 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         void addRelation(BinaryOperatorKind relation, ConstantValue value)
                         {
+                            if (value.IsBad)
+                                return;
                             var filtered = fac.Related(relation, value);
                             if (!sense)
                                 filtered = filtered.Complement();

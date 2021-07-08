@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class WellKnownCommandNames
@@ -16,10 +14,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_GoToImplementation = "Edit.GoToImplementation";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
-        public const string Edit_QuickInfo = "Edit.QuickInfo";
-        // This will need to be reverted when we move to 16.8p3. DevDiv bug:
-        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1193302
-        public const string Edit_ToggleCompletionMode = "Edit.ToggleIntelliSensesuggestioncompletionmode";
+        public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
         public const string Edit_Undo = "Edit.Undo";
         public const string Edit_Redo = "Edit.Redo";
         public const string Edit_SelectionCancel = "Edit.SelectionCancel";
@@ -40,7 +35,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
 
-        public const string InteractiveConsole_Reset = "InteractiveConsole.Reset";
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 

@@ -268,15 +268,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             var newText = "";
             var newTextPtr = Marshal.StringToHGlobalAuto(newText);
-            Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
-            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
-            Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
+            try
+            {
+                Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
+                Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
+                Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+                Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
 
-            Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+                piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+
+                Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(newTextPtr);
+            }
         }
 
         private class NoChange : AbstractChange

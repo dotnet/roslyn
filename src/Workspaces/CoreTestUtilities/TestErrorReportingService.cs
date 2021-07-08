@@ -27,9 +27,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void ShowDetailedErrorInfo(Exception exception)
             => OnError(exception.Message);
 
-        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => OnError(message);
-
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
             => OnError(message);
 

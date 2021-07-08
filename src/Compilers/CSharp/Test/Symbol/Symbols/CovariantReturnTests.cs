@@ -342,8 +342,8 @@ namespace System.Runtime.CompilerServices
 
             bool hasReturnConversion(TypeSymbol fromType, TypeSymbol toType)
             {
-                HashSet<DiagnosticInfo> ignoredUseSiteDiagnostics = null;
-                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref ignoredUseSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return comp.Conversions.HasIdentityOrImplicitReferenceConversion(fromType, toType, ref discardedUseSiteInfo);
             }
         }
 

@@ -22,32 +22,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IPropertySymbol symbol)
             => true;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IPropertySymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             var backingFields = symbol.ContainingType.GetMembers()
                                       .OfType<IFieldSymbol>()
                                       .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                      .ToImmutableArray<ISymbol>();
+                                      .Select(f => ((ISymbol)f, cascadeDirection))
+                                      .ToImmutableArray();
 
             var result = baseSymbols.Concat(backingFields);
 
             if (symbol.GetMethod != null)
-            {
-                result = result.Add(symbol.GetMethod);
-            }
+                result = result.Add((symbol.GetMethod, cascadeDirection));
 
             if (symbol.SetMethod != null)
-            {
-                result = result.Add(symbol.SetMethod);
-            }
+                result = result.Add((symbol.SetMethod, cascadeDirection));
 
             return result;
         }
@@ -55,11 +53,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IPropertySymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var ordinaryDocuments = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var ordinaryDocuments = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
 
             var forEachDocuments = IsForEachProperty(symbol)
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
@@ -73,15 +71,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments)
-                                    .Concat(elementAccessDocument)
-                                    .Concat(indexerMemberCrefDocument);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
         }
 
         private static bool IsForEachProperty(IPropertySymbol symbol)
             => symbol.Name == WellKnownMemberNames.CurrentPropertyName;
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
@@ -112,18 +109,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindIndexerReferencesAsync(symbol, document, semanticModel, options, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<FinderLocation>.Empty;
 
-            return nameReferences.Concat(forEachReferences)
-                                 .Concat(indexerReferences);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            return nameReferences.Concat(forEachReferences, indexerReferences, suppressionReferences);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithElementAccessExpressionsAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsElementAccessExpression, cancellationToken);
         }
 
         private static Task<ImmutableArray<Document>> FindDocumentWithIndexerMemberCrefAsync(
-            Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+            Project project, IImmutableSet<Document>? documents, CancellationToken cancellationToken)
         {
             return FindDocumentsWithPredicateAsync(project, documents, info => info.ContainsIndexerMemberCref, cancellationToken);
         }
@@ -184,8 +181,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             if (syntaxFacts.IsElementAccessExpression(node))
             {
+                // The indexerReference for an element access expression will not be null
                 return ComputeElementAccessInformationAsync(
-                    semanticModel, node, syntaxFacts, symbolsMatchAsync);
+                    semanticModel, node, syntaxFacts, symbolsMatchAsync)!;
             }
             else if (syntaxFacts.IsConditionalAccessExpression(node))
             {
@@ -229,7 +227,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return (matched, reason, indexerReference);
         }
 
-        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeElementAccessInformationAsync(
+        private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode? indexerReference)> ComputeElementAccessInformationAsync(
             SemanticModel semanticModel, SyntaxNode node,
             ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {

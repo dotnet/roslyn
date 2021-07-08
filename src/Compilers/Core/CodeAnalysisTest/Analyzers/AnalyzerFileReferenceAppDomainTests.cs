@@ -95,7 +95,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel));
 
             var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 

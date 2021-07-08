@@ -16,38 +16,44 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal sealed class RemoteSymbolSearchUpdateService : BrokeredServiceBase, IRemoteSymbolSearchUpdateService
     {
-        internal sealed class Factory : FactoryBase<IRemoteSymbolSearchUpdateService, ISymbolSearchLogService>
+        internal sealed class Factory : FactoryBase<IRemoteSymbolSearchUpdateService, IRemoteSymbolSearchUpdateService.ICallback>
         {
-            protected override IRemoteSymbolSearchUpdateService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<ISymbolSearchLogService> callback)
+            protected override IRemoteSymbolSearchUpdateService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> callback)
                 => new RemoteSymbolSearchUpdateService(arguments, callback);
         }
 
         private sealed class LogService : ISymbolSearchLogService
         {
-            private readonly RemoteCallback<ISymbolSearchLogService> _callback;
+            private readonly RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> _callback;
+            private readonly RemoteServiceCallbackId _callbackId;
 
-            public LogService(RemoteCallback<ISymbolSearchLogService> callback)
-                => _callback = callback;
+            public LogService(RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> callback, RemoteServiceCallbackId callbackId)
+            {
+                _callback = callback;
+                _callbackId = callbackId;
+            }
 
             public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.LogExceptionAsync(exception, text, cancellationToken), cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.LogExceptionAsync(_callbackId, exception, text, cancellationToken), cancellationToken);
 
             public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.LogInfoAsync(text, cancellationToken), cancellationToken);
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.LogInfoAsync(_callbackId, text, cancellationToken), cancellationToken);
         }
 
         private readonly ISymbolSearchUpdateEngine _updateEngine;
+        private readonly RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> _callback;
 
-        public RemoteSymbolSearchUpdateService(in ServiceConstructionArguments arguments, RemoteCallback<ISymbolSearchLogService> callback)
+        public RemoteSymbolSearchUpdateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteSymbolSearchUpdateService.ICallback> callback)
             : base(arguments)
         {
-            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess(new LogService(callback));
+            _updateEngine = SymbolSearchUpdateEngineFactory.CreateEngineInProcess();
+            _callback = callback;
         }
 
-        public ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
+        public ValueTask UpdateContinuouslyAsync(RemoteServiceCallbackId callbackId, string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
-                _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken),
+                _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, new LogService(_callback, callbackId), cancellationToken),
                 cancellationToken);
         }
 

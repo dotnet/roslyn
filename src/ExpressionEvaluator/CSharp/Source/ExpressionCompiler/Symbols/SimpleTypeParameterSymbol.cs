@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _container = container;
             _ordinal = ordinal;
             _name = name;
+
+            Debug.Assert(this.TypeParameterKind == (ContainingSymbol is MethodSymbol ? TypeParameterKind.Method :
+                                                   (ContainingSymbol is NamedTypeSymbol ? TypeParameterKind.Type :
+                                                   TypeParameterKind.Cref)),
+                         $"Container is {ContainingSymbol?.Kind}, TypeParameterKind is {this.TypeParameterKind}");
         }
 
         public override string Name
@@ -39,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override TypeParameterKind TypeParameterKind
         {
-            get { return TypeParameterKind.Type; }
+            get { return ContainingSymbol is MethodSymbol ? TypeParameterKind.Method : TypeParameterKind.Type; }
         }
 
         public override bool HasConstructorConstraint
@@ -48,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }
@@ -62,6 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool? IsNotNullable => null;
 
         public override bool HasValueTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsValueTypeFromConstraintTypes
         {
             get { return false; }
         }
@@ -91,11 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }

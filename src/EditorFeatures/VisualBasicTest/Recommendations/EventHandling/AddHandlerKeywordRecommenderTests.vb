@@ -6,49 +6,49 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ev
     Public Class AddHandlerKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>|</MethodBody>, "AddHandler",
+        Public Sub AddHandlerHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "AddHandler",
 $"{VBFeaturesResources.AddHandler_statement}
 {VBWorkspaceResources.Associates_an_event_with_an_event_handler_delegate_or_lambda_expression_at_run_time}
 AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "AddHandler")
-        End Function
+        Public Sub AddHandlerInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "AddHandler")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AddHandlerAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x 
 |</MethodBody>, "AddHandler")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerMissingInClassBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
-        End Function
+        Public Sub AddHandlerMissingInClassBlockTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "AddHandler")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerInSingleLineLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
-        End Function
+        Public Sub AddHandlerInSingleLineLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "AddHandler")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerInSingleLineFunctionLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
-        End Function
+        Public Sub AddHandlerInSingleLineFunctionLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "AddHandler")
+        End Sub
 
         <Fact>
         <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AddHandlerInCustomEventTest() As Task
+        Public Sub AddHandlerInCustomEventTest()
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -56,13 +56,13 @@ Public Class Z
     End Event
 End Class</File>
 
-            Await VerifyRecommendationsContainAsync(code, "AddHandler")
-        End Function
+            VerifyRecommendationsContain(code, "AddHandler")
+        End Sub
 
         <Fact>
         <WorkItem(808406, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/808406")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAddHandlerInCustomEventWithAddHandlerTest() As Task
+        Public Sub NotAddHandlerInCustomEventWithAddHandlerTest()
             Dim code = <File>
 Public Class Z
     Public Custom Event E As Action
@@ -72,7 +72,7 @@ Public Class Z
     End Event
 End Class</File>
 
-            Await VerifyRecommendationsMissingAsync(code, "AddHandler")
-        End Function
+            VerifyRecommendationsMissing(code, "AddHandler")
+        End Sub
     End Class
 End Namespace

@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return Equals(param, compareKind, isValueTypeOverride: null);
+            return Equals(param, compareKind);
         }
 
-        internal bool Equals(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        internal bool Equals(FunctionPointerParameterSymbol other, TypeCompareKind compareKind)
             => other.Ordinal == Ordinal
-               && _containingSymbol.Equals(other._containingSymbol, compareKind, isValueTypeOverride);
+               && _containingSymbol.Equals(other._containingSymbol, compareKind);
 
-        internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind, IReadOnlyDictionary<TypeParameterSymbol, bool>? isValueTypeOverride)
+        internal bool MethodEqualityChecks(FunctionPointerParameterSymbol other, TypeCompareKind compareKind)
             => FunctionPointerTypeSymbol.RefKindEquals(compareKind, RefKind, other.RefKind)
                && ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0
                     || RefCustomModifiers.SequenceEqual(other.RefCustomModifiers))
-               && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind, isValueTypeOverride);
+               && TypeWithAnnotations.Equals(other.TypeWithAnnotations, compareKind);
 
         public override int GetHashCode()
         {

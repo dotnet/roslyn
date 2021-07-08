@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
-        private readonly List<SyntaxToken> _tokens;
+        private readonly SegmentedList<SyntaxToken> _tokens;
 
         // caches original trivia info to improve perf
-        private readonly TriviaData[] _cachedOriginalTriviaInfo;
+        private readonly SegmentedArray<TriviaData> _cachedOriginalTriviaInfo;
 
         // formatting engine can be used either with syntax tree or without
         // this will reconstruct information that reside in syntax tree from root node
@@ -58,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                _tokens = new List<SyntaxToken>(sizeOfList);
+                _tokens = new SegmentedList<SyntaxToken>(sizeOfList);
                 _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
                 Debug.Assert(this.TokenCount > 0);
 
                 // initialize trivia related info
-                _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
+                _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
 
                 // Func Cache
                 _getTriviaData = this.GetTriviaData;

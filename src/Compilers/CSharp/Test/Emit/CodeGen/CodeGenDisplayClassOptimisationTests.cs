@@ -42,7 +42,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.ReleaseExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -126,7 +126,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.DebugExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program

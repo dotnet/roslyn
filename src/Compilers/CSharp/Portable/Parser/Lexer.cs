@@ -2836,6 +2836,11 @@ top:
                     info.Kind = SyntaxKind.CommaToken;
                     break;
 
+                case '-':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.MinusToken;
+                    break;
+
                 case '!':
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '=')

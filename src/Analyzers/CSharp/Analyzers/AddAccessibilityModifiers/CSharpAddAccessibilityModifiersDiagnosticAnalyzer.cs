@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // If we have a class or struct, recurse inwards.
             if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
-                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
             {
                 ProcessMembers(context, option, typeDeclaration.Members);
             }
@@ -111,11 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                                 return;
                             }
                         }
+
                         break;
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         {
                             // Inside a type, default is private
                             if (accessibility != Accessibility.Private)
@@ -123,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                                 return;
                             }
                         }
+
                         break;
 
                     default:

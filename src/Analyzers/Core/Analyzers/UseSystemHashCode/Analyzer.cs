@@ -58,11 +58,11 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
         /// </summary>
         public (bool accessesBase, ImmutableArray<ISymbol> members, ImmutableArray<IOperation> statements) GetHashedMembers(ISymbol? owningSymbol, IOperation? operation)
         {
-            if (!(operation is IBlockOperation blockOperation))
+            if (operation is not IBlockOperation blockOperation)
                 return default;
 
             // Owning symbol has to be an override of Object.GetHashCode.
-            if (!(owningSymbol is IMethodSymbol { Name: nameof(GetHashCode) } method))
+            if (owningSymbol is not IMethodSymbol { Name: nameof(GetHashCode) } method)
                 return default;
 
             if (method.Locations.Length != 1 || method.DeclaringSyntaxReferences.Length != 1)
@@ -99,13 +99,13 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return null;
             }
 
-            if (!(statements[0] is IReturnOperation returnOperation))
+            if (statements[0] is not IReturnOperation { ReturnedValue: { } returnedValue })
             {
                 return null;
             }
 
             using var analyzer = new OperationDeconstructor(this, method, hashCodeVariable: null);
-            if (!analyzer.TryAddHashedSymbol(returnOperation.ReturnedValue, seenHash: false))
+            if (!analyzer.TryAddHashedSymbol(returnedValue, seenHash: false))
             {
                 return null;
             }
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
             // First statement has to be the declaration of the accumulator.
             // Last statement has to be the return of it.
-            if (!(statements.First() is IVariableDeclarationGroupOperation varDeclStatement) ||
-                !(statements.Last() is IReturnOperation returnStatement))
+            if (statements.First() is not IVariableDeclarationGroupOperation varDeclStatement ||
+                !(statements.Last() is IReturnOperation { ReturnedValue: { } returnedValue }))
             {
                 return null;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             }
 
             var hashCodeVariable = declarator.Symbol;
-            if (!(IsLocalReference(returnStatement.ReturnedValue, hashCodeVariable)))
+            if (!(IsLocalReference(returnedValue, hashCodeVariable)))
             {
                 return null;
             }
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
             for (var i = 1; i < statements.Length - 1; i++)
             {
                 var statement = statements[i];
-                if (!(statement is IExpressionStatementOperation expressionStatement) ||
-                    !(expressionStatement.Operation is ISimpleAssignmentOperation simpleAssignment) ||
+                if (statement is not IExpressionStatementOperation expressionStatement ||
+                    expressionStatement.Operation is not ISimpleAssignmentOperation simpleAssignment ||
                     !IsLocalReference(simpleAssignment.Target, hashCodeVariable) ||
                     !valueAnalyzer.TryAddHashedSymbol(simpleAssignment.Value, seenHash: false))
                 {

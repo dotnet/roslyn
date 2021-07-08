@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             var currentServicesMap = _languageServicesMap;
             if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
             {
-                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, _ => new MefLanguageServices(this, languageName));
+                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
             }
 
             if (languageServices.HasServices)

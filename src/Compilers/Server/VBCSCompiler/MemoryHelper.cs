@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public ulong AvailableVirtual;
         public ulong Reserved; //always 0
 
-        public static bool IsMemoryAvailable()
+        public static bool IsMemoryAvailable(ICompilerServerLogger logger)
         {
             if (!PlatformInformation.IsWindows)
             {
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 unit = "KB";
             }
 
-            CompilerServerLogger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
+            logger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
 
             return free >= 800 << 20; // Value (500MB) is arbitrary; feel free to improve.
         }
