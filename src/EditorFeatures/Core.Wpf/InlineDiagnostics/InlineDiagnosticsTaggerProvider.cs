@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            var document = workspace.CurrentSolution.GetRequiredDocument(diagnostic.DocumentId);
+            var document = workspace.CurrentSolution.GetDocument(diagnostic.DocumentId);
             if (document is null)
             {
                 return null;
