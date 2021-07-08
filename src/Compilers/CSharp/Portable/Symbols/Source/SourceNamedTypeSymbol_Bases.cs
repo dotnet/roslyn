@@ -103,12 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType
-                && !baseContainsErrorTypes
-                && this.DeclaringCompilation.IsAttributeType(localBase)
-                && MessageID.IDS_FeatureGenericAttributes.GetFeatureAvailabilityDiagnosticInfo(this.DeclaringCompilation) is { } diagnosticInfo)
+            if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
             {
-                diagnostics.Add(diagnosticInfo, baseLocation);
+                MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, baseLocation);
             }
 
             // Check constraints on the first declaration with explicit bases.

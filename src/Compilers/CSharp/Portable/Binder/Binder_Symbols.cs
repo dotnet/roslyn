@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
                 if (unconstructedType.IsGenericType
                     && options.IsAttributeTypeLookup()
-                    && boundTypeArguments.FirstOrDefault(bta => bta.Type.IsTypeParameter() || bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()) is { HasType: true } badAttributeArgument)
+                    && boundTypeArguments.FirstOrDefault(bta => bta.Type.IsUnboundGenericType() || bta.Type.ContainsTypeParameter()) is { HasType: true } badAttributeArgument)
                 {
                     diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, badAttributeArgument.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }

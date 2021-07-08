@@ -9737,6 +9737,48 @@ public class Program { }
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "object").WithArguments("C<T>", "T", "object").WithLocation(4, 4));
         }
 
+        [Fact]
+        public void GenericAttribute_ErrorTypeArg()
+        {
+            var source = @"
+public class C<T> : System.Attribute { }
+
+[C<ERROR>]
+[C<System>]
+[C<>]
+public class Program { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 21),
+                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<ERROR>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,4): error CS0118: 'System' is a namespace but is used like a type
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
+                // (6,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,4): error CS0118: 'System' is a namespace but is used like a type
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
+                // (6,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+        }
+
         #endregion
     }
 }
