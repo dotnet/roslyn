@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 : base(
                     AsynchronousOperationListenerProvider.NullListener,
                     globalOperationNotificationService,
-                    (int)reportingInterval.TotalMilliseconds,
+                    reportingInterval,
                     shutdownToken)
             {
                 _event = new SemaphoreSlim(initialCount: 0);

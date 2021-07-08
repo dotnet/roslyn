@@ -971,6 +971,15 @@ class Derived : Base
             TestNormalizeStatement(actual, expected);
         }
 
+        [Fact]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
+        }
+
         private void TestNormalize(CSharpSyntaxNode node, string expected)
         {
             var actual = node.NormalizeWhitespace("  ").ToFullString();

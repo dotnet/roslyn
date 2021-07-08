@@ -1,7 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="new">#{0} directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM (skrót)</target>
@@ -92,7 +97,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <target state="translated">Dodanie elementu „{0}” do typu ogólnego uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
@@ -107,7 +112,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
         <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="new">Adding a positional parameter to a record will prevent the debug session from continuing.</target>
+        <target state="translated">Dodanie parametru pozycyjnego do rekordu uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -137,17 +142,17 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">Zastosuj preferencje nagłówka pliku</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object/collection initialization preferences</source>
-        <target state="new">Apply object/collection initialization preferences</target>
+        <target state="translated">Zastosuj preferencje inicjowania obiektu/kolekcji</target>
         <note />
       </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <target state="translated">Aktywna instrukcja została usunięta ze swojej oryginalnej metody. Musisz cofnąć zmiany, aby kontynuować, lub uruchomić ponownie sesję debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -232,7 +237,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <target state="translated">Zmiana widoczności elementu {0} uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -317,7 +322,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="new">Deleting a positional parameter from a record will prevent the debug session from continuing.</target>
+        <target state="translated">Usunięcie parametru pozycyjnego z rekordu uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -352,7 +357,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
         <source>Edit and continue is not supported by the runtime.</source>
-        <target state="new">Edit and continue is not supported by the runtime.</target>
+        <target state="translated">Środowisko uruchomieniowe nie obsługuje funkcji edycji i kontynuowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -382,7 +387,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="new">Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</target>
+        <target state="translated">Jawnie zaimplementowane metody rekordów muszą mieć nazwy parametrów pasujące do wygenerowanego odpowiednika kompilatora "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -422,7 +427,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Formatuj dokument</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -522,12 +527,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
         <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
-        <target state="new">Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</target>
+        <target state="translated">Zaimplementowanie parametru pozycyjnego rekordu "{0}" w trybie tylko do odczytu uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
-        <target state="new">Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</target>
+        <target state="translated">Zaimplementowanie parametru pozycyjnego "{0}" przy użyciu ustawionej metody dostępu uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -627,12 +632,12 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Making a method an iterator will prevent the debug session from continuing.</source>
-        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <target state="translated">Uczynienie metody iteratorem uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
         <source>Making a method 'async' will prevent the debug session from continuing.</source>
-        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
+        <target state="translated">Uczynienie metody „asynchroniczną” uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -687,7 +692,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Zmodyfikowanie treści elementu „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
+        <target state="translated">Zmodyfikowanie treści elementu „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -717,7 +722,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Zmodyfikowanie pliku źródłowego „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
+        <target state="translated">Zmodyfikowanie pliku źródłowego „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -737,7 +742,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Operators">
         <source>Operators</source>
-        <target state="new">Operators</target>
+        <target state="translated">Operatory</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -1922,12 +1927,12 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
-        <target state="new">Remove unnecessary casts</target>
+        <target state="translated">Usuń niepotrzebne rzutowania</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
-        <target state="new">Remove unused variables</target>
+        <target state="translated">Usuń nieużywane zmienne</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -1947,7 +1952,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
-        <target state="new">Sort accessibility modifiers</target>
+        <target state="translated">Sortuj modyfikatory dostępności</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2090,6 +2095,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Aktualizacja elementu „{0}” w pobliżu aktywnej instrukcji uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Użyj treści bloku dla wyrażeń lambda</target>
@@ -2177,7 +2187,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
-        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <target state="translated">Za pomocą paska nawigacyjnego można przełączać konteksty.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -2368,11 +2378,11 @@ Co prawda możliwe jest wyświetlenie składnika dziesięciotysięcznej części
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="needs-review-translation">Indywidualny specyfikator formatu „f” reprezentuje najbardziej znaczącą cyfrę ułamka sekundy; tzn. reprezentuje dziesiątą część sekundy w wartości daty i godziny.
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
 
-Jeśli specyfikator formatu „f” zostanie użyty bez innych indywidualnych specyfikatorów formatu, będzie interpretowany jako standardowy specyfikator daty i godziny „f”.
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-Gdy specyfikator formatu „f” jest używany jako część ciągu formatu podanego dla metody arseExact, TryParseExact, ParseExact lub TryParseExact, liczba specyfikatorów formatu „f” wskazuje liczbę najważniejszych cyfr ułamka sekund, jaka musi być reprezentowana, aby pomyślnie przeanalizować ciąg.</target>
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
@@ -2448,7 +2458,7 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
       </trans-unit>
       <trans-unit id="code">
         <source>code</source>
-        <target state="new">code</target>
+        <target state="translated">kod</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2619,7 +2629,7 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       </trans-unit>
       <trans-unit id="member_kind_and_name">
         <source>{0} '{1}'</source>
-        <target state="new">{0} '{1}'</target>
+        <target state="translated">{0} „{1}”</target>
         <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
@@ -3281,7 +3291,7 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Usunięcie elementu „{0}” uniemożliwi kontynuowanie sesji debugowania.</target>
+        <target state="translated">Usunięcie elementu „{0}” uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3381,7 +3391,7 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Usunięcie elementu „{0}” zawierającego aktywną instrukcję uniemożliwi kontynuowanie sesji debugowania.</target>
+        <target state="translated">Usunięcie elementu {0} zawierającego aktywną instrukcję uniemożliwi kontynuowanie sesji debugowania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3507,7 +3517,7 @@ Czy chcesz kontynuować?</target>
       </trans-unit>
       <trans-unit id="Not_Available">
         <source>Not Available ⚠</source>
-        <target state="needs-review-translation">Niedostępne</target>
+        <target state="translated">Niedostępne ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
@@ -3777,7 +3787,7 @@ Gdy jest używany ten standardowy specyfikator formatu, operacja formatowania lu
       </trans-unit>
       <trans-unit id="static_constructor">
         <source>static constructor</source>
-        <target state="new">static constructor</target>
+        <target state="translated">konstruktor statyczny</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

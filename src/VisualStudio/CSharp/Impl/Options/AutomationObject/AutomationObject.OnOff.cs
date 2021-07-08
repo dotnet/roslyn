@@ -32,18 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.Outlining, value); }
         }
 
-        public int Formatting_TriggerOnPaste
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.FormatOnPaste); }
-            set { SetBooleanOption(FeatureOnOffOptions.FormatOnPaste, value); }
-        }
-
-        public int Formatting_TriggerOnStatementCompletion
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnSemicolon, value); }
-        }
-
         public int HighlightReferences
         {
             get { return GetBooleanOption(FeatureOnOffOptions.ReferenceHighlighting); }
@@ -66,12 +54,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview); }
             set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
-        }
-
-        public int AutoFormattingOnTyping
-        {
-            get { return GetBooleanOption(FeatureOnOffOptions.AutoFormattingOnTyping); }
-            set { SetBooleanOption(FeatureOnOffOptions.AutoFormattingOnTyping, value); }
         }
 
         public int NavigateToDecompiledSources
@@ -102,6 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon); }
             set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, value); }
+        }
+
+        public int SkipAnalyzersForImplicitlyTriggeredBuilds
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds); }
+            set { SetBooleanOption(FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, value); }
         }
     }
 }

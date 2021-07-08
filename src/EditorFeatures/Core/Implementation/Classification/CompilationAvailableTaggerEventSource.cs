@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// <summary>
         /// Cancellation tokens controlling background computation of the compilation.
         /// </summary>
-        private readonly CancellationSeries _cancellationSeries = new();
+        private readonly ReferenceCountedDisposable<CancellationSeries> _cancellationSeries = new(new CancellationSeries());
 
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
@@ -72,9 +72,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (!document.SupportsSemanticModel)
                 return;
 
+            using var cancellationSeries = _cancellationSeries.TryAddReference();
+            if (cancellationSeries is null)
+            {
+                // Already in the process of disposing this instance
+                return;
+            }
+
             // Cancel any existing tasks that are computing the compilation and spawn a new one to compute
             // it and notify any listening clients.
-            var cancellationToken = _cancellationSeries.CreateNext();
+            var cancellationToken = cancellationSeries.Target.CreateNext();
 
             var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
             var task = Task.Run(async () =>
