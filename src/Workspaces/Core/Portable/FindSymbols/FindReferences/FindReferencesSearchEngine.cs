@@ -470,6 +470,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
+        private async Task<SymbolGroup> GetSymbolGroupAsync(ISymbol currentSymbol, CancellationToken cancellationToken)
+        {
+            var symbols = await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false);
+            var group = new SymbolGroup(symbols);
+            return group;
+        }
 
         private async Task<HashSet<Project>> GetProjectsToSearchAsync(
             ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
