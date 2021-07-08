@@ -15,8 +15,10 @@ using Microsoft.CodeAnalysis.Editor.Tags;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -91,7 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            return _optionService.GetOption(SuggestionsOptions.Asynchronous)
+            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var experimentService = document?.Project.Solution.Workspace.Services.GetService<IExperimentationService>();
+            var asyncIsForceDisabled = experimentService?.IsExperimentEnabled(WellKnownExperimentNames.DisableAsynchronousQuickActions) == true;
+
+            return !asyncIsForceDisabled && _optionService.GetOption(SuggestionsOptions.Asynchronous)
                 ? new AsyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry)
                 : new SyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
