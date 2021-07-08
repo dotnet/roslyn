@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         ValueTracking_TrackValueSource = 491,
 
         InheritanceMargin_GetInheritanceMemberItems = 492,
-        
+
         LSP_FindDocumentInWorkspace = 493,
 
         SuggestedActions_GetSuggestedActionsAsync = 500,
