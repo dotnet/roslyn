@@ -2090,7 +2090,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -5254,7 +5254,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -5516,7 +5516,6 @@ class C
             int f0(int a) => x0;
             int f1(int a) => x1;
 
-            int f0(int a) => x0;
             int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
         }
     }
@@ -10559,7 +10558,7 @@ Console.WriteLine(x());
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
         }
@@ -10588,7 +10587,6 @@ foreach (int x0 in new[] { 1 })  // Group #0
     int f0(int a) => x0;
     int f1(int a) => x1;
 
-    int f0(int a) => x0;
     int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
 }
 ";
