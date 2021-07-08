@@ -251,10 +251,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static async Task<HashSet<ISymbol>> GetAllUpSymbolsAsync(
                 FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
             {
+                var upSymbols = new HashSet<ISymbol>();
                 var workQueue = new Stack<ISymbol>();
                 PushAll(workQueue, initialSymbols);
-
-                var upSymbols = new HashSet<ISymbol>();
 
                 var solution = engine._solution;
                 var allProjects = solution.Projects.ToImmutableHashSet();
