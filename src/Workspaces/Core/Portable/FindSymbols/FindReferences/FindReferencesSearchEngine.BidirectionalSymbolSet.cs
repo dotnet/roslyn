@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private sealed class BidirectionalSymbolSet : SymbolSet
         {
+            /// <summary>
+            /// When we're cascading in both direction, we can just keep all symbols in a single set.  We'll always be
+            /// examining all of them to go in both up and down directions in every project we process.  Any time we
+            /// add a new symbol to it we'll continue to cascade in both directions looking for more.
+            /// </summary>
             private readonly HashSet<ISymbol> _allSymbols = new();
 
             public BidirectionalSymbolSet(FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, HashSet<ISymbol> upSymbols)
