@@ -1287,15 +1287,14 @@ hasRelatedInterfaces:
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
-                    return getParameterlessConstructor((NamedTypeSymbol)typeArgument) is null or { DeclaredAccessibility: Accessibility.Public };
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
 
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
-                    return getParameterlessConstructor((NamedTypeSymbol)typeArgument) is { DeclaredAccessibility: Accessibility.Public } &&
-                        !typeArgument.IsAbstract;
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false) && !typeArgument.IsAbstract;
 
                 case TypeKind.TypeParameter:
                     {
@@ -1310,13 +1309,22 @@ hasRelatedInterfaces:
                 default:
                     return false;
             }
+        }
 
-            // Returns parameterless constructor if any.
-            static MethodSymbol getParameterlessConstructor(NamedTypeSymbol type)
+        /// <summary>
+        /// Return true if the type has a public parameterless constructor.
+        /// </summary>
+        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
+        {
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
+            foreach (var constructor in type.InstanceConstructors)
             {
-                Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
-                return type.InstanceConstructors.FirstOrDefault(constructor => constructor.ParameterCount == 0);
+                if (constructor.ParameterCount == 0)
+                {
+                    return constructor.DeclaredAccessibility == Accessibility.Public;
+                }
             }
+            return synthesizedIfMissing;
         }
 
         /// <summary>
