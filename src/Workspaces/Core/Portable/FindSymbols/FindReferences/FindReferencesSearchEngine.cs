@@ -184,9 +184,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task ProcessDocumentsAsync(
-            Document document,
-            ImmutableArray<ISymbol> documentQueue,
-            CancellationToken cancellationToken)
+            Document document, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -198,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // start cache for this semantic model
                 FindReferenceCache.Start(model);
 
-                foreach (var symbol in documentQueue)
+                foreach (var symbol in symbols)
                     await ProcessDocumentAsync(document, model, symbol, cancellationToken).ConfigureAwait(false);
             }
             finally
