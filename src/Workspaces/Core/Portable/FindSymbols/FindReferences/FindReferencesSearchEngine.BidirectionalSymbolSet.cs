@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Start searching using the current set of symbols built up so far.
                 var workQueue = new Stack<ISymbol>();
-                PushAll(workQueue, _allSymbols);
+                workQueue.Push(_allSymbols);
 
                 var projects = ImmutableHashSet.Create(project);
 

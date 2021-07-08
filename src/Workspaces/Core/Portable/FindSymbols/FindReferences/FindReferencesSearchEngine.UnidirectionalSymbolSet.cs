@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Start searching using the existing set of symbols found at the start (or anything found below that).
                 var workQueue = new Stack<ISymbol>();
-                PushAll(workQueue, _initialAndDownSymbols);
+                workQueue.Push(_initialAndDownSymbols);
 
                 var projects = ImmutableHashSet.Create(project);
 

@@ -61,18 +61,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static bool InvolvesInheritance(ISymbol symbol)
                 => symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event;
 
-            protected static void PushAll(Stack<ISymbol> stack, ImmutableArray<ISymbol> symbols)
-            {
-                foreach (var symbol in symbols)
-                    stack.Push(symbol);
-            }
-
-            protected static void PushAll(Stack<ISymbol> stack, HashSet<ISymbol> symbols)
-            {
-                foreach (var symbol in symbols)
-                    stack.Push(symbol);
-            }
-
             public static async Task<SymbolSet> CreateAsync(
                 FindReferencesSearchEngine engine, ISymbol symbol, CancellationToken cancellationToken)
             {
@@ -158,7 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var upSymbols = new HashSet<ISymbol>();
                 var workQueue = new Stack<ISymbol>();
-                PushAll(workQueue, initialSymbols);
+                workQueue.Push(initialSymbols);
 
                 var solution = engine._solution;
                 var allProjects = solution.Projects.ToImmutableHashSet();
