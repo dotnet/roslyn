@@ -254,6 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(symbolA.GetHashCode() == symbolB.GetHashCode());
         }
 
+        internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
+
         private sealed class NativeIntegerTypeMap : AbstractTypeMap
         {
             private readonly NativeIntegerTypeSymbol _type;

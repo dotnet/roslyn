@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             /// </summary>
             private readonly Dictionary<int, double> _performanceMap;
 
-            public Snapshot(IEnumerable<(string analyzerId, TimeSpan timeSpan)> snapshot, int unitCount) :
-                this(Convert(snapshot), unitCount)
+            public Snapshot(IEnumerable<(string analyzerId, TimeSpan timeSpan)> snapshot, int unitCount)
+                : this(Convert(snapshot), unitCount)
             {
             }
 

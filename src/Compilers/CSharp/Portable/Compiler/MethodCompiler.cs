@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_globalHasErrors)
             {
                 var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
-                foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken))
+                foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken).ForwardingMethods)
                 {
                     Debug.Assert(synthesizedExplicitImpl.SynthesizesLoweredBoundBody);
                     synthesizedExplicitImpl.GenerateMethodBody(compilationState, discardedDiagnostics);

@@ -192,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(left.MemberSymbol is not null);
 
                     // We evaluate the values provided in source first
-                    BoundLocal valueTemp = _factory.StoreToTemp(assignment.Right, out BoundAssignmentOperator boundAssignmentToTemp);
+                    var rewrittenRight = VisitExpression(assignment.Right);
+                    BoundLocal valueTemp = _factory.StoreToTemp(rewrittenRight, out BoundAssignmentOperator boundAssignmentToTemp);
                     temps.Add(valueTemp.LocalSymbol);
                     sideEffects.Add(boundAssignmentToTemp);
 

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
             : base(workingFolderPath, solutionFilePath, databaseFile)
         {
@@ -63,10 +65,10 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 CancellationToken.None)!;
 
             // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
-            _flushQueue = new AsyncBatchingDelay(
+            _flushQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromMilliseconds(FlushAllDelayMS),
                 FlushInMemoryDataToDiskIfNotShutdownAsync,
-                asyncListener: null,
+                asyncListener,
                 _shutdownTokenSource.Token);
         }
 
@@ -75,9 +77,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
         {
-            var sqlStorage = new SQLitePersistentStorage(connectionPoolService, workingFolderPath, solutionFilePath, databaseFile, faultInjector);
+            var sqlStorage = new SQLitePersistentStorage(
+                connectionPoolService, workingFolderPath, solutionFilePath, databaseFile, asyncListener, faultInjector);
             if (sqlStorage._connectionPool is null)
             {
                 // The connection pool failed to initialize

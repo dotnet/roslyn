@@ -384,6 +384,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal TypeParameterSymbol? ConstrainedToTypeOpt
+        {
+            get
+            {
+                var uncommonData = _uncommonData;
+                if (uncommonData != null && uncommonData._conversionMethod is null)
+                {
+                    var conversionResult = uncommonData._conversionResult;
+                    if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
+                    {
+                        UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
+                        return analysis.ConstrainedToTypeOpt;
+                    }
+                }
+
+                return null;
+            }
+        }
+
         internal DeconstructMethodInfo DeconstructionInfo
         {
             get

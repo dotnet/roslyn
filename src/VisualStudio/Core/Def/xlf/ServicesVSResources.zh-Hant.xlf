@@ -147,6 +147,11 @@
         <target state="translated">C#/Visual Basic 診斷語言用戶端</target>
         <note />
       </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="new">Calculating...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">正在計算相依項...</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
         <target state="translated">目前的參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -377,6 +387,11 @@
         <target state="translated">識別碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">已實作的成員</target>
@@ -385,6 +400,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">實作成員</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -415,6 +435,11 @@
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
         <target state="translated">繼承邊界 (實驗性) </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -962,6 +987,11 @@
         <target state="translated">搜尋設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
         <target state="translated">選取目的地</target>
@@ -1035,6 +1065,11 @@
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">顯示繼承邊界</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="new">Skip analyzers for implicitly triggered builds</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1171,6 +1206,11 @@
         <source>Value</source>
         <target state="translated">值</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="new">Value Tracking</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>

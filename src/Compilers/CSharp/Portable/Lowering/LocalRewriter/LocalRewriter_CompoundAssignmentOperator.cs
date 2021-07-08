@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenType: node.Operator.LeftType,
                     @checked: isChecked);
 
-                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
+                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
 
                 Debug.Assert(node.Left.Type is { });
                 BoundExpression opFinal = MakeConversionNode(

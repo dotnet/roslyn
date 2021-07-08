@@ -1647,17 +1647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var arity = type.Arity;
             if (arity < 2)
             {
-                // Find the AsyncBuilder attribute.
-                foreach (var attr in type.GetAttributes())
-                {
-                    if (attr.IsTargetAttribute(type, AttributeDescription.AsyncMethodBuilderAttribute)
-                        && attr.CommonConstructorArguments.Length == 1
-                        && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
-                    {
-                        builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
-                        return true;
-                    }
-                }
+                return type.HasAsyncMethodBuilderAttribute(out builderArgument);
             }
 
             builderArgument = null;
@@ -1936,17 +1926,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var globalNamespace = outerNamespace.ContainingNamespace;
             return globalNamespace != null && globalNamespace.IsGlobalNamespace;
-        }
-
-        public static bool IsBadAsyncReturn(this TypeSymbol returnType, CSharpCompilation declaringCompilation)
-        {
-            // Note: we're passing the return type explicitly (rather than using `method.ReturnType`) to avoid cycles
-            return !returnType.IsErrorType() &&
-                !returnType.IsVoidType() &&
-                !returnType.IsNonGenericTaskType(declaringCompilation) &&
-                !returnType.IsGenericTaskType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
-                !returnType.IsIAsyncEnumeratorType(declaringCompilation);
         }
 
         internal static int TypeToIndex(this TypeSymbol type)

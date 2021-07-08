@@ -5,32 +5,31 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService), ServiceLayer.Host), Shared]
-    internal class VisualStudioDiagnosticModeServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService), ServiceLayer.Default), Shared]
+    internal class DefaultDiagnosticModeServiceFactory : IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioDiagnosticModeServiceFactory()
+        public DefaultDiagnosticModeServiceFactory()
         {
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new VisualStudioDiagnosticModeService(workspaceServices.Workspace);
+            => new DefaultDiagnosticModeService(workspaceServices.Workspace);
 
-        private class VisualStudioDiagnosticModeService : IDiagnosticModeService
+        private class DefaultDiagnosticModeService : IDiagnosticModeService
         {
             private readonly Workspace _workspace;
             private readonly Dictionary<Option2<DiagnosticMode>, Lazy<DiagnosticMode>> _optionToMode = new();
 
-            public VisualStudioDiagnosticModeService(Workspace workspace)
+            public DefaultDiagnosticModeService(Workspace workspace)
             {
                 _workspace = workspace;
             }
@@ -65,11 +64,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 if (inCodeSpacesServer)
                     return DiagnosticMode.Pull;
 
+                var diagnosticModeOption = _workspace.Options.GetOption(option);
+
+                // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
+                if (diagnosticModeOption == DiagnosticMode.Default)
+                {
+                    return GetDiagnosticModeFromFeatureFlag();
+                }
+
                 // Otherwise, defer to the workspace+option to determine what mode we're in.
-                return _workspace.Options.GetOption(option);
+                return diagnosticModeOption;
             }
 
-            private bool IsInCodeSpacesServer()
+            private DiagnosticMode GetDiagnosticModeFromFeatureFlag()
+            {
+                var featureFlagService = _workspace.Services.GetRequiredService<IExperimentationService>();
+                var isPullDiagnosticExperimentEnabled = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag);
+                return isPullDiagnosticExperimentEnabled ? DiagnosticMode.Pull : DiagnosticMode.Push;
+            }
+
+            private static bool IsInCodeSpacesServer()
             {
                 // hack until there is an officially supported free-threaded synchronous platform API to ask this question.
                 return Environment.GetEnvironmentVariable("VisualStudioServerMode") == "1";

@@ -186,9 +186,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         {
             try
             {
+                var debuggingSession = _debuggingSession;
+                if (debuggingSession == null)
+                {
+                    return false;
+                }
+
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await GetDebuggingSession().HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
+                return await debuggingSession.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         {
                                             if (!uniqueUsings.Add(namespaceOrType.NamespaceOrType))
                                             {
-                                                diagnostics.Add(ErrorCode.WRN_DuplicateUsing, namespaceOrType.UsingDirective!.Name.Location, namespaceOrType.NamespaceOrType);
+                                                diagnostics.Add(ErrorCode.HDN_DuplicateWithGlobalUsing, namespaceOrType.UsingDirective!.Name.Location, namespaceOrType.NamespaceOrType);
                                             }
                                             else
                                             {
@@ -635,6 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Binder? declarationBinder = null;
 
                     PooledHashSet<NamespaceOrTypeSymbol>? uniqueUsings = null;
+                    PooledHashSet<NamespaceOrTypeSymbol>? uniqueGlobalUsings = null;
 
                     foreach (var usingDirective in usingDirectives)
                     {
@@ -737,7 +738,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else if (!getOrCreateUniqueUsings(ref uniqueUsings, globalUsingNamespacesOrTypes).Add(imported))
                                 {
-                                    diagnostics.Add(ErrorCode.WRN_DuplicateUsing, usingDirective.Name.Location, imported);
+                                    diagnostics.Add(!globalUsingNamespacesOrTypes.IsEmpty && getOrCreateUniqueGlobalUsingsNotInTree(ref uniqueGlobalUsings, globalUsingNamespacesOrTypes, declarationSyntax.SyntaxTree).Contains(imported) ?
+                                                            ErrorCode.HDN_DuplicateWithGlobalUsing :
+                                                            ErrorCode.WRN_DuplicateUsing,
+                                                    usingDirective.Name.Location, imported);
                                 }
                                 else
                                 {
@@ -755,7 +759,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     var importedType = (NamedTypeSymbol)imported;
                                     if (!getOrCreateUniqueUsings(ref uniqueUsings, globalUsingNamespacesOrTypes).Add(importedType))
                                     {
-                                        diagnostics.Add(ErrorCode.WRN_DuplicateUsing, usingDirective.Name.Location, importedType);
+                                        diagnostics.Add(!globalUsingNamespacesOrTypes.IsEmpty && getOrCreateUniqueGlobalUsingsNotInTree(ref uniqueGlobalUsings, globalUsingNamespacesOrTypes, declarationSyntax.SyntaxTree).Contains(imported) ?
+                                                            ErrorCode.HDN_DuplicateWithGlobalUsing :
+                                                            ErrorCode.WRN_DuplicateUsing,
+                                                        usingDirective.Name.Location, importedType);
                                     }
                                     else
                                     {
@@ -782,6 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     uniqueUsings?.Free();
+                    uniqueGlobalUsings?.Free();
 
                     if (diagnostics.IsEmptyWithoutResolution)
                     {
@@ -802,6 +810,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             uniqueUsings = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
                             uniqueUsings.AddAll(globalUsingNamespacesOrTypes.Select(n => n.NamespaceOrType));
+                        }
+
+                        return uniqueUsings;
+                    }
+
+                    static PooledHashSet<NamespaceOrTypeSymbol> getOrCreateUniqueGlobalUsingsNotInTree(ref PooledHashSet<NamespaceOrTypeSymbol>? uniqueUsings, ImmutableArray<NamespaceOrTypeAndUsingDirective> globalUsingNamespacesOrTypes, SyntaxTree tree)
+                    {
+                        if (uniqueUsings is null)
+                        {
+                            uniqueUsings = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
+                            uniqueUsings.AddAll(globalUsingNamespacesOrTypes.Where(n => n.UsingDirectiveReference?.SyntaxTree != tree).Select(n => n.NamespaceOrType));
                         }
 
                         return uniqueUsings;
