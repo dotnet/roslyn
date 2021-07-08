@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                using var _1 = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
+                using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
 
                 foreach (var node in syntaxRoot.DescendantNodesAndSelf())
                 {
