@@ -1955,6 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 9012,
         ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 9013,
         ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 9014,
+        ERR_InterpolatedStringHandlerCreationCannotUseDynamic = 9015,
 
         #endregion diagnostics introduced for C# 10.0
 

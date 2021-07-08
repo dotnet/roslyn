@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Diagnostics;
 using System.Linq;
-using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,12 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private (ArrayBuilder<BoundExpression> HandlerPatternExpressions, BoundLocal Result) RewriteToInterpolatedStringHandlerPattern(BoundInterpolatedString node)
         {
             Debug.Assert(node.InterpolationData is { Construction: not null });
-            Debug.Assert(node.Parts.All(static p => p is BoundCall));
+            Debug.Assert(node.Parts.All(static p => p is BoundCall or BoundDynamicInvocation or BoundDynamicMemberAccess or BoundDynamicIndexerAccess));
             var data = node.InterpolationData.Value;
             var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, node.Syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
-            // PROTOTYPE(interp-string): Support dynamic creation
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
             var construction = (BoundObjectCreationExpression)data.Construction;
 
@@ -71,64 +70,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var handlerConstructionAssignment = _factory.AssignmentExpression(builderTemp, (BoundExpression)VisitObjectCreationExpression(construction));
 
-            var usesBoolReturn = data.UsesBoolReturns;
+            AddPlaceholderReplacement(data.ReceiverPlaceholder, builderTemp);
+            bool usesBoolReturns = data.UsesBoolReturns;
             var resultExpressions = ArrayBuilder<BoundExpression>.GetInstance(node.Parts.Length + 1);
-            foreach (var currentPart in node.Parts)
+
+            foreach (var part in node.Parts)
             {
-                var appendCall = (BoundCall)currentPart;
-                Debug.Assert(usesBoolReturn == (appendCall.Method.ReturnType.SpecialType == SpecialType.System_Boolean));
-
-                // The append call itself could have an interpolated string conversion that uses the builder local as the receiver
-                // passed to a nested construction call. This needs to affect the current call to ensure side effects are
-                // preserved, but shouldn't affect any subsequent calls.
-                BoundExpression? appendReceiver = builderTemp;
-                Debug.Assert(appendCall.Method.RequiresInstanceReceiver);
-                var argRefKindsOpt = appendCall.ArgumentRefKindsOpt;
-
-                var rewrittenArguments = VisitArguments(
-                    appendCall.Arguments,
-                    appendCall.Method,
-                    appendCall.ArgsToParamsOpt,
-                    argRefKindsOpt,
-                    ref appendReceiver,
-                    out ArrayBuilder<LocalSymbol>? temps);
-
-                var rewrittenAppendCall = MakeArgumentsAndCall(
-                    appendCall.Syntax,
-                    appendReceiver,
-                    appendCall.Method,
-                    rewrittenArguments,
-                    appendCall.ArgumentRefKindsOpt,
-                    appendCall.Expanded,
-                    appendCall.InvokedAsExtensionMethod,
-                    appendCall.ArgsToParamsOpt,
-                    appendCall.ResultKind,
-                    appendCall.Type,
-                    temps,
-                    appendCall);
-
-                Debug.Assert(usesBoolReturn == (rewrittenAppendCall.Type!.SpecialType == SpecialType.System_Boolean));
-                resultExpressions.Add(rewrittenAppendCall);
+                if (part is BoundCall call)
+                {
+                    Debug.Assert(call.Type.SpecialType == SpecialType.System_Boolean == usesBoolReturns);
+                    resultExpressions.Add((BoundExpression)VisitCall(call));
+                }
+                else if (part is BoundDynamicInvocation dynamicInvocation)
+                {
+                    resultExpressions.Add(VisitDynamicInvocation(dynamicInvocation, resultDiscarded: !usesBoolReturns));
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(part.Kind);
+                }
             }
+
+            RemovePlaceholderReplacement(data.ReceiverPlaceholder);
 
             if (appendShouldProceedLocal is not null)
             {
                 RemovePlaceholderReplacement(data.ArgumentPlaceholders[^1]);
             }
 
-            if (usesBoolReturn)
+            if (usesBoolReturns)
             {
                 // We assume non-bool returns if there was no parts to the string, and code below is predicated on that.
                 Debug.Assert(!node.Parts.IsEmpty);
                 // Start the sequence with appendProceedLocal, if appropriate
                 BoundExpression? currentExpression = appendShouldProceedLocal;
 
+                var boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+
                 foreach (var appendCall in resultExpressions)
                 {
+                    var actualCall = appendCall;
+                    if (actualCall.Type!.IsDynamic())
+                    {
+                        actualCall = _dynamicFactory.MakeDynamicConversion(actualCall, isExplicit: false, isArrayIndex: false, isChecked: false, boolType).ToExpression();
+                    }
+
                     // previousAppendCalls && appendCall
                     currentExpression = currentExpression is null
-                        ? appendCall
-                        : _factory.LogicalAnd(currentExpression, appendCall);
+                        ? actualCall
+                        : _factory.LogicalAnd(currentExpression, actualCall);
                 }
 
                 resultExpressions.Clear();

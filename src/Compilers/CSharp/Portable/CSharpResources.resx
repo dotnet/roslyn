@@ -6706,4 +6706,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion" xml:space="preserve">
     <value>An expression tree may not contain an interpolated string handler conversion.</value>
   </data>
+  <data name="ERR_InterpolatedStringHandlerCreationCannotUseDynamic" xml:space="preserve">
+    <value>An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</value>
+  </data>
 </root>

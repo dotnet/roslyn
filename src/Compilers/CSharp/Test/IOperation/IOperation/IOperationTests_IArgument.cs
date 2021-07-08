@@ -1058,7 +1058,7 @@ IInvocationOperation ( void P.M2([System.String memberName = null], [System.Stri
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>((source, "file.cs"), expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1101,7 +1101,7 @@ IInvocationOperation ( System.Boolean P.M2([System.String memberName = null], [S
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>((source, "file.cs"), expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1144,7 +1144,7 @@ IInvocationOperation (System.Boolean P.M2([System.String memberName = null], [Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>((source, "file.cs"), expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1199,7 +1199,7 @@ IInvocationOperation (System.Boolean P.M2([System.String memberName = null], [Sy
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>((source, "file.cs"), expectedOperationTree, TargetFramework.Mscorlib46, expectedDiagnostics);
         }
 
         [Fact]

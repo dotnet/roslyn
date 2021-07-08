@@ -2963,7 +2963,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> arguments,
             BindingDiagnosticBag diagnostics,
             TypeSymbol? receiverType,
-            RefKind? receiverRefKind)
+            RefKind? receiverRefKind,
+            uint receiverEscapeScope)
             where TMember : Symbol
         {
             var result = methodResult.Result;
@@ -2981,7 +2982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString);
                     TypeWithAnnotations parameterTypeWithAnnotations = GetCorrespondingParameterTypeWithAnnotations(ref result, parameters, arg);
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall((BoundUnconvertedInterpolatedString)argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, diagnostics);
+                    arguments[arg] = BindInterpolatedStringHandlerInMemberCall((BoundUnconvertedInterpolatedString)argument, arguments, parameters, ref result, arg, receiverType, receiverRefKind, receiverEscapeScope, diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -5689,7 +5690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiverType: null, receiverRefKind: null);
+                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics, receiverType: null, receiverRefKind: null, receiverEscapeScope: Binder.ExternalScope);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -7842,7 +7843,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverOpt?.GetRefKind());
+                RefKind? receiverRefKind = receiverOpt?.GetRefKind();
+                uint receiverEscapeScope = property.RequiresInstanceReceiver && receiverOpt != null
+                    ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiverOpt, LocalScopeDepth) : GetValEscape(receiverOpt, LocalScopeDepth)
+                    : Binder.ExternalScope;
+                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics, receiverOpt?.Type, receiverRefKind, receiverEscapeScope);
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;

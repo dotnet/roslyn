@@ -179,8 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = null;
                 if (unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
                 {
-                    // PROTOTYPE(interp-string): For interpolated strings used as strings, we could evaluate components eagerly
-                    // and always use the builder.
                     return false;
                 }
 
@@ -214,7 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
-            var (appendCalls, usesBoolReturn) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics);
+            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(unconvertedInterpolatedString.Syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
+            var (appendCalls, usesBoolReturn, positionInfo) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, implicitBuilderReceiver, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
             // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
@@ -294,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add the trailing out validity parameter for the first attempt.Note that we intentionally use `diagnostics` for resolving System.Boolean,
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, unconvertedInterpolatedString.Syntax);
-            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType);
+            var trailingConstructorValidityPlaceholder = new BoundInterpolatedStringArgumentPlaceholder(unconvertedInterpolatedString.Syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, valSafeToEscape: LocalScopeDepth, boolType);
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
             populateArguments(unconvertedInterpolatedString.Syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
@@ -368,8 +367,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             argumentsBuilder.Free();
             refKindsBuilder.Free();
 
-            // PROTOTYPE(interp-string): Support dynamic
-            Debug.Assert(constructorCall.HasErrors || constructorCall is BoundObjectCreationExpression);
+            Debug.Assert(constructorCall.HasErrors || constructorCall is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression);
+
+            if (constructorCall is BoundDynamicObjectCreationExpression)
+            {
+                // An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.
+                diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, unconvertedInterpolatedString.Syntax.Location, interpolatedStringHandlerType.Name);
+            }
 
             return new BoundInterpolatedString(
                 unconvertedInterpolatedString.Syntax,
@@ -378,7 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constructorCall,
                     usesBoolReturn,
                     LocalScopeDepth,
-                    additionalConstructorArguments.NullToEmpty()),
+                    additionalConstructorArguments.NullToEmpty(),
+                    positionInfo,
+                    implicitBuilderReceiver),
                 appendCalls,
                 unconvertedInterpolatedString.ConstantValue,
                 unconvertedInterpolatedString.Type,
@@ -440,20 +446,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
 
-        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn) BindInterpolatedStringAppendCalls(BoundUnconvertedInterpolatedString source, TypeSymbol builderType, BindingDiagnosticBag diagnostics)
+        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(
+            BoundUnconvertedInterpolatedString source,
+            BoundInterpolatedStringHandlerPlaceholder implicitBuilderReceiver,
+            BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE(interp-string): Update the spec with the rules around InterpolatedStringHandlerAttribute. For now, we assume that any
-            // type that makes it to this method is actually an interpolated string builder type, and we should fully report any binding errors
-            // we encounter while doing this work.
-
             if (source.Parts.IsEmpty)
             {
-                return (ImmutableArray<BoundExpression>.Empty, false);
+                return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty);
             }
 
-            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(source.Syntax, builderType) { WasCompilerGenerated = true };
             bool? builderPatternExpectsBool = null;
             var builderAppendCalls = ArrayBuilder<BoundExpression>.GetInstance(source.Parts.Length);
+            var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(source.Parts.Length);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
             var parameterNamesAndLocationsBuilder = ArrayBuilder<(string, Location)?>.GetInstance(3);
 
@@ -461,20 +466,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(part is BoundLiteral or BoundStringInsert);
                 string methodName;
+                bool isLiteral;
+                bool hasAlignment;
+                bool hasFormat;
 
                 if (part is BoundStringInsert insert)
                 {
                     methodName = "AppendFormatted";
                     argumentsBuilder.Add(insert.Value);
                     parameterNamesAndLocationsBuilder.Add(null);
+                    isLiteral = false;
+                    hasAlignment = false;
+                    hasFormat = false;
 
                     if (insert.Alignment is not null)
                     {
+                        hasAlignment = true;
                         argumentsBuilder.Add(insert.Alignment);
                         parameterNamesAndLocationsBuilder.Add(("alignment", insert.Alignment.Syntax.Location));
                     }
                     if (insert.Format is not null)
                     {
+                        hasFormat = true;
                         argumentsBuilder.Add(insert.Format);
                         parameterNamesAndLocationsBuilder.Add(("format", insert.Format.Syntax.Location));
                     }
@@ -483,6 +496,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     methodName = "AppendLiteral";
                     argumentsBuilder.Add(part);
+                    isLiteral = true;
+                    hasAlignment = false;
+                    hasFormat = false;
                 }
 
                 var arguments = argumentsBuilder.ToImmutableAndClear();
@@ -500,10 +516,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var call = MakeInvocationExpression(part.Syntax, implicitBuilderReceiver, methodName, arguments, diagnostics, names: parameterNamesAndLocations, searchExtensionMethodsIfNecessary: false);
                 builderAppendCalls.Add(call);
+                positionInfo.Add((isLiteral, hasAlignment, hasFormat));
 
-                // PROTOTYPE(interp-string): Handle dynamic
-                Debug.Assert(call is BoundCall or { HasErrors: true });
+                Debug.Assert(call is BoundCall or BoundDynamicInvocation or { HasErrors: true });
 
+                // We just assume that dynamic is going to do the right thing, and runtime will fail if it does not. If there are only dynamic calls, we assume that
+                // void is returned.
                 if (call is BoundCall { Method: { ReturnType: var returnType } method })
                 {
                     bool methodReturnsBool = returnType.SpecialType == SpecialType.System_Boolean;
@@ -527,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
-            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false);
+            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfo.ToImmutableAndFree());
         }
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(
@@ -538,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int interpolatedStringArgNum,
             TypeSymbol? receiverType,
             RefKind? receiverRefKind,
+            uint receiverEscapeScope,
             BindingDiagnosticBag diagnostics)
         {
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
@@ -680,17 +699,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                var placeholderSyntax = argumentIndex switch
+                SyntaxNode placeholderSyntax;
+                uint valSafeToEscapeScope;
+
+                switch (argumentIndex)
                 {
-                    BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => unconvertedString.Syntax,
-                    >= 0 => arguments[argumentIndex].Syntax,
-                    _ => throw ExceptionUtilities.UnexpectedValue(argumentIndex)
-                };
+                    case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
+                        placeholderSyntax = unconvertedString.Syntax;
+                        valSafeToEscapeScope = receiverEscapeScope;
+                        break;
+                    case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
+                        placeholderSyntax = unconvertedString.Syntax;
+                        valSafeToEscapeScope = Binder.ExternalScope;
+                        break;
+                    case >= 0:
+                        placeholderSyntax = arguments[argumentIndex].Syntax;
+                        valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(argumentIndex);
+                }
 
                 argumentPlaceholdersBuilder.Add(
                     new BoundInterpolatedStringArgumentPlaceholder(
                         placeholderSyntax,
                         argumentIndex,
+                        valSafeToEscapeScope,
                         placeholderType,
                         hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter));
                 // We use the parameter refkind, rather than what the argument was actually passed with, because that will suppress duplicated errors

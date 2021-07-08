@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1149,23 +1150,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node)
+        protected BoundNode VisitInterpolatedStringBase(BoundInterpolatedStringBase node, InterpolatedStringHandlerData? data)
         {
-            foreach (var expr in node.Parts)
+            // If there can be any branching, then we need to treat the expressions
+            // as optionally evaluated. Otherwise, we treat them as always evaluated
+            switch (data)
             {
-                VisitRvalue(expr);
+                case null:
+                    visitParts();
+                    break;
+                case { HasTrailingHandlerValidityParameter: false, UsesBoolReturns: false, Construction: var construction }:
+                    VisitRvalue(construction);
+                    visitParts();
+                    break;
+                case { UsesBoolReturns: var usesBoolReturns, HasTrailingHandlerValidityParameter: var hasTrailingValidityParameter, Construction: var construction }:
+                    VisitRvalue(construction);
+
+                    if (node.Parts.IsEmpty)
+                    {
+                        break;
+                    }
+
+                    TLocalState beforePartsState;
+                    ReadOnlySpan<BoundExpression> remainingParts;
+
+                    if (hasTrailingValidityParameter)
+                    {
+                        beforePartsState = State.Clone();
+                        remainingParts = node.Parts.AsSpan();
+                    }
+                    else
+                    {
+                        Visit(node.Parts[0]);
+                        beforePartsState = State.Clone();
+                        remainingParts = node.Parts.AsSpan()[1..];
+                    }
+
+                    foreach (var expr in remainingParts)
+                    {
+                        VisitRvalue(expr);
+                        if (usesBoolReturns)
+                        {
+                            Join(ref beforePartsState, ref State);
+                        }
+                    }
+
+                    if (usesBoolReturns)
+                    {
+                        // Already been joined after the last part, just assign
+                        State = beforePartsState;
+                    }
+                    else
+                    {
+                        Debug.Assert(hasTrailingValidityParameter);
+                        Join(ref State, ref beforePartsState);
+                    }
+
+                    break;
             }
+
             return null;
+
+            void visitParts()
+            {
+                foreach (var expr in node.Parts)
+                {
+                    VisitRvalue(expr);
+                }
+            }
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            return VisitInterpolatedStringBase(node, node.InterpolationData);
         }
 
         public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
-            return VisitInterpolatedStringBase(node);
+            // If the node is unconverted, we'll just treat it as if the contents are always evaluated
+            return VisitInterpolatedStringBase(node, data: null);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)
@@ -1186,7 +1249,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
         {
-            // PROTOTYPE(interp-string): handle if necessary
+            return null;
+        }
+
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+        {
             return null;
         }
 

@@ -165,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        // PROTOTYPE(interp-strings): These might end up being reached during lowering. If so, we'll likely need to reinterpret in the current context
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
