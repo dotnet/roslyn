@@ -521,7 +521,8 @@ new S2().Initialized: True
         }
 
         // Similar to previous test but where the initializers use the default value,
-        // to verify that the decision whether is independent of the initialized value.
+        // to verify that the decision whether to execute an initializer is independent
+        // of the initialized value.
         [Fact]
         public void ThisInitializer_04()
         {
