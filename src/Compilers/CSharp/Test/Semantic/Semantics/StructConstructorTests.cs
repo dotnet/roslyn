@@ -286,39 +286,49 @@ partial class Program
         public void ThisInitializer_01()
         {
             var source =
-@"using System;
+@"using static System.Console;
+using static Program;
 struct S1
 {
-    internal bool Initialized;
-    public S1() { Initialized = true; }
+    internal int Value;
+    public S1() { Value = Two(); }
     internal S1(object obj) : this() { }
 }
 struct S2
 {
-    internal bool Initialized;
+    internal int Value;
     public S2() : this(null) { }
-    S2(object obj) { Initialized = true; }
+    S2(object obj) { Value = Three(); }
 }
 class Program
 {
+    internal static int Two() { WriteLine(""Two()""); return 2; }
+    internal static int Three() { WriteLine(""Three()""); return 3; }
     static void Main()
     {
-        Console.WriteLine(new S1(null).Initialized);
-        Console.WriteLine(new S2().Initialized);
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(null).Value: {new S1(null).Value}"");
+        WriteLine($""new S2().Value: {new S2().Value}"");
     }
 }";
 
             var verifier = CompileAndVerify(source, expectedOutput:
-@"True
-True");
+@"Two()
+new S1().Value: 2
+Two()
+new S1(null).Value: 2
+Three()
+new S2().Value: 3
+");
+
             verifier.VerifyIL("S1..ctor()",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S1.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.Two()""
+  IL_0006:  stfld      ""int S1.Value""
+  IL_000b:  ret
 }");
             verifier.VerifyIL("S1..ctor(object)",
 @"{
@@ -339,12 +349,12 @@ True");
 }");
             verifier.VerifyIL("S2..ctor(object)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  stfld      ""bool S2.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.Three()""
+  IL_0006:  stfld      ""int S2.Value""
+  IL_000b:  ret
 }");
         }
 
@@ -352,71 +362,83 @@ True");
         public void ThisInitializer_02()
         {
             var source =
-@"using System;
+@"using static System.Console;
+using static Program;
 struct S1
 {
-    internal bool Initialized;
-    public S1() { Initialized = false; }
-    internal S1(object obj) : this() { Initialized = true; }
+    internal int Value;
+    public S1() { Value = Two(); }
+    internal S1(object obj) : this() { Value = Three(); }
 }
 struct S2
 {
-    internal bool Initialized;
-    public S2() : this(null) { Initialized = true; }
-    S2(object obj) { Initialized = false; }
+    internal int Value;
+    public S2() : this(null) { Value = Two(); }
+    S2(object obj) { Value = Three(); }
 }
 class Program
 {
+    internal static int Two() { WriteLine(""Two()""); return 2; }
+    internal static int Three() { WriteLine(""Three()""); return 3; }
     static void Main()
     {
-        Console.WriteLine(new S1(null).Initialized);
-        Console.WriteLine(new S2().Initialized);
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(null).Value: {new S1(null).Value}"");
+        WriteLine($""new S2().Value: {new S2().Value}"");
     }
 }";
 
             var verifier = CompileAndVerify(source, expectedOutput:
-@"True
-True");
+@"Two()
+new S1().Value: 2
+Two()
+Three()
+new S1(null).Value: 3
+Three()
+Two()
+new S2().Value: 2
+");
+
             verifier.VerifyIL("S1..ctor()",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""bool S1.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.Two()""
+  IL_0006:  stfld      ""int S1.Value""
+  IL_000b:  ret
 }");
             verifier.VerifyIL("S1..ctor(object)",
 @"{
-  // Code size       14 (0xe)
+  // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  call       ""S1..ctor()""
   IL_0006:  ldarg.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  stfld      ""bool S1.Initialized""
-  IL_000d:  ret
+  IL_0007:  call       ""int Program.Three()""
+  IL_000c:  stfld      ""int S1.Value""
+  IL_0011:  ret
 }");
             verifier.VerifyIL("S2..ctor()",
 @"{
-  // Code size       15 (0xf)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  call       ""S2..ctor(object)""
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  stfld      ""bool S2.Initialized""
-  IL_000e:  ret
+  IL_0008:  call       ""int Program.Two()""
+  IL_000d:  stfld      ""int S2.Value""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S2..ctor(object)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""bool S2.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.Three()""
+  IL_0006:  stfld      ""int S2.Value""
+  IL_000b:  ret
 }");
         }
 
@@ -424,61 +446,60 @@ True");
         public void ThisInitializer_03()
         {
             var source =
-@"using System;
+@"using static System.Console;
+using static Program;
 struct S0
 {
-    internal bool Initialized = GetTrue();
+    internal int Value = One();
     internal S0(object obj) : this() { }
-    private static bool GetTrue() { Console.WriteLine(""S0.GetTrue()""); return true; }
 }
 struct S1
 {
-    internal bool Initialized = GetTrue();
+    internal int Value = One();
     public S1() { }
     internal S1(object obj) : this() { }
-    private static bool GetTrue() { Console.WriteLine(""S1.GetTrue()""); return true; }
 }
 struct S2
 {
-    internal bool Initialized = GetTrue();
+    internal int Value = One();
     public S2() : this(null) { }
     S2(object obj) { }
-    private static bool GetTrue() { Console.WriteLine(""S2.GetTrue()""); return true; }
 }
 class Program
 {
+    internal static int One() { WriteLine(""One()""); return 1; }
     static void Main()
     {
-        Console.WriteLine($""new S0().Initialized: {new S0().Initialized}"");
-        Console.WriteLine($""new S0(null).Initialized: {new S0(null).Initialized}"");
-        Console.WriteLine($""new S1().Initialized: {new S1().Initialized}"");
-        Console.WriteLine($""new S1(null).Initialized: {new S1(null).Initialized}"");
-        Console.WriteLine($""new S2().Initialized: {new S2().Initialized}"");
+        WriteLine($""new S0().Value: {new S0().Value}"");
+        WriteLine($""new S0(null).Value: {new S0(null).Value}"");
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(null).Value: {new S1(null).Value}"");
+        WriteLine($""new S2().Value: {new S2().Value}"");
     }
 }";
 
+            // PROTOTYPE: S0(object) should set Value after initobj, not before,
+            // and should report: new S0(null).Value: 1.
             var verifier = CompileAndVerify(source, expectedOutput:
-@"new S0().Initialized: False
-S0.GetTrue()
-new S0(null).Initialized: False
-S1.GetTrue()
-new S1().Initialized: True
-S1.GetTrue()
-new S1(null).Initialized: True
-S2.GetTrue()
-new S2().Initialized: True
+@"new S0().Value: 0
+One()
+new S0(null).Value: 0
+One()
+new S1().Value: 1
+One()
+new S1(null).Value: 1
+One()
+new S2().Value: 1
 ");
 
             verifier.VerifyMissing("S0..ctor()");
-            // PROTOTYPE: S0.Initialized should be set after initobj, not before, and
-            // expectedOutput should be False, True, ...
             verifier.VerifyIL("S0..ctor(object)",
 @"{
   // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""bool S0.GetTrue()""
-  IL_0006:  stfld      ""bool S0.Initialized""
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S0.Value""
   IL_000b:  ldarg.0
   IL_000c:  initobj    ""S0""
   IL_0012:  ret
@@ -488,8 +509,8 @@ new S2().Initialized: True
   // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""bool S1.GetTrue()""
-  IL_0006:  stfld      ""bool S1.Initialized""
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S1.Value""
   IL_000b:  ret
 }");
             verifier.VerifyIL("S1..ctor(object)",
@@ -514,151 +535,296 @@ new S2().Initialized: True
   // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       ""bool S2.GetTrue()""
-  IL_0006:  stfld      ""bool S2.Initialized""
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S2.Value""
   IL_000b:  ret
 }");
         }
 
-        // Similar to previous test but where the initializers use the default value,
-        // to verify that the decision whether to execute an initializer is independent
-        // of the initialized value.
         [Fact]
         public void ThisInitializer_04()
         {
             var source =
-@"using System;
+@"using static System.Console;
+using static Program;
 struct S0
 {
-    internal bool Initialized = false;
-    internal S0(object obj) : this() { Initialized = true; }
+    internal int Value = One();
+    internal S0(object obj) : this() { Value = Two(); }
 }
 struct S1
 {
-    internal bool Initialized = false;
-    public S1() { }
-    internal S1(object obj) : this() { Initialized = true; }
+    internal int Value = One();
+    public S1() { Value = Two(); }
+    internal S1(object obj) : this() { Value = Three(); }
 }
 struct S2
 {
-    internal bool Initialized = false;
-    public S2() : this(null) { Initialized = true; }
-    S2(object obj) { }
+    internal int Value = One();
+    public S2() : this(null) { Value = Two(); }
+    S2(object obj) { Value = Three(); }
 }
 class Program
 {
+    internal static int One() { WriteLine(""One()""); return 1; }
+    internal static int Two() { WriteLine(""Two()""); return 2; }
+    internal static int Three() { WriteLine(""Three()""); return 3; }
     static void Main()
     {
-        Console.WriteLine(new S0().Initialized);
-        Console.WriteLine(new S0(null).Initialized);
-        Console.WriteLine(new S1().Initialized);
-        Console.WriteLine(new S1(null).Initialized);
-        Console.WriteLine(new S2().Initialized);
+        WriteLine($""new S0().Value: {new S0().Value}"");
+        WriteLine($""new S0(null).Value: {new S0(null).Value}"");
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(null).Value: {new S1(null).Value}"");
+        WriteLine($""new S2().Value: {new S2().Value}"");
     }
 }";
 
             var verifier = CompileAndVerify(source, expectedOutput:
-@"False
-True
-False
-True
-True");
+@"new S0().Value: 0
+One()
+Two()
+new S0(null).Value: 2
+One()
+Two()
+new S1().Value: 2
+One()
+Two()
+Three()
+new S1(null).Value: 3
+One()
+Three()
+Two()
+new S2().Value: 2
+");
+
             verifier.VerifyMissing("S0..ctor()");
-            // PROTOTYPE: S0.Initialized should be set twice after initobj, not once before, once after.
+            // PROTOTYPE: S0(object) should set Value twice after initobj, not once before, once after.
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       22 (0x16)
+  // Code size       30 (0x1e)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""bool S0.Initialized""
-  IL_0007:  ldarg.0
-  IL_0008:  initobj    ""S0""
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.1
-  IL_0010:  stfld      ""bool S0.Initialized""
-  IL_0015:  ret
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S0.Value""
+  IL_000b:  ldarg.0
+  IL_000c:  initobj    ""S0""
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""int Program.Two()""
+  IL_0018:  stfld      ""int S0.Value""
+  IL_001d:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
-  // Code size        8 (0x8)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""bool S1.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S1.Value""
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""int Program.Two()""
+  IL_0011:  stfld      ""int S1.Value""
+  IL_0016:  ret
 }");
             verifier.VerifyIL("S1..ctor(object)",
 @"{
-  // Code size       14 (0xe)
+  // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  call       ""S1..ctor()""
   IL_0006:  ldarg.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  stfld      ""bool S1.Initialized""
-  IL_000d:  ret
+  IL_0007:  call       ""int Program.Three()""
+  IL_000c:  stfld      ""int S1.Value""
+  IL_0011:  ret
 }");
             verifier.VerifyIL("S2..ctor()",
 @"{
-  // Code size       15 (0xf)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
   IL_0002:  call       ""S2..ctor(object)""
   IL_0007:  ldarg.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  stfld      ""bool S2.Initialized""
-  IL_000e:  ret
+  IL_0008:  call       ""int Program.Two()""
+  IL_000d:  stfld      ""int S2.Value""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S2..ctor(object)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stfld      ""bool S2.Initialized""
-  IL_0007:  ret
+  IL_0001:  call       ""int Program.One()""
+  IL_0006:  stfld      ""int S2.Value""
+  IL_000b:  ldarg.0
+  IL_000c:  call       ""int Program.Three()""
+  IL_0011:  stfld      ""int S2.Value""
+  IL_0016:  ret
 }");
         }
 
+        /// <summary>
+        /// Initializers with default values to verify that the decision whether
+        /// to execute an initializer is independent of the initializer value.
+        /// </summary>
         [Fact]
         public void ThisInitializer_05()
         {
             var source =
-@"using System;
+@"using static System.Console;
+using static Program;
 struct S0
 {
-    internal bool Initialized;
-    public S0(params object[] args) { Initialized = true; }
-    public S0(int i) : this() { }
+    internal int Value = 0;
+    internal S0(object obj) : this() { Value = Two(); }
 }
 struct S1
 {
-    internal bool Initialized;
-    public S1(object obj = null) { Initialized = true; }
-    public S1(int i) : this() { }
+    internal int Value = 0;
+    public S1() { Value = Two(); }
+    internal S1(object obj) : this() { Value = Three(); }
+}
+struct S2
+{
+    internal int Value = 0;
+    public S2() : this(null) { Value = Two(); }
+    S2(object obj) { Value = Three(); }
 }
 class Program
 {
+    internal static int Two() { WriteLine(""Two()""); return 2; }
+    internal static int Three() { WriteLine(""Three()""); return 3; }
     static void Main()
     {
-        Console.WriteLine(new S0().Initialized);
-        Console.WriteLine(new S0(0).Initialized);
-        Console.WriteLine(new S0((object)0).Initialized);
-        Console.WriteLine(new S1().Initialized);
-        Console.WriteLine(new S1(1).Initialized);
-        Console.WriteLine(new S1((object)1).Initialized);
+        WriteLine($""new S0().Value: {new S0().Value}"");
+        WriteLine($""new S0(null).Value: {new S0(null).Value}"");
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(null).Value: {new S1(null).Value}"");
+        WriteLine($""new S2().Value: {new S2().Value}"");
     }
 }";
 
             var verifier = CompileAndVerify(source, expectedOutput:
-@"False
-False
-True
-False
-False
-True");
+@"new S0().Value: 0
+Two()
+new S0(null).Value: 2
+Two()
+new S1().Value: 2
+Two()
+Three()
+new S1(null).Value: 3
+Three()
+Two()
+new S2().Value: 2
+");
+
+            verifier.VerifyMissing("S0..ctor()");
+            // PROTOTYPE: S0(object) should set Value twice after initobj, not once before, once after.
+            verifier.VerifyIL("S0..ctor(object)",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S0.Value""
+  IL_0007:  ldarg.0
+  IL_0008:  initobj    ""S0""
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int Program.Two()""
+  IL_0014:  stfld      ""int S0.Value""
+  IL_0019:  ret
+}");
+            verifier.VerifyIL("S1..ctor()",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S1.Value""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.Two()""
+  IL_000d:  stfld      ""int S1.Value""
+  IL_0012:  ret
+}");
+            verifier.VerifyIL("S1..ctor(object)",
+@"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""int Program.Three()""
+  IL_000c:  stfld      ""int S1.Value""
+  IL_0011:  ret
+}");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""S2..ctor(object)""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.Two()""
+  IL_000d:  stfld      ""int S2.Value""
+  IL_0012:  ret
+}");
+            verifier.VerifyIL("S2..ctor(object)",
+@"{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S2.Value""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""int Program.Three()""
+  IL_000d:  stfld      ""int S2.Value""
+  IL_0012:  ret
+}");
+        }
+
+        [Fact]
+        public void ThisInitializer_06()
+        {
+            var source =
+@"using static System.Console;
+using static Program;
+struct S0
+{
+    internal int Value;
+    public S0(params object[] args) { Value = Two(); }
+    public S0(int i) : this() { }
+}
+struct S1
+{
+    internal int Value;
+    public S1(object obj = null) { Value = Two(); }
+    public S1(int i) : this() { }
+}
+class Program
+{
+    internal static int Two() { WriteLine(""Two()""); return 2; }
+    static void Main()
+    {
+        WriteLine($""new S0().Value: {new S0().Value}"");
+        WriteLine($""new S0(0).Value: {new S0(0).Value}"");
+        WriteLine($""new S0((object)0).Value: {new S0((object)0).Value}"");
+        WriteLine($""new S1().Value: {new S1().Value}"");
+        WriteLine($""new S1(1).Value: {new S1(1).Value}"");
+        WriteLine($""new S1((object)1).Value: {new S1((object)1).Value}"");
+    }
+}";
+
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"new S0().Value: 0
+new S0(0).Value: 0
+Two()
+new S0((object)0).Value: 2
+new S1().Value: 0
+new S1(1).Value: 0
+Two()
+new S1((object)1).Value: 2
+");
+
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(int)",
 @"{
