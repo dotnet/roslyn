@@ -1956,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractConversionNotInvolvingContainedType = 8931,
         ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
         HDN_DuplicateWithGlobalUsing = 8933,
-        ERR_CantConvAnonMethReturnType = 8934,
+        ERR_CantConvAnonMethReturnType = 8933,
         ERR_BuilderAttributeDisallowed = 8935,
         ERR_FeatureNotAvailableInVersion10 = 8936,
         ERR_SimpleProgramIsEmpty = 8937,
