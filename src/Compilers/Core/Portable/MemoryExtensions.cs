@@ -27,17 +27,43 @@ namespace Microsoft.CodeAnalysis
             return -1;
         }
 
+#if !NETCOREAPP
+        internal static ReadOnlyMemory<char> TrimStart(this ReadOnlyMemory<char> memory)
+        {
+            var span = memory.Span;
+            var index = 0;
+            while (index < span.Length && char.IsWhiteSpace(span[index]))
+            {
+                index++;
+            }
+
+            return memory.Slice(index, span.Length);
+        }
+
+        internal static ReadOnlyMemory<char> TrimEnd(this ReadOnlyMemory<char> memory)
+        {
+            var span = memory.Span;
+            var length = span.Length;
+            while (length - 1 >= 0 && char.IsWhiteSpace(span[length - 1]))
+            {
+                length--;
+            }
+
+            return memory.Slice(0, length);
+        }
+
+        internal static ReadOnlyMemory<char> Trim(this ReadOnlyMemory<char> memory) => memory.TrimStart().TrimEnd();
+#endif
+
         internal static bool IsNullOrEmpty(this ReadOnlyMemory<char>? memory) =>
             memory is not { Length: > 0 };
 
-        internal static bool IsNullOrWhiteSpace(this ReadOnlyMemory<char>? memory)
-        {
-            if (memory is not { } m)
-            {
-                return true;
-            }
+        internal static bool IsNullOrWhiteSpace(this ReadOnlyMemory<char>? memory) =>
+            memory is not { } m || IsWhiteSpace(m);
 
-            var span = m.Span;
+        internal static bool IsWhiteSpace(this ReadOnlyMemory<char> memory)
+        {
+            var span = memory.Span;
             foreach (var c in span)
             {
                 if (!char.IsWhiteSpace(c))
@@ -47,6 +73,17 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
+        }
+
+        internal static ReadOnlyMemory<char> Unquote(this ReadOnlyMemory<char> memory)
+        {
+            var span = memory.Span;
+            if (span.Length > 1 && span[0] == '"' && span[span.Length - 1] == '"')
+            {
+                return memory.Slice(1, memory.Length - 2);
+            }
+
+            return memory;
         }
     }
 }

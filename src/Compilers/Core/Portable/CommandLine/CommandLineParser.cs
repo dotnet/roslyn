@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsOptionName(string optionName, ReadOnlyMemory<char> value) =>
             IsOptionName(optionName, value.Span);
 
+        internal static bool IsOptionName(string shortOptionName, string longOptionName, ReadOnlyMemory<char> value) =>
+            IsOptionName(shortOptionName, value) || IsOptionName(longOptionName, value);
+
         /// <summary>
         /// Determines if a <see cref="ReadOnlySpan{Char}"/> is equal to the provided option name
         /// </summary>
@@ -133,26 +136,12 @@ namespace Microsoft.CodeAnalysis
             TryParseOption(arg, out name, out value) &&
             IsOptionName(optionName, name);
 
-        internal static bool IsOption(string arg, string optionName, [NotNullWhen(true)] out string? name, out string? value)
-        {
-            if (IsOption(arg, optionName, out ReadOnlyMemory<char> nameMemory, out ReadOnlyMemory<char>? valueMemory))
-            {
-                name = nameMemory.Span.ToString();
-                value = valueMemory is { } m ? m.Span.ToString() : null;
-                return true;
-            }
-
-            name = null;
-            value = null;
-            return false;
-        }
-
         internal static bool TryParseOption(string arg, [NotNullWhen(true)] out string? name, out string? value)
         {
-            if (TryParseOption(arg, out ReadOnlyMemory<char> nameSpan, out ReadOnlyMemory<char>? valueSpan))
+            if (TryParseOption(arg, out ReadOnlyMemory<char> nameMemory, out ReadOnlyMemory<char>? valueMemory))
             {
-                name = nameSpan.ToString().ToLowerInvariant();
-                value = valueSpan?.Length == 0 ? null : valueSpan.ToString();
+                name = nameMemory.ToString().ToLowerInvariant();
+                value = valueMemory is { } m ? m.ToString() : null;
                 return true;
             }
 
@@ -220,47 +209,54 @@ namespace Microsoft.CodeAnalysis
         {
             diagnosticAlreadyReported = false;
 
-            IEnumerator<string> partsEnumerator = ParseSeparatedPaths(arg).GetEnumerator();
-            if (!partsEnumerator.MoveNext() || partsEnumerator.Current.Length == 0)
+            var parts = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            try
             {
-                return null;
-            }
-
-            string? path = ParseGenericPathToFile(partsEnumerator.Current, diagnostics, baseDirectory);
-            if (path is null)
-            {
-                // ParseGenericPathToFile already reported the failure, so the caller should not
-                // report its own failure.
-                diagnosticAlreadyReported = true;
-                return null;
-            }
-
-            const char ParameterNameValueSeparator = '=';
-            SarifVersion sarifVersion = SarifVersion.Default;
-
-            if (partsEnumerator.MoveNext() && partsEnumerator.Current.Length > 0)
-            {
-                string part = partsEnumerator.Current;
-
-                string versionParameterDesignator = "version" + ParameterNameValueSeparator;
-                int versionParameterDesignatorLength = versionParameterDesignator.Length;
-
-                if (!(
-                        part.Length > versionParameterDesignatorLength &&
-                        part.Substring(0, versionParameterDesignatorLength).Equals(versionParameterDesignator, StringComparison.OrdinalIgnoreCase) &&
-                        SarifVersionFacts.TryParse(part.Substring(versionParameterDesignatorLength), out sarifVersion)
-                    ))
+                ParseSeparatedStrings(arg, s_pathSeparators, removeEmptyEntries: true, parts);
+                if (parts.Count == 0 || parts[0].Length == 0)
                 {
                     return null;
                 }
-            }
 
-            if (partsEnumerator.MoveNext())
+                string? path = ParseGenericPathToFile(parts[0].ToString(), diagnostics, baseDirectory);
+                if (path is null)
+                {
+                    // ParseGenericPathToFile already reported the failure, so the caller should not
+                    // report its own failure.
+                    diagnosticAlreadyReported = true;
+                    return null;
+                }
+
+                const char ParameterNameValueSeparator = '=';
+                SarifVersion sarifVersion = SarifVersion.Default;
+                if (parts.Count > 1 && parts[1].Length > 0)
+                {
+                    string part = parts[1].ToString();
+
+                    string versionParameterDesignator = "version" + ParameterNameValueSeparator;
+                    int versionParameterDesignatorLength = versionParameterDesignator.Length;
+
+                    if (!(
+                            part.Length > versionParameterDesignatorLength &&
+                            part.Substring(0, versionParameterDesignatorLength).Equals(versionParameterDesignator, StringComparison.OrdinalIgnoreCase) &&
+                            SarifVersionFacts.TryParse(part.Substring(versionParameterDesignatorLength), out sarifVersion)
+                        ))
+                    {
+                        return null;
+                    }
+                }
+
+                if (parts.Count > 2)
+                {
+                    return null;
+                }
+
+                return new ErrorLogOptions(path, sarifVersion);
+            }
+            finally
             {
-                return null;
+                parts.Free();
             }
-
-            return new ErrorLogOptions(path, sarifVersion);
         }
 
         internal static void ParseAndNormalizeFile(
@@ -487,7 +483,7 @@ namespace Microsoft.CodeAnalysis
         internal void FlattenArgs(
             IEnumerable<string> rawArguments,
             IList<Diagnostic> diagnostics,
-            List<string> processedArgs,
+            ArrayBuilder<string> processedArgs,
             List<string>? scriptArgsOpt,
             string? baseDirectory,
             List<string>? responsePaths = null)
@@ -496,13 +492,17 @@ namespace Microsoft.CodeAnalysis
             bool sourceFileSeen = false;
             bool optionsEnded = false;
 
-            var args = new Stack<string>(rawArguments.Reverse());
-            while (args.Count > 0)
+            var args = ArrayBuilder<string>.GetInstance();
+            args.AddRange(rawArguments);
+            args.ReverseContents();
+            var index = args.Count - 1;
+            while (index >= 0)
             {
                 // EDMAURER trim off whitespace. Otherwise behavioral differences arise
                 // when the strings which represent args are constructed by cmd or users.
                 // cmd won't produce args with whitespace at the end.
-                string arg = args.Pop().TrimEnd();
+                string arg = args[index].TrimEnd();
+                index--;
 
                 if (parsingScriptArgs)
                 {
@@ -543,18 +543,7 @@ namespace Microsoft.CodeAnalysis
                     string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
                     if (resolvedPath != null)
                     {
-                        foreach (string newArg in ParseResponseFile(resolvedPath, diagnostics).Reverse())
-                        {
-                            // Ignores /noconfig option specified in a response file
-                            if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
-                            {
-                                args.Push(newArg);
-                            }
-                            else
-                            {
-                                diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
-                            }
-                        }
+                        parseResponseFile(resolvedPath);
 
                         if (responsePaths != null)
                         {
@@ -580,6 +569,50 @@ namespace Microsoft.CodeAnalysis
                     sourceFileSeen |= optionsEnded || !IsOption(arg);
                 }
             }
+            args.Free();
+
+            void parseResponseFile(string fullPath)
+            {
+                var lines = ArrayBuilder<string>.GetInstance();
+                try
+                {
+                    Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+                    using TextReader reader = CreateTextFileReader(fullPath);
+                    string? str;
+                    while ((str = reader.ReadLine()) != null)
+                    {
+                        lines.Add(str);
+                    }
+                }
+                catch (Exception)
+                {
+                    diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_OpenResponseFile, fullPath));
+                }
+
+                foreach (var newArg in ParseResponseLines(lines))
+                {
+                    // Ignores /noconfig option specified in a response file
+                    if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
+                    {
+                        index++;
+                        if (index < args.Count)
+                        {
+                            args[index] = newArg;
+                        }
+                        else
+                        {
+                            args.Add(newArg);
+                        }
+                    }
+                    else
+                    {
+                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
+                    }
+                }
+
+                lines.Free();
+            }
+
         }
 
         /// <summary>
@@ -713,31 +746,6 @@ namespace Microsoft.CodeAnalysis
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;
 
         /// <summary>
-        /// Parse a response file into a set of arguments. Errors opening the response file are output into "errors".
-        /// </summary>
-        internal IEnumerable<string> ParseResponseFile(string fullPath, IList<Diagnostic> errors)
-        {
-            List<string> lines = new List<string>();
-            try
-            {
-                Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-                using TextReader reader = CreateTextFileReader(fullPath);
-                string? str;
-                while ((str = reader.ReadLine()) != null)
-                {
-                    lines.Add(str);
-                }
-            }
-            catch (Exception)
-            {
-                errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_OpenResponseFile, fullPath));
-                return SpecializedCollections.EmptyEnumerable<string>();
-            }
-
-            return ParseResponseLines(lines);
-        }
-
-        /// <summary>
         /// Take a string of lines from a response file, remove comments, 
         /// and split into a set of command line arguments.
         /// </summary>
@@ -773,7 +781,7 @@ namespace Microsoft.CodeAnalysis
 
             // resource descriptor is: "<filePath>[,<string name>[,public|private]]"
             var parts = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
-            ParseSeparatedStrings(resourceDescriptor, s_resourceSeparators, parts);
+            ParseSeparatedStrings(resourceDescriptor, s_resourceSeparators, removeEmptyEntries: false, parts);
 
             int offset = 0;
 
@@ -972,21 +980,16 @@ namespace Microsoft.CodeAnalysis
         private static readonly char[] s_pathSeparators = { ';', ',' };
         private static readonly char[] s_wildcards = new[] { '*', '?' };
 
-        internal static IEnumerable<string> ParseSeparatedPaths(ReadOnlyMemory<char>? str)
+        internal static IEnumerable<string> ParseSeparatedPaths(string arg)
         {
             var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
-            ParseSeparatedPathsEx(str, builder);
-            foreach (var path in builder)
-            {
-                yield return path.ToString();
-            }
-
-            builder.Free();
+            ParseSeparatedPathsEx(arg.AsMemory(), builder);
+            return builder.ToArrayAndFree().Select(static x => x.ToString());
         }
 
         internal static void ParseSeparatedPathsEx(ReadOnlyMemory<char>? str, ArrayBuilder<ReadOnlyMemory<char>> builder)
         {
-            ParseSeparatedStrings(str, s_pathSeparators, builder);
+            ParseSeparatedStrings(str, s_pathSeparators, removeEmptyEntries: true, builder);
             for (var i = 0; i < builder.Count; i++)
             {
                 builder[i] = RemoveQuotesAndSlashesEx(builder[i]);
@@ -996,7 +999,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Split a string by a set of separators, taking quotes into account.
         /// </summary>
-        internal static void ParseSeparatedStrings(ReadOnlyMemory<char>? strMemory, char[] separators, ArrayBuilder<ReadOnlyMemory<char>> builder)
+        internal static void ParseSeparatedStrings(ReadOnlyMemory<char>? strMemory, char[] separators, bool removeEmptyEntries, ArrayBuilder<ReadOnlyMemory<char>> builder)
         {
             if (strMemory is null)
             {
@@ -1017,12 +1020,21 @@ namespace Microsoft.CodeAnalysis
 
                 if (!inQuotes && separators.IndexOf(c) >= 0)
                 {
-                    builder.Add(memory.Slice(nextPiece, i - nextPiece));
+                    var current = memory.Slice(nextPiece, i - nextPiece);
+                    if (!removeEmptyEntries || current.Length > 0)
+                    {
+                        builder.Add(current);
+                    }
+
                     nextPiece = i + 1;
                 }
             }
 
-            builder.Add(memory.Slice(nextPiece));
+            var last = memory.Slice(nextPiece);
+            if (!removeEmptyEntries || last.Length > 0)
+            {
+                builder.Add(last);
+            }
         }
 
         internal IEnumerable<string> ResolveRelativePaths(IEnumerable<string> paths, string baseDirectory, IList<Diagnostic> errors)
@@ -1047,7 +1059,7 @@ namespace Microsoft.CodeAnalysis
             if (IsScriptCommandLineParser)
             {
                 ReadOnlyMemory<char> extension = PathUtilities.GetExtension(resolvedPath.AsMemory());
-                isScriptFile = extension.Span.Equals(RegularFileExtension.AsSpan(), StringComparison.OrdinalIgnoreCase);
+                isScriptFile = !extension.Span.Equals(RegularFileExtension.AsSpan(), StringComparison.OrdinalIgnoreCase);
             }
             else
             {
@@ -1057,6 +1069,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new CommandLineSourceFile(resolvedPath, isScriptFile, isInputRedirected);
+        }
+
+        internal IEnumerable<string> ParseFileArgument(string arg, string? baseDirectory, IList<Diagnostic> errors)
+        {
+            var builder = ArrayBuilder<string>.GetInstance();
+            ParseFileArgument(arg.AsMemory(), baseDirectory, builder, errors);
+            return builder;
         }
 
         internal void ParseFileArgument(ReadOnlyMemory<char> arg, string? baseDirectory, ArrayBuilder<string> filePathBuilder, IList<Diagnostic> errors)
@@ -1097,7 +1116,7 @@ namespace Microsoft.CodeAnalysis
             ParseSeparatedPathsEx(value, pathBuilder);
             foreach (ReadOnlyMemory<char> path in pathBuilder)
             {
-                if (OptionUtil.IsNullOrWhiteSpace(path))
+                if (path.IsWhiteSpace())
                 {
                     continue;
                 }
@@ -1107,10 +1126,10 @@ namespace Microsoft.CodeAnalysis
             pathBuilder.Free();
         }
 
-        private protected IEnumerable<string> ParseSeparatedFileArgument(ReadOnlyMemory<char> value, string? baseDirectory, IList<Diagnostic> errors)
+        private protected IEnumerable<string> ParseSeparatedFileArgument(string value, string? baseDirectory, IList<Diagnostic> errors)
         {
             var builder = ArrayBuilder<string>.GetInstance();
-            ParseSeparatedFileArgument(value, baseDirectory, errors);
+            ParseSeparatedFileArgument(value.AsMemory(), baseDirectory, builder, errors);
             foreach (var filePath in builder)
             {
                 yield return filePath;

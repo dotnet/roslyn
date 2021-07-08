@@ -936,7 +936,7 @@ class C
             Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", null, WorkingDirectory, diags, embedded: false);
+            desc = CSharpCommandLineParser.ParseResourceDescription("", (string)null, WorkingDirectory, diags, embedded: false);
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
             Assert.Null(desc);
             diags.Clear();
