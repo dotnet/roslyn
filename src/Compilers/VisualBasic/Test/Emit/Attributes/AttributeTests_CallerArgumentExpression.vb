@@ -39,13 +39,13 @@ End Module
             Dim source As String = "
 Imports System
 Imports System.Runtime.CompilerServices
-Module Program
+Public Module Program
     Sub Main()
         Log(123)
     End Sub
 
     Private Const P As String = NameOf(P)
-    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = ""<default-arg>"")
+    Public Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = ""<default-arg>"")
         Console.WriteLine(arg)
     End Sub
 End Module
@@ -53,7 +53,7 @@ End Module
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
             CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program", "
-.class private auto ansi sealed Program
+.class public auto ansi sealed Program
 	extends [System.Runtime]System.Object
 {
 	.custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = (
@@ -96,6 +96,8 @@ End Module
 	} // end of method Program::Log
 } // end of class Program
 ")
+            Dim csCompilation = CreateCSharpCompilation("Program.Log(5 + 2);", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp, {compilation.EmitToImageReference()}), compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CompileAndVerify(csCompilation, expectedOutput:="5 + 2").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>

@@ -276,6 +276,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' want to emit the parameter name with correct casing, so that it works with C#.
                         Dim correctedParameterName = ContainingSymbol.GetParameters()(callerArgumentExpressionParameterIndex).Name
                         Dim oldTypedConstant = attribute.CommonConstructorArguments.Single()
+                        If correctedParameterName.Equals(oldTypedConstant.Value.ToString(), StringComparison.Ordinal) Then
+                            Yield attribute
+                            Continue For
+                        End If
                         Dim newArgs = ImmutableArray.Create(New TypedConstant(oldTypedConstant.TypeInternal, oldTypedConstant.Kind, correctedParameterName))
                         Yield New SourceAttributeData(attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
                         Continue For
