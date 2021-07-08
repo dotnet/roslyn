@@ -14,6 +14,31 @@ namespace Microsoft.CodeAnalysis
 
         static WellKnownMembers()
         {
+            var signatureInfoArrayBuilder = ImmutableArray.CreateBuilder<WellKnownMemberSignatureInfo>((int)WellKnownMember.Count);
+
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Math__RoundDouble] = new WellKnownMemberSignatureInfo
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.System_Math,
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
+                },
+                Name = "Round",
+            };
+            // TODO: Convert the others below into the new API
+
+            var descriptorBuilder = ImmutableArray.CreateBuilder<MemberDescriptor>((int)WellKnownMember.Count);
+            for (int i = 0; i < signatureInfoArrayBuilder.Count; i++)
+                descriptorBuilder[i] = MemberDescriptor.FromSignatureInfo(signatureInfoArrayBuilder[i]);
+            s_descriptors = descriptorBuilder.ToImmutable();
+
+            // TODO: Remove once the new API is used for all members
+            return;
+
+            // Old implementation that must be gotten rid of
             byte[] initializationBytes = new byte[]
             {
                 // System_Math__RoundDouble
