@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -30,11 +31,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public SymbolGroup(ImmutableArray<ISymbol> symbols)
         {
-            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty);
-
-            // We should only get an actual group of symbols if these were from source.
-            // Metadata symbols never form a group.
-            Contract.ThrowIfTrue(symbols.Length >= 2 && symbols.Any(s => s.Locations.Any(loc => loc.IsInMetadata)));
+            Contract.ThrowIfTrue(symbols.IsDefaultOrEmpty, "Symbols should be non empty");
 
             Symbols = ImmutableHashSet.CreateRange(
                 MetadataUnifyingEquivalenceComparer.Instance, symbols);
@@ -68,20 +65,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        ValueTask OnStartedAsync();
-        ValueTask OnCompletedAsync();
+        ValueTask OnStartedAsync(CancellationToken cancellationToken);
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
-        ValueTask OnFindInDocumentStartedAsync(Document document);
-        ValueTask OnFindInDocumentCompletedAsync(Document document);
+        ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
+        ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);
 
-        ValueTask OnDefinitionFoundAsync(SymbolGroup group);
-        ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location);
+        ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken);
+        ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
         IStreamingProgressTracker ProgressTracker { get; }
 
-        ValueTask OnReferenceFoundAsync(Document document, TextSpan span);
+        ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     }
 }

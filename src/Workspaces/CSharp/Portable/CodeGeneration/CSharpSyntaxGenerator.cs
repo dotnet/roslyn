@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return declaration;
                 default:
                     return null;
@@ -853,6 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         var vd = fd.Declaration.Variables[0];
                         return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer?.Value);
                     }
+
                     break;
             }
 
@@ -1066,6 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return this.GetAttributeArguments(list.Attributes[0]);
                     }
+
                     break;
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)attributeDeclaration;
@@ -1073,6 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return attr.ArgumentList.Arguments;
                     }
+
                     break;
             }
 
@@ -1112,6 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return list.Attributes[0].ArgumentList;
                     }
+
                     break;
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)declaration;
@@ -1131,6 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(declaration, list.Attributes[0], list.Attributes[0].WithArgumentList(argList));
                     }
+
                     break;
                 case SyntaxKind.Attribute:
                     var attr = (AttributeSyntax)declaration;
@@ -1239,6 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         {
                             builder.Add(attrList);
                         }
+
                         break;
 
                     default:
@@ -1473,6 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return s_interfaceModifiers;
 
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return s_structModifiers;
 
                 case SyntaxKind.MethodDeclaration:
@@ -1830,6 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return this.GetType(declaration.Parent);
                     }
+
                     break;
             }
 
@@ -1877,6 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         {
                             return this.AsIsolatedDeclaration(vd.Parent);
                         }
+
                         break;
 
                     case SyntaxKind.VariableDeclarator:
@@ -1885,6 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         {
                             return this.ClearTrivia(WithVariable(v.Parent.Parent, v));
                         }
+
                         break;
 
                     case SyntaxKind.Attribute:
@@ -1894,6 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             var attrList = (AttributeListSyntax)attr.Parent;
                             return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
                         }
+
                         break;
                 }
             }
@@ -1953,6 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return GetFullDeclaration(declaration.Parent);
                     }
+
                     break;
             }
 
@@ -1974,6 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return this.AsMemberOf(container, newNode);
                     }
+
                     break;
 
                 case DeclarationKind.Attribute:
@@ -2102,6 +2116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             .WithLeadingTrivia(lambda.GetLeadingTrivia())
                             .WithTrailingTrivia(lambda.GetTrailingTrivia());
                     }
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 default:
                     return declaration;
             }
@@ -2122,6 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return pd.ExpressionBody.Expression;
                     }
+
                     goto default;
 
                 case SyntaxKind.IndexerDeclaration:
@@ -2130,6 +2148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return id.ExpressionBody.Expression;
                     }
+
                     goto default;
 
                 case SyntaxKind.MethodDeclaration:
@@ -2138,6 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return method.ExpressionBody.Expression;
                     }
+
                     goto default;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -2146,6 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return local.ExpressionBody.Expression;
                     }
+
                     goto default;
 
                 default:
@@ -2174,6 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(pd, pd.ExpressionBody.Expression, expr);
                     }
+
                     goto default;
 
                 case SyntaxKind.IndexerDeclaration:
@@ -2182,6 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(id, id.ExpressionBody.Expression, expr);
                     }
+
                     goto default;
 
                 case SyntaxKind.MethodDeclaration:
@@ -2190,6 +2213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(method, method.ExpressionBody.Expression, expr);
                     }
+
                     goto default;
 
                 case SyntaxKind.LocalFunctionStatement:
@@ -2198,6 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(local, local.ExpressionBody.Expression, expr);
                     }
+
                     goto default;
 
                 default:
@@ -2235,6 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return fd.Declaration.Variables[0].Initializer;
                     }
+
                     break;
                 case SyntaxKind.PropertyDeclaration:
                     var pd = (PropertyDeclarationSyntax)declaration;
@@ -2245,6 +2271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ld.Declaration.Variables[0].Initializer;
                     }
+
                     break;
                 case SyntaxKind.VariableDeclaration:
                     var vd = (VariableDeclarationSyntax)declaration;
@@ -2252,6 +2279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return vd.Variables[0].Initializer;
                     }
+
                     break;
                 case SyntaxKind.VariableDeclarator:
                     return ((VariableDeclaratorSyntax)declaration).Initializer;
@@ -2272,6 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(declaration, fd.Declaration.Variables[0], fd.Declaration.Variables[0].WithInitializer(eq));
                     }
+
                     break;
                 case SyntaxKind.PropertyDeclaration:
                     var pd = (PropertyDeclarationSyntax)declaration;
@@ -2282,6 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(declaration, ld.Declaration.Variables[0], ld.Declaration.Variables[0].WithInitializer(eq));
                     }
+
                     break;
                 case SyntaxKind.VariableDeclaration:
                     var vd = (VariableDeclarationSyntax)declaration;
@@ -2289,6 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     {
                         return ReplaceWithTrivia(declaration, vd.Variables[0], vd.Variables[0].WithInitializer(eq));
                     }
+
                     break;
                 case SyntaxKind.VariableDeclarator:
                     return ((VariableDeclaratorSyntax)declaration).WithInitializer(eq);
@@ -2433,6 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         case SyntaxKind.SetAccessorDeclaration:
                             return (AccessorDeclarationSyntax)node;
                     }
+
                     break;
                 case SyntaxKind.EventDeclaration:
                     switch (node.Kind())
@@ -2441,6 +2473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         case SyntaxKind.RemoveAccessorDeclaration:
                             return (AccessorDeclarationSyntax)node;
                     }
+
                     break;
             }
 
@@ -2844,6 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         // remove entire list if only one attribute
                         return this.RemoveNodeInternal(root, attrList, options);
                     }
+
                     break;
 
                 case SyntaxKind.AttributeArgument:
@@ -2852,6 +2886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         // remove entire argument list if only one argument
                         return this.RemoveNodeInternal(root, declaration.Parent, options);
                     }
+
                     break;
 
                 case SyntaxKind.VariableDeclarator:
@@ -2861,6 +2896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         // remove full declaration if only one declarator
                         return this.RemoveNodeInternal(root, full, options);
                     }
+
                     break;
 
                 case SyntaxKind.SimpleBaseType:
@@ -2869,6 +2905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         // remove entire base list if this is the only base type.
                         return this.RemoveNodeInternal(root, baseList, options);
                     }
+
                     break;
 
                 default:
@@ -2881,6 +2918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 return this.RemoveNodeInternal(root, parent, options);
                         }
                     }
+
                     break;
             }
 

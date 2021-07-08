@@ -1246,7 +1246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
-#nullable disable
 
         private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type)
         {
@@ -1264,6 +1263,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)invokeMethod == null || invokeMethod.HasUseSiteError)
             {
                 return LambdaConversionResult.BadTargetType;
+            }
+
+            if (anonymousFunction.HasExplicitReturnType(out var refKind, out var returnType))
+            {
+                if (invokeMethod.RefKind != refKind ||
+                    !invokeMethod.ReturnType.Equals(returnType.Type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return LambdaConversionResult.MismatchedReturnType;
+                }
             }
 
             var delegateParameters = invokeMethod.Parameters;
@@ -1361,7 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
-            Debug.Assert(type.IsExpressionTree());
+            Debug.Assert(type.IsGenericOrNonGenericExpressionType(out _));
 
             // SPEC OMISSION:
             // 
@@ -1374,8 +1382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This appears to be a spec omission; the intention is to make old-style anonymous methods not 
             // convertible to expression trees.
 
-            var delegateType = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-            if (!delegateType.IsDelegateType())
+            var delegateType = type.Arity == 0 ? null : type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            if (delegateType is { } && !delegateType.IsDelegateType())
             {
                 return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
             }
@@ -1383,6 +1391,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (anonymousFunction.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression)
             {
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
+            }
+
+            if (delegateType is null)
+            {
+                return LambdaConversionResult.Success;
             }
 
             return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType);
@@ -1393,11 +1406,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
-            if (type.IsDelegateType())
+            if (type.SpecialType == SpecialType.System_Delegate)
+            {
+                return LambdaConversionResult.Success;
+            }
+            else if (type.IsDelegateType())
             {
                 return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type);
             }
-            else if (type.IsExpressionTree())
+            else if (type.IsGenericOrNonGenericExpressionType(out bool _))
             {
                 return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
             }
@@ -1417,6 +1434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
         }
+#nullable disable
 
         internal Conversion ClassifyImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol sourceType, out TypeSymbol switchGoverningType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

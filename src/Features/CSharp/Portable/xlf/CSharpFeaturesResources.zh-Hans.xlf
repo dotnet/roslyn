@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
     <body>
@@ -59,17 +59,17 @@
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
         <source>Assign 'out' parameters</source>
-        <target state="translated">分配 "out" 参数</target>
+        <target state="translated">为 "out" 参数赋值</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_out_parameters_at_start">
         <source>Assign 'out' parameters (at start)</source>
-        <target state="translated">分配 "out" (在开始处)</target>
+        <target state="translated">为 "out" 赋值 (在开始处)</target>
         <note>{Locked="out"} "out" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Assign_to_0">
         <source>Assign to '{0}'</source>
-        <target state="translated">分配给 "{0}"</target>
+        <target state="translated">赋值给 "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_pattern_variable_declaration">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">外部别名</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -389,7 +389,7 @@
       </trans-unit>
       <trans-unit id="Make_0_return_Task_instead_of_void">
         <source>Make {0} return Task instead of void.</source>
-        <target state="translated">使 {0} 返回任务，而不是 void。</target>
+        <target state="translated">使 {0} 返回 Task，而不是 void。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_return_type_from_0_to_1">
@@ -414,7 +414,12 @@
       </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
-        <target state="new">record</target>
+        <target state="translated">记录</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="new">record struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
@@ -699,12 +704,12 @@
       </trans-unit>
       <trans-unit id="Make_method_async">
         <source>Make method async</source>
-        <target state="translated">将方法改为 Async</target>
+        <target state="translated">使方法异步</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async_remain_void">
         <source>Make method async (stay void)</source>
-        <target state="translated">使方法异步(保持无效)</target>
+        <target state="translated">使方法异步(保持 void)</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
@@ -759,7 +764,7 @@
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="translated">介绍 'using' 语句</target>
+        <target state="translated">引入 'using' 语句</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="yield_break_statement">

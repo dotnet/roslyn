@@ -250,6 +250,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var location = await DataLocation.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
             var additionalLocations = await AdditionalLocations.ConvertLocationsAsync(project, cancellationToken).ConfigureAwait(false);
 
+            return ToDiagnostic(location, additionalLocations);
+        }
+
+        public Diagnostic ToDiagnostic(Location location, ImmutableArray<Location> additionalLocations)
+        {
             return Diagnostic.Create(
                 Id, Category, Message, Severity, DefaultSeverity,
                 IsEnabledByDefault, WarningLevel, IsSuppressed, Title, Description, HelpLink,

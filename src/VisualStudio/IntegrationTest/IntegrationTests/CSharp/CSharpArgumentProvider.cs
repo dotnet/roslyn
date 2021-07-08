@@ -78,6 +78,9 @@ public class Test
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
             VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null)$$", assertCaretPosition: true);
         }
 
         [WpfFact]
@@ -369,6 +372,39 @@ public class Test
 
             VisualStudio.Editor.SendKeys(VirtualKey.Down);
             VisualStudio.Editor.Verify.CurrentLineText("M(" + parameterText + ", 0, 0)");
+        }
+
+        [WpfFact]
+        [WorkItem(54038, "https://github.com/dotnet/roslyn/issues/54038")]
+        public void InsertPreprocessorSnippet()
+        {
+            SetUpEditor(@"
+using System;
+public class TestClass
+{
+$$
+}
+");
+
+            VisualStudio.Editor.SendKeys("#i");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("#if$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("#if true$$", assertCaretPosition: true);
+
+            var expected = @"
+using System;
+public class TestClass
+{
+#if true
+
+#endif
+}
+";
+
+            AssertEx.EqualOrDiff(expected, VisualStudio.Editor.GetText());
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CSharpAnalyzersResources.resx">
     <body>
@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
         <source>Blank line not allowed after constructor initializer colon</source>
-        <target state="new">Blank line not allowed after constructor initializer colon</target>
+        <target state="translated">생성자 이니셜라이저 콜론 뒤에 빈 줄을 사용할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
         <source>Consecutive braces must not have blank line between them</source>
-        <target state="new">Consecutive braces must not have blank line between them</target>
+        <target state="translated">연속 중괄호 사이에 빈 줄이 없어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Embedded_statements_must_be_on_their_own_line">
         <source>Embedded statements must be on their own line</source>
-        <target state="new">Embedded statements must be on their own line</target>
+        <target state="translated">포함 문은 고유한 줄에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -87,6 +87,16 @@
         <target state="translated">식 부정(의미 체계를 변경함)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="new">Null check can be clarified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">연산자 제거(의미 체계를 유지함)</target>
@@ -114,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
         <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
-        <target state="needs-review-translation">Struct에서 'this'에 대한 할당이 생성자 외부에 있습니다. 읽기 전용 필드를 쓰기 가능으로 설정하세요.</target>
+        <target state="translated">Struct에서 'this'에 대한 할당이 생성자 외부에 있습니다. 읽기 전용 필드를 쓰기 가능으로 설정하세요.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">

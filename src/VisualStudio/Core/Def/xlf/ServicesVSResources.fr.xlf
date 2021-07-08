@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../ServicesVSResources.resx">
     <body>
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Action">
         <source>Action</source>
-        <target state="new">Action</target>
+        <target state="translated">Action</target>
         <note>Action to perform on an unused reference, such as remove or keep</note>
       </trans-unit>
       <trans-unit id="Add">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Allow_multiple_blank_lines">
         <source>Allow multiple blank lines</source>
-        <target state="new">Allow multiple blank lines</target>
+        <target state="translated">Autoriser plusieurs lignes vides</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_statement_immediately_after_block">
         <source>Allow statement immediately after block</source>
-        <target state="new">Allow statement immediately after block</target>
+        <target state="translated">Autoriser l'instruction juste après le bloc</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -79,17 +79,17 @@
       </trans-unit>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
-        <target state="new">Analyzers</target>
+        <target state="translated">Analyseurs</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_project_references">
         <source>Analyzing project references...</source>
-        <target state="new">Analyzing project references...</target>
+        <target state="translated">Analyse des références de projet...</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply">
         <source>Apply</source>
-        <target state="new">Apply</target>
+        <target state="translated">Appliquer</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Assemblies">
         <source>Assemblies</source>
-        <target state="new">Assemblies</target>
+        <target state="translated">Assemblys</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -147,6 +147,11 @@
         <target state="translated">Client de langage de diagnostics C#/Visual Basic</target>
         <note />
       </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="new">Calculating...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Calcul des dépendants...</target>
@@ -162,29 +167,29 @@
         <target state="translated">Site d'appel</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_Newline_rn">
-        <source>Carrage Return + Newline (\\r\\n)</source>
-        <target state="new">Carrage Return + Newline (\\r\\n)</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="new">Carriage Return + Newline (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Carrage_Return_r">
-        <source>Carrage Return (\\r)</source>
-        <target state="new">Carrage Return (\\r)</target>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="new">Carriage Return (\r)</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
         <source>Category</source>
-        <target state="new">Category</target>
+        <target state="translated">Catégorie</target>
         <note />
       </trans-unit>
       <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
         <source>Choose which action you would like to perform on the unused references.</source>
-        <target state="new">Choose which action you would like to perform on the unused references.</target>
+        <target state="translated">Choisissez l'action à effectuer sur les références inutilisées.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
         <source>Code Style</source>
-        <target state="new">Code Style</target>
+        <target state="translated">Style de code</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
@@ -242,9 +247,14 @@
         <target state="translated">Paramètre actuel</target>
         <note />
       </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
-        <target state="new">Disabled</target>
+        <target state="translated">Désactivé</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
@@ -294,7 +304,12 @@
       </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
         <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="new">Enable all features in opened files from source generators (experimental)</target>
+        <target state="translated">Activer toutes les fonctionnalités dans les fichiers ouverts à partir des générateurs de code source (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="translated">Activer la journalisation des fichiers pour les Diagnostics (connexion au dossier « %Temp% \Roslyn »)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
@@ -304,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Enabled">
         <source>Enabled</source>
-        <target state="new">Enabled</target>
+        <target state="translated">Activé</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
@@ -324,7 +339,12 @@
       </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
-        <target state="new">Error</target>
+        <target state="translated">Erreur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="new">Error updating suppressions: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -344,12 +364,12 @@
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Mettre en forme le document</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
-        <target state="new">Formatting</target>
+        <target state="translated">Mise en forme</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -364,7 +384,27 @@
       </trans-unit>
       <trans-unit id="Id">
         <source>Id</source>
-        <target state="new">Id</target>
+        <target state="translated">ID</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="translated">Membres implémentés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="translated">Implémentation des membres</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -390,6 +430,16 @@
       <trans-unit id="Indexed_in_repo">
         <source>Indexed in repo</source>
         <target state="translated">Indexé dans le dépôt</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inheritance_Margin_experimental">
+        <source>Inheritance Margin (experimental)</source>
+        <target state="translated">Marge d’héritage (expérimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -424,7 +474,7 @@
       </trans-unit>
       <trans-unit id="Keep">
         <source>Keep</source>
-        <target state="new">Keep</target>
+        <target state="translated">Conserver</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -486,6 +536,16 @@
         <source>Move to Namespace</source>
         <target state="translated">Déplacer vers un espace de noms</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="translated">Plusieurs membres sont hérités</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="translated">Plusieurs membres sont hérités à la ligne {0}</target>
+        <note>Line number info is needed for accessibility purpose.</note>
       </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
@@ -652,6 +712,11 @@
         <target state="translated">Règles de nommage</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="translated">Accéder à « {0} »</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Jamais si ce n'est pas nécessaire</target>
@@ -664,17 +729,17 @@
       </trans-unit>
       <trans-unit id="New_line_preferences_experimental_colon">
         <source>New line preferences (experimental):</source>
-        <target state="new">New line preferences (experimental):</target>
+        <target state="translated">Préférences de nouvelle ligne (expérimental) :</target>
         <note />
       </trans-unit>
       <trans-unit id="Newline_n">
         <source>Newline (\\n)</source>
-        <target state="new">Newline (\\n)</target>
+        <target state="translated">Nouvelle ligne (\\n)</target>
         <note />
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
-        <target state="new">No unused references were found.</target>
+        <target state="translated">Références inutilisées introuvables.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -712,9 +777,19 @@
         <target state="translated">Autres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="translated">Membres remplacés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="translated">Remplacement des membres</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
-        <target state="new">Packages</target>
+        <target state="translated">Packages</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -809,7 +884,7 @@
       </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
-        <target state="new">Projects</target>
+        <target state="translated">Projets</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -819,12 +894,12 @@
       </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
-        <target state="new">Refactoring Only</target>
+        <target state="translated">Refactoring Only</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
-        <target state="new">Reference</target>
+        <target state="translated">Référence</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -834,12 +909,12 @@
       </trans-unit>
       <trans-unit id="Remove_All">
         <source>Remove All</source>
-        <target state="new">Remove All</target>
+        <target state="translated">Tout supprimer</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
-        <target state="new">Remove Unused References</target>
+        <target state="translated">Supprimer les références inutilisées</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -859,7 +934,7 @@
       </trans-unit>
       <trans-unit id="Require_colon">
         <source>Require:</source>
-        <target state="new">Require:</target>
+        <target state="translated">Nécessite :</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -909,7 +984,12 @@
       </trans-unit>
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
-        <target state="new">Search Settings</target>
+        <target state="translated">Paramètres de recherche</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="new">Select an appropriate symbol to start value tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -949,7 +1029,7 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer (experimental)</target>
+        <target state="translated">Afficher la commande Supprimer les références inutilisées dans l'Explorateur de solutions (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -982,6 +1062,16 @@
         <target state="translated">Afficher les indicateurs pour les variables ayant des types déduits</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="translated">Afficher la marge d’héritage</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="new">Skip analyzers for implicitly triggered builds</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Certaines couleurs du modèle de couleurs sont substituées à la suite des changements apportés dans la page d'options Environnement &gt; Polices et couleurs. Choisissez Utiliser les valeurs par défaut dans la page Polices et couleurs pour restaurer toutes les personnalisations.</target>
@@ -989,7 +1079,7 @@
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
-        <target state="new">Suggestion</target>
+        <target state="translated">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1004,12 +1094,12 @@
       </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
-        <target state="new">Symbols without references</target>
+        <target state="translated">Symboles sans références</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
-        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <target state="translated">Appuyer deux fois sur Tab pour insérer des arguments (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -1029,7 +1119,7 @@
       </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
-        <target state="new">This action cannot be undone. Do you wish to continue?</target>
+        <target state="translated">Il est impossible d'annuler cette action. Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
       <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
@@ -1044,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">Titre</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_Name">
@@ -1067,6 +1157,11 @@
         <target state="translated">Le nom de type est reconnu</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="new">Underline reassigned variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">La valeur inutilisée est explicitement affectée à une variable locale inutilisée</target>
@@ -1079,7 +1174,7 @@
       </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
-        <target state="new">Updating project references...</target>
+        <target state="translated">Mise à jour des références de projet...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_severity">
@@ -1109,8 +1204,13 @@
       </trans-unit>
       <trans-unit id="Value">
         <source>Value</source>
-        <target state="new">Value</target>
+        <target state="translated">Valeur</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="new">Value Tracking</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
@@ -1144,7 +1244,7 @@
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="new">Warning</target>
+        <target state="translated">Avertissement</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_duplicate_parameter_name">
@@ -1280,6 +1380,11 @@
       <trans-unit id="Not_a_valid_value">
         <source>Not a valid value</source>
         <target state="translated">Valeur non valide</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="translated">« {0} » est hérité</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
