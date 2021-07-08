@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Symbol set used when <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> is <see
         /// langword="false"/>.  This symbol set will cascade up *and* down the inheritance hierarchy for all symbols we
-        /// are searching for.
+        /// are searching for.  This is the symbol set used for features like 'Rename', where all cascaded symbols must
+        /// be updated in order to keep the code compiling.
         /// </summary>
         private sealed class BidirectionalSymbolSet : SymbolSet
         {

@@ -14,7 +14,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         /// <summary>
         /// Symbol set used when <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> is <see
-        /// langword="true"/>.
+        /// langword="true"/>.  This symbol set will only cascade in a uniform direction once it walks either up or down
+        /// from the initial set of symbols. This is the symbol set used for features like 'Find Refs', where we only
+        /// want to return location results for members that could feasible actually end up calling into that member at
+        /// runtime.  See the docs of <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> for more
+        /// information on this.
         /// </summary>
         private sealed class UnidirectionalSymbolSet : SymbolSet
         {
