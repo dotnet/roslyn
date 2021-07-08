@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <list type="number">
         /// <item>Cascading to all linked symbols for the requested symbol.  This ensures a unified set of results for a
         /// particular symbol, regardless of what project context it was originally found in.</item>
-        /// <item>Symbol specific cascading.  For example, when searching for a named type, reference to that named type
-        /// will be found through its constructors.</item>
+        /// <item>Symbol specific cascading.  For example, when searching for a named type, references to that named
+        /// type will be found through its constructors.</item>
         /// <item>Cascading up and down the inheritance hierarchy for members (e.g. methods, properties, events). This
         /// is controllable through the <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/>
         /// option.</item>
