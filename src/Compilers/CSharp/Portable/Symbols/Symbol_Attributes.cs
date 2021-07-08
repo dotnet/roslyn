@@ -300,7 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (attributeTypesBuilder[i].IsGenericType)
                     {
                         MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, attributesToBind[i]);
-                        break;
                     }
                 }
 

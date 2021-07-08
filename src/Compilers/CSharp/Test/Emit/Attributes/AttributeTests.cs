@@ -8069,16 +8069,16 @@ public class IA
             var source = @"
 using System;
 
-[A<>]
-[A<int>]
-[B]
-[B<>]
-[B<int>]
-[C]
-[C<>]
-[C<int>]
-[C<,>]
-[C<int, int>]
+[A<>] // 1, 2
+[A<int>] // 3, 4
+[B] // 5
+[B<>] // 6, 7
+[B<int>] // 8
+[C] // 9
+[C<>] // 10, 11
+[C<int>] // 12, 13
+[C<,>] // 14, 15
+[C<int, int>] // 16
 class Test
 {
 }
@@ -8087,52 +8087,98 @@ public class A : Attribute
 {
 }
 
-public class B<T> : Attribute
+public class B<T> : Attribute // 17
 {
 }
 
-public class C<T, U> : Attribute
+public class C<T, U> : Attribute // 18
 {
 }
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-
-            // Note that the LangVersion diagnostic is given only once per attribute target to reduce redundancy.
             comp.VerifyDiagnostics(
-                // (22,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // public class B<T> : Attribute
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(22, 21),
-                // (26,24): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // public class C<T, U> : Attribute
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(26, 24),
                 // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<>]
+                // [A<>] // 1, 2
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
+                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [A<>] // 1, 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
                 // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<int>]
+                // [A<int>] // 3, 4
                 Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [A<int>] // 3, 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
                 // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
-                // [B]
+                // [B] // 5
                 Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
                 // (7,2): error CS7003: Unexpected use of an unbound generic name
-                // [B<>]
+                // [B<>] // 6, 7
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
+                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [B<>] // 6, 7
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<>").WithArguments("generic attributes", "10.0").WithLocation(7, 2),
+                // (8,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [B<int>] // 8
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<int>").WithArguments("generic attributes", "10.0").WithLocation(8, 2),
                 // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C]
+                // [C] // 9
                 Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
                 // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<>]
+                // [C<>] // 10, 11
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
+                // (10,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<>] // 10, 11
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(10, 2),
+                // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<int>] // 12, 13
+                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
+                // (11,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<int>] // 12, 13
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int>").WithArguments("generic attributes", "10.0").WithLocation(11, 2),
+                // (12,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
+                // (12,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<,>").WithArguments("generic attributes", "10.0").WithLocation(12, 2),
+                // (13,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<int, int>] // 16
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int, int>").WithArguments("generic attributes", "10.0").WithLocation(13, 2),
+                // (22,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class B<T> : Attribute // 17
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(22, 21),
+                // (26,24): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class C<T, U> : Attribute // 18
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(26, 24));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<>] // 1, 2
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
+                // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<int>] // 3, 4
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
+                // [B] // 5
+                Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
+                // (7,2): error CS7003: Unexpected use of an unbound generic name
+                // [B<>] // 6, 7
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
+                // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C] // 9
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
+                // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<>] // 10, 11
                 Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
                 // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                // [C<int>]
+                // [C<int>] // 12, 13
                 Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
                 // (12,2): error CS7003: Unexpected use of an unbound generic name
-                // [C<,>]
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
-                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
-                // [A<>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<>").WithArguments("generic attributes", "10.0").WithLocation(4, 2));
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2));
         }
 
         [Fact]
@@ -8247,7 +8293,13 @@ public class C<T> : Attribute
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2),
                 // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(5, 2));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2),
+                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(7, 2));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
@@ -8298,9 +8350,15 @@ class Test
                 // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
@@ -9759,12 +9817,18 @@ public class Program { }
                 // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 // [C<ERROR>]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<System>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
                 // (5,4): error CS0118: 'System' is a namespace but is used like a type
                 // [C<System>]
                 Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
                 // (6,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<>]
-                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
