@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         private readonly IEditorFormatMap _editorFormatMap;
         protected sealed override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(InlineDiagnosticsOptions.EnableInlineDiagnostics);
 
-        protected internal override bool IsEnabled => true;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineDiagnosticsTaggerProvider(
