@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 result.Add(beginInvoke);
 
             // All method group references
-            foreach (var currentProject in solution.Projects)
+            foreach (var project in solution.Projects)
             {
-                foreach (var document in currentProject.Documents)
+                foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
                     var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
