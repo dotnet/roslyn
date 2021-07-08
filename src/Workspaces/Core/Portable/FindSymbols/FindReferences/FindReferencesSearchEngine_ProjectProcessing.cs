@@ -16,30 +16,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal partial class FindReferencesSearchEngine
     {
-        private async Task ProcessProjectAsync(
-            Project project,
-            DocumentMap documentMap,
-            CancellationToken cancellationToken)
-        {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, cancellationToken))
-            {
-                if (project.SupportsCompilation)
-                {
-                    // make sure we hold onto compilation while we search documents belong to this project
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        //private async Task ProcessProjectAsync(
+        //    Project project,
+        //    DocumentMap documentMap,
+        //    CancellationToken cancellationToken)
+        //{
+        //    using (Logger.LogBlock(FunctionId.FindReference_ProcessProjectAsync, project.Name, cancellationToken))
+        //    {
+        //        if (project.SupportsCompilation)
+        //        {
+        //            // make sure we hold onto compilation while we search documents belong to this project
+        //            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                    using var _ = ArrayBuilder<Task>.GetInstance(out var documentTasks);
-                    foreach (var (document, documentQueue) in documentMap)
-                    {
-                        if (document.Project == project)
-                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
-                    }
+        //            using var _ = ArrayBuilder<Task>.GetInstance(out var documentTasks);
+        //            foreach (var (document, documentQueue) in documentMap)
+        //            {
+        //                if (document.Project == project)
+        //                    documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue, cancellationToken), cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+        //            }
 
-                    await Task.WhenAll(documentTasks).ConfigureAwait(false);
+        //            await Task.WhenAll(documentTasks).ConfigureAwait(false);
 
-                    GC.KeepAlive(compilation);
-                }
-            }
-        }
+        //            GC.KeepAlive(compilation);
+        //        }
+        //    }
+        //}
     }
 }

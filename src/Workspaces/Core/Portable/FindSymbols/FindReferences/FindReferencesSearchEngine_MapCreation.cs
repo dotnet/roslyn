@@ -188,57 +188,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         //    }
         //}
 
-        private async Task<HashSet<ISymbol>> DetermineExactSymbolGroupsAsync(ISymbol searchSymbol, CancellationToken cancellationToken)
-        {
-            var result = new HashSet<ISymbol>();
-
-            if (!_options.Cascade)
-            {
-                // If we're not cascading, then we only find references to the exact original symbol, not any related
-                // symbols to it in its linked documents.
-                result.Add(searchSymbol);
-            }
-            else
-            {
-                var stack = new Stack<ISymbol>();
-                stack.Push(searchSymbol);
-
-                while (stack.Count > 0)
-                {
-                    var currentSymbol = stack.Pop();
-
-                    // As long as we keep adding new groups to the result, then keep searching those new symbols to see
-                    // what they cascade to.
-                    if (result.Add(currentSymbol))
-                    {
-                        await foreach (var cascaded in DetermineCascadedSymbolsAsync(currentSymbol, cancellationToken).ConfigureAwait(false))
-                            stack.Push(cascaded);
-
-                        foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false))
-                            stack.Push(linked);
-                    }
-                }
-            }
-
-            return result;
-        }
-
         private async Task<SymbolGroup> GetSymbolGroupAsync(ISymbol currentSymbol, CancellationToken cancellationToken)
         {
             var symbols = await SymbolFinder.FindLinkedSymbolsAsync(currentSymbol, _solution, cancellationToken).ConfigureAwait(false);
             var group = new SymbolGroup(symbols);
             return group;
-        }
-
-        private async IAsyncEnumerable<ISymbol> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, [EnumeratorCancellation] CancellationToken cancellationToken)
-        {
-            foreach (var finder in _finders)
-            {
-                var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, _solution, _options, cancellationToken).ConfigureAwait(false);
-                foreach (var match in cascaded)
-                    yield return match;
-            }
         }
 
         //private async IAsyncEnumerable<SymbolGroup> DetermineUpSymbolGroupsAsync(
@@ -298,28 +252,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         //        }
         //    }
         //}
-
-        private async Task<ISymbol> MapToAppropriateSymbolAsync(ISymbol symbol, CancellationToken cancellationToken)
-        {
-            // Never search for an alias.  Always search for it's target.  Note: if the caller was
-            // actually searching for an alias, they can always get that information out in the end
-            // by checking the ReferenceLocations that are returned.
-            var searchSymbol = symbol;
-
-            if (searchSymbol is IAliasSymbol aliasSymbol)
-                searchSymbol = aliasSymbol.Target;
-
-            searchSymbol = searchSymbol.GetOriginalUnreducedDefinition();
-
-            // If they're searching for a delegate constructor, then just search for the delegate
-            // itself.  They're practically interchangeable for consumers.
-            if (searchSymbol.IsConstructor() && searchSymbol.ContainingType.TypeKind == TypeKind.Delegate)
-                searchSymbol = symbol.ContainingType;
-
-            Contract.ThrowIfNull(searchSymbol);
-
-            var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, _solution, cancellationToken).ConfigureAwait(false);
-            return sourceSymbol ?? searchSymbol;
-        }
     }
 }
