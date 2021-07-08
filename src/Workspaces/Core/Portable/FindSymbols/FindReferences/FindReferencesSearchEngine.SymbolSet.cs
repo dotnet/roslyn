@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Update the set of symbols in this set with any appropriate symbols in the inheritance hierarchy brought
             /// in within <paramref name="project"/>.  For example, given a project 'A' with interface <c>interface IGoo
-            /// { void Goo(); }</c>, and a project 'B' with class <c>class Goo : IGoo { public void Goo() { } }</c>, then
-            /// initially the symbol set will only contain IGoo.Goo.  However, when project 'B' is processed, this will
-            /// ensure that Goo.Goo is added to the set so references to it can be found.
+            /// { void Goo(); }</c>, and a project 'B' with class <c>class Goo : IGoo { public void Goo() { } }</c>,
+            /// then initially the symbol set will only contain IGoo.Goo.  However, when project 'B' is processed, this
+            /// will add Goo.Goo is added to the set as well so that references to it can be found.
             /// </summary>
             /// <remarks>
-            /// This method is non threadsafe *and* it mutates the symbol set instance.  As such, it should only be called
-            /// serially.  <see cref="GetAllSymbols"/> should not be called concurrently with this.
+            /// This method is non threadsafe as it mutates the symbol set instance.  As such, it should only be
+            /// called serially.  <see cref="GetAllSymbols"/> should not be called concurrently with this.
             /// </remarks>
             public abstract Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken);
 
