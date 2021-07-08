@@ -142,14 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (string arg in flattenedArgs)
                 {
-                    string? name, value;
-                    if (TryParseOption(arg, out name, out value) && (name == "ruleset"))
+                    if (IsOption(arg, "ruleset", out ReadOnlyMemory<char> name, out ReadOnlyMemory<char>? value))
                     {
                         var unquoted = RemoveQuotesAndSlashes(value);
 
                         if (RoslynString.IsNullOrEmpty(unquoted))
                         {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name.ToString());
                         }
                         else
                         {
@@ -164,13 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(optionsEnded || !arg.StartsWith("@", StringComparison.Ordinal));
 
-                string? name, value;
-                if (optionsEnded || !TryParseOption(arg, out name, out value))
+                ArrayBuilder<string> filePathBuilder;
+                ReadOnlyMemory<char> nameMemory;
+                ReadOnlyMemory<char>? valueMemory;
+                if (optionsEnded || !TryParseOption(arg, out nameMemory, out valueMemory))
                 {
-                    foreach (var path in ParseFileArgument(arg, baseDirectory, diagnostics))
+                    filePathBuilder = ArrayBuilder<string>.GetInstance();
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, filePathBuilder, diagnostics);
+                    foreach (var path in filePathBuilder)
                     {
                         sourceFiles.Add(ToCommandLineSourceFile(path));
                     }
+                    filePathBuilder.Free();
 
                     if (sourceFiles.Count > 0)
                     {
@@ -180,6 +184,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                if (IsOptionName("r", nameMemory) ||
+                    IsOptionName("reference", nameMemory))
+                {
+                    ParseAssemblyReferences(arg, valueMemory, diagnostics, embedInteropTypes: false, metadataReferences);
+                    continue;
+                }
+
+                string name = nameMemory.Span.ToString().ToLowerInvariant();
+                string? value;
+                string? valueMemoryString() => valueMemory is { } m ? m.Span.ToString() : null;
                 switch (name)
                 {
                     case "?":
@@ -192,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case "langversion":
-                        value = RemoveQuotesAndSlashes(value);
+                        value = RemoveQuotesAndSlashes(valueMemory);
                         if (RoslynString.IsNullOrEmpty(value))
                         {
                             AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
@@ -213,12 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         continue;
 
-                    case "r":
-                    case "reference":
-                        metadataReferences.AddRange(ParseAssemblyReferences(arg, value, diagnostics, embedInteropTypes: false));
-                        continue;
-
                     case "features":
+                        value = valueMemoryString();
                         if (value == null)
                         {
                             features.Clear();
@@ -232,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case "lib":
                     case "libpath":
                     case "libpaths":
-                        ParseAndResolveReferencePaths(name, value, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
+                        ParseAndResolveReferencePaths(name, valueMemory, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
                         continue;
 
 #if DEBUG
@@ -244,6 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (IsScriptCommandLineParser)
                 {
+                    value = valueMemoryString();
                     switch (name)
                     {
                         case "-": // csi -- script.csx
@@ -279,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "loadpath":
                         case "loadpaths":
-                            ParseAndResolveReferencePaths(name, value, baseDirectory, sourcePaths, MessageID.IDS_REFERENCEPATH_OPTION, diagnostics);
+                            ParseAndResolveReferencePaths(name, valueMemory, baseDirectory, sourcePaths, MessageID.IDS_REFERENCEPATH_OPTION, diagnostics);
                             continue;
 
                         case "u":
@@ -297,24 +308,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case "a":
                         case "analyzer":
-                            analyzers.AddRange(ParseAnalyzers(arg, value, diagnostics));
+                            ParseAnalyzers(arg, valueMemory, analyzers, diagnostics);
                             continue;
 
                         case "d":
                         case "define":
-                            if (RoslynString.IsNullOrEmpty(value))
+                            if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
                                 continue;
                             }
 
                             IEnumerable<Diagnostic> defineDiagnostics;
-                            defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
+                            defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(valueMemory)!, out defineDiagnostics));
                             diagnostics.AddRange(defineDiagnostics);
                             continue;
 
                         case "codepage":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -332,13 +343,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "checksumalgorithm":
-                            if (RoslynString.IsNullOrEmpty(value))
+                            if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
                                 continue;
                             }
 
-                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value);
+                            value = valueMemoryString();
+                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value!);
                             if (newChecksumAlgorithm == SourceHashAlgorithm.None)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
@@ -350,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "checked":
                         case "checked+":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -359,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "checked-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             checkOverflow = false;
@@ -367,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "nullable":
 
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (value != null)
                             {
                                 if (value.IsEmpty())
@@ -408,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
                         case "nullable+":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -417,14 +429,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "nullable-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             nullableContextOptions = NullableContextOptions.Disable;
                             continue;
 
                         case "instrument":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -448,7 +460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "sqmsessionguid":
                             // The use of SQM is deprecated in the compiler but we still support the parsing of the option for
-                            // back compat reasons.
+                            // back compat reason
+                            value = valueMemoryString();
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_MissingGuidForOption, "<text>", name);
@@ -464,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "preferreduilang":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
 
                             if (RoslynString.IsNullOrEmpty(value))
                             {
@@ -498,6 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "out":
+                            value = valueMemoryString();
                             if (RoslynString.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
@@ -510,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "refout":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
@@ -523,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "refonly":
-                            if (value != null)
+                            if (value is not null)
                                 break;
 
                             refOnly = true;
@@ -531,6 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "t":
                         case "target":
+                            value = valueMemoryString();
                             if (value == null)
                             {
                                 break; // force 'unrecognized option'
@@ -548,6 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "moduleassemblyname":
+                            value = valueMemoryString();
                             value = value != null ? value.Unquote() : null;
 
                             if (RoslynString.IsNullOrEmpty(value))
@@ -567,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "modulename":
-                            var unquotedModuleName = RemoveQuotesAndSlashes(value);
+                            var unquotedModuleName = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrEmpty(unquotedModuleName))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "modulename");
@@ -581,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "platform":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<string>", arg);
@@ -593,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "recurse":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
 
                             if (value == null)
                             {
@@ -615,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "generatedfilesout":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
@@ -628,12 +644,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "doc":
                             parseDocumentationComments = true;
+                            value = valueMemoryString();
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
                                 continue;
                             }
-                            string? unquoted = RemoveQuotesAndSlashes(value);
+                            string? unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 // CONSIDER: This diagnostic exactly matches dev11, but it would be simpler (and more consistent with /out)
@@ -647,11 +664,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "addmodule":
-                            if (value == null)
+                            if (valueMemory is null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/addmodule:");
                             }
-                            else if (string.IsNullOrEmpty(value))
+                            else if (valueMemory.Value.Length == 0)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
                             }
@@ -660,25 +677,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                                 // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
                                 // An error will be reported by the assembly manager anyways.
-                                metadataReferences.AddRange(ParseSeparatedPaths(value).Select(path => new CommandLineReference(path, MetadataReferenceProperties.Module)));
+                                metadataReferences.AddRange(ParseSeparatedPaths(valueMemory).Select(path => new CommandLineReference(path, MetadataReferenceProperties.Module)));
                                 resourcesOrModulesSpecified = true;
                             }
                             continue;
 
                         case "l":
                         case "link":
-                            metadataReferences.AddRange(ParseAssemblyReferences(arg, value, diagnostics, embedInteropTypes: true));
+                            ParseAssemblyReferences(arg, valueMemory, diagnostics, embedInteropTypes: true, metadataReferences);
                             continue;
 
                         case "win32res":
+                            value = valueMemoryString();
                             win32ResourceFile = GetWin32Setting(arg, value, diagnostics);
                             continue;
 
                         case "win32icon":
+                            value = valueMemoryString();
                             win32IconFile = GetWin32Setting(arg, value, diagnostics);
                             continue;
 
                         case "win32manifest":
+                            value = valueMemoryString();
                             win32ManifestFile = GetWin32Setting(arg, value, diagnostics);
                             noWin32Manifest = false;
                             continue;
@@ -690,12 +710,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "res":
                         case "resource":
-                            if (value == null)
+                            if (valueMemory is null)
                             {
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var embeddedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: true);
+                            var embeddedResource = ParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, embedded: true);
                             if (embeddedResource != null)
                             {
                                 managedResources.Add(embeddedResource);
@@ -706,12 +726,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "linkres":
                         case "linkresource":
-                            if (value == null)
+                            if (valueMemory is null)
                             {
                                 break; // Dev11 reports unrecognized option
                             }
 
-                            var linkedResource = ParseResourceDescription(arg, value, baseDirectory, diagnostics, embedded: false);
+                            var linkedResource = ParseResourceDescription(arg, valueMemory.Value, baseDirectory, diagnostics, embedded: false);
                             if (linkedResource != null)
                             {
                                 managedResources.Add(linkedResource);
@@ -721,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "sourcelink":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
@@ -736,7 +756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             emitPdb = true;
 
                             // unused, parsed for backward compat only
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (value != null)
                             {
                                 if (value.IsEmpty())
@@ -765,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "debug+":
                             //guard against "debug+:xx"
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             emitPdb = true;
@@ -773,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "debug-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             emitPdb = false;
@@ -784,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "optimize":
                         case "o+":
                         case "optimize+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             optimize = true;
@@ -792,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "o-":
                         case "optimize-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             optimize = false;
@@ -800,14 +820,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "deterministic":
                         case "deterministic+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             deterministic = true;
                             continue;
 
                         case "deterministic-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
                             deterministic = false;
                             continue;
@@ -816,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "parallel":
                         case "p+":
                         case "parallel+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             concurrentBuild = true;
@@ -824,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "p-":
                         case "parallel-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             concurrentBuild = false;
@@ -832,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "warnaserror":
                         case "warnaserror+":
+                            value = valueMemoryString();
                             if (value == null)
                             {
                                 generalDiagnosticOption = ReportDiagnostic.Error;
@@ -861,6 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "warnaserror-":
+                            value = valueMemoryString();
                             if (value == null)
                             {
                                 generalDiagnosticOption = ReportDiagnostic.Default;
@@ -894,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "w":
                         case "warn":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
@@ -918,6 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "nowarn":
+                            value = valueMemoryString();
                             if (value == null)
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
@@ -936,14 +959,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "unsafe":
                         case "unsafe+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             allowUnsafe = true;
                             continue;
 
                         case "unsafe-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             allowUnsafe = false;
@@ -951,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "delaysign":
                         case "delaysign+":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -960,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "delaysign-":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -970,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "publicsign":
                         case "publicsign+":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -979,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "publicsign-":
-                            if (value != null)
+                            if (valueMemory is not null)
                             {
                                 break;
                             }
@@ -988,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "keyfile":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, "keyfile");
@@ -1009,6 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "keycontainer":
+                            value = valueMemoryString();
                             if (string.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "keycontainer");
@@ -1030,14 +1054,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "highentropyva":
                         case "highentropyva+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             highEntropyVA = true;
                             continue;
 
                         case "highentropyva-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             highEntropyVA = false;
@@ -1048,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "baseaddress":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
 
                             ulong newBaseAddress;
                             if (string.IsNullOrEmpty(value) || !TryParseUInt64(value, out newBaseAddress))
@@ -1070,6 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "subsystemversion":
+                            value = valueMemoryString();
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "subsystemversion");
@@ -1090,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "touchedfiles":
-                            unquoted = RemoveQuotesAndSlashes(value);
+                            unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "touchedfiles");
@@ -1108,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "utf8output":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             utf8output = true;
@@ -1118,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "main":
                             // Remove any quotes for consistent behavior as MSBuild can return quoted or 
                             // unquoted main.    
-                            unquoted = RemoveQuotesAndSlashes(value);
+                            unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -1129,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "fullpaths":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             printFullPaths = true;
@@ -1138,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case "pathmap":
                             // "/pathmap:K1=V1,K2=V2..."
                             {
-                                unquoted = RemoveQuotesAndSlashes(value);
+                                unquoted = RemoveQuotesAndSlashes(valueMemory);
 
                                 if (unquoted == null)
                                 {
@@ -1150,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "filealign":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
 
                             ushort newAlignment;
                             if (RoslynString.IsNullOrEmpty(value))
@@ -1172,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "pdb":
-                            value = RemoveQuotesAndSlashes(value);
+                            value = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
@@ -1193,14 +1218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "skipanalyzers":
                         case "skipanalyzers+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             skipAnalyzers = true;
                             continue;
 
                         case "skipanalyzers-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             skipAnalyzers = false;
@@ -1208,14 +1233,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case "nostdlib":
                         case "nostdlib+":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             noStdLib = true;
                             continue;
 
                         case "nostdlib-":
-                            if (value != null)
+                            if (valueMemory is not null)
                                 break;
 
                             noStdLib = false;
@@ -1225,14 +1250,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "errorlog":
-                            unquoted = RemoveQuotesAndSlashes(value);
+                            unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ErrorLogOptionFormat, RemoveQuotesAndSlashes(arg));
                             }
                             else
                             {
-                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, out bool diagnosticAlreadyReported);
+                                errorLogOptions = ParseErrorLogOptions(unquoted.AsMemory(), diagnostics, baseDirectory, out bool diagnosticAlreadyReported);
                                 if (errorLogOptions == null && !diagnosticAlreadyReported)
                                 {
                                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadSwitchValue, unquoted, "/errorlog:", ErrorLogOptionFormat);
@@ -1241,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "appconfig":
-                            unquoted = RemoveQuotesAndSlashes(value);
+                            unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (RoslynString.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, ":<text>", RemoveQuotesAndSlashes(arg));
@@ -1253,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "runtimemetadataversion":
-                            unquoted = RemoveQuotesAndSlashes(value);
+                            unquoted = RemoveQuotesAndSlashes(valueMemory);
                             if (string.IsNullOrEmpty(unquoted))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
@@ -1268,39 +1293,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "additionalfile":
-                            if (RoslynString.IsNullOrEmpty(value))
+                            if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
                                 continue;
                             }
 
-                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            filePathBuilder = ArrayBuilder<string>.GetInstance();
+                            ParseSeparatedFileArgument(valueMemory.Value, baseDirectory, filePathBuilder, diagnostics);
+                            foreach (var path in filePathBuilder)
                             {
                                 additionalFiles.Add(ToCommandLineSourceFile(path));
                             }
+                            filePathBuilder.Free();
                             continue;
-
-                        case "analyzerconfig":
-                            if (RoslynString.IsNullOrEmpty(value))
+                     case "analyzerconfig":
+                            if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);
                                 continue;
                             }
 
-                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            filePathBuilder = ArrayBuilder<string>.GetInstance();
+                            ParseSeparatedFileArgument(valueMemory.Value, baseDirectory, filePathBuilder, diagnostics);
+                            analyzerConfigPaths.AddRange(filePathBuilder);
+                            filePathBuilder.Free();
                             continue;
 
                         case "embed":
+                            value = valueMemoryString();
                             if (RoslynString.IsNullOrEmpty(value))
                             {
                                 embedAllSourceFiles = true;
                                 continue;
                             }
 
-                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            filePathBuilder = ArrayBuilder<string>.GetInstance();
+                            ParseSeparatedFileArgument(value.AsMemory(), baseDirectory, filePathBuilder, diagnostics);
+                            foreach (var path in filePathBuilder)
                             {
                                 embeddedFiles.Add(ToCommandLineSourceFile(path));
                             }
+                            filePathBuilder.Free();
                             continue;
 
                         case "-":
@@ -1363,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // add additional reference paths if specified
             if (!string.IsNullOrEmpty(additionalReferenceDirectories))
             {
-                ParseAndResolveReferencePaths(null, additionalReferenceDirectories, baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
+                ParseAndResolveReferencePaths(null, additionalReferenceDirectories.AsMemory(), baseDirectory, libPaths, MessageID.IDS_LIB_ENV, diagnostics);
             }
 
             ImmutableArray<string> referencePaths = BuildSearchPaths(sdkDirectory, libPaths, responsePaths);
@@ -1538,9 +1572,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private static void ParseAndResolveReferencePaths(string? switchName, string? switchValue, string? baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
+        private static void ParseAndResolveReferencePaths(string? switchName, ReadOnlyMemory<char>? switchValue, string? baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)
         {
-            if (string.IsNullOrEmpty(switchValue))
+            if (switchValue is not { Length: > 0 })
             {
                 RoslynDebug.Assert(!RoslynString.IsNullOrEmpty(switchName));
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_PathList.Localize(), switchName);
@@ -1785,38 +1819,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static IEnumerable<CommandLineAnalyzerReference> ParseAnalyzers(string arg, string? value, List<Diagnostic> diagnostics)
+        private static void ParseAnalyzers(string arg, ReadOnlyMemory<char>? valueMemory, List<CommandLineAnalyzerReference> analyzerReferences, List<Diagnostic> diagnostics)
         {
-            if (value == null)
+            if (valueMemory is not { } value)
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
-                yield break;
+                return;
             }
             else if (value.Length == 0)
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
-                yield break;
+                return;
             }
 
-            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
-
-            foreach (string path in paths)
+            foreach (var path in ParseSeparatedPaths(value))
             {
-                yield return new CommandLineAnalyzerReference(path);
+                if (string.IsNullOrEmpty(path))
+                {
+                    continue;
+                }
+
+                analyzerReferences.Add(new CommandLineAnalyzerReference(path));
             }
         }
 
-        private static IEnumerable<CommandLineReference> ParseAssemblyReferences(string arg, string? value, IList<Diagnostic> diagnostics, bool embedInteropTypes)
+        private static void ParseAssemblyReferences(string arg, ReadOnlyMemory<char>? valueMemory, IList<Diagnostic> diagnostics, bool embedInteropTypes, List<CommandLineReference> commandLineReferences)
         {
-            if (value == null)
+            if (valueMemory is null)
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
-                yield break;
+                return;
             }
-            else if (value.Length == 0)
+
+            var value = valueMemory.Value;
+            if (value.Length == 0)
             {
                 AddDiagnostic(diagnostics, ErrorCode.ERR_NoFileSpec, arg);
-                yield break;
+                return;
             }
 
             // /r:"reference"
@@ -1829,18 +1868,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // /r:alias=reference;reference      ... error 2034
             // /r:nonidf=reference               ... error 1679
 
-            int eqlOrQuote = value.IndexOfAny(s_quoteOrEquals);
+            var valueSpan = value.Span;
+            int eqlOrQuote = OptionUtil.IndexOfAny(valueSpan, s_quoteOrEquals);
 
             string? alias;
-            if (eqlOrQuote >= 0 && value[eqlOrQuote] == '=')
+            if (eqlOrQuote >= 0 && valueSpan[eqlOrQuote] == '=')
             {
-                alias = value.Substring(0, eqlOrQuote);
-                value = value.Substring(eqlOrQuote + 1);
+                alias = value.Slice(0, eqlOrQuote).ToString();
+                value = value.Slice(eqlOrQuote + 1);
 
                 if (!SyntaxFacts.IsValidIdentifier(alias))
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_BadExternIdentifier, alias);
-                    yield break;
+                    return;
                 }
             }
             else
@@ -1848,31 +1888,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias = null;
             }
 
-            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
-            if (alias != null)
+            var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            ParseSeparatedPathsEx(value, builder);
+            var pathCount = 0;
+            foreach (var path in builder)
             {
-                if (paths.Count > 1)
+                if (path.Length == 0)
                 {
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_OneAliasPerReference, value);
-                    yield break;
+                    continue;
                 }
 
-                if (paths.Count == 0)
-                {
-                    AddDiagnostic(diagnostics, ErrorCode.ERR_AliasMissingFile, alias);
-                    yield break;
-                }
-            }
+                pathCount++;
 
-            foreach (string path in paths)
-            {
                 // NOTE(tomat): Dev10 used to report CS1541: ERR_CantIncludeDirectory if the path was a directory.
                 // Since we now support /referencePaths option we would need to search them to see if the resolved path is a directory.
 
                 var aliases = (alias != null) ? ImmutableArray.Create(alias) : ImmutableArray<string>.Empty;
 
                 var properties = new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes);
-                yield return new CommandLineReference(path, properties);
+                commandLineReferences.Add(new CommandLineReference(path.ToString(), properties));
+            }
+            builder.Free();
+
+            if (alias != null)
+            {
+                if (pathCount > 1)
+                {
+                    commandLineReferences.RemoveRange(commandLineReferences.Count - pathCount, pathCount);
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_OneAliasPerReference, value);
+                    return;
+                }
+
+                if (pathCount == 0)
+                {
+                    AddDiagnostic(diagnostics, ErrorCode.ERR_AliasMissingFile, alias);
+                    return;
+                }
             }
         }
 
@@ -1917,7 +1968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ResourceDescription? ParseResourceDescription(
             string arg,
-            string resourceDescriptor,
+            ReadOnlyMemory<char> resourceDescriptor,
             string? baseDirectory,
             IList<Diagnostic> diagnostics,
             bool embedded)
