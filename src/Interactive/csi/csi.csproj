@@ -28,11 +28,11 @@
     (see https://github.com/dotnet/roslyn/issues/53197.) This is a workaround for this issue, basically we are forcing csi to take netstandard2.0 version of SCI and SRM.    
    -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" ExcludeAssets="Compile" GeneratePathProperty="true"/>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" ExcludeAssets="All" GeneratePathProperty="true"/>
     <Reference Include="System.Collections.Immutable">
       <HintPath>$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
     </Reference>
-    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" ExcludeAssets="Compile" GeneratePathProperty="true"/>
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" ExcludeAssets="All" GeneratePathProperty="true"/>
     <Reference Include="System.Reflection.Metadata">
       <HintPath>$(PkgSystem_Reflection_Metadata)\lib\netstandard2.0\System.Reflection.Metadata.dll</HintPath>
     </Reference>
