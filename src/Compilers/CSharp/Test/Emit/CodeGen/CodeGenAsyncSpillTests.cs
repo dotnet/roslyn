@@ -6441,18 +6441,12 @@ struct TestStruct
         Span<char> chars = stackalloc char[4];
         var reference = __makeref(this);
 
-        return string.Empty;
+        return ""Returning from TestStruct.ToString"";
    }
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(
-                compilation: comp,
-                expectedOutput: string.Empty,
-                verify: Verification.Fails
-                );
-            verifier.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "Returning from TestStruct.ToString").VerifyDiagnostics();
         }
     }
 }
