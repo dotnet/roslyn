@@ -203,9 +203,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeConditionalAccessInformationAsync(
-            SemanticModel semanticModel, SyntaxNode node,
-            ISyntaxFactsService syntaxFacts,
-            SymbolsMatchAsync symbolsMatchAsync)
+            SemanticModel semanticModel, SyntaxNode node, ISyntaxFactsService syntaxFacts, SymbolsMatchAsync symbolsMatchAsync)
         {
             // For a ConditionalAccessExpression the whenNotNull component is the indexer reference we are looking for
             syntaxFacts.GetPartsOfConditionalAccessExpression(node, out _, out var indexerReference);
