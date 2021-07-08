@@ -94,17 +94,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     var currentProject = _solution.GetRequiredProject(projectId);
 
-                    // As we walk each project, attempt to grow the search set appropriately up and down the 
-                    // inheritance hierarchy.  Note: this has to happen serially which is why we do it in this
-                    // loop and not inside the concurrent project processing that happens below.
+                    // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
+                    // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
+                    // which is why we do it in this loop and not inside the concurrent project processing that happens
+                    // below.
                     await symbolSet.InheritanceCascadeAsync(currentProject, cancellationToken).ConfigureAwait(false);
+                    allSymbols = symbolSet.GetAllSymbols();
 
                     // Report any new symbols we've cascaded to to our caller.
-                    allSymbols = symbolSet.GetAllSymbols();
                     await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                    tasks.Add(CreateWorkAsync(
-                        () => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
+                    tasks.Add(CreateWorkAsync(() => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
                 }
 
                 // Now, wait for all projects to complete.
