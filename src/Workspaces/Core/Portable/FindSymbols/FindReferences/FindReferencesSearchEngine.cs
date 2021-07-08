@@ -211,10 +211,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             (d.Name != null && s.Name != null) ? string.Format("{0} - {1}", d.Name, s.Name) : string.Empty;
 
         private async Task ProcessDocumentAsync(
-            Document document,
-            SemanticModel semanticModel,
-            ISymbol symbol,
-            CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
             {
