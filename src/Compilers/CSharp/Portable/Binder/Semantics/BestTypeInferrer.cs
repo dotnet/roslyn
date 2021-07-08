@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
-                TypeSymbol? type = expr.Type;
+                TypeSymbol? type = expr.GetTypeOrSignature();
 
                 if (type is { })
                 {
@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.AddRange(candidateTypes);
             var result = GetBestType(builder, conversions, ref useSiteInfo);
             builder.Free();
+
+            if (result is FunctionTypeSymbol functionType)
+            {
+                return functionType.GetInternalDelegateType();
+            }
             return result;
         }
 
@@ -237,6 +242,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (type2 is null || type2.IsErrorType())
+            {
+                return type1;
+            }
+
+            // Prefer types other than FunctionTypeSymbol.
+            if (type1 is FunctionTypeSymbol)
+            {
+                if (!(type2 is FunctionTypeSymbol))
+                {
+                    return type2;
+                }
+            }
+            else if (type2 is FunctionTypeSymbol)
             {
                 return type1;
             }

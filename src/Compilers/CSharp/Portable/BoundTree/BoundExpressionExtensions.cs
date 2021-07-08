@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -88,6 +89,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = node.Type;
             return type is { } && type.IsDynamic();
+        }
+
+        public static NamedTypeSymbol? GetInferredDelegateType(this BoundExpression expr, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(expr.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
+
+            var delegateType = expr.GetSignature()?.GetInternalDelegateType();
+            if (delegateType is { })
+            {
+                delegateType.AddUseSiteInfo(ref useSiteInfo);
+            }
+            return delegateType;
+        }
+
+        // PROTOTYPE: This method might return a FunctionTypeSymbol with null internal delegate type.
+        // There are various callers, such as MethodTypeInferrer and BestTypeInferrer, that are not
+        // checking for null delegate directly. Test those cases with delegate types that cannot be inferred.
+        public static TypeSymbol? GetTypeOrSignature(this BoundExpression expr)
+        {
+            if (expr.Type is { } type)
+            {
+                return type;
+            }
+            return expr.GetSignature();
+        }
+
+        public static FunctionTypeSymbol? GetSignature(this BoundExpression expr)
+        {
+            return expr switch
+            {
+                BoundMethodGroup methodGroup => methodGroup.Signature,
+                UnboundLambda unboundLambda => unboundLambda.Signature,
+                _ => null
+            };
         }
 
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)

@@ -6127,7 +6127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
             {
-                return TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
+                return TypeWithAnnotations.Create(expr.GetTypeOrSignature(), GetNullableAnnotation(expr));
             }
 
             /// <summary>
@@ -6974,9 +6974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
-                            { SpecialType: SpecialType.System_Delegate } => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            _ => throw ExceptionUtilities.UnexpectedValue(targetType)
+                            _ => (null, ImmutableArray<ParameterSymbol>.Empty),
                         };
 
                 case ConversionKind.AnonymousFunction:
@@ -6993,6 +6991,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
+                    break;
+
+                case ConversionKind.FunctionType:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.InterpolatedString:
@@ -8772,6 +8774,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
+            if (expr.Type is null)
+            {
+                // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
+                Debug.Assert(node.HasErrors);
+                VisitRvalue(node.Expression);
+                return;
+            }
+
             SnapshotWalkerThroughConversionGroup(node.Expression, expr);
 
             // There are 7 ways that a foreach can be created:

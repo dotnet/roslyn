@@ -384,7 +384,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]

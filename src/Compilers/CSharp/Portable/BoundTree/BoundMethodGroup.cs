@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -19,9 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> methods,
             LookupResult lookupResult,
             BoundMethodGroupFlags flags,
+            Binder binder,
             bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, receiverOpt, lookupResult.Kind, hasErrors)
+            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, signature: CreateSignature(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
+            Signature?.SetMethodGroup(binder, this);
+        }
+
+        private static FunctionTypeSymbol? CreateSignature(Binder binder, SyntaxNode syntax)
+        {
+            return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
+                new FunctionTypeSymbol(binder.Compilation.Assembly) :
+                null;
         }
 
         public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax

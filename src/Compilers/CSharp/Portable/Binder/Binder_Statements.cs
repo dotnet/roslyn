@@ -1853,6 +1853,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                if (anonymousFunction.Signature is { } signature &&
+                    signature.GetInternalDelegateType() is null)
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    if (targetType.IsDelegateType() ||
+                        targetType.IsExpressionTree() ||
+                        Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
+                        var lambda = anonymousFunction.BindForErrorRecovery();
+                        diagnostics.AddRange(lambda.Diagnostics);
+                        return;
+                    }
+                }
+
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
                 Error(diagnostics, ErrorCode.ERR_AnonMethToNonDel, syntax, id, targetType);
                 return;
@@ -1875,15 +1890,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.MismatchedReturnType)
             {
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethReturnType, syntax, id, targetType);
-                return;
-            }
-
-            if (reason == LambdaConversionResult.CannotInferDelegateType)
-            {
-                Debug.Assert(targetType.SpecialType == SpecialType.System_Delegate || targetType.IsNonGenericExpressionType());
-                Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
-                var lambda = anonymousFunction.BindForErrorRecovery();
-                diagnostics.AddRange(lambda.Diagnostics);
                 return;
             }
 
@@ -2285,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
                             }
-                            else if (targetType.SpecialType == SpecialType.System_Delegate &&
+                            else if (targetType.SpecialType == SpecialType.System_Delegate && // PROTOTYPE: What about System.MulticastDelegate or base classes of System.Delegate?
                                 syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
                             {
                                 Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);
