@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var dependencyGraph = _solution.GetProjectDependencyGraph();
                 await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
 
-                using var _1 = ArrayBuilder<Task>.GetInstance(out var projectTasks);
+                using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
@@ -103,19 +103,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     allSymbols = symbolSet.GetAllSymbols();
                     await ReportGroupsAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
-                    projectTasks.Add(Task.Factory.StartNew(
-                        () => ProcessProjectAsync(currentProject, allSymbols, cancellationToken),
-                        cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                    tasks.Add(CreateWorkAsync(
+                        () => ProcessProjectAsync(currentProject, allSymbols, cancellationToken), cancellationToken));
                 }
 
                 // Now, wait for all projects to complete.
-                await Task.WhenAll(projectTasks).ConfigureAwait(false);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             finally
             {
                 await _progress.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
+
+        public Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
+            => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();
 
         /// <summary>
         /// Notify the caller of the engine about the definitions we've found that we're looking for.  We'll only notify
@@ -163,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             try
             {
-                using var _ = PooledHashSet<Document>.GetInstance(out var allDocuments);
+                using var _1 = PooledHashSet<Document>.GetInstance(out var allDocuments);
                 foreach (var symbol in allSymbols)
                 {
                     foreach (var finder in _finders)
@@ -174,8 +176,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
+                using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 foreach (var document in allDocuments)
-                    await ProcessDocumentsAsync(document, allSymbols, cancellationToken).ConfigureAwait(false);
+                    tasks.Add(CreateWorkAsync(() => ProcessDocumentsAsync(document, allSymbols, cancellationToken), cancellationToken));
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             finally
             {
