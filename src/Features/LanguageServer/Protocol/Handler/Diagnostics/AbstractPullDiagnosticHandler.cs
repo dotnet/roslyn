@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //   1.  Razor handles span mapping for razor files on their side.
             //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
             //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
-            //   3.  This matches classic behavior where we only squiggle the original location anyway.
+            //   4.  This matches classic behavior where we only squiggle the original location anyway.
             var useMappedSpan = false;
             return new VSDiagnostic
             {
