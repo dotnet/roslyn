@@ -69,6 +69,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            // Need to special case for highlighting of method types because they are also "contained" within a method,
+            // but it does not make sense to introduce a parameter in that case.
+            if (syntaxFacts.IsInNamespaceOrTypeContext(expression))
+            {
+                return;
+            }
+
             var generator = SyntaxGenerator.GetGenerator(document);
             var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
 
@@ -106,10 +113,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
             var nodeString = singleLineExpression.ToString();
 
-            context.RegisterRefactoring(new CodeActionWithNestedActions(
-                string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
-            context.RegisterRefactoring(new CodeActionWithNestedActions(
-                string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+            if (actions.Value.actions.Length > 0)
+            {
+                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
+            }
+
+            if (actions.Value.actionsAllOccurrences.Length > 0)
+            {
+                context.RegisterRefactoring(new CodeActionWithNestedActions(
+                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+            }
         }
 
         /// <summary>

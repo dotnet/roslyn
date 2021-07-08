@@ -170,7 +170,9 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             Assert.NotNull(serviceInterface);
 
             var expectedName = descriptor32.GetFeatureDisplayName();
-            Assert.NotEmpty(expectedName);
+
+            // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}
+            Assert.False(string.IsNullOrEmpty(expectedName), $"Service name for '{serviceInterface.GetType()}' not available.");
 
             Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());

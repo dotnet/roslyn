@@ -425,6 +425,7 @@ class X
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

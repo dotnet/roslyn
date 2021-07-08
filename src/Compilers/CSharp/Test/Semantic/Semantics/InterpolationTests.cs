@@ -1617,9 +1617,9 @@ Console.WriteLine($""{span}"");";
 
             var comp = CreateCompilation(new[] { source, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false) }, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (4,22): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,22): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // Console.WriteLine($"{span}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "span").WithArguments("interpolated string handlers").WithLocation(4, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "span").WithArguments("interpolated string handlers", "10.0").WithLocation(4, 22)
                 );
         }
 
@@ -1649,14 +1649,14 @@ value:1,alignment:2:format:Y";
 
             string expectedIl = getIl();
 
-            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: expectedOutput, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular10);
             verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
 
             var comp1 = CreateCompilation(interpolatedStringBuilder, targetFramework: TargetFramework.NetCoreApp);
 
             foreach (var reference in new[] { comp1.EmitToImageReference(), comp1.ToMetadataReference() })
             {
-                var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+                var comp2 = CreateCompilation(source, new[] { reference }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.Regular10);
                 verifier = CompileAndVerify(comp2, expectedOutput: expectedOutput);
                 verifier.VerifyIL("<top-level-statements-entry-point>", expectedIl);
             }
@@ -2834,7 +2834,7 @@ ref struct S
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: true, useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (6,11): error CS0306: The type 'int*' may not be used as a type argument
                 //     _ = $"{i}{s}";
@@ -2912,14 +2912,14 @@ value:");
             var source = @"System.Console.WriteLine($""{(null, default)}{new()}"");";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
-            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder });
+            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (1,29): error CS1503: Argument 1: cannot convert from '(<null>, default)' to 'object'
-                // System.Console.WriteLine($"{(null, default)}");
+                // System.Console.WriteLine($"{(null, default)}{new()}");
                 Diagnostic(ErrorCode.ERR_BadArgType, "(null, default)").WithArguments("1", "(<null>, default)", "object").WithLocation(1, 29),
-                // (1,29): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // System.Console.WriteLine($"{(null, default)}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(null, default)").WithArguments("interpolated string handlers").WithLocation(1, 29),
+                // (1,29): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // System.Console.WriteLine($"{(null, default)}{new()}");
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(null, default)").WithArguments("interpolated string handlers", "10.0").WithLocation(1, 29),
                 // (1,46): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // System.Console.WriteLine($"{(null, default)}{new()}");
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "new()").WithArguments("string", "0").WithLocation(1, 46)
@@ -3091,7 +3091,7 @@ class MyException : Exception
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
-            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp, expectedOutput: @"
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, expectedOutput: @"
 Starting try
 Caught");
 
@@ -3179,8 +3179,7 @@ class C
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
-                targetFramework: TargetFramework.NetCoreApp,
-                parseOptions: TestOptions.RegularPreview);
+                targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:S converted
 value:C");
@@ -3231,7 +3230,7 @@ ref struct S
 ";
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: true, useDefaultParameters: false, useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (5,21): error CS0306: The type 'S' may not be used as a type argument
                 // Console.WriteLine($"{s}");
@@ -3363,10 +3362,10 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,21): error CS9001: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' is malformed. It does not return 'void' or 'bool'.
+                // (4,21): error CS8941: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' is malformed. It does not return 'void' or 'bool'.
                 // Console.WriteLine($"Text{1}");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)").WithLocation(4, 21),
-                // (4,25): error CS9001: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
+                // (4,25): error CS8941: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' is malformed. It does not return 'void' or 'bool'.
                 // Console.WriteLine($"Text{1}");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)").WithLocation(4, 25)
             );
@@ -3399,10 +3398,10 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,25): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
+                // (4,25): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"Text{1}");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "bool").WithLocation(4, 25),
-                // (5,24): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
+                // (5,24): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"{1}Text");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "void").WithLocation(5, 24)
             );
@@ -3435,10 +3434,10 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,25): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
+                // (4,25): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendFormatted(object)' has inconsistent return type. Expected to return 'void'.
                 // Console.WriteLine($"Text{1}");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)", "void").WithLocation(4, 25),
-                // (5,24): error CS9002: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
+                // (5,24): error CS8942: Interpolated string handler method 'DefaultInterpolatedStringHandler.AppendLiteral(string)' has inconsistent return type. Expected to return 'bool'.
                 // Console.WriteLine($"{1}Text");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent, "Text").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)", "bool").WithLocation(5, 24)
             );
@@ -3501,7 +3500,7 @@ public class CustomHandler
 }
 ";
 
-            CompileAndVerify(new[] { source, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, expectedOutput: "literal:l");
+            CompileAndVerify(new[] { source, InterpolatedStringHandlerAttribute }, expectedOutput: "literal:l");
         }
 
         private static void VerifyInterpolatedStringExpression(CSharpCompilation comp, string handlerType = "CustomHandler")
@@ -3537,7 +3536,7 @@ CustomHandler builder = $""Literal{1,2:f}"";
 System.Console.WriteLine(builder.ToString());";
 
             var builder = GetInterpolatedStringCustomHandlerType("CustomHandler", type, useBoolReturns);
-            var comp = CreateCompilation(new[] { code, builder }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, builder });
             VerifyInterpolatedStringExpression(comp);
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"
@@ -3673,7 +3672,7 @@ void M(CustomHandler b)
     System.Console.WriteLine(b.ToString());
 }";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -3714,7 +3713,7 @@ literal:Literal");
         public void ExplicitHandlerCast_InCode()
         {
             var code = @"System.Console.WriteLine((CustomHandler)$""{1,2:f}Literal"");";
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) });
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -3779,7 +3778,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -3834,7 +3833,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             var verifier = CompileAndVerify(comp, expectedOutput: @"Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
@@ -3862,7 +3861,7 @@ class Attr : Attribute
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             comp.VerifyDiagnostics(
                 // (4,2): error CS0181: Attribute constructor parameter 'c' has type 'CustomHandler', which is not a valid attribute parameter type
                 // [Attr($"{1}")]
@@ -3888,7 +3887,7 @@ class Attr : Attribute
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
 
             void validate(ModuleSymbol m)
@@ -3915,7 +3914,7 @@ class C
                 code,
                 GetInterpolatedStringCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
                 GetInterpolatedStringCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
-            }, parseOptions: TestOptions.RegularPreview);
+            });
 
             comp.VerifyDiagnostics(
                 // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(CustomHandler1)' and 'C.M(CustomHandler2)'
@@ -3939,7 +3938,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -3991,7 +3990,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4040,7 +4039,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             comp.VerifyDiagnostics(
                 // (2,3): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'C.M<T>(T)'. There is no implicit reference conversion from 'string' to 'CustomHandler'.
                 // C.M($"{1,2:f}Literal");
@@ -4061,7 +4060,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (2,3): error CS0411: The type arguments for method 'C.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // C.M($"{1,2:f}Literal", default(CustomHandler));
@@ -4085,7 +4084,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             comp.VerifyDiagnostics(
                 // (3,3): error CS0411: The type arguments for method 'C.M<T>(T, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 // C.M(default(CustomHandler), () => $"{1,2:f}Literal");
@@ -4111,7 +4110,7 @@ partial class CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4167,7 +4166,7 @@ partial class CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4212,7 +4211,7 @@ Func<CustomHandler> f = () => $""{1,2:f}Literal"";
 Console.WriteLine(f());
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:1
@@ -4265,7 +4264,7 @@ class C
 
             // Interpolated string handler conversions are not considered when determining the natural type of an expression: the natural return type of this lambda is string,
             // so we don't even consider that there is a conversion from interpolated string expression to CustomHandler here (Sections 12.6.3.13 and 12.6.3.15 of the spec).
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: true) });
             var verifier = CompileAndVerify(comp, expectedOutput: @"1.00Literal");
 
             // No DefaultInterpolatedStringHandler was included in the compilation, so it falls back to string.Format
@@ -4309,7 +4308,7 @@ public ref struct S
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
@@ -4374,15 +4373,15 @@ namespace System.Runtime.CompilerServices
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,11): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,11): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // C.M(() => $"{new S { Field = "Field" }}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"$""{new S { Field = ""Field"" }}""").WithArguments("interpolated string handlers").WithLocation(3, 11),
-                // (3,14): error CS8652: The feature 'interpolated string handlers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"$""{new S { Field = ""Field"" }}""").WithArguments("interpolated string handlers", "10.0").WithLocation(3, 11),
+                // (3,14): error CS8773: Feature 'interpolated string handlers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // C.M(() => $"{new S { Field = "Field" }}");
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"new S { Field = ""Field"" }").WithArguments("interpolated string handlers").WithLocation(3, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, @"new S { Field = ""Field"" }").WithArguments("interpolated string handlers", "10.0").WithLocation(3, 14)
             );
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"value:Field");
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0()", @"
@@ -4428,7 +4427,7 @@ static class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -4493,7 +4492,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL(@"<Program>$.<>c.<<Main>$>b__0_0(bool)", @"
@@ -4540,7 +4539,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
 alignment:2
@@ -4601,7 +4600,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Func<bool, string>)' and 'C.M(Func<bool, CustomHandler>)'
                 // C.M(b => 
@@ -4633,7 +4632,7 @@ static class C
             // We should not be changing binding behavior based on LangVersion.
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (3,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Action<string>)' and 'C.M(Action<CustomHandler>)'
                 // C.M(param => 
@@ -4651,7 +4650,7 @@ var x = (bool)(object)false ? default(CustomHandler) : $""{1,2:f}Literal"";
 Console.WriteLine(x);
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -4710,7 +4709,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -4754,7 +4753,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0029: Cannot implicitly convert type 'string' to 'CustomHandler'
                 // CustomHandler x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -4778,7 +4777,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
 alignment:2
@@ -4836,7 +4835,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,9): error CS0172: Type of conditional expression cannot be determined because 'CustomHandler' and 'string' implicitly convert to one another
                 // var x = (bool)(object)false ? default(CustomHandler) : $"{1,2:f}Literal";
@@ -4861,7 +4860,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -4916,7 +4915,7 @@ var x = (bool)(object)false switch { true => default(CustomHandler), false => $"
 Console.WriteLine(x);
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -4941,7 +4940,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"1.00Literal");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
@@ -4989,7 +4988,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5051,7 +5050,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5114,7 +5113,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (4,29): error CS8506: No best type was found for the switch expression.
                 // var x = (bool)(object)false switch { true => default(CustomHandler), false => $"{1,2:f}Literal" };
@@ -5139,7 +5138,7 @@ public partial struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5193,7 +5192,7 @@ M($""{1,2:f}Literal"");
 
 void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5235,7 +5234,7 @@ M(ref $""{1,2:f}Literal"");
 
 void M(ref CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (2,3): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 // M($"{1,2:f}Literal");
@@ -5254,7 +5253,7 @@ M($""{1,2:f}Literal"");
 
 void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5295,7 +5294,7 @@ M($""{1,2:f}Literal"");
 
 void M(in CustomHandler c) => System.Console.WriteLine(c);";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5341,7 +5340,7 @@ class C
     public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
 }";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5387,7 +5386,7 @@ class C
     public static void M(" + refKind + @" CustomHandler c) => System.Console.WriteLine(c);
 }";
 
-            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, targetFramework: TargetFramework.NetCoreApp);
             VerifyInterpolatedStringExpression(comp);
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5437,7 +5436,7 @@ class C
                 code,
                 GetInterpolatedStringCustomHandlerType("CustomHandler1", "struct", useBoolReturns: false),
                 GetInterpolatedStringCustomHandlerType("CustomHandler2", "struct", useBoolReturns: false, includeOneTimeHelpers: false)
-            }, parseOptions: TestOptions.RegularPreview);
+            });
             VerifyInterpolatedStringExpression(comp, "CustomHandler1");
             var verifier = CompileAndVerifyOnCorrectPlatforms(comp, expectedOutput: @"
 value:1
@@ -5507,9 +5506,9 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute });
             comp.VerifyDiagnostics(
-                // (8,27): error CS9007: 'string' is not an interpolated string handler type.
+                // (8,27): error CS8946: 'string' is not an interpolated string handler type.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute] string s) {}
                 Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgumentAttribute").WithArguments("string").WithLocation(8, 27)
             );
@@ -5537,7 +5536,7 @@ End Class
 
             // Note: there is no compilation error here because the natural type of a string is still string, and
             // we just bind to that method without checking the handler attribute.
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics();
 
             var sParam = comp.GetTypeByMetadataName("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -5563,7 +5562,7 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
                 // (8,70): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute(1)] CustomHandler c) {}
@@ -5593,12 +5592,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,5): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 5),
-                // (8,27): error CS9006: 'NonExistant' is not a valid parameter name from 'C.M(CustomHandler)'.
+                // (8,27): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(CustomHandler)'.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("NonExistant")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant"")").WithArguments("NonExistant", "C.M(CustomHandler)").WithLocation(8, 27)
             );
@@ -5627,9 +5626,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
                 // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -5666,12 +5665,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-                // (8,34): error CS9006: 'NonExistant' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+                // (8,34): error CS8945: 'NonExistant' is not a valid parameter name from 'C.M(int, CustomHandler)'.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("i", "NonExistant")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""i"", ""NonExistant"")").WithArguments("NonExistant", "C.M(int, CustomHandler)").WithLocation(8, 34)
             );
@@ -5700,9 +5699,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -5739,15 +5738,15 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-                // (8,34): error CS9006: 'NonExistant1' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+                // (8,34): error CS8945: 'NonExistant1' is not a valid parameter name from 'C.M(int, CustomHandler)'.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("NonExistant1", "NonExistant2")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant1"", ""NonExistant2"")").WithArguments("NonExistant1", "C.M(int, CustomHandler)").WithLocation(8, 34),
-                // (8,34): error CS9006: 'NonExistant2' is not a valid parameter name from 'C.M(int, CustomHandler)'.
+                // (8,34): error CS8945: 'NonExistant2' is not a valid parameter name from 'C.M(int, CustomHandler)'.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("NonExistant1", "NonExistant2")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_InvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute(""NonExistant1"", ""NonExistant2"")").WithArguments("NonExistant2", "C.M(int, CustomHandler)").WithLocation(8, 34)
             );
@@ -5776,9 +5775,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -5815,12 +5814,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-                // (8,34): error CS9010: InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
+                // (8,34): error CS8948: InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute("c")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_CannotUseSelfAsInterpolatedStringHandlerArgument, @"InterpolatedStringHandlerArgumentAttribute(""c"")").WithLocation(8, 34)
             );
@@ -5849,9 +5848,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
                 // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -5888,12 +5887,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 8),
-                // (8,34): error CS9004: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                // (8,34): error CS8943: null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
                 //     public static void M(int i, [InterpolatedStringHandlerArgumentAttribute(new string[] { null })] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, "InterpolatedStringHandlerArgumentAttribute(new string[] { null })").WithLocation(8, 34)
             );
@@ -5922,9 +5921,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -5962,9 +5961,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -6002,9 +6001,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M(1, $"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,8): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,8): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 8),
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -6041,12 +6040,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,5): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 5),
-                // (8,27): error CS9005: 'C.M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (8,27): error CS8944: 'C.M(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.M(CustomHandler)").WithLocation(8, 27)
             );
@@ -6077,9 +6076,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C.M($"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,5): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 5),
                 // (1,5): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -6116,12 +6115,12 @@ class C
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (4,11): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // _ = new C($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 11),
-                // (8,15): error CS9005: 'C.C(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (8,15): error CS8944: 'C.C(CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public C([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c) {}
                 Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgumentAttribute("""")").WithArguments("C.C(CustomHandler)").WithLocation(8, 15)
             );
@@ -6152,9 +6151,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"_ = new C($"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"_ = new C($"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,11): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,11): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // _ = new C($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 11),
                 // (1,11): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -6191,12 +6190,12 @@ public class C<T>
 
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler });
             comp.VerifyDiagnostics(
-                // (4,20): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (4,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C<CustomHandler>.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(4, 20),
-                // (8,27): error CS9007: 'T' is not an interpolated string handler type.
+                // (8,27): error CS8946: 'T' is not an interpolated string handler type.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute] T t) { }
                 Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgumentAttribute").WithArguments("T").WithLocation(8, 27)
             );
@@ -6231,9 +6230,9 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(@"C<CustomHandler>.M($"""");", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(@"C<CustomHandler>.M($"""");", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics(
-                // (1,20): error CS9011: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
+                // (1,20): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // C<CustomHandler>.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(1, 20),
                 // (1,20): error CS1729: 'CustomHandler' does not contain a constructor that takes 2 arguments
@@ -6284,13 +6283,13 @@ int i = 10;
 C.M(i: i, c: $""text"");
 ";
 
-            var comp = CreateCompilation(new[] { code, goodCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, goodCode, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate, expectedOutput: @"
 i:10
 literal:text
 ");
             verifier.VerifyDiagnostics(
-                // (6,27): warning CS9009: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
+                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
                 // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
@@ -6301,12 +6300,12 @@ literal:text
 
             var badCode = @"C.M($"""", 1);";
 
-            comp = CreateCompilation(new[] { code, badCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(new[] { code, badCode, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (1,10): error CS9012: Parameter 'i' is an argument to the interpolated string handler conversion on parameter 'c', but is specified after the interpolated string constant. Reorder the arguments to move 'i' before 'c'.
+                // (1,10): error CS8950: Parameter 'i' is an argument to the interpolated string handler conversion on parameter 'c', but is specified after the interpolated string constant. Reorder the arguments to move 'i' before 'c'.
                 // C.M($"", 1);
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString, "1").WithArguments("i", "c").WithLocation(1, 10),
-                // (6,27): warning CS9009: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
+                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
                 // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
@@ -6402,7 +6401,7 @@ End Structure
             var vbComp = CreateVisualBasicCompilation(new[] { vbCode, InterpolatedStringHandlerAttributesVB });
             vbComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation("", references: new[] { vbComp.EmitToImageReference() });
             comp.VerifyEmitDiagnostics();
 
             var customHandler = comp.GetTypeByMetadataName("CustomHandler");
@@ -6438,12 +6437,12 @@ public partial struct CustomHandler
 
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler });
             comp.VerifyDiagnostics(
-                // (4,5): error CS9013: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
+                // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, @"$""""").WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS9009: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
             );
@@ -6472,12 +6471,12 @@ public partial struct CustomHandler
 
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, customHandler });
             comp.VerifyDiagnostics(
-                // (4,5): error CS9013: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
+                // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, @"$""""").WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS9009: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
                 Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
             );
@@ -6497,10 +6496,10 @@ public class C
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
             // https://github.com/dotnet/roslyn/issues/53981 tracks warning here in the future, with user feedback.
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             CompileAndVerify(comp, sourceSymbolValidator: validate, symbolValidator: validate).VerifyDiagnostics();
 
-            CreateCompilation(@"C.M(1, $"""");", new[] { comp.ToMetadataReference() }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(@"C.M(1, $"""");", new[] { comp.ToMetadataReference() }).VerifyDiagnostics(
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 3 arguments
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(1, 8),
@@ -6544,19 +6543,19 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
                 // (1,8): error CS0122: 'CustomHandler.CustomHandler(int, int, int)' is inaccessible due to its protection level
                 // C.M(1, $"");
                 Diagnostic(ErrorCode.ERR_BadAccess, @"$""""").WithArguments("CustomHandler.CustomHandler(int, int, int)").WithLocation(1, 8)
             );
 
-            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             // https://github.com/dotnet/roslyn/issues/53981 tracks warning here in the future, with user feedback.
             CompileAndVerify(dependency, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
-            comp = CreateCompilation(executableCode, new[] { dependency.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(executableCode, new[] { dependency.EmitToImageReference() });
             comp.VerifyDiagnostics(
                 // (1,8): error CS1729: 'CustomHandler' does not contain a constructor that takes 4 arguments
                 // C.M(1, $"");
@@ -6566,7 +6565,7 @@ public partial struct CustomHandler
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"$""""").WithArguments("CustomHandler", "3").WithLocation(1, 8)
             );
 
-            comp = CreateCompilation(executableCode, new[] { dependency.ToMetadataReference() }, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(executableCode, new[] { dependency.ToMetadataReference() });
             comp.VerifyDiagnostics(
                 // (1,8): error CS0122: 'CustomHandler.CustomHandler(int, int, int)' is inaccessible due to its protection level
                 // C.M(1, $"");
@@ -6602,7 +6601,7 @@ public partial struct CustomHandler
 ";
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var cParam = comp.SourceModule.GlobalNamespace.GetTypeMember("C").GetMethod("M").Parameters.Skip(1).Single();
@@ -6743,16 +6742,16 @@ public partial struct CustomHandler
                     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"$""""").WithArguments("success", "CustomHandler.CustomHandler(int, int, string, out bool)").WithLocation(1, 8)
                 };
 
-            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             // https://github.com/dotnet/roslyn/issues/53981 tracks warning here in the future, with user feedback.
-            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             CompileAndVerify(dependency, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
             foreach (var d in new[] { dependency.EmitToImageReference(), dependency.ToMetadataReference() })
             {
-                comp = CreateCompilation(executableCode, new[] { d }, parseOptions: TestOptions.RegularPreview);
+                comp = CreateCompilation(executableCode, new[] { d });
                 comp.VerifyDiagnostics(expectedDiagnostics);
             }
 
@@ -6797,7 +6796,7 @@ Console.WriteLine(C.M(i, $""2""));
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 i:10
 literal:2");
@@ -6805,11 +6804,11 @@ literal:2");
             verifier.VerifyDiagnostics();
             verifyIL(extraConstructorArg, verifier);
 
-            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             foreach (var d in new[] { dependency.EmitToImageReference(), dependency.ToMetadataReference() })
             {
-                verifier = CompileAndVerify(executableCode, new[] { d }, parseOptions: TestOptions.RegularPreview, expectedOutput: @"
+                verifier = CompileAndVerify(executableCode, new[] { d }, expectedOutput: @"
 i:10
 literal:2");
                 verifier.VerifyDiagnostics();
@@ -6916,7 +6915,7 @@ C.M(i, s, $""literal"");
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, executableCode, InterpolatedStringHandlerArgumentAttribute, handler });
             string expectedOutput = @"
 i:10
 s:arg
@@ -6927,11 +6926,11 @@ literal:literal
             verifier.VerifyDiagnostics();
             verifyIL(extraConstructorArg, verifier);
 
-            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var dependency = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             foreach (var d in new[] { dependency.EmitToImageReference(), dependency.ToMetadataReference() })
             {
-                verifier = CompileAndVerify(executableCode, new[] { d }, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
+                verifier = CompileAndVerify(executableCode, new[] { d }, expectedOutput: expectedOutput);
                 verifier.VerifyDiagnostics();
                 verifyIL(extraConstructorArg, verifier);
             }
@@ -7059,7 +7058,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 s in constructor
 i:1
@@ -7216,7 +7215,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 GetInt
 GetString
@@ -7349,7 +7348,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 GetC
 GetString
@@ -7486,7 +7485,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 GetInt
 i1:10
@@ -7587,7 +7586,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: "CustomHandler").VerifyDiagnostics();
 
             verifier.VerifyIL("<top-level-statements-entry-point>", (extraConstructorArg == "")
@@ -7650,11 +7649,11 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute });
             // https://github.com/dotnet/roslyn/issues/53981 tracks warning here in the future, with user feedback.
             CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
 
-            CreateCompilation(@"C.M(1, """", $"""");", new[] { comp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(@"C.M(1, """", $"""");", new[] { comp.EmitToImageReference() }).VerifyDiagnostics(
                 (extraConstructorArg == "")
                 ? new[]
                 {
@@ -7715,7 +7714,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 i1:10
 s:str
@@ -7831,7 +7830,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 i1:10
 s:str
@@ -7949,7 +7948,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 i1:10
 c.Prop:5
@@ -8070,7 +8069,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 i:5
 literal:literal
@@ -8145,7 +8144,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, verify: ExecutionConditionUtil.IsWindowsDesktop ? Verification.Skipped : Verification.Passes, expectedOutput: @"
 GetC
 literal:literal
@@ -8277,7 +8276,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, verify: ExecutionConditionUtil.IsWindowsDesktop ? Verification.Skipped : Verification.Passes, expectedOutput: @"
 GetC
 literal:literal
@@ -8392,7 +8391,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
                 // (5,10): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // GetC().M($"literal");
@@ -8427,7 +8426,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
                 // (5,15): error CS1615: Argument 3 may not be passed with the 'ref' keyword
                 // GetC(ref c).M($"literal");
@@ -8469,7 +8468,7 @@ public partial struct CustomHandler
 ";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 s1.I:1
@@ -8547,7 +8546,7 @@ public partial struct CustomHandler
 ";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
                 // (8,14): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // s1.M(ref s2, $"");
@@ -8586,7 +8585,7 @@ public partial struct CustomHandler
 ";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"s.I:1");
 
@@ -8646,7 +8645,7 @@ public partial struct CustomHandler
 ";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"s.I:2");
 
@@ -8730,7 +8729,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns);
 
-            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview, expectedOutput: @"
+            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedOutput: @"
 GetReceiver
 Unrelated parameter 1
 Second value
@@ -8778,7 +8777,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, sourceSymbolValidator: validator, symbolValidator: validator, expectedOutput: @"
 1
 literal:literal
@@ -8875,7 +8874,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 GetC
 GetInt1
@@ -9171,7 +9170,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 GetC
 GetInt1
@@ -9436,7 +9435,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: useBoolReturns);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 GetC
 GetInt1
@@ -9692,7 +9691,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 c.Field:1
 literal:literal
@@ -9770,7 +9769,7 @@ public partial class CustomHandler
 ";
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: useBoolReturns);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 int constructor
 CustomHandler constructor
@@ -10005,7 +10004,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: @"literal:literal");
             verifier.VerifyDiagnostics();
 
@@ -10057,7 +10056,7 @@ End Structure
 
             var code = @"C.M(out _, $"""");";
 
-            var comp = CreateCompilation(code, new[] { vbComp.EmitToImageReference() }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(code, new[] { vbComp.EmitToImageReference() });
             var verifier = CompileAndVerify(comp, expectedOutput: @"1");
             verifier.VerifyDiagnostics();
 
@@ -10089,9 +10088,9 @@ Expression<Func<CustomHandler>> expr = () => $"""";
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, handler });
             comp.VerifyDiagnostics(
-                // (5,46): error CS9014: An expression tree may not contain an interpolated string handler conversion.
+                // (5,46): error CS8952: An expression tree may not contain an interpolated string handler conversion.
                 // Expression<Func<CustomHandler>> expr = () => $"";
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion, @"$""""").WithLocation(5, 46)
             );
@@ -10130,7 +10129,7 @@ public partial class CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns);
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             var verifier = CompileAndVerify(comp, expectedOutput: "c.i:1");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
@@ -10259,7 +10258,7 @@ string M(out object o)
 ";
 
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns, includeTrailingOutConstructorParameter: trailingOutParameter);
-            var comp = CreateCompilation(new[] { code, customHandler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, customHandler });
 
             if (trailingOutParameter)
             {
@@ -10304,7 +10303,7 @@ _ = i.ToString();
 ";
 
             var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns, includeTrailingOutConstructorParameter: trailingOutParameter);
-            var comp = CreateCompilation(new[] { code, customHandler }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, customHandler });
 
             if (trailingOutParameter)
             {
@@ -10338,9 +10337,9 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9015: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+                // (4,6): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
                 // M(d, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""""").WithArguments("CustomHandler").WithLocation(4, 6)
             );
@@ -10364,9 +10363,9 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
-            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute });
             comp.VerifyDiagnostics(
-                // (4,6): error CS9015: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
+                // (4,6): error CS8953: An interpolated string handler construction cannot use dynamic. Manually construct an instance of 'CustomHandler'.
                 // M(d, $"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerCreationCannotUseDynamic, @"$""""").WithArguments("CustomHandler").WithLocation(4, 6)
             );
@@ -10394,7 +10393,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeOneTimeHelpers: false);
 
-            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "d:1");
             verifier.VerifyDiagnostics();
 
@@ -10437,7 +10436,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -10480,7 +10479,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -10521,7 +10520,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendLiteral");
             verifier.VerifyDiagnostics();
 
@@ -10568,7 +10567,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendFormatted");
             verifier.VerifyDiagnostics();
 
@@ -10622,7 +10621,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -10713,7 +10712,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -10814,7 +10813,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,19): error CS8352: Cannot use local 's' in this context because it may expose referenced variables outside of their declaration scope
                 //         return $"{s}";
@@ -10846,7 +10845,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return $"{s}";
@@ -10878,7 +10877,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref $"{s}";
@@ -10917,7 +10916,7 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
                 // (17,9): error CS8350: This combination of arguments to 'CustomHandler.M2(ref S1, ref CustomHandler)' is disallowed because it may expose variables referenced by parameter 'handler' outside of their declaration scope
                 //         M2(ref s1, $"{s}");
@@ -10959,7 +10958,7 @@ public ref struct S1
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
 
@@ -10988,7 +10987,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
 
@@ -11017,7 +11016,7 @@ public ref struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
     }

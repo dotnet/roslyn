@@ -54,14 +54,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
 
-            var documentsWithName = await FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
             var documentsWithType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
+
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, syntaxFacts, out var simpleName)
-                ? await FindDocumentsAsync(project, documents, findInGlobalSuppressions: false, cancellationToken, simpleName).ConfigureAwait(false)
+                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return documentsWithName.Concat(documentsWithType)
-                                    .Concat(documentsWithAttribute);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(documentsWithType, documentsWithAttribute, documentsWithGlobalAttributes);
         }
 
         private static bool IsPotentialReference(
@@ -84,7 +85,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var nonAliasReferences = await FindNonAliasReferencesAsync(namedType, document, semanticModel, cancellationToken).ConfigureAwait(false);
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
-            return nonAliasReferences.Concat(aliasReferences);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, namedType, cancellationToken).ConfigureAwait(false);
+            return nonAliasReferences.Concat(aliasReferences, suppressionReferences);
         }
 
         internal static async ValueTask<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
@@ -132,8 +134,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return FindReferencesInDocumentAsync(document, semanticModel, t =>
                 IsPotentialReference(predefinedType, syntaxFacts, t),
                 (t, m) => ValueTaskFactory.FromResult((matched: true, reason: CandidateReason.None)),
-                docCommentId: null,
-                findInGlobalSuppressions: false,
                 cancellationToken);
         }
 
@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, null, document.Project.Solution, cancellationToken);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             return TryGetNameWithoutAttributeSuffix(namedType.Name, syntaxFacts, out var simpleName)
-                ? FindReferencesInDocumentUsingIdentifierAsync(simpleName, document, semanticModel,
-                    symbolsMatch, docCommentId: null, findInGlobalSuppressions: false, cancellationToken)
+                ? FindReferencesInDocumentUsingIdentifierAsync(namedType, simpleName, document, semanticModel, symbolsMatch, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }

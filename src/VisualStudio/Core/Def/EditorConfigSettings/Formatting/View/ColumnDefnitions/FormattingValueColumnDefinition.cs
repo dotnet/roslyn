@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
                 content = null;
                 return false;
             }
+
             if (setting.Type == typeof(bool))
             {
                 content = new FormattingBoolSettingView(setting);
