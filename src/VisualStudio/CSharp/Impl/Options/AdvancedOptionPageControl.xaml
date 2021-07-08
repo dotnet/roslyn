@@ -45,7 +45,9 @@
                     <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
                               Checked="Enable_pull_diagnostics_experimental_requires_restart_Checked"
-                              Unchecked="Enable_pull_diagnostics_experimental_requires_restart_Unchecked"/>
+                              Unchecked="Enable_pull_diagnostics_experimental_requires_restart_Unchecked"
+                              Indeterminate="Enable_pull_diagnostics_experimental_requires_restart_Indeterminate"
+                              IsThreeState="True"/>
 
                     <CheckBox x:Name="Enable_Razor_pull_diagnostics_experimental_requires_restart"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_Razor_pull_diagnostics_experimental_requires_restart}" 
@@ -60,6 +62,9 @@
 
                     <CheckBox x:Name="Enable_file_logging_for_diagnostics"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
+
+                    <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"

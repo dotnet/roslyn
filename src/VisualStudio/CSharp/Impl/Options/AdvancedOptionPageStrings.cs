@@ -285,6 +285,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_file_logging_for_diagnostics
             => ServicesVSResources.Enable_file_logging_for_diagnostics;
 
+        public static string Option_Skip_analyzers_for_implicitly_triggered_builds
+            => ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds;
+
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
 

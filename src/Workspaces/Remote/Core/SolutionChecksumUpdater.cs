@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public SolutionChecksumUpdater(Workspace workspace, IAsynchronousOperationListenerProvider listenerProvider, CancellationToken shutdownToken)
             : base(listenerProvider.GetListener(FeatureAttribute.SolutionChecksumUpdater),
                    workspace.Services.GetService<IGlobalOperationNotificationService>(),
-                   workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS), shutdownToken)
+                   TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS)), shutdownToken)
         {
             _workspace = workspace;
             _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);

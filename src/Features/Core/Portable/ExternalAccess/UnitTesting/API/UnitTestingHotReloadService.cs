@@ -19,7 +19,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
-            public static readonly DebuggerService Instance = new();
+            private readonly ImmutableArray<string> _capabilities;
+
+            public DebuggerService(ImmutableArray<string> capabilities)
+            {
+                _capabilities = capabilities;
+            }
 
             public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -27,9 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
-            // TODO: get capabilities from the runtime
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+                => Task.FromResult(_capabilities);
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -64,24 +68,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
         /// Starts the watcher.
         /// </summary>
         /// <param name="solution">Solution that represents sources that match the built binaries on disk.</param>
+        /// <param name="capabilities">Array of capabilities retrieved from the runtime to dictate supported rude edits.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task StartSessionAsync(Solution solution, ImmutableArray<string> capabilities, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, new DebuggerService(capabilities), captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
 
         /// <summary>
-        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or 
-        /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
+        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call 
+        /// where <paramref name="commitUpdates"/> was `true` or the one passed to <see cref="StartSessionAsync(Solution, ImmutableArray{string}, CancellationToken)"/>
+        /// for the first invocation.
         /// </summary>
         /// <param name="solution">Solution snapshot.</param>
+        /// <param name="commitUpdates">commits changes if true, discards if false</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>
         /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
         /// </returns>
-        public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, bool commitUpdates, CancellationToken cancellationToken)
         {
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
@@ -90,7 +97,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate(sessionId, out _);
+                if (commitUpdates)
+                {
+                    _encService.CommitSolutionUpdate(sessionId, out _);
+                }
+                else
+                {
+                    _encService.DiscardSolutionUpdate(sessionId);
+                }
             }
 
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
