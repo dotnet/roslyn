@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             filePathBuilder.Free();
                             continue;
-                     case "analyzerconfig":
+                        case "analyzerconfig":
                             if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<file list>", name);

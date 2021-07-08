@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -52,10 +53,16 @@ namespace Roslyn.Utilities
 
         public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
-            var builder = new StringBuilder(commandLine.Length);
-            var list = new List<string>();
+            var list = ArrayBuilder<string>.GetInstance();
+            SplitCommandLineIntoArguments(commandLine, removeHashComments, new StringBuilder(), list, out illegalChar);
+            return list.ToArrayAndFree();
+        }
+
+        public static void SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, StringBuilder builder, ArrayBuilder<string> list, out char? illegalChar)
+        {
             var i = 0;
 
+            builder.Length = 0;
             illegalChar = null;
             while (i < commandLine.Length)
             {
@@ -146,8 +153,6 @@ namespace Roslyn.Utilities
                     list.Add(builder.ToString());
                 }
             }
-
-            return list;
         }
     }
 }

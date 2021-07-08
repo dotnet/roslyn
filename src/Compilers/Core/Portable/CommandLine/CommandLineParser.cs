@@ -589,27 +589,42 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_OpenResponseFile, fullPath));
                 }
 
-                foreach (var newArg in ParseResponseLines(lines))
+                var stringBuilder = PooledStringBuilder.GetInstance();
+                var splitList = ArrayBuilder<string>.GetInstance();
+                foreach (var line in lines)
                 {
-                    // Ignores /noconfig option specified in a response file
-                    if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
+                    stringBuilder.Builder.Length = 0;
+                    splitList.Clear();
+                    CommandLineUtilities.SplitCommandLineIntoArguments(
+                        line,
+                        removeHashComments: true,
+                        stringBuilder.Builder,
+                        splitList,
+                        out _);
+                    foreach (var newArg in splitList)
                     {
-                        index++;
-                        if (index < args.Count)
+                        // Ignores /noconfig option specified in a response file
+                        if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                         {
-                            args[index] = newArg;
+                            index++;
+                            if (index < args.Count)
+                            {
+                                args[index] = newArg;
+                            }
+                            else
+                            {
+                                args.Add(newArg);
+                            }
                         }
                         else
                         {
-                            args.Add(newArg);
+                            diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
                         }
-                    }
-                    else
-                    {
-                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
                     }
                 }
 
+                splitList.Free();
+                stringBuilder.Free();
                 lines.Free();
             }
 
@@ -744,22 +759,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static string MismatchedVersionErrorText => CodeAnalysisResources.MismatchedVersion;
-
-        /// <summary>
-        /// Take a string of lines from a response file, remove comments, 
-        /// and split into a set of command line arguments.
-        /// </summary>
-        internal static IEnumerable<string> ParseResponseLines(IEnumerable<string> lines)
-        {
-            List<string> arguments = new List<string>();
-
-            foreach (string line in lines)
-            {
-                arguments.AddRange(SplitCommandLineIntoArguments(line, removeHashComments: true));
-            }
-
-            return arguments;
-        }
 
         private static readonly char[] s_resourceSeparators = { ',' };
 
