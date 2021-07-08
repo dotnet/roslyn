@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 t => syntaxFacts.TextMatch(t.ValueText, identifierName),
                 cancellationToken).ConfigureAwait(false);
 
-            var aliasReferences = await FindAliasReferencesAsync(
-                nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
             return nonAliasReferences.Concat(aliasReferences, suppressionReferences);
