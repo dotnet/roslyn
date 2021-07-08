@@ -27,6 +27,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Upon set to <see langword="true"/>, sets the arguments array to an empty one.
+        /// Can be used as a shortcut instead of manually initializing with <see cref="Array.Empty{T}"/>.
+        /// </summary>
+        public bool NoArguments
+        {
+            init
+            {
+                if (!value)
+                    return;
+
+                Arguments = ImmutableArray<WellKnownMemberArgumentInfo>.Empty;
+            }
+        }
+
+        /// <summary>
         /// Determines the byte count for the well-known member as it will appear in
         /// the memory buffer when initializing the descriptors, excluding its name.
         /// </summary>
@@ -166,9 +181,17 @@ namespace Microsoft.CodeAnalysis
         }
         public static WellKnownMemberArgumentInfo FromGenericMethodParameter(int index, bool isSZArray = false, bool isByReference = false)
         {
+            return FromIndexedTypeCode(index, SignatureTypeCode.GenericMethodParameter, isSZArray, isByReference);
+        }
+        public static WellKnownMemberArgumentInfo FromGenericTypeParameter(int index, bool isSZArray = false, bool isByReference = false)
+        {
+            return FromIndexedTypeCode(index, SignatureTypeCode.GenericTypeParameter, isSZArray, isByReference);
+        }
+        private static WellKnownMemberArgumentInfo FromIndexedTypeCode(int index, SignatureTypeCode typeCode, bool isSZArray, bool isByReference)
+        {
             var bytes = new[]
             {
-                (byte)SignatureTypeCode.GenericMethodParameter,
+                (byte)typeCode,
                 (byte)index
             };
 

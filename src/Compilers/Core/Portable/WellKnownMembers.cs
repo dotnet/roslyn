@@ -16,19 +16,117 @@ namespace Microsoft.CodeAnalysis
         {
             var signatureInfoArrayBuilder = ImmutableArray.CreateBuilder<WellKnownMemberSignatureInfo>((int)WellKnownMember.Count);
 
-            signatureInfoArrayBuilder[(int)WellKnownMember.System_Math__RoundDouble] = new WellKnownMemberSignatureInfo
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Math__RoundDouble] = new()
             {
                 MemberFlags = MemberFlags.Method | MemberFlags.Static,
                 DeclaringType = WellKnownType.System_Math,
+                Name = "Round",
                 Arity = 0,
                 ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
                 ArgumentArray = new[]
                 {
                     WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
                 },
-                Name = "Round",
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Math__PowDoubleDouble] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.System_Math,
+                Name = "Pow",
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Double),
+                },
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Array__get_Length] = new()
+            {
+                MemberFlags = MemberFlags.PropertyGet,
+                DeclaringType = WellKnownType.System_Array,
+                Name = "get_Length",
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Int32),
+                NoArguments = true,
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Array__Empty] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.System_Array,
+                Name = "Empty",
+                Arity = 1,
+                ReturnType = WellKnownMemberArgumentInfo.FromGenericMethodParameter(0, isSZArray: true),
+                NoArguments = true,
             };
             // TODO: Convert the others below into the new API
+
+            // BEGIN API functionality stress test (also discover new edge cases)
+            signatureInfoArrayBuilder[(int)WellKnownMember.Microsoft_VisualBasic_CompilerServices_NewLateBinding__LateCall] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.Microsoft_VisualBasic_CompilerServices_NewLateBinding,
+                Name = "LateCall",
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Object),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Object),
+                    WellKnownMemberArgumentInfo.FromSimpleWellKnownType(WellKnownType.System_Type),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_String),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Object, isSZArray: true),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_String, isSZArray: true),
+                    WellKnownMemberArgumentInfo.FromSimpleWellKnownType(WellKnownType.System_Type, isSZArray: true),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Boolean, isSZArray: true),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Boolean),
+                },
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.Microsoft_VisualBasic_CompilerServices_StringType__MidStmtStr] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.Microsoft_VisualBasic_CompilerServices_StringType,
+                Name = "MidStmtStr",
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Void),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_String, isSZArray: true),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Int32),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Int32),
+                    WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_String),
+                },
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Runtime_CompilerServices_AsyncVoidMethodBuilder__AwaitUnsafeOnCompleted] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Static,
+                DeclaringType = WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder,
+                Name = "AwaitUnsafeOnCompleted",
+                Arity = 2,
+                ReturnType = WellKnownMemberArgumentInfo.FromSimpleSpecialType(SpecialType.System_Void),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromGenericMethodParameter(0, isByReference: true),
+                    WellKnownMemberArgumentInfo.FromGenericMethodParameter(1, isByReference: true),
+                },
+            };
+            signatureInfoArrayBuilder[(int)WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator] = new()
+            {
+                MemberFlags = MemberFlags.Method | MemberFlags.Virtual,
+                DeclaringType = WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
+                Name = "GetAsyncEnumerator",
+                Arity = 0,
+                ReturnType = WellKnownMemberArgumentInfo.FromGenericTypeInstance(
+                    WellKnownMemberArgumentInfo.FromSimpleWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T),
+                    new[]
+                    {
+                        WellKnownMemberArgumentInfo.FromGenericTypeParameter(0),
+                    }),
+                ArgumentArray = new[]
+                {
+                    WellKnownMemberArgumentInfo.FromSimpleWellKnownType(WellKnownType.System_Threading_CancellationToken),
+                },
+            };
+            // END
 
             var descriptorBuilder = ImmutableArray.CreateBuilder<MemberDescriptor>((int)WellKnownMember.Count);
             for (int i = 0; i < signatureInfoArrayBuilder.Count; i++)
