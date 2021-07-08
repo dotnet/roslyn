@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -159,11 +161,59 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 foreach (var document in allDocuments)
-                    await ProcessDocumentQueueAsync(document, allSymbols, cancellationToken).ConfigureAwait(false);
+                    await ProcessDocumentsAsync(document, allSymbols, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessDocumentsAsync(
+            Document document,
+            ImmutableArray<ISymbol> documentQueue,
+            CancellationToken cancellationToken)
+        {
+            await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
+
+            SemanticModel? model = null;
+            try
+            {
+                model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // start cache for this semantic model
+                FindReferenceCache.Start(model);
+
+                foreach (var symbol in documentQueue)
+                    await ProcessDocumentAsync(document, model, symbol, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                FindReferenceCache.Stop(model);
+
+                await _progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static readonly Func<Document, ISymbol, string> s_logDocument = (d, s) =>
+            (d.Name != null && s.Name != null) ? string.Format("{0} - {1}", d.Name, s.Name) : string.Empty;
+
+        private async Task ProcessDocumentAsync(
+            Document document,
+            SemanticModel semanticModel,
+            ISymbol symbol,
+            CancellationToken cancellationToken)
+        {
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
+            {
+                var group = _symbolToGroup[symbol];
+                foreach (var finder in _finders)
+                {
+                    var references = await finder.FindReferencesInDocumentAsync(
+                        symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                    foreach (var (_, location) in references)
+                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }
