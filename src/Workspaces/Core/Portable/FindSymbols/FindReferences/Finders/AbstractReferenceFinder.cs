@@ -234,9 +234,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsMatchFunction(
-            ISymbol symbol,
-            Func<SyntaxToken, SyntaxNode>? findParentNode,
-            Solution solution, CancellationToken cancellationToken)
+            ISymbol symbol, Func<SyntaxToken, SyntaxNode>? findParentNode, Solution solution, CancellationToken cancellationToken)
         {
             var nodeMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, solution, cancellationToken);
             findParentNode ??= t => t.Parent!;
@@ -244,9 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected static Func<SyntaxNode, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetStandardSymbolsNodeMatchFunction(
-            ISymbol searchSymbol,
-            Solution solution,
-            CancellationToken cancellationToken)
+            ISymbol searchSymbol, Solution solution, CancellationToken cancellationToken)
         {
             return async (node, model) =>
             {
