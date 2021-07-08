@@ -111,6 +111,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 Contract.ThrowIfNull(searchSymbol);
 
+                // Attempt to map this symbol back to a source symbol if possible as we always prefer the original
+                // source definition as the 'truth' of a symbol versus seeing it projected into dependent cross language
+                // projects as a metadata symbol.  If there is no source symbol, then continue to just use the metadata
+                // symbol as the one to be looking for.
                 var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(searchSymbol, solution, cancellationToken).ConfigureAwait(false);
                 return sourceSymbol ?? searchSymbol;
             }
