@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var stringBuilder = PooledStringBuilder.GetInstance();
-                var splitList = ArrayBuilder<string>.GetInstance();
+                var splitList = new List<string>();
                 foreach (var line in lines)
                 {
                     stringBuilder.Builder.Length = 0;
@@ -623,11 +623,20 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                splitList.Free();
                 stringBuilder.Free();
                 lines.Free();
             }
+        }
 
+        internal static IEnumerable<string> ParseResponseLines(IEnumerable<string> lines)
+        {
+            var arguments = new List<string>();
+            foreach (string line in lines)
+            {
+                arguments.AddRange(CommandLineUtilities.SplitCommandLineIntoArguments(line, removeHashComments: true));
+            }
+
+            return arguments;
         }
 
         /// <summary>

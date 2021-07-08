@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -46,19 +45,19 @@ namespace Roslyn.Utilities
         /// and the double quotation mark is "escaped" by the remaining backslash, 
         /// causing a literal double quotation mark (") to be placed in argv.
         /// </remarks>
-        public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments)
+        public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments)
         {
             return SplitCommandLineIntoArguments(commandLine, removeHashComments, out _);
         }
 
-        public static IEnumerable<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
+        public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
-            var list = ArrayBuilder<string>.GetInstance();
+            var list = new List<string>();
             SplitCommandLineIntoArguments(commandLine, removeHashComments, new StringBuilder(), list, out illegalChar);
-            return list.ToArrayAndFree();
+            return list;
         }
 
-        public static void SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, StringBuilder builder, ArrayBuilder<string> list, out char? illegalChar)
+        public static void SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, StringBuilder builder, List<string> list, out char? illegalChar)
         {
             var i = 0;
 

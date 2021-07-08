@@ -824,18 +824,6 @@ class C
             CleanupAllGeneratedFiles(tmpFileName);
         }
 
-        internal static IEnumerable<string> ParseResponseLines(IEnumerable<string> lines)
-        {
-            List<string> arguments = new List<string>();
-
-            foreach (string line in lines)
-            {
-                arguments.AddRange(CommandLineUtilities.SplitCommandLineIntoArguments(line, removeHashComments: true));
-            }
-
-            return arguments;
-        }
-
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void Win32ResQuotes()
         {
@@ -843,21 +831,21 @@ class C
                 @" /win32res:d:\\""abc def""\a""b c""d\a.res",
             };
 
-            CSharpCommandLineArguments args = DefaultParse(ParseResponseLines(responseFile), @"c:\");
+            CSharpCommandLineArguments args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.res", args.Win32ResourceFile);
 
             responseFile = new string[] {
                 @" /win32icon:d:\\""abc def""\a""b c""d\a.ico",
             };
 
-            args = DefaultParse(ParseResponseLines(responseFile), @"c:\");
+            args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.ico", args.Win32Icon);
 
             responseFile = new string[] {
                 @" /win32manifest:d:\\""abc def""\a""b c""d\a.manifest",
             };
 
-            args = DefaultParse(ParseResponseLines(responseFile), @"c:\");
+            args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             Assert.Equal(@"d:\abc def\ab cd\a.manifest", args.Win32Manifest);
         }
 
@@ -6355,7 +6343,7 @@ class myClass
                 @"hello world # this is a comment"
             };
 
-            IEnumerable<string> args = ParseResponseLines(responseFile);
+            IEnumerable<string> args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { "a.cs", "b.cs", @"c.cs e.cs", "hello", "world" }, args);
 
             // Check comment handling; comment character only counts at beginning of argument
@@ -6368,28 +6356,28 @@ class myClass
                 @"  ""#g.cs #h.cs"""
             };
 
-            args = ParseResponseLines(responseFile);
+            args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { "a.cs", "b#.cs", "c#d.cs", "#f.cs", "#g.cs #h.cs" }, args);
 
             // Check backslash escaping
             responseFile = new string[] {
                 @"a\b\c d\\e\\f\\ \\\g\\\h\\\i \\\\ \\\\\k\\\\\",
             };
-            args = ParseResponseLines(responseFile);
+            args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"a\b\c", @"d\\e\\f\\", @"\\\g\\\h\\\i", @"\\\\", @"\\\\\k\\\\\" }, args);
 
             // More backslash escaping and quoting
             responseFile = new string[] {
                 @"a\""a b\\""b c\\\""c d\\\\""d e\\\\\""e f"" g""",
             };
-            args = ParseResponseLines(responseFile);
+            args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"a\""a", @"b\\""b c\\\""c d\\\\""d", @"e\\\\\""e", @"f"" g""" }, args);
 
             // Quoting inside argument is valid.
             responseFile = new string[] {
                 @"  /o:""goo.cs"" /o:""abc def""\baz ""/o:baz bar""bing",
             };
-            args = ParseResponseLines(responseFile);
+            args = CSharpCommandLineParser.ParseResponseLines(responseFile);
             AssertEx.Equal(new[] { @"/o:""goo.cs""", @"/o:""abc def""\baz", @"""/o:baz bar""bing" }, args);
         }
 
@@ -6400,7 +6388,7 @@ class myClass
                 @"d:\\""abc def""\baz.cs ab""c d""e.cs",
             };
 
-            CSharpCommandLineArguments args = DefaultParse(ParseResponseLines(responseFile), @"c:\");
+            CSharpCommandLineArguments args = DefaultParse(CSharpCommandLineParser.ParseResponseLines(responseFile), @"c:\");
             AssertEx.Equal(new[] { @"d:\abc def\baz.cs", @"c:\abc de.cs" }, args.SourceFiles.Select(file => file.Path));
         }
 
