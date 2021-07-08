@@ -108,21 +108,20 @@ namespace Microsoft.CodeAnalysis
         private WellKnownMemberArgumentInfo(byte* bytes, int length, bool isSZArray, bool isByReference)
         {
             int start = 0;
-            EvaluateFlag(isByReference, SignatureTypeCode.ByReference, bytes, ref length, ref start);
-            EvaluateFlag(isSZArray, SignatureTypeCode.SZArray, bytes, ref length, ref start);
+            evaluateFlag(isByReference, SignatureTypeCode.ByReference, bytes, ref start);
+            evaluateFlag(isSZArray, SignatureTypeCode.SZArray, bytes, ref start);
 
-            _length = (byte)length;
+            _length = (byte)(length + start);
 
-            for (int i = start; i < length; i++)
-                _bytes[i] = bytes[i];
+            for (int i = 0; i < length; i++)
+                _bytes[start + i] = bytes[i];
 
-            static void EvaluateFlag(bool condition, SignatureTypeCode typeCode, byte* bytes, ref int length, ref int start)
+            static void evaluateFlag(bool condition, SignatureTypeCode typeCode, byte* bytes, ref int start)
             {
                 if (!condition)
                     return;
 
                 bytes[start] = (byte)typeCode;
-                length++;
                 start++;
             }
         }
