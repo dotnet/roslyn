@@ -53,13 +53,23 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             };
 
             var id = new Run(_diagnostic.Id);
-            var link = new Hyperlink(id)
-            {
-                NavigateUri = new Uri(_diagnostic.HelpLink)
-            };
+            Hyperlink? link = null;
 
-            link.RequestNavigate += HandleRequestNavigate;
-            block.Inlines.Add(link);
+            if (_diagnostic.HelpLink is null)
+            {
+                block.Inlines.Add(id);
+            }
+            else
+            {
+                link = new Hyperlink(id)
+                {
+                    NavigateUri = new Uri(_diagnostic.HelpLink)
+                };
+
+                link.RequestNavigate += HandleRequestNavigate;
+                block.Inlines.Add(link);
+            }
+
             block.Inlines.Add(": " + _diagnostic.Message);
 
             var lineHeight = Math.Floor(format.Typeface.FontFamily.LineSpacing * block.FontSize);
@@ -69,14 +79,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 MaxHeight = lineHeight,
                 Margin = new Thickness(1, 0, 5, 0)
             };
+
             var stackPanel = new StackPanel
             {
                 Height = lineHeight,
-                Orientation = Orientation.Horizontal
+                Orientation = Orientation.Horizontal,
+                Children = { image, block }
             };
-
-            stackPanel.Children.Add(image);
-            stackPanel.Children.Add(block);
 
             var border = new Border
             {
@@ -90,6 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Padding = new Thickness(1)
             };
 
+            // This is used as a workaround to the moniker issues in blue theme
             var editorBackground = (Color)_editorFormatMap.GetProperties("TextView Background")["BackgroundColor"];
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
@@ -99,7 +109,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             return new GraphicsResult(border, dispose:
                 () =>
                 {
-                    link.RequestNavigate -= HandleRequestNavigate;
+                    if (link is not null)
+                    {
+                        link.RequestNavigate -= HandleRequestNavigate;
+                    }
+
                     view.ViewportWidthChanged -= ViewportWidthChangedHandler;
                 });
 
