@@ -117,9 +117,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task ReportGroupsAsync(ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
+        /// <summary>
+        /// Notify the caller of the engine about the definitions we've found that we're looking for.  We'll only notify
+        /// them once per symbol group, but we may have to notify about new symbols each time we expand our symbol set
+        /// when we walk into a new project.
+        /// </summary>
+        private async Task ReportGroupsAsync(ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
-            foreach (var symbol in allSymbols)
+            foreach (var symbol in symbols)
             {
                 if (!_symbolToGroup.ContainsKey(symbol))
                 {
