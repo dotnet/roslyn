@@ -1480,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void UnexpectedToken_11()
+        public void UnexpectedToken_10()
         {
             string source = @"#line (1, 2) - (3, 4) file.cs";
 
