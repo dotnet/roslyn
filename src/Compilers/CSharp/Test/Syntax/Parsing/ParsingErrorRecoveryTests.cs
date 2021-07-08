@@ -6258,8 +6258,10 @@ class A
             var file = this.ParseTree(text);
 
             Assert.Equal(text, file.ToFullString());
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, file.Errors()[0].Code);
+            file.GetDiagnostics().Verify(
+                // (1,7): error CS1041: Identifier expected; 'namespace' is a keyword
+                // using namespace Goo;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "namespace").WithArguments("", "namespace").WithLocation(1, 7));
 
             var usings = file.Usings;
             Assert.Equal(1, usings.Count);
