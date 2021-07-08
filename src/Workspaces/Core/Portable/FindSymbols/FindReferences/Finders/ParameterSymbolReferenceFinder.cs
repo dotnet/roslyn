@@ -48,9 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static Func<SyntaxToken, SemanticModel, ValueTask<(bool matched, CandidateReason reason)>> GetParameterSymbolsMatchFunction(
-            IParameterSymbol parameter,
-            Solution solution,
-            CancellationToken cancellationToken)
+            IParameterSymbol parameter, Solution solution, CancellationToken cancellationToken)
         {
             // Get the standard function for comparing parameters.  This function will just 
             // directly compare the parameter symbols for SymbolEquivalence.
