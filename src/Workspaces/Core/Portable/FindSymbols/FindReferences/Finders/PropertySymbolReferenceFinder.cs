@@ -167,11 +167,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static ValueTask<(bool matched, CandidateReason reason, SyntaxNode indexerReference)> ComputeIndexerInformationAsync(
-            IPropertySymbol symbol,
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
+            IPropertySymbol symbol, Document document, SemanticModel semanticModel,
+            SyntaxNode node, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var symbolsMatchAsync = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
