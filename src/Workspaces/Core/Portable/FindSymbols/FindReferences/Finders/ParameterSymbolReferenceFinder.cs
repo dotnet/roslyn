@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(parameter, solution, symbols, cancellationToken).ConfigureAwait(false);
+            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
             CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
-            IParameterSymbol parameter,
             Solution solution,
+            IParameterSymbol parameter,
             ArrayBuilder<ISymbol> results,
             CancellationToken cancellationToken)
         {
