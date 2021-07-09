@@ -106,7 +106,7 @@ public class C
 {
     public void F()
     {
-        Action<int> a = static async delegate (int i) { await };
+        Action<int> a = static async delegate(int i) { await };
     }
 }
 ", state.GetDocumentText())
@@ -141,7 +141,7 @@ public class C
 {
     public void F()
     {
-        Func<int, Task> a = static async delegate (int i) { await };
+        Func<int, Task> a = static async delegate(int i) { await };
     }
 }
 ", state.GetDocumentText())
