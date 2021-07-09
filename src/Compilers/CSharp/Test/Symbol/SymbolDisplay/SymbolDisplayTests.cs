@@ -2495,7 +2495,7 @@ namespace N1 {
                 SymbolDisplayPartKind.ClassName);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestAlias3(string ob, string cb)
         {
             var text = @"
@@ -4375,7 +4375,7 @@ class C
 
         [WorkItem(791756, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/791756")]
         [Theory]
-        [MemberData(nameof(SingleLineOrBracedNamespace))]
+        [MemberData(nameof(FileScopedOrBracedNamespace))]
         public void KindOptions(string ob, string cb)
         {
             var source = @"
@@ -7072,7 +7072,7 @@ readonly struct X
                 SymbolDisplayPartKind.Keyword);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void TestReadOnlyStruct_Nested(string ob, string cb)
         {
             var source = @"

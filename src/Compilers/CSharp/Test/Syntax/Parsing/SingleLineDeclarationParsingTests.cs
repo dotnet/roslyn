@@ -190,9 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode(
 @"namespace A;", TestOptions.Regular9,
-                // (1,1): error CS8652: The feature 'file-scoped namespace' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,1): error CS8773: Feature 'file-scoped namespace' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // namespace A;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "namespace").WithArguments("file-scoped namespace").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "namespace").WithArguments("file-scoped namespace", "10.0").WithLocation(1, 1));
 
             N(SyntaxKind.CompilationUnit);
             {

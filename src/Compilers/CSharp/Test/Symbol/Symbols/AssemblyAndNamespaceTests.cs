@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
         public void SourceModule(string ob, string cb)
         {
             var text = @"namespace NS.NS1.NS2
@@ -181,7 +181,7 @@ namespace NS.NS1 {
             Assert.Equal("NS.NS1.B", type2.BaseType().ToTestDisplayString());
         }
 
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void MultiModulesNamespace(string ob, string cb)
         {
             var text1 = @"namespace N1
@@ -271,7 +271,7 @@ namespace NS.NS1 {
         }
 
         /// Container with nested types and non-type members with the same name
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void ClassWithNestedTypesAndMembersWithSameName(string ob, string cb)
         {
             var text1 = @"namespace N1
@@ -338,7 +338,7 @@ namespace NS
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void GenericNamespace(string ob, string cb)
         {
             var compilation = CreateEmptyCompilation(@"
@@ -440,7 +440,7 @@ class App
         }
 
         [WorkItem(863435, "DevDiv/Personal")]
-        [Theory, MemberData(nameof(SingleLineOrBracedNamespace))]
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
         public void CS1671ERR_BadModifiersOnNamespace01(string ob, string cb)
         {
             var test = @"

@@ -341,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# preview features.
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
-                case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
@@ -361,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers: // semantic check
                 case MessageID.IDS_FeatureLineSpanDirective:
+                case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                     return LanguageVersion.CSharp10;
 
                 // C# 9.0 features.

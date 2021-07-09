@@ -3844,6 +3844,28 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void LookupInNamespace(string ob, string cb)
+        {
+            var source = @"
+namespace NS
+" + ob + @"
+    class C
+    {
+        void M() { }
+        void M0() { }
+    }
+" + cb + @"
+";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var methodDecl = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            var endPosition = methodDecl.Body.OpenBraceToken.EndPosition;
+            var symbol = model.LookupSymbols(endPosition, name: "M0").Single();
+            Assert.Equal("void NS.C.M0()", symbol.ToTestDisplayString());
+        }
+
         [WorkItem(1019366, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019366")]
         [WorkItem(273, "CodePlex")]
         [ClrOnlyFact]
