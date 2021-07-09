@@ -8585,7 +8585,13 @@ class C
 using System;
 using System.Linq;
 
-/*<bind>*/Console.Write(1);/*</bind>*/
+/*<bind>*/
+Console.Write(1);
+Console.Write(2);
+Console.Write(3);
+Console.Write(4);
+Console.Write(5);
+/*</bind>*/
 ");
             var controlFlowAnalysisResults = analysisResults.Item1;
             var dataFlowAnalysisResults = analysisResults.Item2;
