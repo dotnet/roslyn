@@ -6259,7 +6259,7 @@ class myClass
                     diagnostics,
                     flattenedArgs,
                     scriptArgsOpt: null,
-                    @"c:\");
+                    baseDirectory: Path.DirectorySeparatorChar == '\\' ? @"c:\" : "/");
 
                 Assert.Empty(diagnostics);
                 Assert.Equal(expected, flattenedArgs);
