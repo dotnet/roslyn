@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <PackageId>Microsoft.VisualStudio.Extensibility.Testing.SupportFiles</PackageId>
-    <PackageVersion>1.0.0</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <Authors>Microsoft</Authors>
     <PackageProjectUrl>https://github.com/microsoft/vs-extension-testing</PackageProjectUrl>
     <RepositoryUrl>https://github.com/microsoft/vs-extension-testing</RepositoryUrl>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <!-- Package information -->
-    <Content Include="LICENSE.txt" PackagePath="" />
+    <Content Include="EULA.rtf" PackagePath="" />
 
     <!-- Visual Studio 2012 -->
     <Content Include="11\Microsoft.VisualStudio.ExtensionManager.dll" PackagePath="build/ref/11" />
