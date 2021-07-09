@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needToCheckConversionToObject)
             {
                 TypeSymbol objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-                BindingDiagnosticBag conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false); ;
+                BindingDiagnosticBag conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 foreach (var currentPart in unconvertedInterpolatedString.Parts)
                 {
                     if (currentPart is BoundStringInsert insert)
