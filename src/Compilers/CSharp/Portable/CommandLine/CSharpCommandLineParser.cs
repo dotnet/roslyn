@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? baseDirectory,
             IList<Diagnostic> diagnostics,
             bool embedded) =>
-            ParseResourceDescription(arg, resourceDescriptor, baseDirectory, diagnostics, embedded);
+            ParseResourceDescription(arg, resourceDescriptor.AsMemory(), baseDirectory, diagnostics, embedded);
 
         internal static ResourceDescription? ParseResourceDescription(
             string arg,
