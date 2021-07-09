@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.Conversion.IsInterpolatedStringHandler.get -> bool
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.ColonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseExpressionColonSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.LineOrSpanDirectiveTriviaSyntax.File.get -> Microsoft.CodeAnalysis.SyntaxToken

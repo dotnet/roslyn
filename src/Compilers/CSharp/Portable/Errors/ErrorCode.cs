@@ -1964,6 +1964,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LineSpanDirectiveEndLessThanStart = 8939,
         ERR_WrongArityAsyncReturn = 8940,
 
+        ERR_InterpolatedStringHandlerMethodReturnMalformed = 8941,
+        ERR_InterpolatedStringHandlerMethodReturnInconsistent = 8942,
+        ERR_NullInvalidInterpolatedStringHandlerArgumentName = 8943,
+        ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName = 8944,
+        ERR_InvalidInterpolatedStringHandlerArgumentName = 8945,
+        ERR_TypeIsNotAnInterpolatedStringHandlerType = 8946,
+        WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 8947,
+        ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 8948,
+        ERR_InterpolatedStringHandlerArgumentAttributeMalformed = 8949,
+        ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 8950,
+        ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 8951,
+        ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 8952,
+        ERR_InterpolatedStringHandlerCreationCannotUseDynamic = 8953,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
