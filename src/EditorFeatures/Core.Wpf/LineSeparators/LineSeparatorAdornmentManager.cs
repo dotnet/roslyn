@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 {
@@ -22,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 
         protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
@@ -41,7 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                         continue;
                     }
 
-                    TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
+                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                    {
+                        continue;
+                    }
 
                     // add the visual to the adornment layer.
                     var geometry = viewLines.GetMarkerGeometry(span);
