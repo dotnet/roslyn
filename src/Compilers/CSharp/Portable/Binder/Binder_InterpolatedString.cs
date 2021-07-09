@@ -494,8 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    var boundLiteral = (BoundLiteral)part;
+                    Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
+                    var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
                     methodName = "AppendLiteral";
-                    argumentsBuilder.Add(part);
+                    argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                     isLiteral = true;
                     hasAlignment = false;
                     hasFormat = false;
