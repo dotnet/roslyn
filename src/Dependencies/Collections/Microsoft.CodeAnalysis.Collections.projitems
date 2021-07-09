@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Builder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1+PrivateInterlocked.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImmutableSegmentedHashSet`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ArraySortHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\BitHelper.cs" />

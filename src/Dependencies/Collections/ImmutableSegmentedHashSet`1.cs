@@ -12,148 +12,277 @@ namespace Microsoft.CodeAnalysis.Collections
     internal readonly partial struct ImmutableSegmentedHashSet<T> : IImmutableSet<T>, ISet<T>, ICollection, IEquatable<ImmutableSegmentedHashSet<T>>
     {
         /// <inheritdoc cref="ImmutableHashSet{T}.Empty"/>
-        public static readonly ImmutableSegmentedHashSet<T> Empty;
+        public static readonly ImmutableSegmentedHashSet<T> Empty = new(new SegmentedHashSet<T>());
+
+        private readonly SegmentedHashSet<T> _set;
+
+        private ImmutableSegmentedHashSet(SegmentedHashSet<T> set)
+        {
+            _set = set;
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.KeyComparer"/>
-        public IEqualityComparer<T> KeyComparer => throw null!;
+        public IEqualityComparer<T> KeyComparer => _set.Comparer;
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Count"/>
-        public int Count => throw null!;
+        public int Count => _set.Count;
+
+        public bool IsDefault => _set == null;
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsEmpty"/>
-        public bool IsEmpty => throw null!;
+        public bool IsEmpty => _set.Count == 0;
 
-        bool ICollection<T>.IsReadOnly => throw null!;
+        bool ICollection<T>.IsReadOnly => true;
 
-        bool ICollection.IsSynchronized => throw null!;
+        bool ICollection.IsSynchronized => true;
 
-        object ICollection.SyncRoot => throw null!;
+        object ICollection.SyncRoot => _set;
 
         public static bool operator ==(ImmutableSegmentedHashSet<T> left, ImmutableSegmentedHashSet<T> right)
-            => throw null!;
+            => left.Equals(right);
 
         public static bool operator !=(ImmutableSegmentedHashSet<T> left, ImmutableSegmentedHashSet<T> right)
-            => throw null!;
+            => !left.Equals(right);
 
         public static bool operator ==(ImmutableSegmentedHashSet<T>? left, ImmutableSegmentedHashSet<T>? right)
-            => throw null!;
+            => left.GetValueOrDefault().Equals(right.GetValueOrDefault());
 
         public static bool operator !=(ImmutableSegmentedHashSet<T>? left, ImmutableSegmentedHashSet<T>? right)
-            => throw null!;
+            => !left.GetValueOrDefault().Equals(right.GetValueOrDefault());
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Add(T)"/>
         public ImmutableSegmentedHashSet<T> Add(T value)
-            => throw null!;
+        {
+            var self = this;
+
+            if (self.IsEmpty)
+            {
+                var set = new SegmentedHashSet<T>(self.KeyComparer) { value };
+                return new ImmutableSegmentedHashSet<T>(set);
+            }
+            else if (self.Contains(value))
+            {
+                return self;
+            }
+            else
+            {
+                // TODO: Avoid the builder allocation
+                // TODO: Reuse all pages with no changes
+                var builder = self.ToBuilder();
+                builder.Add(value);
+                return builder.ToImmutable();
+            }
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Clear()"/>
         public ImmutableSegmentedHashSet<T> Clear()
-            => throw null!;
+        {
+            var self = this;
+
+            if (self.IsEmpty)
+            {
+                return self;
+            }
+
+            return Empty.WithComparer(self.KeyComparer);
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Contains(T)"/>
         public bool Contains(T value)
-            => throw null!;
+            => _set.Contains(value);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Except(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Except(IEnumerable<T> other)
-            => throw null!;
+        {
+            var self = this;
+
+            if (self.IsEmpty || other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+            {
+                return self;
+            }
+            else
+            {
+                // TODO: Avoid the builder allocation
+                // TODO: Reuse all pages with no changes
+                var builder = self.ToBuilder();
+                builder.ExceptWith(other);
+                return builder.ToImmutable();
+            }
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.GetEnumerator()"/>
         public Enumerator GetEnumerator()
-            => throw null!;
+            => new(_set);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Intersect(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Intersect(IEnumerable<T> other)
-            => throw null!;
+        {
+            var self = this;
+
+            if (self.IsEmpty || other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+            {
+                return self.Clear();
+            }
+            else
+            {
+                // TODO: Avoid the builder allocation
+                // TODO: Reuse all pages with no changes
+                var builder = self.ToBuilder();
+                builder.IntersectWith(other);
+                return builder.ToImmutable();
+            }
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsProperSubsetOf(IEnumerable{T})"/>
         public bool IsProperSubsetOf(IEnumerable<T> other)
-            => throw null!;
+            => _set.IsProperSubsetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsProperSupersetOf(IEnumerable{T})"/>
         public bool IsProperSupersetOf(IEnumerable<T> other)
-            => throw null!;
+            => _set.IsProperSupersetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsSubsetOf(IEnumerable{T})"/>
         public bool IsSubsetOf(IEnumerable<T> other)
-            => throw null!;
+            => _set.IsSubsetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.IsSupersetOf(IEnumerable{T})"/>
         public bool IsSupersetOf(IEnumerable<T> other)
-            => throw null!;
+            => _set.IsSupersetOf(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Overlaps(IEnumerable{T})"/>
         public bool Overlaps(IEnumerable<T> other)
-            => throw null!;
+            => _set.Overlaps(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Remove(T)"/>
         public ImmutableSegmentedHashSet<T> Remove(T value)
-            => throw null!;
+        {
+            var self = this;
+
+            if (!self.Contains(value))
+            {
+                return self;
+            }
+            else
+            {
+                // TODO: Avoid the builder allocation
+                // TODO: Reuse all pages with no changes
+                var builder = self.ToBuilder();
+                builder.Remove(value);
+                return builder.ToImmutable();
+            }
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.SetEquals(IEnumerable{T})"/>
         public bool SetEquals(IEnumerable<T> other)
-            => throw null!;
+            => _set.SetEquals(other);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.SymmetricExcept(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> SymmetricExcept(IEnumerable<T> other)
-            => throw null!;
+        {
+            var self = this;
+
+            if (other is ImmutableSegmentedHashSet<T> otherSet)
+            {
+                if (otherSet.IsEmpty)
+                    return self;
+                else if (self.IsEmpty)
+                    return otherSet.WithComparer(KeyComparer);
+            }
+
+            if (IsEmpty)
+            {
+                return ImmutableSegmentedHashSet.CreateRange(KeyComparer, other);
+            }
+            else
+            {
+                // TODO: Avoid the builder allocation
+                // TODO: Reuse all pages with no changes
+                var builder = self.ToBuilder();
+                builder.SymmetricExceptWith(other);
+                return builder.ToImmutable();
+            }
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.TryGetValue(T, out T)"/>
         public bool TryGetValue(T equalValue, out T actualValue)
-            => throw null!;
+        {
+            if (_set.TryGetValue(equalValue, out var value))
+            {
+                actualValue = value;
+                return true;
+            }
+
+            actualValue = equalValue;
+            return false;
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.Union(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Union(IEnumerable<T> other)
-            => throw null!;
+        {
+            // TODO: Avoid the builder allocation
+            // TODO: Reuse all pages with no changes
+            var builder = ToBuilder();
+            builder.UnionWith(other);
+            return builder.ToImmutable();
+        }
 
         /// <inheritdoc cref="ImmutableHashSet{T}.ToBuilder()"/>
         public Builder ToBuilder()
-            => throw null!;
+            => new(this);
 
         /// <inheritdoc cref="ImmutableHashSet{T}.WithComparer(IEqualityComparer{T}?)"/>
         public ImmutableSegmentedHashSet<T> WithComparer(IEqualityComparer<T>? equalityComparer)
-            => throw null!;
+        {
+            var self = this;
+
+            equalityComparer ??= EqualityComparer<T>.Default;
+            if (Equals(self.KeyComparer, equalityComparer))
+                return self;
+
+            return new ImmutableSegmentedHashSet<T>(new SegmentedHashSet<T>(self._set, equalityComparer));
+        }
 
         public override int GetHashCode()
-            => throw null!;
+            => _set?.GetHashCode() ?? 0;
 
         public override bool Equals(object? obj)
-            => throw null!;
+            => obj is ImmutableSegmentedHashSet<T> other && Equals(other);
 
         public bool Equals(ImmutableSegmentedHashSet<T> other)
-            => throw null!;
+            => _set == other._set;
 
         IImmutableSet<T> IImmutableSet<T>.Clear()
-            => throw null!;
+            => Clear();
 
         IImmutableSet<T> IImmutableSet<T>.Add(T value)
-            => throw null!;
+            => Add(value);
 
         IImmutableSet<T> IImmutableSet<T>.Remove(T value)
-            => throw null!;
+            => Remove(value);
 
         IImmutableSet<T> IImmutableSet<T>.Intersect(IEnumerable<T> other)
-            => throw null!;
+            => Intersect(other);
 
         IImmutableSet<T> IImmutableSet<T>.Except(IEnumerable<T> other)
-            => throw null!;
+            => Except(other);
 
         IImmutableSet<T> IImmutableSet<T>.SymmetricExcept(IEnumerable<T> other)
-            => throw null!;
+            => SymmetricExcept(other);
 
         IImmutableSet<T> IImmutableSet<T>.Union(IEnumerable<T> other)
-            => throw null!;
+            => Union(other);
 
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
-            => throw null!;
+            => _set.CopyTo(array, arrayIndex);
 
         void ICollection.CopyTo(Array array, int index)
-            => throw null!;
+            => ((ICollection)_set).CopyTo(array, index);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
-            => throw null!;
+            => GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()
-            => throw null!;
+            => GetEnumerator();
 
         bool ISet<T>.Add(T item)
             => throw new NotSupportedException();
