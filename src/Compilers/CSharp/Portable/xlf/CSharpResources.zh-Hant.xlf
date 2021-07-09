@@ -502,6 +502,16 @@
         <target state="translated">類似欄位的事件 '{0}' 不能是 'readonly'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FileScopedAndNormalNamespace">
+        <source>Source file can not contain both file-scoped and normal namespace declarations.</source>
+        <target state="new">Source file can not contain both file-scoped and normal namespace declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FileScopedNamespaceNotBeforeAllMembers">
+        <source>File-scoped namespace must precede all other members in a file.</source>
+        <target state="new">File-scoped namespace must precede all other members in a file.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體或延伸模組定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上運作。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
@@ -780,6 +790,11 @@
       <trans-unit id="ERR_MultipleEnumeratorCancellationAttributes">
         <source>The attribute [EnumeratorCancellation] cannot be used on multiple parameters</source>
         <target state="translated">無法在多個參數上使用屬性 [EnumeratorCancellation]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MultipleFileScopedNamespace">
+        <source>Source file can only contain one file-scoped namespace declaration.</source>
+        <target state="new">Source file can only contain one file-scoped namespace declaration.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleRecordParameterLists">
@@ -1185,6 +1200,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="new">extended property patterns</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFileScopedNamespace">
+        <source>file-scoped namespace</source>
+        <target state="new">file-scoped namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -3777,8 +3797,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields or methods</source>
-        <target state="translated">命名空間不能直接包含如欄位或方法等成員</target>
+        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
+        <target state="needs-review-translation">命名空間不能直接包含如欄位或方法等成員</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
