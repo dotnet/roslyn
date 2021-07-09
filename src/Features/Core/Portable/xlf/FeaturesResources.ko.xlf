@@ -140,6 +140,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">교체 조건은 캡처하지 않고 이름을 지정할 수 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
         <target state="translated">파일 헤더 기본 설정 적용</target>

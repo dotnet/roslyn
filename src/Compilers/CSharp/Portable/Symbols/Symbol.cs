@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
+        /// Returns diagnostic info that should be reported at the use site of the symbol, or default if there is none.
         /// </summary>
         internal virtual UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {

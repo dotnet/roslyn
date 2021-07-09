@@ -525,13 +525,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             ,
             [CallerLineNumber] int createdAtLineNumber = 0,
-            [CallerFilePath] string? createdAtFilePath = null
+            [CallerFilePath] string createdAtFilePath = ""
 #endif
             )
         {
             return new SynthesizedLocal(CurrentFunction, TypeWithAnnotations.Create(type), kind, syntax, isPinned, refKind
 #if DEBUG
                 , createdAtLineNumber, createdAtFilePath
+#endif
+                );
+        }
+
+        public LocalSymbol InterpolatedStringHandlerLocal(
+            TypeSymbol type,
+            uint valEscapeScope,
+            SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = ""
+#endif
+            )
+        {
+            return new SynthesizedLocalWithValEscape(
+                CurrentFunction,
+                TypeWithAnnotations.Create(type),
+                SynthesizedLocalKind.InterpolatedStringHandler,
+                valEscapeScope,
+                syntax
+#if DEBUG
+                , createdAtLineNumber: createdAtLineNumber, createdAtFilePath: createdAtFilePath
 #endif
                 );
         }
