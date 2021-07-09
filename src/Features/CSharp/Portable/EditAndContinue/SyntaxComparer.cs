@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // Top level syntax kinds
             CompilationUnit,
 
+            GlobalStatement,
+
             NamespaceDeclaration,
             ExternAliasDirective,              // tied to parent 
             UsingDirective,                    // tied to parent
@@ -310,6 +312,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Expressions are ignored but they may contain nodes that should be matched by tree comparer.
                 // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
 
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    // These declarations can come after global statements so we want to stop statement matching
+                    // because no global statements can come after them
+                    isLeaf = true;
+                    return Label.Ignored;
+
                 case SyntaxKind.LocalDeclarationStatement:
                     return Label.LocalDeclarationStatement;
 
@@ -541,9 +554,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (kind)
             {
                 case SyntaxKind.GlobalStatement:
-                    // TODO:
                     isLeaf = true;
-                    return Label.Ignored;
+                    return Label.GlobalStatement;
 
                 case SyntaxKind.ExternAliasDirective:
                     isLeaf = true;

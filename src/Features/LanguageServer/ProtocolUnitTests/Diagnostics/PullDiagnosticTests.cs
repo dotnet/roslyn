@@ -245,6 +245,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
         }
 
+        [Fact]
+        public async Task TestDocumentDiagnosticsAreNotMapped()
+        {
+            var markup =
+@"#line 1 ""test.txt""
+class A {";
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(markup, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI());
+
+            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+            Assert.Equal(1, results.Single().Diagnostics.Single().Range.Start.Line);
+        }
+
         private static async Task InsertTextAsync(
             TestLspServer testLspServer,
             Document document,
@@ -520,6 +542,25 @@ class B {";
 
             Assert.Null(results);
             Assert.Equal("CS1513", progress.GetValues()![0].Diagnostics![0].Code);
+        }
+
+        [Fact]
+        public async Task TestWorkspaceDiagnosticsAreNotMapped()
+        {
+            var markup1 =
+@"#line 1 ""test.txt""
+class A {";
+            var markup2 = "";
+            using var testLspServer = CreateTestWorkspaceWithDiagnostics(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal(new Uri("C:/test1.cs"), results[0].TextDocument!.Uri);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
+            Assert.Empty(results[1].Diagnostics);
         }
 
         #endregion

@@ -2228,7 +2228,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("statements not within tree");
             }
 
-            if (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent)
+            // Global statements don't have their parent in common, but should belong to the same compilation unit
+            bool isGlobalStatement = firstStatement.Parent is GlobalStatementSyntax;
+            if (isGlobalStatement && (lastStatement.Parent is not GlobalStatementSyntax || firstStatement.Parent.Parent != lastStatement.Parent.Parent))
+            {
+                throw new ArgumentException("global statements not within the same compilation unit");
+            }
+
+            // Non-global statements, the parents should be the same
+            if (!isGlobalStatement && (firstStatement.Parent == null || firstStatement.Parent != lastStatement.Parent))
             {
                 throw new ArgumentException("statements not within the same statement list");
             }
