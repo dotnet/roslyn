@@ -8629,7 +8629,6 @@ Func<int> lambda = () => { /*<bind>*/return i;/*</bind>*/ };
             Assert.Equal("i, lambda, args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
-
         [Fact]
         public void TestTopLevelStatements_LambdaCapturingArgs()
         {
@@ -8654,7 +8653,6 @@ Func<int> lambda = () => { /*<bind>*/return args.Length;/*</bind>*/ };
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("lambda, args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
-
 
         #endregion
     }

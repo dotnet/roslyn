@@ -11086,7 +11086,7 @@ M(out var x);
             var src1 = @"
 using System;
 
-<AS:1>Goo(1);</AS:1>                        
+<AS:1>Goo(1);</AS:1>
 
 static void Goo(int a)
 {
