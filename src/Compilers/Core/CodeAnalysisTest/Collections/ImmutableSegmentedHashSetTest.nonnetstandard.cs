@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void EmptyTest()
         {
-            this.EmptyTestHelper(Empty<int>(), 5, null);
-            this.EmptyTestHelper(EmptyTyped<string>().WithComparer(StringComparer.OrdinalIgnoreCase), "a", StringComparer.OrdinalIgnoreCase);
+            EmptyTestHelper(Empty<int>(), 5, null);
+            EmptyTestHelper(EmptyTyped<string>().WithComparer(StringComparer.OrdinalIgnoreCase), "a", StringComparer.OrdinalIgnoreCase);
         }
 
         [Fact]
         public void TryGetValueTest()
         {
-            this.TryGetValueTestHelper(ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase));
+            TryGetValueTestHelper(ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         /// <param name="emptySet">The empty set.</param>
         /// <param name="value">A value that could be placed in the set.</param>
         /// <param name="comparer">The comparer used to obtain the empty set, if any.</param>
-        private void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, T value, IEqualityComparer<T>? comparer)
+        private static void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, T value, IEqualityComparer<T>? comparer)
         {
             Assert.NotNull(emptySet);
 
-            this.EmptyTestHelper(emptySet);
+            EmptyTestHelper(emptySet);
             Assert.True(IsSame(emptySet, emptySet.ToImmutableSegmentedHashSet(comparer)));
             Assert.Same(comparer ?? EqualityComparer<T>.Default, GetEqualityComparer(emptySet));
 

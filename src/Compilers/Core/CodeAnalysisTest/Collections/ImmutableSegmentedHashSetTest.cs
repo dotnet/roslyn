@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void CustomSort()
         {
-            this.CustomSortTestHelper(
+            CustomSortTestHelper(
                 ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.Ordinal),
                 false,
                 new[] { "apple", "APPLE" },
                 new[] { "apple", "APPLE" });
-            this.CustomSortTestHelper(
+            CustomSortTestHelper(
                 ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase),
                 false,
                 new[] { "apple", "APPLE" },
@@ -69,14 +69,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void EnumeratorWithHashCollisionsTest()
         {
             var emptySet = EmptyTyped<int>().WithComparer(new BadHasher<int>());
-            this.EnumeratorTestHelper(emptySet, null, 3, 1, 5);
+            EnumeratorTestHelper(emptySet, null, 3, 1, 5);
         }
 
         [Fact]
         public void EnumeratorWithHashCollisionsTest_RefType()
         {
             var emptySet = EmptyTyped<string>().WithComparer(new BadHasher<string>());
-            this.EnumeratorTestHelper(emptySet, null, "c", "a", "e");
+            EnumeratorTestHelper(emptySet, null, "c", "a", "e");
         }
 
         [Fact]

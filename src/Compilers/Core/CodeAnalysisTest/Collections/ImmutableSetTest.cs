@@ -15,7 +15,6 @@ using System.Linq;
 using Xunit;
 using SetTriad = System.Tuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>, bool>;
 
-#pragma warning disable CA1822 // Mark members as static
 #pragma warning disable CA1825 // Avoid zero-length array allocations
 #pragma warning disable CA1829 // Use Length/Count property instead of Count() when available
 #pragma warning disable RS0001 // Use 'SpecializedCollections.EmptyEnumerable()'
@@ -28,27 +27,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void AddTest()
         {
-            this.AddTestHelper(this.Empty<int>(), 3, 5, 4, 3);
+            AddTestHelper(this.Empty<int>(), 3, 5, 4, 3);
         }
 
         [Fact]
         public void AddDuplicatesTest()
         {
             var arrayWithDuplicates = Enumerable.Range(1, 100).Concat(Enumerable.Range(1, 100)).ToArray();
-            this.AddTestHelper(this.Empty<int>(), arrayWithDuplicates);
+            AddTestHelper(this.Empty<int>(), arrayWithDuplicates);
         }
 
         [Fact]
         public void RemoveTest()
         {
-            this.RemoveTestHelper(this.Empty<int>().Add(3).Add(5), 5, 3);
+            RemoveTestHelper(this.Empty<int>().Add(3).Add(5), 5, 3);
         }
 
         [Fact]
         public void AddRemoveLoadTest()
         {
             var data = GenerateDummyFillData();
-            this.AddRemoveLoadTestHelper(Empty<double>(), data);
+            AddRemoveLoadTestHelper(Empty<double>(), data);
         }
 
         [Fact]
@@ -113,31 +112,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void IsProperSubsetOfTest()
         {
-            this.SetCompareTestHelper(s => s.IsProperSubsetOf, s => s.IsProperSubsetOf, this.GetIsProperSubsetOfScenarios());
+            this.SetCompareTestHelper(s => s.IsProperSubsetOf, s => s.IsProperSubsetOf, GetIsProperSubsetOfScenarios());
         }
 
         [Fact]
         public void IsProperSupersetOfTest()
         {
-            this.SetCompareTestHelper(s => s.IsProperSupersetOf, s => s.IsProperSupersetOf, this.GetIsProperSubsetOfScenarios().Select(Flip));
+            this.SetCompareTestHelper(s => s.IsProperSupersetOf, s => s.IsProperSupersetOf, GetIsProperSubsetOfScenarios().Select(Flip));
         }
 
         [Fact]
         public void IsSubsetOfTest()
         {
-            this.SetCompareTestHelper(s => s.IsSubsetOf, s => s.IsSubsetOf, this.GetIsSubsetOfScenarios());
+            this.SetCompareTestHelper(s => s.IsSubsetOf, s => s.IsSubsetOf, GetIsSubsetOfScenarios());
         }
 
         [Fact]
         public void IsSupersetOfTest()
         {
-            this.SetCompareTestHelper(s => s.IsSupersetOf, s => s.IsSupersetOf, this.GetIsSubsetOfScenarios().Select(Flip));
+            this.SetCompareTestHelper(s => s.IsSupersetOf, s => s.IsSupersetOf, GetIsSubsetOfScenarios().Select(Flip));
         }
 
         [Fact]
         public void OverlapsTest()
         {
-            this.SetCompareTestHelper(s => s.Overlaps, s => s.Overlaps, this.GetOverlapsScenarios());
+            this.SetCompareTestHelper(s => s.Overlaps, s => s.Overlaps, GetOverlapsScenarios());
         }
 
         [Fact]
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return this.Empty<T>().Union(items);
         }
 
-        protected void CustomSortTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, bool matchOrder, T[] injectedValues, T[] expectedValues)
+        protected static void CustomSortTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, bool matchOrder, T[] injectedValues, T[] expectedValues)
         {
             Assert.NotNull(emptySet);
             Assert.NotNull(injectedValues);
@@ -285,7 +284,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         /// </summary>
         /// <typeparam name="T">The type of element stored in the set.</typeparam>
         /// <param name="emptySet">The empty set.</param>
-        protected void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet)
+        protected static void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet)
         {
             Assert.NotNull(emptySet);
 
@@ -312,7 +311,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
         }
 
-        private IEnumerable<SetTriad> GetIsProperSubsetOfScenarios()
+        private static IEnumerable<SetTriad> GetIsProperSubsetOfScenarios()
         {
             return new List<SetTriad>
             {
@@ -325,7 +324,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             };
         }
 
-        private IEnumerable<SetTriad> GetIsSubsetOfScenarios()
+        private static IEnumerable<SetTriad> GetIsSubsetOfScenarios()
         {
             var results = new List<SetTriad>
             {
@@ -339,11 +338,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             // By definition, any proper subset is also a subset.
             // But because a subset may not be a proper subset, we filter the proper- scenarios.
-            results.AddRange(this.GetIsProperSubsetOfScenarios().Where(s => s.Item3));
+            results.AddRange(GetIsProperSubsetOfScenarios().Where(s => s.Item3));
             return results;
         }
 
-        private IEnumerable<SetTriad> GetOverlapsScenarios()
+        private static IEnumerable<SetTriad> GetOverlapsScenarios()
         {
             return new List<SetTriad>
             {
@@ -387,7 +386,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             return new Tuple<IEnumerable<T>, IEnumerable<T>, bool>(scenario.Item2, scenario.Item1, scenario.Item3);
         }
 
-        private void RemoveTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
+        private static void RemoveTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);
@@ -411,7 +410,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(initialCount - removedCount, set.Count);
         }
 
-        private void AddRemoveLoadTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, T[] data)
+        private static void AddRemoveLoadTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, T[] data)
         {
             Assert.NotNull(set);
             Assert.NotNull(data);
@@ -436,7 +435,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
-        protected void EnumeratorTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, IComparer<T>? comparer, params T[] values)
+        protected static void EnumeratorTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, IComparer<T>? comparer, params T[] values)
         {
             var set = emptySet;
             foreach (T value in values)
@@ -483,7 +482,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(set.First(), enumerator.Current);
         }
 
-        private void AddTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
+        private static void AddTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);
