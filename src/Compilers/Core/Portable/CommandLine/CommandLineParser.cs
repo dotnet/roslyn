@@ -594,32 +594,33 @@ namespace Microsoft.CodeAnalysis
                 foreach (var line in lines)
                 {
                     stringBuilder.Builder.Length = 0;
-                    splitList.Clear();
                     CommandLineUtilities.SplitCommandLineIntoArguments(
                         line,
                         removeHashComments: true,
                         stringBuilder.Builder,
                         splitList,
                         out _);
-                    foreach (var newArg in splitList)
+                }
+
+                for (var i = splitList.Count - 1; i >= 0; i--)
+                {
+                    var newArg = splitList[i];
+                    // Ignores /noconfig option specified in a response file
+                    if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Ignores /noconfig option specified in a response file
-                        if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
+                        index++;
+                        if (index < args.Count)
                         {
-                            index++;
-                            if (index < args.Count)
-                            {
-                                args[index] = newArg;
-                            }
-                            else
-                            {
-                                args.Add(newArg);
-                            }
+                            args[index] = newArg;
                         }
                         else
                         {
-                            diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
+                            args.Add(newArg);
                         }
+                    }
+                    else
+                    {
+                        diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.WRN_NoConfigNotOnCommandLine));
                     }
                 }
 
@@ -1088,7 +1089,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void ParseFileArgument(ReadOnlyMemory<char> arg, string? baseDirectory, ArrayBuilder<string> filePathBuilder, IList<Diagnostic> errors)
         {
-            // Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptCommandLineParser || !arg.StartsWith('-') && !arg.StartsWith('@'));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\goo.cs

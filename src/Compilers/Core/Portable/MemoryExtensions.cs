@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        internal static bool StartsWith(this ReadOnlyMemory<char> memory, char c) => memory.Length > 0 && memory.Span[0] == c;
+
         internal static ReadOnlyMemory<char> Unquote(this ReadOnlyMemory<char> memory)
         {
             var span = memory.Span;

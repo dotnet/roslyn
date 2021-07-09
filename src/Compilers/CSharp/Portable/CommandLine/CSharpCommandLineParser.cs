@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            if (valueMemory.Value.Length is 0)
+                            if (valueMemory is not { Length: > 0 })
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
                             }
@@ -2073,10 +2073,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             value = value.Unquote();
             var parts = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+
+            var nullableSpan = "nullable".AsSpan();
             ParseSeparatedStrings(value, s_warningSeparators, removeEmptyEntries: true, parts);
             foreach (ReadOnlyMemory<char> part in parts)
             {
-                if (part.Span.Equals("nullable".AsSpan(), StringComparison.OrdinalIgnoreCase))
+                if (part.Span.Equals(nullableSpan, StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var errorCode in ErrorFacts.NullableWarnings)
                     {

@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -6207,6 +6208,63 @@ class myClass
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(rsp);
+        }
+
+        [Fact]
+        public void ResponseFileOrdering()
+        {
+            var rspFilePath1 = Temp.CreateFile().WriteAllText(@"
+/b
+/c
+").Path;
+
+            assertOrder(
+                new[] { "/a", "/b", "/c", "/d" },
+                new[] { "/a", @$"@""{rspFilePath1}""", "/d" });
+
+            var rspFilePath2 = Temp.CreateFile().WriteAllText(@"
+/c
+/d
+").Path;
+
+            rspFilePath1 = Temp.CreateFile().WriteAllText(@$"
+/b
+@""{rspFilePath2}""
+").Path;
+
+            assertOrder(
+                new[] { "/a", "/b", "/c", "/d", "/e" },
+                new[] { "/a", @$"@""{rspFilePath1}""", "/e" });
+
+            rspFilePath1 = Temp.CreateFile().WriteAllText(@$"
+/b
+").Path;
+
+            rspFilePath2 = Temp.CreateFile().WriteAllText(@"
+# this will be ignored
+/c
+/d
+").Path;
+
+            assertOrder(
+                new[] { "/a", "/b", "/c", "/d", "/e" },
+                new[] { "/a", @$"@""{rspFilePath1}""", $@"@""{rspFilePath2}""", "/e" });
+
+            void assertOrder(string[] expected, string[] args)
+            {
+                var flattenedArgs = ArrayBuilder<string>.GetInstance();
+                var diagnostics = new List<Diagnostic>();
+                CSharpCommandLineParser.Default.FlattenArgs(
+                    args,
+                    diagnostics,
+                    flattenedArgs,
+                    scriptArgsOpt: null,
+                    @"c:\");
+
+                Assert.Empty(diagnostics);
+                Assert.Equal(expected, flattenedArgs);
+                flattenedArgs.Free();
+            }
         }
 
         [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]

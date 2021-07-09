@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             Assert.Equal(
                 ParseSeparatedStrings(@"a,b", new[] { ',' }),
-                new[] { "a", "b" }); ;
+                new[] { "a", "b" });
 
             Assert.Equal(
                 ParseSeparatedStrings(@"a,,b", new[] { ',' }),
