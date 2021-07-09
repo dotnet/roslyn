@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// </summary>
         private void TextView_ViewportWidthChanged(object sender, EventArgs e)
         {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
             if (AdornmentLayer is null)
             {
                 return;
@@ -76,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
         private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
         {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
             if (AdornmentLayer is not null)
             {
                 var elements = AdornmentLayer.Elements;
@@ -151,11 +157,18 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// </summary>
         protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
             var viewLines = TextView.TextViewLines;
             var map = GetSpansOnEachLine(changedSpanCollection);
             foreach (var (lineNum, (tagMappingSpan, snapshotSpan)) in map)
             {
-                TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
+                if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                {
+                    continue;
+                }
+
                 var geometry = viewLines.GetMarkerGeometry(span);
                 if (geometry != null)
                 {

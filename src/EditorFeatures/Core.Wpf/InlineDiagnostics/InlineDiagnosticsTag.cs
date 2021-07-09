@@ -80,19 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 Margin = new Thickness(1, 0, 5, 0)
             };
 
-            var stackPanel = new StackPanel
-            {
-                Height = lineHeight,
-                Orientation = Orientation.Horizontal,
-                Children = { image, block }
-            };
-
             var border = new Border
             {
                 BorderBrush = format.BackgroundBrush,
                 BorderThickness = new Thickness(1),
                 Background = Brushes.Transparent,
-                Child = stackPanel,
+                Child = new StackPanel
+                {
+                    Height = lineHeight,
+                    Orientation = Orientation.Horizontal,
+                    Children = { image, block }
+                },
                 CornerRadius = new CornerRadius(2),
                 // Highlighting lines are 2px buffer. So shift us up by one from the bottom so we feel centered between them.
                 Margin = new Thickness(10, top: 0, 0, bottom: 1),
@@ -147,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Gets called when the ClassificationFormatMap is changed to update the adornment
         /// </summary>
-        public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
+        public static void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
         {
             var border = (Border)adornment;
             border.BorderBrush = format.BackgroundBrush;
