@@ -213,15 +213,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
             var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(unconvertedInterpolatedString.Syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
-            var (appendCalls, usesBoolReturn, positionInfo) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, implicitBuilderReceiver, diagnostics);
+            var (appendCalls, usesBoolReturn, positionInfo, baseStringLength, numFormatHoles) = BindInterpolatedStringAppendCalls(unconvertedInterpolatedString, implicitBuilderReceiver, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
             // (such as Span<T>) that are not convertible to `object` are permissible as interpolated string components, provided there
             // is an applicable AppendFormatted method that accepts them. To preserve langversion, we therefore make sure all components
             // are convertible to object if the current langversion is lower than the interpolation feature and we're converting this
             // interpolation into an actual string.
-            TypeSymbol? objectType = null;
-            BindingDiagnosticBag? conversionDiagnostics = null;
             bool needToCheckConversionToObject = false;
             if (isHandlerConversion)
             {
@@ -230,24 +228,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics)
             {
                 needToCheckConversionToObject = true;
-                objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
-                conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             }
 
             Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
             Debug.Assert(appendCalls.All(a => a is { HasErrors: true } or BoundCall { Arguments: { Length: > 0 } } or BoundDynamicInvocation));
-            int baseStringLength = 0;
-            int numFormatHoles = 0;
 
-            foreach (var currentPart in unconvertedInterpolatedString.Parts)
+            if (needToCheckConversionToObject)
             {
-                if (currentPart is BoundStringInsert insert)
+                TypeSymbol objectType = GetSpecialType(SpecialType.System_Object, diagnostics, unconvertedInterpolatedString.Syntax);
+                BindingDiagnosticBag conversionDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+                foreach (var currentPart in unconvertedInterpolatedString.Parts)
                 {
-                    numFormatHoles++;
-
-                    if (needToCheckConversionToObject)
+                    if (currentPart is BoundStringInsert insert)
                     {
-                        Debug.Assert(conversionDiagnostics is not null);
                         var value = insert.Value;
                         bool reported = false;
                         if (value.Type is not null)
@@ -272,14 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversionDiagnostics.Clear();
                     }
                 }
-                else
-                {
-                    Debug.Assert(currentPart is { ConstantValue: { IsString: true } } and BoundLiteral);
-                    baseStringLength += currentPart.ConstantValue.RopeValue!.Length;
-                }
+
+                conversionDiagnostics.Free();
             }
 
-            conversionDiagnostics?.Free();
 
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, unconvertedInterpolatedString.Syntax);
             int constructorArgumentLength = 3 + additionalConstructorArguments.Length;
@@ -446,14 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return partsBuilder?.ToImmutableAndFree() ?? unconvertedInterpolatedString.Parts;
         }
 
-        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>) BindInterpolatedStringAppendCalls(
+        private (ImmutableArray<BoundExpression> AppendFormatCalls, bool UsesBoolReturn, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>, int BaseStringLength, int NumFormatHoles) BindInterpolatedStringAppendCalls(
             BoundUnconvertedInterpolatedString source,
             BoundInterpolatedStringHandlerPlaceholder implicitBuilderReceiver,
             BindingDiagnosticBag diagnostics)
         {
             if (source.Parts.IsEmpty)
             {
-                return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty);
+                return (ImmutableArray<BoundExpression>.Empty, false, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.Empty, 0, 0);
             }
 
             bool? builderPatternExpectsBool = null;
@@ -461,6 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var positionInfo = ArrayBuilder<(bool IsLiteral, bool HasAlignment, bool HasFormat)>.GetInstance(source.Parts.Length);
             var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
             var parameterNamesAndLocationsBuilder = ArrayBuilder<(string, Location)?>.GetInstance(3);
+            int baseStringLength = 0;
+            int numFormatHoles = 0;
 
             foreach (var part in source.Parts)
             {
@@ -491,14 +482,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentsBuilder.Add(insert.Format);
                         parameterNamesAndLocationsBuilder.Add(("format", insert.Format.Syntax.Location));
                     }
+                    numFormatHoles++;
                 }
                 else
                 {
+                    var boundLiteral = (BoundLiteral)part;
+                    Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
+                    var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
                     methodName = "AppendLiteral";
-                    argumentsBuilder.Add(part);
+                    argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                     isLiteral = true;
                     hasAlignment = false;
                     hasFormat = false;
+                    baseStringLength += literalText.Length;
                 }
 
                 var arguments = argumentsBuilder.ToImmutableAndClear();
@@ -545,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             argumentsBuilder.Free();
             parameterNamesAndLocationsBuilder.Free();
-            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfo.ToImmutableAndFree());
+            return (builderAppendCalls.ToImmutableAndFree(), builderPatternExpectsBool ?? false, positionInfo.ToImmutableAndFree(), baseStringLength, numFormatHoles);
         }
 
         private BoundExpression BindInterpolatedStringHandlerInMemberCall(

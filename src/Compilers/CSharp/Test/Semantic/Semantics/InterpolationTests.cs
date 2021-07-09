@@ -11019,5 +11019,101 @@ public ref struct CustomHandler
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void BracesAreEscaped_01()
+        {
+            var code = @"
+int i = 1;
+System.Console.WriteLine($""{{ {i} }}"");";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+{ 
+value:1
+ }");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (int V_0, //i
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  ldstr      ""{ ""
+  IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldstr      "" }""
+  IL_0026:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0032:  call       ""void System.Console.WriteLine(string)""
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void BracesAreEscaped_02()
+        {
+            var code = @"
+int i = 1;
+CustomHandler c = $""{{ {i} }}"";
+System.Console.WriteLine(c.ToString());";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+literal:{ 
+value:1
+alignment:0
+format:
+literal: }");
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  4
+  .locals init (int V_0, //i
+                CustomHandler V_1, //c
+                CustomHandler V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  ldc.i4.4
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""CustomHandler..ctor(int, int)""
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  ldstr      ""{ ""
+  IL_0012:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0017:  ldloca.s   V_2
+  IL_0019:  ldloc.0
+  IL_001a:  box        ""int""
+  IL_001f:  ldc.i4.0
+  IL_0020:  ldnull
+  IL_0021:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0026:  ldloca.s   V_2
+  IL_0028:  ldstr      "" }""
+  IL_002d:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_0032:  ldloc.2
+  IL_0033:  stloc.1
+  IL_0034:  ldloca.s   V_1
+  IL_0036:  constrained. ""CustomHandler""
+  IL_003c:  callvirt   ""string object.ToString()""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ret
+}
+");
+        }
     }
 }

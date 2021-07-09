@@ -1850,5 +1850,69 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void InterpolationEscapeConstantValue_WithDefaultHandler()
+        {
+            var code = @"
+int i = 1;
+System.Console.WriteLine(/*<bind>*/$""{{ {i} }}""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{{ {i} }}""')
+  Parts(3):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{ ')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{ "", IsImplicit) (Syntax: '{{ ')
+      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
+        Expression:
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        Alignment:
+          null
+        FormatString:
+          null
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' }}')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
+
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void InterpolationEscapeConstantValue_WithoutDefaultHandler()
+        {
+            var code = @"
+int i = 1;
+System.Console.WriteLine(/*<bind>*/$""{{ {i} }}""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            // The difference between this test and the previous one is the constant value of the ILiteralOperations. When handlers are involved, the
+            // constant value is { and }. When they are not involved, the constant values are {{ and }}
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{{ {i} }}""')
+  Parts(3):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{ ')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{ "", IsImplicit) (Syntax: '{{ ')
+      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
+        Expression:
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        Alignment:
+          null
+        FormatString:
+          null
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' }}')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }}"", IsImplicit) (Syntax: ' }}')
+
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
     }
 }
