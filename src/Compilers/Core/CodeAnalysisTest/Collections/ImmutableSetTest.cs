@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void RemoveNonExistingTest()
         {
             System.Collections.Immutable.IImmutableSet<int> emptySet = this.Empty<int>();
-            Assert.Same(emptySet, emptySet.Remove(5));
+            Assert.True(IsSame(emptySet, emptySet.Remove(5)));
 
             // Also fill up a set with many elements to build up the tree, then remove from various places in the tree.
             const int Size = 200;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (int i = 1; i < Size; i += 2)
             {
                 var setAfterRemoval = set.Remove(i);
-                Assert.Same(set, setAfterRemoval);
+                Assert.True(IsSame(set, setAfterRemoval));
             }
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var set = this.Empty<int>().Add(5);
             var empty2 = this.Empty<int>();
-            Assert.Same(set, empty2.Union(set)); // "Filling an empty immutable set with the contents of another immutable set with the exact same comparer should return the other set."
+            Assert.True(IsSame(set, empty2.Union(set))); // "Filling an empty immutable set with the contents of another immutable set with the exact same comparer should return the other set."
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var originalSet = this.Empty<int>();
             var nonEmptySet = originalSet.Add(5);
             var clearedSet = nonEmptySet.Clear();
-            Assert.Same(originalSet, clearedSet);
+            Assert.True(IsSame(originalSet, clearedSet));
         }
 
         [Fact]
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.Equal(0, emptySet.Count); //, "Empty set should have a Count of 0");
             Assert.Equal(0, emptySet.Count()); //, "Enumeration of an empty set yielded elements.");
-            Assert.Same(emptySet, emptySet.Clear());
+            Assert.True(IsSame(emptySet, emptySet.Clear()));
         }
 
         private IEnumerable<SetTriad> GetSetEqualsScenarios()
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(set);
             Assert.NotNull(values);
 
-            Assert.Same(set, set.Except(Enumerable.Empty<T>()));
+            Assert.True(IsSame(set, set.Except(Enumerable.Empty<T>())));
 
             int initialCount = set.Count;
             int removedCount = 0;
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Equal(initialCount - removedCount, set.Count);
                 Assert.Equal(initialCount - removedCount - 1, nextSet.Count);
 
-                Assert.Same(nextSet, nextSet.Remove(value)); //, "Removing a non-existing element should not change the set reference.");
+                Assert.True(IsSame(nextSet, nextSet.Remove(value))); //, "Removing a non-existing element should not change the set reference.");
                 removedCount++;
                 set = nextSet;
             }
@@ -460,16 +460,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             IEnumerator<T> enumerator;
             using (enumerator = set.GetEnumerator())
             {
-                Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                Assert.Equal(default, enumerator.Current);
                 enumerator.Reset(); // reset isn't usually called before MoveNext
-                Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                Assert.Equal(default, enumerator.Current);
                 ManuallyEnumerateTest(list, enumerator);
                 Assert.False(enumerator.MoveNext()); // call it again to make sure it still returns false
 
                 enumerator.Reset();
-                Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                Assert.Equal(default, enumerator.Current);
                 ManuallyEnumerateTest(list, enumerator);
-                Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                Assert.Equal(default, enumerator.Current);
 
                 // this time only partially enumerate
                 enumerator.Reset();
@@ -478,9 +478,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 ManuallyEnumerateTest(list, enumerator);
             }
 
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
+            enumerator.Reset();
+            Assert.True(enumerator.MoveNext());
+            Assert.Equal(set.First(), enumerator.Current);
         }
 
         private void AddTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.NotNull(set);
             Assert.NotNull(values);
 
-            Assert.Same(set, set.Union(Enumerable.Empty<T>()));
+            Assert.True(IsSame(set, set.Union(Enumerable.Empty<T>())));
 
             int initialCount = set.Count;
 
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 }
 
                 // Next assert temporarily disabled because Roslyn's set doesn't follow this rule.
-                Assert.Same(nextSet, nextSet.Add(value)); //, "Adding duplicate value {0} should keep the original reference.", value);
+                Assert.True(IsSame(nextSet, nextSet.Add(value))); //, "Adding duplicate value {0} should keep the original reference.", value);
                 set = nextSet;
             }
         }

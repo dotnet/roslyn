@@ -60,21 +60,34 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             this.UnionTestHelper(this.Empty<int>().Union(new[] { 2 }), Enumerable.Range(0, 1000).ToArray());
         }
 
-        protected static IComparer<T> GetComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
+        protected static IComparer<T>? GetComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
         {
             return set switch
             {
+                // Unordered collections
+                ImmutableSegmentedHashSet<T> => null,
+                System.Collections.Immutable.ImmutableHashSet<T> => null,
+
+                // Ordered collections
                 System.Collections.Immutable.ImmutableSortedSet<T> s => s.KeyComparer,
+
+                // Unknown
                 _ => throw ExceptionUtilities.UnexpectedValue(set),
             };
         }
 
-        protected static IEqualityComparer<T> GetEqualityComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
+        protected static IEqualityComparer<T>? GetEqualityComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
         {
             return set switch
             {
+                // Unordered collections
                 ImmutableSegmentedHashSet<T> s => s.KeyComparer,
                 System.Collections.Immutable.ImmutableHashSet<T> s => s.KeyComparer,
+
+                // Ordered collections
+                System.Collections.Immutable.ImmutableSortedSet<T> => null,
+
+                // Unknown
                 _ => throw ExceptionUtilities.UnexpectedValue(set),
             };
         }

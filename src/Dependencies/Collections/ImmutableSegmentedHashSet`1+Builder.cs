@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -101,7 +102,60 @@ namespace Microsoft.CodeAnalysis.Collections
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.ExceptWith(IEnumerable{T})"/>
             public void ExceptWith(IEnumerable<T> other)
-                => GetOrCreateMutableSet().ExceptWith(other);
+            {
+                if (other is null)
+                    ThrowHelper.ThrowArgumentNullException(ExceptionArgument.other);
+
+                if (_mutableSet is not null)
+                {
+                    _mutableSet.ExceptWith(other);
+                    return;
+                }
+
+                if (other == this)
+                {
+                    Clear();
+                    return;
+                }
+                else if (other is ImmutableSegmentedHashSet<T> otherSet)
+                {
+                    if (otherSet == _set)
+                    {
+                        Clear();
+                        return;
+                    }
+                    else if (otherSet.IsEmpty)
+                    {
+                        // No action required
+                        return;
+                    }
+                    else
+                    {
+                        GetOrCreateMutableSet().ExceptWith(otherSet._set);
+                        return;
+                    }
+                }
+                else
+                {
+                    // Manually enumerate to avoid changes to the builder if 'other' is empty or does not contain any
+                    // items present in the current set.
+                    SegmentedHashSet<T>? mutableSet = null;
+                    foreach (var item in other)
+                    {
+                        if (mutableSet is null)
+                        {
+                            if (!ReadOnlySet.Contains(item))
+                                continue;
+
+                            mutableSet = GetOrCreateMutableSet();
+                        }
+
+                        mutableSet.Remove(item);
+                    }
+
+                    return;
+                }
+            }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.GetEnumerator()"/>
             public Enumerator GetEnumerator()
@@ -163,7 +217,41 @@ namespace Microsoft.CodeAnalysis.Collections
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.UnionWith(IEnumerable{T})"/>
             public void UnionWith(IEnumerable<T> other)
-                => GetOrCreateMutableSet().UnionWith(other);
+            {
+                if (other is null)
+                    ThrowHelper.ThrowArgumentNullException(ExceptionArgument.other);
+
+                if (_mutableSet is not null)
+                {
+                    _mutableSet.UnionWith(other);
+                    return;
+                }
+
+                if (other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+                {
+                    return;
+                }
+                else
+                {
+                    // Manually enumerate to avoid changes to the builder if 'other' is empty or only contains items
+                    // already present in the current set.
+                    SegmentedHashSet<T>? mutableSet = null;
+                    foreach (var item in other)
+                    {
+                        if (mutableSet is null)
+                        {
+                            if (ReadOnlySet.Contains(item))
+                                continue;
+
+                            mutableSet = GetOrCreateMutableSet();
+                        }
+
+                        mutableSet.Add(item);
+                    }
+
+                    return;
+                }
+            }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.ToImmutable()"/>
             public ImmutableSegmentedHashSet<T> ToImmutable()

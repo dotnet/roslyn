@@ -88,12 +88,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.True(enumerator.MoveNext());
             Assert.False(enumerator.MoveNext());
             enumerator.Dispose();
-            Assert.Throws<ObjectDisposedException>(() => enumerator.MoveNext());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Reset());
-            Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.MoveNext());
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.Reset());
-            Assert.Throws<ObjectDisposedException>(() => enumeratorCopy.Current);
+            Assert.False(enumerator.MoveNext());
+            enumerator.Reset();
+            Assert.Equal(0, enumerator.Current);
+            Assert.True(enumeratorCopy.MoveNext());
+            enumeratorCopy.Reset();
+            Assert.Equal(0, enumeratorCopy.Current);
             enumerator.Dispose(); // double-disposal should not throw
             enumeratorCopy.Dispose();
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             enumerator = collection.GetEnumerator();
             Assert.True(enumerator.MoveNext());
             Assert.False(enumerator.MoveNext());
-            Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+            Assert.Equal(0, enumerator.Current);
             enumerator.Dispose();
         }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(new[] { "b" }, setAfterRemovingA);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54716")]
         public void DebuggerAttributesValid()
         {
             DebuggerAttributes.ValidateDebuggerDisplayReferences(ImmutableSegmentedHashSet.Create<string>());
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(set, items);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54716")]
         public static void TestDebuggerAttributes_Null()
         {
             Type proxyType = DebuggerAttributes.GetProxyType(ImmutableSegmentedHashSet.Create<string>());

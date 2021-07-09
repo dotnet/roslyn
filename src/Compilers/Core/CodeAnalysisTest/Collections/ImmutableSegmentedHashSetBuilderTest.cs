@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.False(builder.Remove(null));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54716")]
         public void DebuggerAttributesValid()
         {
             DebuggerAttributes.ValidateDebuggerDisplayReferences(ImmutableSegmentedHashSet.CreateBuilder<int>());

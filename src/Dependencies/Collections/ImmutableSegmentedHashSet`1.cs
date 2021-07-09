@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -96,8 +97,18 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             var self = this;
 
-            if (self.IsEmpty || other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
+            if (other is ImmutableSegmentedHashSet<T> { IsEmpty: true })
             {
+                return self;
+            }
+            else if (self.IsEmpty)
+            {
+                // Enumerate the argument to match behavior of ImmutableHashSet<T>
+                foreach (var _ in other)
+                {
+                    // Intentionally empty
+                }
+
                 return self;
             }
             else
@@ -186,12 +197,12 @@ namespace Microsoft.CodeAnalysis.Collections
                 if (otherSet.IsEmpty)
                     return self;
                 else if (self.IsEmpty)
-                    return otherSet.WithComparer(KeyComparer);
+                    return otherSet.WithComparer(self.KeyComparer);
             }
 
-            if (IsEmpty)
+            if (self.IsEmpty)
             {
-                return ImmutableSegmentedHashSet.CreateRange(KeyComparer, other);
+                return ImmutableSegmentedHashSet.CreateRange(self.KeyComparer, other);
             }
             else
             {
@@ -219,9 +230,19 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <inheritdoc cref="ImmutableHashSet{T}.Union(IEnumerable{T})"/>
         public ImmutableSegmentedHashSet<T> Union(IEnumerable<T> other)
         {
+            var self = this;
+
+            if (other is ImmutableSegmentedHashSet<T> otherSet)
+            {
+                if (otherSet.IsEmpty)
+                    return self;
+                else if (self.IsEmpty)
+                    return otherSet.WithComparer(self.KeyComparer);
+            }
+
             // TODO: Avoid the builder allocation
             // TODO: Reuse all pages with no changes
-            var builder = ToBuilder();
+            var builder = self.ToBuilder();
             builder.UnionWith(other);
             return builder.ToImmutable();
         }
@@ -276,7 +297,19 @@ namespace Microsoft.CodeAnalysis.Collections
             => _set.CopyTo(array, arrayIndex);
 
         void ICollection.CopyTo(Array array, int index)
-            => ((ICollection)_set).CopyTo(array, index);
+        {
+            if (array is null)
+                ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
+            if (index < 0)
+                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+            if (array.Length < index + Count)
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index);
+
+            foreach (var item in this)
+            {
+                array.SetValue(item, index++);
+            }
+        }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
             => GetEnumerator();
