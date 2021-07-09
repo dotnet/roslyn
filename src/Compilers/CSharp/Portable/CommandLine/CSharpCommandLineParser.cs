@@ -185,9 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
+                string? value;
+                string? valueMemoryString() => valueMemory is { } m ? m.Span.ToString() : null;
+
                 // The main 'switch' for argument handling forces an allocation of the option name field. For the most 
                 // common options we special case the handling below to avoid this allocation as it can contribute significantly 
-                // to parsing allocations.1
+                // to parsing allocations.
                 //
                 // When we allow for switching on Span<char> this can be undone as the name 'switch' will be allocation free
                 // https://github.com/dotnet/roslyn/pull/44388
@@ -196,15 +199,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParseAssemblyReferences(arg, valueMemory, diagnostics, embedInteropTypes: false, metadataReferences);
                     continue;
                 }
+                else if (IsOptionName("langversion", nameMemory))
+                {
+                    value = RemoveQuotesAndSlashes(valueMemory);
+                    if (RoslynString.IsNullOrEmpty(value))
+                    {
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
+                    }
+                    else if (value.StartsWith("0", StringComparison.Ordinal))
+                    {
+                        // This error was added in 7.1 to stop parsing versions as ints (behaviour in previous Roslyn compilers), and explicitly
+                        // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
+                    }
+                    else if (value == "?")
+                    {
+                        displayLangVersions = true;
+                    }
+                    else if (!LanguageVersionFacts.TryParse(value, out languageVersion))
+                    {
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
+                    }
+                    continue;
+                }
                 else if (!IsScriptCommandLineParser && IsOptionName("a", "analyzer", nameMemory))
                 {
                     ParseAnalyzers(arg, valueMemory, analyzers, diagnostics);
                     continue;
                 }
+                else if (!IsScriptCommandLineParser && IsOptionName("nowarn", nameMemory))
+                {
+                    if (valueMemory is null)
+                    {
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, nameMemory.ToString());
+                        continue;
+                    }
+
+                    if (valueMemory.Value.Length == 0)
+                    {
+                        AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, nameMemory.ToString());
+                    }
+                    else
+                    {
+                        AddWarnings(noWarns, ReportDiagnostic.Suppress, valueMemory.Value);
+                    }
+                    continue;
+                }
 
                 string name = nameMemory.Span.ToString().ToLowerInvariant();
-                string? value;
-                string? valueMemoryString() => valueMemory is { } m ? m.Span.ToString() : null;
                 switch (name)
                 {
                     case "?":
@@ -214,28 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case "version":
                         displayVersion = true;
-                        continue;
-
-                    case "langversion":
-                        value = RemoveQuotesAndSlashes(valueMemory);
-                        if (RoslynString.IsNullOrEmpty(value))
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), "/langversion:");
-                        }
-                        else if (value.StartsWith("0", StringComparison.Ordinal))
-                        {
-                            // This error was added in 7.1 to stop parsing versions as ints (behaviour in previous Roslyn compilers), and explicitly
-                            // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
-                        }
-                        else if (value == "?")
-                        {
-                            displayLangVersions = true;
-                        }
-                        else if (!LanguageVersionFacts.TryParse(value, out languageVersion))
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
-                        }
                         continue;
 
                     case "features":
@@ -941,23 +961,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 warningLevel = newWarningLevel;
-                            }
-                            continue;
-
-                        case "nowarn":
-                            if (valueMemory is null)
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
-                                continue;
-                            }
-
-                            if (valueMemory.Value.Length == 0)
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
-                            }
-                            else
-                            {
-                                AddWarnings(noWarns, ReportDiagnostic.Suppress, valueMemory.Value);
                             }
                             continue;
 

@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis
             if (TryParseOption(arg, out ReadOnlyMemory<char> nameMemory, out ReadOnlyMemory<char>? valueMemory))
             {
                 name = nameMemory.ToString().ToLowerInvariant();
-                value = valueMemory is { } m ? m.ToString() : null;
+                value = valueMemory?.ToString();
                 return true;
             }
 
@@ -857,9 +857,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         [return: NotNullIfNotNull(parameterName: "arg")]
         internal static string? RemoveQuotesAndSlashes(string? arg) =>
-            arg is null
-                ? null
-                : RemoveQuotesAndSlashes(arg?.AsMemory());
+            arg is object
+                ? RemoveQuotesAndSlashes(arg.AsMemory())
+                : null;
 
         internal static string RemoveQuotesAndSlashes(ReadOnlyMemory<char> argMemory) =>
             RemoveQuotesAndSlashesEx(argMemory).ToString();
@@ -1078,13 +1078,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new CommandLineSourceFile(resolvedPath, isScriptFile, isInputRedirected);
-        }
-
-        internal IEnumerable<string> ParseFileArgument(string arg, string? baseDirectory, IList<Diagnostic> errors)
-        {
-            var builder = ArrayBuilder<string>.GetInstance();
-            ParseFileArgument(arg.AsMemory(), baseDirectory, builder, errors);
-            return builder;
         }
 
         internal void ParseFileArgument(ReadOnlyMemory<char> arg, string? baseDirectory, ArrayBuilder<string> filePathBuilder, IList<Diagnostic> errors)

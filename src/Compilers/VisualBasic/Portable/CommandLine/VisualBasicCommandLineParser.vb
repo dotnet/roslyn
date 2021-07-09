@@ -193,9 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                    Dim builder = ArrayBuilder(Of String).GetInstance()
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, builder, diagnostics)
+                    For Each path In builder
                         sourceFiles.Add(ToCommandLineSourceFile(path))
                     Next
+                    builder.Free()
                     hasSourceFiles = True
                     Continue For
                 End If
