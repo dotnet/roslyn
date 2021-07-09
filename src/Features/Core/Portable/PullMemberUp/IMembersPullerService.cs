@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Return the CodeAction to pull <paramref name="selectedMember"/> up to destinationType. If the pulling will cause error, it will return null.
         /// </summary>
-        CodeAction TryComputeCodeAction(
+        CodeAction? TryComputeCodeAction(
             Document document,
             ISymbol selectedMember,
             INamedTypeSymbol destination);

@@ -1433,7 +1433,7 @@ public class Derived : Base
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
-        public async Task TestPullMethodToClassWithUnusedDerivedUsingsViaQuickAction()
+        public async Task TestPullMethodToClassWithUnusedUsingsViaQuickAction()
         {
             var testText = @"
 <Workspace>
@@ -1493,6 +1493,249 @@ public class Derived : Base
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Derived : Base
+{
+    public void Test[||]Method()
+    {
+        Sys.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public void TestMethod()
+    {
+        Sys.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+namespace TestNs1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+namespace TestNs2
+{
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+";
+            var expected = @"
+namespace TestNs1
+{
+    using System;
+    using System.Linq;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public int TestMethod()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+namespace TestNs2
+{
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacesAndCommentsViaQuickAction()
+        {
+            var testText = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+
+    // comment 3 
+    public class Base
+    {
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return 5;
+        }
+    }
+}
+";
+            var expected = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+
+    // comment 3 
+    public class Base
+    {
+        public int TestMethod()
+        {
+            return 5;
+        }
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacedUsingsAndCommentsViaQuickAction()
+        {
+            var testText = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+    using System;
+
+    // comment 3 
+    public class Base
+    {
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+";
+            var expected = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+    using System;
+    // comment 4
+    using System.Linq;
+
+    // comment 3 
+    public class Base
+    {
+        public int TestMethod()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
         public async Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
         {
             var testText = @"
@@ -1530,11 +1773,10 @@ namespace ClassLibrary1
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
-using System.Linq;
-
 namespace ClassLibrary1
 {
     using System;
+    using System.Linq;
 
     public class Base
     {
@@ -1602,11 +1844,10 @@ namespace ClassLibrary1
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
         <Document FilePath = ""File1.cs"">
-using System.Linq;
-
 namespace ClassLibrary1
 {
     using System;
+    using System.Linq;
 
     public class Base
     {

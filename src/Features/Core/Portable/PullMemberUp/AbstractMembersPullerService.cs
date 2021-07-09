@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,19 +27,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         where TUsingOrAliasSyntax : SyntaxNode
     {
         /// <summary>
-        /// Gets the members of <paramref name="root"/>, so we can save/re-add its leading trivia.
+        /// Gets all the imports/aliases in scope of <paramref name="node"/>.
         /// </summary>
-        protected abstract SyntaxList<SyntaxNode> GetMembers(SyntaxNode root);
+        protected abstract ImmutableArray<TUsingOrAliasSyntax> GetImports(SyntaxNode node);
 
-        /// <summary>
-        /// Gets all the imports of the <paramref name="document"/>.
-        /// </summary>
-        protected abstract Task<ImmutableArray<TUsingOrAliasSyntax>> GetImportsAsync(Document document, CancellationToken cancellationToken);
+        protected const string Kind = "PullMemberRemovableImport";
 
-        /// <summary>
-        /// Checks if the import was already in the destination file by comparing the equivalence of the <paramref name="import"/> to <paramref name="destImport"/>.
-        /// </summary>
-        protected abstract bool IsValidUnnecessaryImport(TUsingOrAliasSyntax import, TUsingOrAliasSyntax destImport);
+        protected static SyntaxAnnotation Annotation = new(Kind);
 
         public CodeAction TryComputeCodeAction(
             Document document,
@@ -274,6 +269,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
+            var sourceImports = new HashSet<TUsingOrAliasSyntax>();
+
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
             // and it will pull an abstract declaration up to the destination.
@@ -285,6 +282,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     var originalMemberEditor = await solutionEditor.GetDocumentEditorAsync(
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
+
+                    sourceImports.AddRange(GetImports(syntax).Select(import => import.WithAdditionalAnnotations(Annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -309,63 +308,54 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 newDestination = destinationEditor.Generator.WithModifiers(newDestination, modifiers);
             }
 
-            destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => newDestination);
-
-            // add imports by combining source and destination imports, then taking out unneccessary
-            // imports that we don't need from the destination. If source and destination are the same document
-            // or have the same imports, this doesn't do anything
-            var destinationDocument = destinationEditor.GetChangedDocument();
-            var destinationRoot = await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var sourceImports = await GetImportsAsync(document, cancellationToken).ConfigureAwait(false);
-            var destinationImports = await GetImportsAsync(destinationDocument, cancellationToken).ConfigureAwait(false);
-            var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationRoot);
-            var addImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
-            var semanticModel = await destinationDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            destinationDocument = destinationDocument.WithSyntaxRoot(addImportsService.AddImports(
+            // add imports by moving all source imports to destination container, then taking out unneccessary
+            // imports that we just added.
+            var syntaxFactsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+            var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFactsService);
+            var addImportsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+            var semanticModel = await destinationEditor.GetChangedDocument().GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
                 semanticModel.Compilation,
-                destinationRoot,
-                null,
+                node,
+                node.GetCurrentNode(destinationSyntaxNode),
                 sourceImports,
-                destinationEditor.Generator,
+                generator,
                 options.PlaceSystemNamespaceFirst,
-                document.CanAddImportsInHiddenRegions(),
+                destinationEditor.OriginalDocument.CanAddImportsInHiddenRegions(),
                 cancellationToken));
 
-            var removeImportsService = destinationDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
-            destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
-                destinationDocument,
-                node => !destinationImports.Any(destinationNode => IsValidUnnecessaryImport((TUsingOrAliasSyntax)node, destinationNode)),
-                cancellationToken).ConfigureAwait(false);
+            destinationEditor.ReplaceNode(destinationSyntaxNode, newDestination);
 
-            destinationRoot = AddLeadingTriviaBeforeFirstMember(
-                await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false), destinationTrivia);
+            var removeImportsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
+            var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
+                destinationEditor.GetChangedDocument(),
+                node => node.GetAnnotations(Kind).Any(),
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            var destinationRoot = AddLeadingTriviaBeforeFirstMember(
+                await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
+                syntaxFactsService,
+                destinationTrivia);
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, destinationRoot);
 
             return solutionEditor.GetChangedSolution();
         }
 
-        // In the case where we have imports from the source file that get moved up, but none are necessary
-        // and are removed, the adding/removing destroys leading trivia, including comments.
+        // In the case where we have imports from the source that get moved up, but none are necessary
+        // and are all removed, the adding/removing can destroy or copy leading trivia, including comments.
         // So, we grab the leading trivia before we do import operations, and add it back in after.
-        private SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root)
+        private static SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService factsService)
         {
-            var members = GetMembers(root);
-            if (members.Count == 0)
-            {
-                return SyntaxTriviaList.Empty;
-            }
-
+            var members = factsService.GetMembersOfCompilationUnit(root);
+            // guaranteed to have at least one member, as we need a base class
             return members.First().GetLeadingTrivia();
         }
 
-        private SyntaxNode AddLeadingTriviaBeforeFirstMember(SyntaxNode root, SyntaxTriviaList trivia)
+        private static SyntaxNode AddLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService factsService, SyntaxTriviaList trivia)
         {
-            var members = GetMembers(root);
-            if (members.Count == 0)
-            {
-                return root;
-            }
-
+            var members = factsService.GetMembersOfCompilationUnit(root);
+            // guaranteed to have at least one member, as we need a base class
             var firstMember = members.First();
             return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));
         }
