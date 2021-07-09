@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.
     /// </summary>
-    internal abstract class AdornmentManager<T> where T : GraphicsTag
+    internal abstract class AbstractAdornmentManager<T> where T : GraphicsTag
     {
-        private readonly object _invalidatedSpansLock = new object();
+        private readonly object _invalidatedSpansLock = new();
 
         private readonly IThreadingContext _threadingContext;
 
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         private List<IMappingSpan> _invalidatedSpans;
 
         /// <summary>View that created us.</summary>
-        protected IWpfTextView TextView { get; }
+        protected readonly IWpfTextView TextView;
 
         /// <summary>Layer where we draw adornments.</summary>
-        protected IAdornmentLayer AdornmentLayer { get; }
+        protected readonly IAdornmentLayer AdornmentLayer;
 
         /// <summary>Aggregator that tells us where to draw.</summary>
-        protected ITagAggregator<T> TagAggregator { get; }
+        protected readonly ITagAggregator<T> TagAggregator;
 
         /// <summary>
         /// MUST BE CALLED ON UI THREAD!!!!   This method touches WPF.
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// It happens when another region of the view becomes visible or there is a change in tags.
         /// For us the end result is the same - get tags from tagger and update visuals correspondingly.
         /// </summary>        
-        protected abstract void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags);
+        protected abstract void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection);
 
-        internal AdornmentManager(
+        internal AbstractAdornmentManager(
             IThreadingContext threadingContext,
             IWpfTextView textView,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         ///  
         /// This function is used to update invalidates spans.
         /// </summary>
-        private void UpdateInvalidSpans()
+        protected void UpdateInvalidSpans()
         {
             using (_asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateInvalidSpans.1"))
             using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_UpdateInvalidSpans, CancellationToken.None))
@@ -220,6 +220,74 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
                     UpdateSpans_CallOnlyOnUIThread(invalidatedNormalized, removeOldTags: true);
                 }
             }
+        }
+
+        protected void UpdateSpans_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection, bool removeOldTags)
+        {
+            Contract.ThrowIfNull(changedSpanCollection);
+
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
+            var viewLines = TextView.TextViewLines;
+            if (viewLines == null || viewLines.Count == 0)
+            {
+                return; // nothing to draw on
+            }
+
+            // removing is a separate pass from adding so that new stuff is not removed.
+            if (removeOldTags)
+            {
+                foreach (var changedSpan in changedSpanCollection)
+                {
+                    // is there any effect on the view?
+                    if (viewLines.IntersectsBufferSpan(changedSpan))
+                    {
+                        AdornmentLayer.RemoveAdornmentsByVisualSpan(changedSpan);
+                    }
+                }
+            }
+
+            AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(changedSpanCollection);
+        }
+
+        protected bool ShouldDrawTag(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        {
+            var mappedPoint = GetMappedPoint(snapshotSpan, mappingTagSpan);
+            if (mappedPoint is null)
+            {
+                return false;
+            }
+
+            if (!TryMapToSingleSnapshotSpan(mappingTagSpan.Span, TextView.TextSnapshot, out var span))
+            {
+                return false;
+            }
+
+            if (!TextView.TextViewLines.IntersectsBufferSpan(span))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<GraphicsTag> mappingTagSpan)
+        {
+            var point = mappingTagSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+            if (point == null)
+            {
+                return null;
+            }
+
+            var mappedPoint = TextView.BufferGraph.MapUpToSnapshot(
+                point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, TextView.VisualSnapshot);
+            if (mappedPoint == null)
+            {
+                return null;
+            }
+
+            return mappedPoint;
         }
 
         // Map the mapping span to the visual snapshot. note that as a result of projection
