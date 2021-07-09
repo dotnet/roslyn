@@ -399,7 +399,7 @@ namespace Roslyn.Test.Utilities
 
         private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
-            var factory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+            var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
             return factory.CreateRequestDispatcher();
         }
 
