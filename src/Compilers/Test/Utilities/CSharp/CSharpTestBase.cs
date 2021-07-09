@@ -2552,6 +2552,18 @@ namespace System.Runtime.CompilerServices
                 };
             }
         }
+
+        public static IEnumerable<object[]> SingleLineOrBracedNamespace
+        {
+            get
+            {
+                return new List<object[]>()
+                {
+                    new object[] { ";", "" },
+                    new object[] { "{", "}" }
+                };
+            }
+        }
         #endregion
 
         protected static readonly string s_IAsyncEnumerable = @"
