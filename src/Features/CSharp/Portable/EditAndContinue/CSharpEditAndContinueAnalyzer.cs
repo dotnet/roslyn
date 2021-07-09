@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// - <see cref="BlockSyntax"/> for method-like member declarations with block bodies (methods, operators, constructors, destructors, accessors).
         /// - <see cref="ExpressionSyntax"/> for variable declarators of fields, properties with an initializer expression, or 
         ///   for method-like member declarations with expression bodies (methods, properties, indexers, operators)
+        /// - <see cref="CompilationUnitSyntax"/> for top level statements
         /// 
         /// A null reference otherwise.
         /// </returns>
@@ -161,6 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return variableDeclarator.Initializer?.Value;
             }
 
+            if (node is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            {
+                // For top level statements, where there is no syntax node to represent the entire body of the synthesized
+                // main method we just use the compilation unit itself
+                return node;
+            }
+
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);
         }
 
@@ -169,6 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model, SyntaxNode memberBody)
         {
+            if (memberBody is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            {
+                return model.AnalyzeDataFlow(((GlobalStatementSyntax)unit.Members[0]).Statement, unit.Members.OfType<GlobalStatementSyntax>().Last().Statement)!.Captured;
+            }
+
             Debug.Assert(memberBody.IsKind(SyntaxKind.Block) || memberBody is ExpressionSyntax);
             return model.AnalyzeDataFlow(memberBody).Captured;
         }
@@ -641,6 +654,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
+            // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
+            // for the purposes of declaration rude edits
+            if (oldNode.IsKind(SyntaxKind.CompilationUnit) || newNode.IsKind(SyntaxKind.CompilationUnit))
+            {
+                return;
+            }
+
             // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
             // but their explicitly implemented counterparts reference the actual member. Compiler generated properties
             // of records reference the parameter that names them.
@@ -765,6 +785,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region Syntax and Semantic Utils
+
+        protected override bool IsGlobalStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.GlobalStatement);
+
+        protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
+        {
+            if (node is CompilationUnitSyntax unit)
+            {
+                // When deleting something from a compilation unit we just report diagnostics for the last global statement
+                return unit.Members.OfType<GlobalStatementSyntax>().LastOrDefault()?.Span ?? default;
+            }
+
+            return GetDiagnosticSpan(node, EditKind.Delete);
+        }
 
         protected override string LineDirectiveKeyword
             => "line";
@@ -1100,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => node.IsKind(SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
 
         internal override SyntaxNode? TryGetContainingTypeDeclaration(SyntaxNode node)
-            => node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
+            => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
         internal override bool HasBackingField(SyntaxNode propertyOrIndexerDeclaration)
             => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
@@ -1305,6 +1339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return null;
             }
 
+            // Top level code always lives in a synthesized Main method
+            if (node.IsKind(SyntaxKind.GlobalStatement))
+            {
+                return model.GetEnclosingSymbol(node.SpanStart, cancellationToken);
+            }
+
             var symbol = model.GetDeclaredSymbol(node, cancellationToken);
 
             // Ignore partial method definition parts.
@@ -1481,7 +1521,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return default(TextSpan);
 
                 case SyntaxKind.GlobalStatement:
-                    // TODO:
                     return node.Span;
 
                 case SyntaxKind.ExternAliasDirective:
@@ -2207,8 +2246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Move);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2273,8 +2310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (node.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Insert);
+                        // An insert of a global statement is actually an update to the synthesized main so we need to check some extra things
+                        ClassifyUpdate((GlobalStatementSyntax)node);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2375,8 +2412,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (oldNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        // TODO:
-                        ReportError(RudeEditKind.Delete);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2486,7 +2521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
-                        ReportError(RudeEditKind.Update);
+                        ClassifyUpdate((GlobalStatementSyntax)newNode);
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
@@ -2620,6 +2655,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 {
                     throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
+            }
+
+            private void ClassifyUpdate(GlobalStatementSyntax node)
+            {
+                ClassifyDeclarationBodyRudeUpdates(node.Statement);
             }
 
             private void ClassifyUpdate(NamespaceDeclarationSyntax oldNode, NamespaceDeclarationSyntax newNode)

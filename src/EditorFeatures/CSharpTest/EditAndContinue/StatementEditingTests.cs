@@ -2090,7 +2090,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -5254,7 +5254,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -5516,7 +5516,6 @@ class C
             int f0(int a) => x0;
             int f1(int a) => x1;
 
-            int f0(int a) => x0;
             int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
         }
     }
@@ -10534,6 +10533,67 @@ int G1(int[] p) { return p[2]; }
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { Y = 1, X = 1 }]@6");
+        }
+
+        #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatement_CaptureArgs()
+        {
+            var src1 = @"
+using System;
+
+var x = new Func<string>(() => ""Hello"");
+
+Console.WriteLine(x());
+";
+            var src2 = @"
+using System;
+
+var x = new Func<string>(() => ""Hello"" + args[0]);
+
+Console.WriteLine(x());
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void TopLevelStatement_InsertMultiScopeCapture()
+        {
+            var src1 = @"
+using System;
+
+foreach (int x0 in new[] { 1 })  // Group #0
+{                                // Group #1
+    int x1 = 0;
+
+    int f0(int a) => x0;
+    int f1(int a) => x1;
+}
+";
+            var src2 = @"
+using System;
+
+foreach (int x0 in new[] { 1 })  // Group #0
+{                                // Group #1
+    int x1 = 0;                  
+
+    int f0(int a) => x0;
+    int f1(int a) => x1;
+
+    int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
         }
 
         #endregion
