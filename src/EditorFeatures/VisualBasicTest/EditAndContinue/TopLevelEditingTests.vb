@@ -5676,8 +5676,8 @@ End Class
 
             ' TODO: this should work
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Shared Function Goo()", "method"),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Shared Function Goo()", "method"))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Shared Function Goo()", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Shared Function Goo()", FeaturesResources.method))
         End Sub
 #End Region
 

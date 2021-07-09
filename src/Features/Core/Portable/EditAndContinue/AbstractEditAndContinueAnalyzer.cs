@@ -3225,18 +3225,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private static readonly IEqualityComparer<SymbolKey> s_symbolKeyComparer = SymbolKey.GetComparer();
 
             public bool Equals([AllowNull] SemanticEditInfo x, [AllowNull] SemanticEditInfo y)
-            {
-                var equal = s_symbolKeyComparer.Equals(x.Symbol, y.Symbol);
-
-                Debug.Assert(!equal ||
-                    x.Kind == y.Kind &&
-                    x.SyntaxMap == y.SyntaxMap &&
-                    x.SyntaxMapTree == y.SyntaxMapTree &&
-                    x.PartialType.HasValue == x.PartialType.HasValue &&
-                    (!x.PartialType.HasValue || s_symbolKeyComparer.Equals(x.PartialType.Value, y.PartialType!.Value)));
-
-                return equal;
-            }
+                => s_symbolKeyComparer.Equals(x.Symbol, y.Symbol);
 
             public int GetHashCode([DisallowNull] SemanticEditInfo obj)
                 => obj.Symbol.GetHashCode();
@@ -3261,9 +3250,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // specialize rude edit for accessors and conversion operators:
                 if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
                 {
-                    if (oldMethod.AssociatedSymbol != null && newMethod.AssociatedSymbol != null && oldMethod.MethodKind != newMethod.MethodKind)
+                    if (oldMethod.AssociatedSymbol != null && newMethod.AssociatedSymbol != null)
                     {
-                        rudeEdit = RudeEditKind.AccessorKindUpdate;
+                        if (oldMethod.MethodKind != newMethod.MethodKind)
+                        {
+                            rudeEdit = RudeEditKind.AccessorKindUpdate;
+                        }
+                        else
+                        {
+                            // rude edit will be reported by the associated symbol
+                            rudeEdit = RudeEditKind.None;
+                        }
                     }
                     else if (oldMethod.MethodKind == MethodKind.Conversion)
                     {
@@ -3409,7 +3406,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     _ => new[] { GetDisplayName(newDeclaration, EditKind.Update) }
                 };
 
-                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newDeclaration, EditKind.Update), arguments: arguments));
+                diagnostics.Add(new RudeEditDiagnostic(rudeEdit, GetDiagnosticSpan(newDeclaration, EditKind.Update), newDeclaration, arguments: arguments));
             }
         }
 

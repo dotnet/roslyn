@@ -11558,7 +11558,19 @@ class C
         }
 
         [Fact]
-        public void PropertyWithExpressionBody_Update()
+        public void Property_ExpressionBody_Rename()
+        {
+            var src1 = "class C { int P => 1; }";
+            var src2 = "class C { int Q => 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
+        }
+
+        [Fact]
+        public void Property_ExpressionBody_Update()
         {
             var src1 = "class C { int P => 1; }";
             var src2 = "class C { int P => 2; }";
@@ -11574,7 +11586,7 @@ class C
         }
 
         [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
-        public void PropertyWithExpressionBody_ModifierUpdate()
+        public void Property_ExpressionBody_ModifierUpdate()
         {
             var src1 = "class C { int P => 1; }";
             var src2 = "class C { unsafe int P => 1; }";
@@ -11797,7 +11809,7 @@ class C
         }
 
         [Fact]
-        public void PropertyRename1()
+        public void Property_Rename1()
         {
             var src1 = "class C { int P { get { return 1; } } }";
             var src2 = "class C { int Q { get { return 1; } } }";
@@ -11809,7 +11821,7 @@ class C
         }
 
         [Fact]
-        public void PropertyRename2()
+        public void Property_Rename2()
         {
             var src1 = "class C { int I.P { get { return 1; } } }";
             var src2 = "class C { int J.P { get { return 1; } } }";
@@ -11818,6 +11830,18 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.property_));
+        }
+
+        [Fact]
+        public void Property_RenameAndUpdate()
+        {
+            var src1 = "class C { int P { get { return 1; } } }";
+            var src2 = "class C { int Q { get { return 2; } } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
         }
 
         [Fact]
