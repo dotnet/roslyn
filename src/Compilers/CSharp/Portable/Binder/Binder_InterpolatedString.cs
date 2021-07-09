@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
-            //  2. The string is composed of 4 or less components that are all strings, we can lower to a call to string.Concat without a
+            //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
             //     params array. This is very efficient as the runtime can allocate a buffer for the string with exactly the correct length and
             //     make no intermediate allocations.
             //  3. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
