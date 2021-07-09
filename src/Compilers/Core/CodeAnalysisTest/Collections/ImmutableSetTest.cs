@@ -15,9 +15,7 @@ using System.Linq;
 using Xunit;
 using SetTriad = System.Tuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>, bool>;
 
-#pragma warning disable CA1825 // Avoid zero-length array allocations
 #pragma warning disable CA1829 // Use Length/Count property instead of Count() when available
-#pragma warning disable RS0001 // Use 'SpecializedCollections.EmptyEnumerable()'
 #pragma warning disable RS0002 // Use 'SpecializedCollections.SingletonEnumerable()'
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -192,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void ICollectionMethods()
         {
             ICollection builder = (ICollection)this.Empty<string>();
-            string[] array = new string[0];
+            string[] array = Array.Empty<string>();
             builder.CopyTo(array, 0);
 
             builder = (ICollection)this.Empty<string>().Add("a");
@@ -297,13 +295,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             return new List<SetTriad>
             {
-                new SetTriad(SetWith<int>(), new int[] { }, true),
+                new SetTriad(SetWith<int>(), Array.Empty<int>(), true),
                 new SetTriad(SetWith<int>(5), new int[] { 5 }, true),
                 new SetTriad(SetWith<int>(5), new int[] { 5, 5 }, true),
                 new SetTriad(SetWith<int>(5, 8), new int[] { 5, 5 }, false),
                 new SetTriad(SetWith<int>(5, 8), new int[] { 5, 7 }, false),
                 new SetTriad(SetWith<int>(5, 8), new int[] { 5, 8 }, true),
-                new SetTriad(SetWith<int>(5), new int[] { }, false),
+                new SetTriad(SetWith<int>(5), Array.Empty<int>(), false),
                 new SetTriad(SetWith<int>(), new int[] { 5 }, false),
                 new SetTriad(SetWith<int>(5, 8), new int[] { 5 }, false),
                 new SetTriad(SetWith<int>(5), new int[] { 5, 8 }, false),
@@ -315,12 +313,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             return new List<SetTriad>
             {
-                new SetTriad(new int[] { }, new int[] { }, false),
-                new SetTriad(new int[] { 1 }, new int[] { }, false),
+                new SetTriad(Array.Empty<int>(), Array.Empty<int>(), false),
+                new SetTriad(new int[] { 1 }, Array.Empty<int>(), false),
                 new SetTriad(new int[] { 1 }, new int[] { 2 }, false),
                 new SetTriad(new int[] { 1 }, new int[] { 2, 3 }, false),
                 new SetTriad(new int[] { 1 }, new int[] { 1, 2 }, true),
-                new SetTriad(new int[] { }, new int[] { 1 }, true),
+                new SetTriad(Array.Empty<int>(), new int[] { 1 }, true),
             };
         }
 
@@ -328,10 +326,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var results = new List<SetTriad>
             {
-                new SetTriad(new int[] { }, new int[] { }, true),
+                new SetTriad(Array.Empty<int>(), Array.Empty<int>(), true),
                 new SetTriad(new int[] { 1 }, new int[] { 1 }, true),
                 new SetTriad(new int[] { 1, 2 }, new int[] { 1, 2 }, true),
-                new SetTriad(new int[] { 1 }, new int[] { }, false),
+                new SetTriad(new int[] { 1 }, Array.Empty<int>(), false),
                 new SetTriad(new int[] { 1 }, new int[] { 2 }, false),
                 new SetTriad(new int[] { 1 }, new int[] { 2, 3 }, false),
             };
@@ -346,8 +344,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             return new List<SetTriad>
             {
-                new SetTriad(new int[] { }, new int[] { }, false),
-                new SetTriad(new int[] { }, new int[] { 1 }, false),
+                new SetTriad(Array.Empty<int>(), Array.Empty<int>(), false),
+                new SetTriad(Array.Empty<int>(), new int[] { 1 }, false),
                 new SetTriad(new int[] { 1 }, new int[] { 2 }, false),
                 new SetTriad(new int[] { 1 }, new int[] { 2, 3 }, false),
                 new SetTriad(new int[] { 1, 2 }, new int[] { 3 }, false),

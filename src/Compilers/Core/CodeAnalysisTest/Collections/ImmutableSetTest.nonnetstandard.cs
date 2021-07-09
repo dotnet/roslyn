@@ -8,13 +8,12 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using Xunit;
-
-#pragma warning disable CA1825 // Avoid zero-length array allocations
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             UnionTestHelper(this.Empty<int>(), new[] { 1, 3, 5, 7 });
             UnionTestHelper(this.Empty<int>().Union(new[] { 2, 4, 6 }), new[] { 1, 3, 5, 7 });
-            UnionTestHelper(this.Empty<int>().Union(new[] { 1, 2, 3 }), new int[0] { });
+            UnionTestHelper(this.Empty<int>().Union(new[] { 1, 2, 3 }), Array.Empty<int>());
             UnionTestHelper(this.Empty<int>().Union(new[] { 2 }), Enumerable.Range(0, 1000).ToArray());
         }
 
