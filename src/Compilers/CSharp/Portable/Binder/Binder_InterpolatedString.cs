@@ -161,13 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Case 2. Attempt to see if all parts are either strings or convertible to ROS<char>. The types must be homogeneous, as there
             // are no overloads that mix and match.
             if (unconvertedInterpolatedString.Parts.Length <= 4 &&
-                unconvertedInterpolatedString.Parts.All(p => p is BoundLiteral 
-                                                               or BoundStringInsert 
-                                                                  { 
-                                                                      Value: { Type: { SpecialType: SpecialType.System_String } },
-                                                                      Alignment: null,
-                                                                      Format: null
-                                                                  }))
+                unconvertedInterpolatedString.Parts.All(p => p is BoundLiteral
+                                                               or BoundStringInsert { Value: { Type: { SpecialType: SpecialType.System_String } }, Alignment: null, Format: null }))
             {
                 return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
             }
