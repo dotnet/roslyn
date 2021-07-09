@@ -31,7 +31,22 @@ namespace Microsoft.CodeAnalysis.Collections
             }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.KeyComparer"/>
-            public IEqualityComparer<T> KeyComparer => ReadOnlySet.Comparer;
+            public IEqualityComparer<T> KeyComparer
+            {
+                get
+                {
+                    return ReadOnlySet.Comparer;
+                }
+
+                set
+                {
+                    if (Equals(KeyComparer, value ?? EqualityComparer<T>.Default))
+                        return;
+
+                    _mutableSet = new SegmentedHashSet<T>(ReadOnlySet, value ?? EqualityComparer<T>.Default);
+                    _set = default;
+                }
+            }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.Count"/>
             public int Count => ReadOnlySet.Count;
@@ -132,6 +147,19 @@ namespace Microsoft.CodeAnalysis.Collections
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.SymmetricExceptWith(IEnumerable{T})"/>
             public void SymmetricExceptWith(IEnumerable<T> other)
                 => GetOrCreateMutableSet().SymmetricExceptWith(other);
+
+            /// <inheritdoc cref="ImmutableHashSet{T}.Builder.TryGetValue(T, out T)"/>
+            public bool TryGetValue(T equalValue, out T actualValue)
+            {
+                if (ReadOnlySet.TryGetValue(equalValue, out var value))
+                {
+                    actualValue = value;
+                    return true;
+                }
+
+                actualValue = equalValue;
+                return false;
+            }
 
             /// <inheritdoc cref="ImmutableHashSet{T}.Builder.UnionWith(IEnumerable{T})"/>
             public void UnionWith(IEnumerable<T> other)

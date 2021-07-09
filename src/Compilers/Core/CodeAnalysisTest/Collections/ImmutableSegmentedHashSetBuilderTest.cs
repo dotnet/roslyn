@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections.Immutable/tests/ImmutableDictionaryTest.nonnetstandard.cs
@@ -7,29 +8,30 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public class ImmutableHashSetBuilderTest : ImmutablesTestBase
+    public class ImmutableSegmentedHashSetBuilderTest : ImmutablesTestBase
     {
         [Fact]
         public void CreateBuilder()
         {
-            var builder = ImmutableHashSet.CreateBuilder<string>();
+            var builder = ImmutableSegmentedHashSet.CreateBuilder<string>();
             Assert.Same(EqualityComparer<string>.Default, builder.KeyComparer);
 
-            builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+            builder = ImmutableSegmentedHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
             Assert.Same(StringComparer.OrdinalIgnoreCase, builder.KeyComparer);
         }
 
         [Fact]
         public void ToBuilder()
         {
-            var builder = ImmutableHashSet<int>.Empty.ToBuilder();
+            var builder = ImmutableSegmentedHashSet<int>.Empty.ToBuilder();
             Assert.True(builder.Add(3));
             Assert.True(builder.Add(5));
             Assert.False(builder.Add(5));
@@ -50,7 +52,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void BuilderFromSet()
         {
-            var set = ImmutableHashSet<int>.Empty.Add(1);
+            var set = ImmutableSegmentedHashSet<int>.Empty.Add(1);
             var builder = set.ToBuilder();
             Assert.True(builder.Contains(1));
             Assert.True(builder.Add(3));
@@ -76,7 +78,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void EnumerateBuilderWhileMutating()
         {
-            var builder = ImmutableHashSet<int>.Empty.Union(Enumerable.Range(1, 10)).ToBuilder();
+            var builder = ImmutableSegmentedHashSet<int>.Empty.Union(Enumerable.Range(1, 10)).ToBuilder();
             CollectionAssertAreEquivalent(Enumerable.Range(1, 10).ToArray(), builder.ToArray());
 
             var enumerator = builder.GetEnumerator();
@@ -98,27 +100,27 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void BuilderReusesUnchangedImmutableInstances()
         {
-            var collection = ImmutableHashSet<int>.Empty.Add(1);
+            var collection = ImmutableSegmentedHashSet<int>.Empty.Add(1);
             var builder = collection.ToBuilder();
-            Assert.Same(collection, builder.ToImmutable()); // no changes at all.
+            Assert.True(IsSame(collection, builder.ToImmutable())); // no changes at all.
             builder.Add(2);
 
             var newImmutable = builder.ToImmutable();
-            Assert.NotSame(collection, newImmutable); // first ToImmutable with changes should be a new instance.
-            Assert.Same(newImmutable, builder.ToImmutable()); // second ToImmutable without changes should be the same instance.
+            Assert.False(IsSame(collection, newImmutable)); // first ToImmutable with changes should be a new instance.
+            Assert.True(IsSame(newImmutable, builder.ToImmutable())); // second ToImmutable without changes should be the same instance.
         }
 
         [Fact]
         public void EnumeratorTest()
         {
-            var builder = ImmutableHashSet.Create(1).ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create(1).ToBuilder();
             ManuallyEnumerateTest(new[] { 1 }, ((IEnumerable<int>)builder).GetEnumerator());
         }
 
         [Fact]
         public void Clear()
         {
-            var set = ImmutableHashSet.Create(1);
+            var set = ImmutableSegmentedHashSet.Create(1);
             var builder = set.ToBuilder();
             builder.Clear();
             Assert.Equal(0, builder.Count);
@@ -127,7 +129,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void KeyComparer()
         {
-            var builder = ImmutableHashSet.Create("a", "B").ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create("a", "B").ToBuilder();
             Assert.Same(EqualityComparer<string>.Default, builder.KeyComparer);
             Assert.True(builder.Contains("a"));
             Assert.False(builder.Contains("A"));
@@ -145,7 +147,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void KeyComparerCollisions()
         {
-            var builder = ImmutableHashSet.Create("a", "A").ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create("a", "A").ToBuilder();
             builder.KeyComparer = StringComparer.OrdinalIgnoreCase;
             Assert.Equal(1, builder.Count);
             Assert.True(builder.Contains("a"));
@@ -159,7 +161,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void KeyComparerEmptyCollection()
         {
-            var builder = ImmutableHashSet.Create<string>().ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create<string>().ToBuilder();
             Assert.Same(EqualityComparer<string>.Default, builder.KeyComparer);
             builder.KeyComparer = StringComparer.OrdinalIgnoreCase;
             Assert.Same(StringComparer.OrdinalIgnoreCase, builder.KeyComparer);
@@ -170,8 +172,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void UnionWith()
         {
-            var builder = ImmutableHashSet.Create(1, 2, 3).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.UnionWith(null));
+            var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.UnionWith(null!));
             builder.UnionWith(new[] { 2, 3, 4 });
             Assert.Equal(new[] { 1, 2, 3, 4 }, builder);
         }
@@ -179,8 +181,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void ExceptWith()
         {
-            var builder = ImmutableHashSet.Create(1, 2, 3).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.ExceptWith(null));
+            var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.ExceptWith(null!));
             builder.ExceptWith(new[] { 2, 3, 4 });
             Assert.Equal(new[] { 1 }, builder);
         }
@@ -188,8 +190,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void SymmetricExceptWith()
         {
-            var builder = ImmutableHashSet.Create(1, 2, 3).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.SymmetricExceptWith(null));
+            var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.SymmetricExceptWith(null!));
             builder.SymmetricExceptWith(new[] { 2, 3, 4 });
             Assert.Equal(new[] { 1, 4 }, builder);
         }
@@ -197,8 +199,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void IntersectWith()
         {
-            var builder = ImmutableHashSet.Create(1, 2, 3).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.IntersectWith(null));
+            var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.IntersectWith(null!));
             builder.IntersectWith(new[] { 2, 3, 4 });
             Assert.Equal(new[] { 2, 3 }, builder);
         }
@@ -206,8 +208,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void IsProperSubsetOf()
         {
-            var builder = ImmutableHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.IsProperSubsetOf(null));
+            var builder = ImmutableSegmentedHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.IsProperSubsetOf(null!));
             Assert.False(builder.IsProperSubsetOf(Enumerable.Range(1, 3)));
             Assert.True(builder.IsProperSubsetOf(Enumerable.Range(1, 5)));
         }
@@ -215,8 +217,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void IsProperSupersetOf()
         {
-            var builder = ImmutableHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.IsProperSupersetOf(null));
+            var builder = ImmutableSegmentedHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.IsProperSupersetOf(null!));
             Assert.False(builder.IsProperSupersetOf(Enumerable.Range(1, 3)));
             Assert.True(builder.IsProperSupersetOf(Enumerable.Range(1, 2)));
         }
@@ -224,8 +226,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void IsSubsetOf()
         {
-            var builder = ImmutableHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.IsSubsetOf(null));
+            var builder = ImmutableSegmentedHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.IsSubsetOf(null!));
             Assert.False(builder.IsSubsetOf(Enumerable.Range(1, 2)));
             Assert.True(builder.IsSubsetOf(Enumerable.Range(1, 3)));
             Assert.True(builder.IsSubsetOf(Enumerable.Range(1, 5)));
@@ -234,8 +236,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void IsSupersetOf()
         {
-            var builder = ImmutableHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.IsSupersetOf(null));
+            var builder = ImmutableSegmentedHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.IsSupersetOf(null!));
             Assert.False(builder.IsSupersetOf(Enumerable.Range(1, 4)));
             Assert.True(builder.IsSupersetOf(Enumerable.Range(1, 3)));
             Assert.True(builder.IsSupersetOf(Enumerable.Range(1, 2)));
@@ -244,8 +246,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void Overlaps()
         {
-            var builder = ImmutableHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.Overlaps(null));
+            var builder = ImmutableSegmentedHashSet.CreateRange(Enumerable.Range(1, 3)).ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.Overlaps(null!));
             Assert.True(builder.Overlaps(Enumerable.Range(3, 2)));
             Assert.False(builder.Overlaps(Enumerable.Range(4, 3)));
         }
@@ -253,7 +255,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void Remove()
         {
-            var builder = ImmutableHashSet.Create("a").ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create("a").ToBuilder();
             Assert.False(builder.Remove("b"));
             Assert.True(builder.Remove("a"));
         }
@@ -261,8 +263,8 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void SetEquals()
         {
-            var builder = ImmutableHashSet.Create("a").ToBuilder();
-            AssertExtensions.Throws<ArgumentNullException>("other", () => builder.SetEquals(null));
+            var builder = ImmutableSegmentedHashSet.Create("a").ToBuilder();
+            Assert.Throws<ArgumentNullException>("other", () => builder.SetEquals(null!));
             Assert.False(builder.SetEquals(new[] { "b" }));
             Assert.True(builder.SetEquals(new[] { "a" }));
             Assert.True(builder.SetEquals(builder));
@@ -271,7 +273,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void ICollectionOfTMethods()
         {
-            ICollection<string> builder = ImmutableHashSet.Create("a").ToBuilder();
+            ICollection<string> builder = ImmutableSegmentedHashSet.Create("a").ToBuilder();
             builder.Add("b");
             Assert.True(builder.Contains("b"));
 
@@ -288,7 +290,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void NullHandling()
         {
-            var builder = ImmutableHashSet<string>.Empty.ToBuilder();
+            var builder = ImmutableSegmentedHashSet<string?>.Empty.ToBuilder();
             Assert.True(builder.Add(null));
             Assert.False(builder.Add(null));
             Assert.True(builder.Contains(null));
@@ -297,31 +299,31 @@ namespace System.Collections.Immutable.Tests
             builder.UnionWith(new[] { null, "a" });
             Assert.True(builder.IsSupersetOf(new[] { null, "a" }));
             Assert.True(builder.IsSubsetOf(new[] { null, "a" }));
-            Assert.True(builder.IsProperSupersetOf(new[] { default(string) }));
+            Assert.True(builder.IsProperSupersetOf(new[] { (string?)null }));
             Assert.True(builder.IsProperSubsetOf(new[] { null, "a", "b" }));
 
-            builder.IntersectWith(new[] { default(string) });
+            builder.IntersectWith(new[] { (string?)null });
             Assert.Equal(1, builder.Count);
 
-            builder.ExceptWith(new[] { default(string) });
+            builder.ExceptWith(new[] { (string?)null });
             Assert.False(builder.Remove(null));
         }
 
         [Fact]
         public void DebuggerAttributesValid()
         {
-            DebuggerAttributes.ValidateDebuggerDisplayReferences(ImmutableHashSet.CreateBuilder<int>());
+            DebuggerAttributes.ValidateDebuggerDisplayReferences(ImmutableSegmentedHashSet.CreateBuilder<int>());
         }
 
         [Fact]
         public void ToImmutableHashSet()
         {
-            ImmutableHashSet<int>.Builder builder = ImmutableHashSet.CreateBuilder<int>();
+            ImmutableSegmentedHashSet<int>.Builder builder = ImmutableSegmentedHashSet.CreateBuilder<int>();
             builder.Add(1);
             builder.Add(2);
             builder.Add(3);
 
-            var set = builder.ToImmutableSortedSet();
+            var set = System.Collections.Immutable.ImmutableSortedSet.ToImmutableSortedSet(builder);
             Assert.True(builder.Contains(1));
             Assert.True(builder.Contains(2));
             Assert.True(builder.Contains(3));
@@ -331,20 +333,20 @@ namespace System.Collections.Immutable.Tests
             Assert.True(set.Contains(3));
 
             builder.Clear();
-            Assert.True(builder.ToImmutableHashSet().IsEmpty);
+            Assert.True(builder.ToImmutableSegmentedHashSet().IsEmpty);
             Assert.False(set.IsEmpty);
 
-            ImmutableHashSet<int>.Builder nullBuilder = null;
-            AssertExtensions.Throws<ArgumentNullException>("builder", () => nullBuilder.ToImmutableHashSet());
+            ImmutableSegmentedHashSet<int>.Builder? nullBuilder = null;
+            Assert.Throws<ArgumentNullException>("builder", () => nullBuilder!.ToImmutableSegmentedHashSet());
         }
 
         [Fact]
         public void TryGetValue()
         {
-            var builder = ImmutableHashSet.Create(1, 2, 3).ToBuilder();
+            var builder = ImmutableSegmentedHashSet.Create(1, 2, 3).ToBuilder();
             Assert.True(builder.TryGetValue(2, out _));
 
-            builder = ImmutableHashSet.Create(CustomEqualityComparer.Instance, 1, 2, 3, 4).ToBuilder();
+            builder = ImmutableSegmentedHashSet.Create(CustomEqualityComparer.Instance, 1, 2, 3, 4).ToBuilder();
             var existing = 0;
             Assert.True(builder.TryGetValue(5, out existing));
             Assert.Equal(4, existing);

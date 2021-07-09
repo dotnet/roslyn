@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.8/src/libraries/System.Collections.Immutable/tests/ImmutableHashSetTest.nonnetstandard.cs
@@ -7,15 +8,14 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
+using Microsoft.CodeAnalysis.Collections;
 using Xunit;
 
-namespace System.Collections.Immutable.Tests
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
-    public partial class ImmutableHashSetTest : ImmutableSetTest
+    public partial class ImmutableSegmentedHashSetTest : ImmutableSetTest
     {
         [Fact]
         public void EmptyTest()
@@ -27,12 +27,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void TryGetValueTest()
         {
-            this.TryGetValueTestHelper(ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase));
-        }
-
-        internal override IBinaryTree GetRootNode<T>(IImmutableSet<T> set)
-        {
-            return ((ImmutableHashSet<T>)set).Root;
+            this.TryGetValueTestHelper(ImmutableSegmentedHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -42,21 +37,21 @@ namespace System.Collections.Immutable.Tests
         /// <param name="emptySet">The empty set.</param>
         /// <param name="value">A value that could be placed in the set.</param>
         /// <param name="comparer">The comparer used to obtain the empty set, if any.</param>
-        private void EmptyTestHelper<T>(IImmutableSet<T> emptySet, T value, IEqualityComparer<T> comparer)
+        private void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, T value, IEqualityComparer<T>? comparer)
         {
             Assert.NotNull(emptySet);
 
             this.EmptyTestHelper(emptySet);
-            Assert.Same(emptySet, emptySet.ToImmutableHashSet(comparer));
-            Assert.Same(comparer ?? EqualityComparer<T>.Default, ((IHashKeyCollection<T>)emptySet).KeyComparer);
+            Assert.True(IsSame(emptySet, emptySet.ToImmutableSegmentedHashSet(comparer)));
+            Assert.Same(comparer ?? EqualityComparer<T>.Default, GetEqualityComparer(emptySet));
 
             if (comparer == null)
             {
-                Assert.Same(emptySet, ImmutableHashSet<T>.Empty);
+                Assert.True(IsSame(emptySet, ImmutableSegmentedHashSet<T>.Empty));
             }
 
             var reemptied = emptySet.Add(value).Clear();
-            Assert.Same(reemptied, reemptied.ToImmutableHashSet(comparer)); //, "Getting the empty set from a non-empty instance did not preserve the comparer.");
+            Assert.True(IsSame(reemptied, reemptied.ToImmutableSegmentedHashSet(comparer))); //, "Getting the empty set from a non-empty instance did not preserve the comparer.");
         }
     }
 }

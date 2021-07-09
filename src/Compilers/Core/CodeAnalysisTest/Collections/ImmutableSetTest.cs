@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.8/src/libraries/System.Collections.Immutable/tests/ImmutableSetTest.cs
@@ -7,12 +8,20 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using SetTriad = System.Tuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>, bool>;
 
-namespace System.Collections.Immutable.Tests
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable CA1825 // Avoid zero-length array allocations
+#pragma warning disable CA1829 // Use Length/Count property instead of Count() when available
+#pragma warning disable RS0001 // Use 'SpecializedCollections.EmptyEnumerable()'
+#pragma warning disable RS0002 // Use 'SpecializedCollections.SingletonEnumerable()'
+
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public abstract partial class ImmutableSetTest : ImmutablesTestBase
     {
@@ -38,14 +47,14 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void AddRemoveLoadTest()
         {
-            var data = this.GenerateDummyFillData();
+            var data = GenerateDummyFillData();
             this.AddRemoveLoadTestHelper(Empty<double>(), data);
         }
 
         [Fact]
         public void RemoveNonExistingTest()
         {
-            IImmutableSet<int> emptySet = this.Empty<int>();
+            System.Collections.Immutable.IImmutableSet<int> emptySet = this.Empty<int>();
             Assert.Same(emptySet, emptySet.Remove(5));
 
             // Also fill up a set with many elements to build up the tree, then remove from various places in the tree.
@@ -82,7 +91,7 @@ namespace System.Collections.Immutable.Tests
         /// observed previously, but would no longer be thrown if this behavior changed.
         /// So this is a test to lock the behavior in place or be thoughtful if adding the optimization.
         /// </remarks>
-        /// <seealso cref="ImmutableListTest.RemoveRangeDoesNotEnumerateSequenceIfThisIsEmpty"/>
+        /// <!--<seealso cref="ImmutableListTest.RemoveRangeDoesNotEnumerateSequenceIfThisIsEmpty"/>-->
         [Fact]
         public void ExceptDoesEnumerateSequenceIfThisIsEmpty()
         {
@@ -164,10 +173,10 @@ namespace System.Collections.Immutable.Tests
         {
             var set = (ISet<int>)this.Empty<int>();
             Assert.Throws<NotSupportedException>(() => set.Add(0));
-            Assert.Throws<NotSupportedException>(() => set.ExceptWith(null));
-            Assert.Throws<NotSupportedException>(() => set.UnionWith(null));
-            Assert.Throws<NotSupportedException>(() => set.IntersectWith(null));
-            Assert.Throws<NotSupportedException>(() => set.SymmetricExceptWith(null));
+            Assert.Throws<NotSupportedException>(() => set.ExceptWith(null!));
+            Assert.Throws<NotSupportedException>(() => set.UnionWith(null!));
+            Assert.Throws<NotSupportedException>(() => set.IntersectWith(null!));
+            Assert.Throws<NotSupportedException>(() => set.SymmetricExceptWith(null!));
         }
 
         [Fact]
@@ -201,7 +210,7 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void NullHandling()
         {
-            var empty = this.Empty<string>();
+            var empty = this.Empty<string?>();
             var set = empty.Add(null);
             Assert.True(set.Contains(null));
             Assert.True(set.TryGetValue(null, out var @null));
@@ -211,15 +220,15 @@ namespace System.Collections.Immutable.Tests
             set = empty.Union(new[] { null, "a" });
             Assert.True(set.IsSupersetOf(new[] { null, "a" }));
             Assert.True(set.IsSubsetOf(new[] { null, "a" }));
-            Assert.True(set.IsProperSupersetOf(new[] { default(string) }));
+            Assert.True(set.IsProperSupersetOf(new[] { (string?)null }));
             Assert.True(set.IsProperSubsetOf(new[] { null, "a", "b" }));
             Assert.True(set.Overlaps(new[] { null, "b" }));
             Assert.True(set.SetEquals(new[] { null, null, "a", "a" }));
 
-            set = set.Intersect(new[] { default(string) });
+            set = set.Intersect(new[] { (string?)null });
             Assert.Equal(1, set.Count);
 
-            set = set.Except(new[] { default(string) });
+            set = set.Except(new[] { (string?)null });
             Assert.False(set.Contains(null));
         }
 
@@ -239,16 +248,16 @@ namespace System.Collections.Immutable.Tests
             return list;
         }
 
-        protected abstract IImmutableSet<T> Empty<T>();
+        protected abstract System.Collections.Immutable.IImmutableSet<T> Empty<T>();
 
         protected abstract ISet<T> EmptyMutable<T>();
 
-        protected IImmutableSet<T> SetWith<T>(params T[] items)
+        protected System.Collections.Immutable.IImmutableSet<T> SetWith<T>(params T[] items)
         {
             return this.Empty<T>().Union(items);
         }
 
-        protected void CustomSortTestHelper<T>(IImmutableSet<T> emptySet, bool matchOrder, T[] injectedValues, T[] expectedValues)
+        protected void CustomSortTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, bool matchOrder, T[] injectedValues, T[] expectedValues)
         {
             Assert.NotNull(emptySet);
             Assert.NotNull(injectedValues);
@@ -276,7 +285,7 @@ namespace System.Collections.Immutable.Tests
         /// </summary>
         /// <typeparam name="T">The type of element stored in the set.</typeparam>
         /// <param name="emptySet">The empty set.</param>
-        protected void EmptyTestHelper<T>(IImmutableSet<T> emptySet)
+        protected void EmptyTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet)
         {
             Assert.NotNull(emptySet);
 
@@ -350,7 +359,7 @@ namespace System.Collections.Immutable.Tests
             };
         }
 
-        private void SetCompareTestHelper<T>(Func<IImmutableSet<T>, Func<IEnumerable<T>, bool>> operation, Func<ISet<T>, Func<IEnumerable<T>, bool>> baselineOperation, IEnumerable<Tuple<IEnumerable<T>, IEnumerable<T>, bool>> scenarios)
+        private void SetCompareTestHelper<T>(Func<System.Collections.Immutable.IImmutableSet<T>, Func<IEnumerable<T>, bool>> operation, Func<ISet<T>, Func<IEnumerable<T>, bool>> baselineOperation, IEnumerable<Tuple<IEnumerable<T>, IEnumerable<T>, bool>> scenarios)
         {
             //const string message = "Scenario #{0}: Set 1: {1}, Set 2: {2}";
 
@@ -378,7 +387,7 @@ namespace System.Collections.Immutable.Tests
             return new Tuple<IEnumerable<T>, IEnumerable<T>, bool>(scenario.Item2, scenario.Item1, scenario.Item3);
         }
 
-        private void RemoveTestHelper<T>(IImmutableSet<T> set, params T[] values)
+        private void RemoveTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);
@@ -402,7 +411,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal(initialCount - removedCount, set.Count);
         }
 
-        private void AddRemoveLoadTestHelper<T>(IImmutableSet<T> set, T[] data)
+        private void AddRemoveLoadTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, T[] data)
         {
             Assert.NotNull(set);
             Assert.NotNull(data);
@@ -427,7 +436,7 @@ namespace System.Collections.Immutable.Tests
             }
         }
 
-        protected void EnumeratorTestHelper<T>(IImmutableSet<T> emptySet, IComparer<T> comparer, params T[] values)
+        protected void EnumeratorTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> emptySet, IComparer<T>? comparer, params T[] values)
         {
             var set = emptySet;
             foreach (T value in values)
@@ -474,7 +483,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Throws<ObjectDisposedException>(() => enumerator.Current);
         }
 
-        private void AddTestHelper<T>(IImmutableSet<T> set, params T[] values)
+        private void AddTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);

@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.8/src/libraries/System.Collections.Immutable/tests/ImmutableSetTest.nonnetstandard.cs
@@ -9,10 +10,14 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 using Xunit;
-using SetTriad = System.Tuple<System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>, bool>;
 
-namespace System.Collections.Immutable.Tests
+#pragma warning disable CA1822 // Mark members as static
+#pragma warning disable CA1825 // Avoid zero-length array allocations
+
+namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public abstract partial class ImmutableSetTest : ImmutablesTestBase
     {
@@ -32,16 +37,11 @@ namespace System.Collections.Immutable.Tests
         [Fact]
         public void EnumeratorTest()
         {
-            IComparer<double> comparer = null;
             var set = this.Empty<double>();
-            var sortedSet = set as ISortKeyCollection<double>;
-            if (sortedSet != null)
-            {
-                comparer = sortedSet.KeyComparer;
-            }
+            IComparer<double>? comparer = GetComparer(set);
 
             this.EnumeratorTestHelper(set, comparer, 3, 5, 1);
-            double[] data = this.GenerateDummyFillData();
+            double[] data = GenerateDummyFillData();
             this.EnumeratorTestHelper(set, comparer, data);
         }
 
@@ -60,17 +60,33 @@ namespace System.Collections.Immutable.Tests
             this.UnionTestHelper(this.Empty<int>().Union(new[] { 2 }), Enumerable.Range(0, 1000).ToArray());
         }
 
-        internal abstract IBinaryTree GetRootNode<T>(IImmutableSet<T> set);
-
-        protected void TryGetValueTestHelper(IImmutableSet<string> set)
+        protected static IComparer<T> GetComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
         {
-            Requires.NotNull(set, nameof(set));
+            return set switch
+            {
+                System.Collections.Immutable.ImmutableSortedSet<T> s => s.KeyComparer,
+                _ => throw ExceptionUtilities.UnexpectedValue(set),
+            };
+        }
+
+        protected static IEqualityComparer<T> GetEqualityComparer<T>(System.Collections.Immutable.IImmutableSet<T> set)
+        {
+            return set switch
+            {
+                ImmutableSegmentedHashSet<T> s => s.KeyComparer,
+                System.Collections.Immutable.ImmutableHashSet<T> s => s.KeyComparer,
+                _ => throw ExceptionUtilities.UnexpectedValue(set),
+            };
+        }
+
+        protected void TryGetValueTestHelper(System.Collections.Immutable.IImmutableSet<string> set)
+        {
+            Assert.NotNull(set);
 
             string expected = "egg";
             set = set.Add(expected);
-            string actual;
             string lookupValue = expected.ToUpperInvariant();
-            Assert.True(set.TryGetValue(lookupValue, out actual));
+            Assert.True(set.TryGetValue(lookupValue, out string actual));
             Assert.Same(expected, actual);
 
             Assert.False(set.TryGetValue("foo", out actual));
@@ -80,7 +96,7 @@ namespace System.Collections.Immutable.Tests
             Assert.Equal("nonexistent", actual);
         }
 
-        private void ExceptTestHelper<T>(IImmutableSet<T> set, params T[] valuesToRemove)
+        private void ExceptTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] valuesToRemove)
         {
             Assert.NotNull(set);
             Assert.NotNull(valuesToRemove);
@@ -90,11 +106,9 @@ namespace System.Collections.Immutable.Tests
 
             var actualSet = set.Except(valuesToRemove);
             CollectionAssertAreEquivalent(expectedSet.ToList(), actualSet.ToList());
-
-            this.VerifyAvlTreeState(actualSet);
         }
 
-        private void SymmetricExceptTestHelper<T>(IImmutableSet<T> set, params T[] otherCollection)
+        private void SymmetricExceptTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] otherCollection)
         {
             Assert.NotNull(set);
             Assert.NotNull(otherCollection);
@@ -104,11 +118,9 @@ namespace System.Collections.Immutable.Tests
 
             var actualSet = set.SymmetricExcept(otherCollection);
             CollectionAssertAreEquivalent(expectedSet.ToList(), actualSet.ToList());
-
-            this.VerifyAvlTreeState(actualSet);
         }
 
-        private void IntersectTestHelper<T>(IImmutableSet<T> set, params T[] values)
+        private void IntersectTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);
@@ -120,11 +132,9 @@ namespace System.Collections.Immutable.Tests
 
             var actual = set.Intersect(values);
             CollectionAssertAreEquivalent(expected.ToList(), actual.ToList());
-
-            this.VerifyAvlTreeState(actual);
         }
 
-        private void UnionTestHelper<T>(IImmutableSet<T> set, params T[] values)
+        private void UnionTestHelper<T>(System.Collections.Immutable.IImmutableSet<T> set, params T[] values)
         {
             Assert.NotNull(set);
             Assert.NotNull(values);
@@ -134,15 +144,6 @@ namespace System.Collections.Immutable.Tests
 
             var actual = set.Union(values);
             CollectionAssertAreEquivalent(expected.ToList(), actual.ToList());
-
-            this.VerifyAvlTreeState(actual);
-        }
-
-        private void VerifyAvlTreeState<T>(IImmutableSet<T> set)
-        {
-            var rootNode = this.GetRootNode(set);
-            rootNode.VerifyBalanced();
-            rootNode.VerifyHeightIsWithinTolerance(set.Count);
         }
     }
 }
