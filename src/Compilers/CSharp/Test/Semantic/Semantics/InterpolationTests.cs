@@ -11043,7 +11043,7 @@ value:1
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
-  IL_0004:  ldc.i4.6
+  IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
@@ -11090,7 +11090,7 @@ literal: }");
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
-  IL_0004:  ldc.i4.6
+  IL_0004:  ldc.i4.4
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""CustomHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_2
