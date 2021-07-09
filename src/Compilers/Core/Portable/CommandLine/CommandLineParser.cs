@@ -495,14 +495,14 @@ namespace Microsoft.CodeAnalysis
             var args = ArrayBuilder<string>.GetInstance();
             args.AddRange(rawArguments);
             args.ReverseContents();
-            var index = args.Count - 1;
-            while (index >= 0)
+            var argsIndex = args.Count - 1;
+            while (argsIndex >= 0)
             {
                 // EDMAURER trim off whitespace. Otherwise behavioral differences arise
                 // when the strings which represent args are constructed by cmd or users.
                 // cmd won't produce args with whitespace at the end.
-                string arg = args[index].TrimEnd();
-                index--;
+                string arg = args[argsIndex].TrimEnd();
+                argsIndex--;
 
                 if (parsingScriptArgs)
                 {
@@ -573,33 +573,67 @@ namespace Microsoft.CodeAnalysis
 
             void parseResponseFile(string fullPath)
             {
-                var lines = ArrayBuilder<string>.GetInstance();
+                var stringBuilder = PooledStringBuilder.GetInstance();
+                var splitList = new List<string>();
+
                 try
                 {
                     Debug.Assert(PathUtilities.IsAbsolute(fullPath));
                     using TextReader reader = CreateTextFileReader(fullPath);
-                    string? str;
-                    while ((str = reader.ReadLine()) != null)
+                    Span<char> lineBuffer = stackalloc char[256];
+                    var lineBufferLength = 0;
+                    while (true)
                     {
-                        lines.Add(str);
+                        var ch = reader.Read();
+                        if (ch == -1)
+                        {
+                            if (lineBufferLength > 0)
+                            {
+                                stringBuilder.Builder.Length = 0;
+                                CommandLineUtilities.SplitCommandLineIntoArguments(
+                                    lineBuffer.Slice(0, lineBufferLength),
+                                    removeHashComments: true,
+                                    stringBuilder.Builder,
+                                    splitList,
+                                    out _);
+                            }
+                            break;
+                        }
+
+                        if (ch is '\r' or '\n')
+                        {
+                            if (ch is '\r' && reader.Peek() == '\n')
+                            {
+                                reader.Read();
+                            }
+
+                            stringBuilder.Builder.Length = 0;
+                            CommandLineUtilities.SplitCommandLineIntoArguments(
+                                lineBuffer.Slice(0, lineBufferLength),
+                                removeHashComments: true,
+                                stringBuilder.Builder,
+                                splitList,
+                                out _);
+                            lineBufferLength = 0;
+                        }
+                        else
+                        {
+                            if (lineBufferLength >= lineBuffer.Length)
+                            {
+                                var temp = new char[lineBuffer.Length * 2];
+                                lineBuffer.CopyTo(temp.AsSpan());
+                                lineBuffer = temp;
+                            }
+
+                            lineBuffer[lineBufferLength] = (char)ch;
+                            lineBufferLength++;
+                        }
                     }
                 }
                 catch (Exception)
                 {
                     diagnostics.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_OpenResponseFile, fullPath));
-                }
-
-                var stringBuilder = PooledStringBuilder.GetInstance();
-                var splitList = new List<string>();
-                foreach (var line in lines)
-                {
-                    stringBuilder.Builder.Length = 0;
-                    CommandLineUtilities.SplitCommandLineIntoArguments(
-                        line,
-                        removeHashComments: true,
-                        stringBuilder.Builder,
-                        splitList,
-                        out _);
+                    return;
                 }
 
                 for (var i = splitList.Count - 1; i >= 0; i--)
@@ -608,10 +642,10 @@ namespace Microsoft.CodeAnalysis
                     // Ignores /noconfig option specified in a response file
                     if (!string.Equals(newArg, "/noconfig", StringComparison.OrdinalIgnoreCase) && !string.Equals(newArg, "-noconfig", StringComparison.OrdinalIgnoreCase))
                     {
-                        index++;
-                        if (index < args.Count)
+                        argsIndex++;
+                        if (argsIndex < args.Count)
                         {
-                            args[index] = newArg;
+                            args[argsIndex] = newArg;
                         }
                         else
                         {
@@ -625,7 +659,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 stringBuilder.Free();
-                lines.Free();
             }
         }
 

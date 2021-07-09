@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -53,11 +54,11 @@ namespace Roslyn.Utilities
         public static List<string> SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, out char? illegalChar)
         {
             var list = new List<string>();
-            SplitCommandLineIntoArguments(commandLine, removeHashComments, new StringBuilder(), list, out illegalChar);
+            SplitCommandLineIntoArguments(commandLine.AsSpan(), removeHashComments, new StringBuilder(), list, out illegalChar);
             return list;
         }
 
-        public static void SplitCommandLineIntoArguments(string commandLine, bool removeHashComments, StringBuilder builder, List<string> list, out char? illegalChar)
+        public static void SplitCommandLineIntoArguments(ReadOnlySpan<char> commandLine, bool removeHashComments, StringBuilder builder, List<string> list, out char? illegalChar)
         {
             var i = 0;
 
