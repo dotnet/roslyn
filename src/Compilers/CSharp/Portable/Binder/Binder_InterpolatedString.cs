@@ -228,7 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) && diagnostics.AccumulatesDiagnostics)
             {
                 needToCheckConversionToObject = true;
-
             }
 
             Debug.Assert(appendCalls.Length == unconvertedInterpolatedString.Parts.Length);
