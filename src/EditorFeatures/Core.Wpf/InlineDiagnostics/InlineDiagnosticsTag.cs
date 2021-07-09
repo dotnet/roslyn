@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// <summary>
         /// Gets called when the ClassificationFormatMap is changed to update the adornment
         /// </summary>
-        public static void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
+        public void UpdateColor(TextFormattingRunProperties format, UIElement adornment)
         {
             var border = (Border)adornment;
             border.BorderBrush = format.BackgroundBrush;
