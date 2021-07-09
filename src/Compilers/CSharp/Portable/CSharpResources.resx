@@ -6658,6 +6658,16 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_HiddenPositionalMember" xml:space="preserve">
     <value>The positional member '{0}' found corresponding to this parameter is hidden.</value>
   </data>
+  <data name="IDS_FeatureImprovedInterpolatedStrings" xml:space="preserve">
+    <value>interpolated string handlers</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnMalformed" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' is malformed. It does not return 'void' or 'bool'.</value>
+    <comment>void and bool are keywords</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerMethodReturnInconsistent" xml:space="preserve">
+    <value>Interpolated string handler method '{0}' has inconsistent return type. Expected to return '{1}'.</value>
+  </data>
   <data name="ERR_InvalidNameInSubpattern" xml:space="preserve">
     <value>Identifier or a simple member access expected.</value>
   </data>
@@ -6672,6 +6682,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
     <value>A global using directive must precede all non-global using directives.</value>
+  </data>
+  <data name="ERR_NullInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</value>
+  </data>
+  <data name="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</value>
+  </data>
+  <data name="ERR_InvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
+    <value>'{0}' is not a valid parameter name from '{1}'.</value>
+  </data>
+  <data name="ERR_TypeIsNotAnInterpolatedStringHandlerType" xml:space="preserve">
+    <value>'{0}' is not an interpolated string handler type.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter" xml:space="preserve">
+    <value>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</value>
+  </data>
+  <data name="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title" xml:space="preserve">
+    <value>Parameter to interpolated string handler conversion occurs after handler parameter</value>
+  </data>
+  <data name="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument" xml:space="preserve">
+    <value>InterpolatedStringHandlerArgumentAttribute arguments cannot refer to the parameter the attribute is used on.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentAttributeMalformed" xml:space="preserve">
+    <value>The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.</value>
+    <comment>InterpolatedStringHandlerArgumentAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString" xml:space="preserve">
+    <value>Parameter '{0}' is an argument to the interpolated string handler conversion on parameter '{1}', but the corresponding argument is specified after the interpolated string expression. Reorder the arguments to move '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified" xml:space="preserve">
+    <value>Parameter '{0}' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter '{1}'. Specify the value of '{0}' before '{1}'.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion" xml:space="preserve">
+    <value>An expression tree may not contain an interpolated string handler conversion.</value>
+  </data>
+  <data name="ERR_InterpolatedStringHandlerCreationCannotUseDynamic" xml:space="preserve">
+    <value>An interpolated string handler construction cannot use dynamic. Manually construct an instance of '{0}'.</value>
   </data>
   <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
     <value>static abstract members in interfaces</value>

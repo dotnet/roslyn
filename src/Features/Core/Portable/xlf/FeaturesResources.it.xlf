@@ -140,6 +140,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Le condizioni di alternanza non consentono l'acquisizione e non possono essere denominate</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
         <target state="translated">Applica le preferenze relative alle intestazioni di file</target>

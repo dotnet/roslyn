@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
 
         protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
         {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+
             var viewSnapshot = TextView.TextSnapshot;
             var viewLines = TextView.TextViewLines;
 
@@ -42,14 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                         continue;
                     }
 
-                    TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span);
-
+                    if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                    {
+                        continue;
+                    }
+                    
                     // add the visual to the adornment layer.
                     var geometry = viewLines.GetMarkerGeometry(span);
                     if (geometry != null)
                     {
                         var tag = tagMappingSpan.Tag;
-                        var graphicsResult = tag.GetGraphics(TextView, geometry);
+                        var graphicsResult = tag.GetGraphics(TextView, geometry, format: null);
                         AdornmentLayer.AddAdornment(
                             behavior: AdornmentPositioningBehavior.TextRelative,
                             visualSpan: span,

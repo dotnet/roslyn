@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+        internal sealed override bool IsInterpolatedStringHandlerType => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             Symbol constructor = this.Constructor;
