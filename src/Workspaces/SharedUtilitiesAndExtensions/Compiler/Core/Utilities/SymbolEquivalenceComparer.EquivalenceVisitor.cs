@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 #endif
 
-                if (x is ITypeSymbol xType && y is ITypeSymbol yType)
+                if (_symbolEquivalenceComparer._ignoreNullableAnnotations && x is ITypeSymbol xType && y is ITypeSymbol yType)
                 {
                     // Nullability is not considered a distinguishing factor between symbols in this component.  Strip
                     // nullability from these symbols.  This also ensures we can do reference-equality checks later as
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     SymbolKind.ArrayType => ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Assembly => AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y),
-                    SymbolKind.DynamicType => true,
+                    SymbolKind.DynamicType => ((IDynamicTypeSymbol)x).NullableAnnotation == ((IDynamicTypeSymbol)y).NullableAnnotation,
                     SymbolKind.Event => EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Field => FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Label => LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y),
@@ -151,7 +151,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return
                     x.Rank == y.Rank &&
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
-                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies);
+                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies) &&
+                    x.NullableAnnotation == y.NullableAnnotation;
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
@@ -344,7 +345,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
                     x.IsUnboundGenericType != y.IsUnboundGenericType ||
-                    x.IsTupleType != y.IsTupleType)
+                    x.IsTupleType != y.IsTupleType ||
+                    x.NullableAnnotation != y.NullableAnnotation)
                 {
                     return false;
                 }
