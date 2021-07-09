@@ -91,6 +91,23 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("Mars_bar", "bar")]
+        [InlineData("Sars_Bar", "bar")]
+        public async Task TestCamelCaseField_UnderscoreInName(string fieldName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    int [|{fieldName}|];
+}}",
+$@"class C
+{{
+    int [|{correctedName}|];
+}}",
+                options: s_options.FieldNamesAreCamelCase);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [InlineData("M_bar", "_bar")]
         [InlineData("S_bar", "_bar")]
         [InlineData("T_bar", "_bar")]
