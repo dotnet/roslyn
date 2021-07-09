@@ -260,6 +260,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
+        protected abstract bool IsGlobalStatement(SyntaxNode node);
+
+        protected abstract TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node);
+
         /// <summary>
         /// Returns all symbols associated with an edit.
         /// Returns an empty set if the edit is not associated with any symbols.
@@ -2478,7 +2482,50 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             continue;
                                         }
 
-                                        if (!newSymbol.IsImplicitlyDeclared)
+                                        if (IsGlobalStatement(edit.OldNode))
+                                        {
+                                            // A delete of a global statement, when newSymbol isn't null, is an update to the implicit Main method
+                                            editKind = SemanticEditKind.Update;
+
+                                            // Since we're deleting we don't have any new nodes, so we have to use the declaring syntax reference 
+                                            Contract.ThrowIfTrue(oldDeclaration == null);
+                                            Contract.ThrowIfFalse(newDeclaration == null);
+                                            newDeclaration = GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+
+                                            // If all global statements are moved from one file to another then we'll get insert edits for them
+                                            // so we don't need to do anything for the deletes.
+                                            if (newDeclaration.SyntaxTree != newModel.SyntaxTree)
+                                            {
+                                                continue;
+                                            }
+
+                                            // The symbols here are the compiler generated Main method so we don't have nodes to report the edit for
+                                            // so we'll just use the last global statement in the file
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(newDeclaration), diagnostics);
+
+                                            var oldBody = oldDeclaration;
+                                            var newBody = newDeclaration;
+
+                                            AnalyzeChangedMemberBody(
+                                                  oldDeclaration,
+                                                  newDeclaration,
+                                                  oldBody,
+                                                  newBody,
+                                                  oldModel,
+                                                  newModel,
+                                                  oldSymbol,
+                                                  newSymbol,
+                                                  newText,
+                                                  oldActiveStatements: ImmutableArray<UnmappedActiveStatement>.Empty,
+                                                  newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
+                                                  capabilities: capabilities,
+                                                  newActiveStatements,
+                                                  newExceptionRegions,
+                                                  diagnostics,
+                                                  out syntaxMap,
+                                                  cancellationToken);
+                                        }
+                                        else if (!newSymbol.IsImplicitlyDeclared)
                                         {
                                             // Ignore the delete. The new symbol is explicitly declared and thus there will be an insert edit that will issue a semantic update.
                                             // Note that this could also be the case for deleting properties of records, but they will be handled when we see
@@ -2529,21 +2576,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else
                                     {
+                                        var diagnosticSpan = GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
+
+                                        // If we got here for a global statement then the actual edit is a delete of the synthesized Main method
+                                        if (IsGlobalStatement(edit.OldNode))
+                                        {
+                                            diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.Delete, diagnosticSpan, edit.OldNode, new[] { GetDisplayName(edit.OldNode, EditKind.Delete) }));
+                                            continue;
+                                        }
+
                                         // Check if the symbol being deleted is a member of a type or associated with a property or event that's also being deleted.
                                         // If so, skip the member deletion and only report the containing symbol deletion.
                                         var oldContainingSymbol = (oldSymbol as IMethodSymbol)?.AssociatedSymbol ?? oldSymbol.ContainingType;
                                         if (oldContainingSymbol != null)
                                         {
                                             var containingSymbolKey = SymbolKey.Create(oldContainingSymbol, cancellationToken);
-                                            var newContatiningSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
-                                            if (newContatiningSymbol == null)
+                                            var newContainingSymbol = containingSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                                            if (newContainingSymbol == null)
                                             {
                                                 continue;
                                             }
                                         }
 
                                         // deleting symbol is not allowed
-                                        var diagnosticSpan = GetDeletedNodeDiagnosticSpan(editScript.Match.Matches, oldDeclaration);
 
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.Delete,
@@ -2642,6 +2697,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                             continue;
                                         }
+                                        else if (IsGlobalStatement(edit.NewNode))
+                                        {
+                                            ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(edit.NewNode), diagnostics);
+
+                                            // An insert of a global statement, when oldSymbol isn't null, is an update to the implicit Main method
+                                            editKind = SemanticEditKind.Update;
+
+                                            // Since we're inserting we don't have any old nodes, so we have to use the declaring syntax reference 
+                                            Contract.ThrowIfFalse(oldDeclaration == null);
+                                            oldDeclaration = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
+                                            var oldBody = oldDeclaration;
+                                            var newBody = newDeclaration;
+
+                                            // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
+                                            var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldDeclaration.SyntaxTree);
+                                            var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                                            AnalyzeChangedMemberBody(
+                                                  oldDeclaration,
+                                                  newDeclaration,
+                                                  oldBody,
+                                                  newBody,
+                                                  oldSyntaxModel,
+                                                  newModel,
+                                                  oldSymbol,
+                                                  newSymbol,
+                                                  newText,
+                                                  oldActiveStatements: ImmutableArray<UnmappedActiveStatement>.Empty,
+                                                  newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
+                                                  capabilities: capabilities,
+                                                  newActiveStatements,
+                                                  newExceptionRegions,
+                                                  diagnostics,
+                                                  out syntaxMap,
+                                                  cancellationToken);
+                                        }
                                         else if (oldSymbol.DeclaringSyntaxReferences.Length == 1 && newSymbol.DeclaringSyntaxReferences.Length == 1)
                                         {
                                             // Handles partial methods and explicitly implemented properties that implement positional parameters of records
@@ -2717,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             editKind = SemanticEditKind.Update;
                                         }
                                     }
-                                    else if (newSymbol.ContainingType != null)
+                                    else if (newSymbol.ContainingType != null && !IsGlobalStatement(edit.NewNode))
                                     {
                                         // The edit actually adds a new symbol into an existing or a new type.
 
@@ -2767,8 +2858,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     }
                                     else
                                     {
-                                        // adds a new top-level type
-                                        Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol);
+                                        // adds a new top-level type, or a global statement where none existed before, which is
+                                        // therefore inserting the <Program>$ type
+                                        Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol || IsGlobalStatement(edit.NewNode));
 
                                         if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
                                         {
@@ -2841,6 +2933,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     {
                                         // node doesn't represent a symbol or the symbol has already been processed
                                         continue;
+                                    }
+
+                                    if (IsGlobalStatement(edit.NewNode))
+                                    {
+                                        ReportMethodDeclarationRudeEdits((IMethodSymbol)oldSymbol, (IMethodSymbol)newSymbol, GetGlobalStatementDiagnosticSpan(edit.NewNode), diagnostics);
                                     }
 
                                     editKind = SemanticEditKind.Update;
@@ -3052,6 +3149,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : oldNode,
                     (newSymbol != null && newSymbol.DeclaringSyntaxReferences.Length == 1) ?
                         GetSymbolDeclarationSyntax(newSymbol.DeclaringSyntaxReferences.Single(), cancellationToken) : newNode);
+            }
+        }
+
+        private static void ReportMethodDeclarationRudeEdits(IMethodSymbol oldSymbol, IMethodSymbol newSymbol, TextSpan diagnosticSpan, ArrayBuilder<RudeEditDiagnostic> diagnostics)
+        {
+            if (!SymbolEqualityComparer.Default.Equals(oldSymbol.ReturnType, newSymbol.ReturnType))
+            {
+                diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangeImplicitMainReturnType, diagnosticSpan));
             }
         }
 

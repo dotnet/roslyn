@@ -14556,5 +14556,682 @@ readonly struct S
         }
 
         #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements_Update()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_InsertAndUpdate()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+Console.WriteLine(""What is your name?"");
+var name = Console.ReadLine();
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [Console.WriteLine(\"Hello\");]@19 -> [Console.WriteLine(\"Hello World\");]@19",
+                "Insert [Console.WriteLine(\"What is your name?\");]@54",
+                "Insert [var name = Console.ReadLine();]@96");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Insert_NoImplicitMain()
+        {
+            var src1 = @"
+using System;
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Insert_ImplicitMain()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+Console.WriteLine(""World"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Insert [Console.WriteLine(\"World\");]@48");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Delete_NoImplicitMain()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello World"");
+";
+            var src2 = @"
+using System;
+
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_Delete_ImplicitMain()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+Console.WriteLine(""World"");
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(""Hello"");
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [Console.WriteLine(\"World\");]@48");
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_StackAlloc()
+        {
+            var src1 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(1); }";
+            var src2 = @"unsafe { var x = stackalloc int[3]; System.Console.Write(2); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt1()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt2()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToInt3()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+int Goo()
+{
+    return 1;
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+int Goo()
+{
+    return 1;
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_AddAwait()
+        {
+            var src1 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+";
+            var src2 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+await Task.Delay(200);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void TopLevelStatements_DeleteAwait()
+        {
+            var src1 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+await Task.Delay(200);
+";
+            var src2 = @"
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToTask()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "await Task.Delay(100);"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskToTaskInt()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+return 1;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_VoidToTaskInt()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+return await GetInt();
+
+Task<int> GetInt()
+{
+    return Task.FromResult(1);
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return await GetInt();"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid1()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return 1;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+               Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid2()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+
+return 1;
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+return;
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return;"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid3()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+int Goo()
+{
+    return 1;
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+
+int Goo()
+{
+    return 1;
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "int Goo()\r\n{\r\n    return 1;\r\n}"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_IntToVoid4()
+        {
+            var src1 = @"
+using System;
+
+Console.Write(1);
+return 1;
+
+public class C
+{
+    public int Goo()
+    {
+        return 1;
+    }
+}
+";
+            var src2 = @"
+using System;
+
+Console.Write(1);
+
+public class C
+{
+    public int Goo()
+    {
+        return 1;
+    }
+}
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskToVoid()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskIntToTask()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+return 1;
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+await Task.Delay(100);
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
+        }
+
+        [Fact]
+        public void TopLevelStatements_TaskIntToVoid()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+return await GetInt();
+
+Task<int> GetInt()
+{
+    return Task.FromResult(1);
+}
+";
+            var src2 = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(1);
+";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
+                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Insert()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Update()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+
+public class C { }
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(2);
+
+public class C { }
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_WithLambda_Delete()
+        {
+            var src1 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+Console.WriteLine(1);
+
+public class C { }
+";
+            var src2 = @"
+using System;
+
+Func<int> a = () => { <N:0.0>return 1;</N:0.0> };
+Func<Func<int>> b = () => () => { <N:0.1>return 1;</N:0.1> };
+
+public class C { }
+";
+            var edits = GetTopEdits(src1, src2);
+            var syntaxMap = GetSyntaxMap(src1, src2);
+
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$"), syntaxMap[0]) });
+        }
+
+        [Fact]
+        public void TopLevelStatements_UpdateMultiple()
+        {
+            var src1 = @"
+using System;
+
+Console.WriteLine(1);
+Console.WriteLine(2);
+
+public class C { }
+";
+            var src2 = @"
+using System;
+
+Console.WriteLine(3);
+Console.WriteLine(4);
+
+public class C { }
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // Since each individual statement is a separate update to a separate node, this just validates we correctly
+            // only analyze the things once
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")));
+        }
+
+        [Fact]
+        public void TopLevelStatements_MoveToOtherFile()
+        {
+            var srcA1 = @"
+using System;
+
+Console.WriteLine(1);
+
+public class A
+{
+}";
+            var srcB1 = @"
+using System;
+
+public class B
+{
+}";
+
+            var srcA2 = @"
+using System;
+
+public class A
+{
+}";
+            var srcB2 = @"
+using System;
+
+Console.WriteLine(2);
+
+public class B
+{
+}";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits: new [] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("<Program>$.<Main>$")) }),
+                });
+        }
+
+        #endregion
     }
 }

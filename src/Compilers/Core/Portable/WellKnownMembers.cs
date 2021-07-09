@@ -3504,6 +3504,13 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    
+                // System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3944,6 +3951,7 @@ namespace Microsoft.CodeAnalysis
                 "Append",                                   // System_Text_StringBuilder__AppendString
                 "Append",                                   // System_Text_StringBuilder__AppendObject
                 ".ctor",                                    // System_Text_StringBuilder__ctor
+                "ToStringAndClear",                         // System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

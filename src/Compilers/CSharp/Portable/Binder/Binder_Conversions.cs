@@ -143,10 +143,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
                 source = new BoundInterpolatedString(
                     unconvertedSource.Syntax,
-                    unconvertedSource.Parts,
+                    interpolationData: null,
+                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
                     unconvertedSource.ConstantValue,
                     unconvertedSource.Type,
                     unconvertedSource.HasErrors);
+            }
+
+            if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
+            {
+                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                return new BoundConversion(
+                    syntax,
+                    BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
+                    conversion,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
+                    conversionGroupOpt,
+                    constantValueOpt: null,
+                    destination);
             }
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
