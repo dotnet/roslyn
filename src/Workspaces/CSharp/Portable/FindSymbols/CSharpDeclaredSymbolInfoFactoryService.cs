@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService<
         CompilationUnitSyntax,
         UsingDirectiveSyntax,
-        NamespaceDeclarationSyntax,
+        BaseNamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
         MemberDeclarationSyntax>
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax nsDecl))
+                if (current is BaseNamespaceDeclarationSyntax nsDecl)
                 {
                     ProcessUsings(aliasMaps, nsDecl.Usings);
                 }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override SyntaxList<MemberDeclarationSyntax> GetChildren(CompilationUnitSyntax node)
             => node.Members;
 
-        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(NamespaceDeclarationSyntax node)
+        protected override SyntaxList<MemberDeclarationSyntax> GetChildren(BaseNamespaceDeclarationSyntax node)
             => node.Members;
 
         protected override SyntaxList<MemberDeclarationSyntax> GetChildren(TypeDeclarationSyntax node)
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(CompilationUnitSyntax node)
             => node.Usings;
 
-        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(NamespaceDeclarationSyntax node)
+        protected override SyntaxList<UsingDirectiveSyntax> GetUsingAliases(BaseNamespaceDeclarationSyntax node)
             => node.Usings;
 
         private static bool IsNestedType(BaseTypeDeclarationSyntax typeDecl)
