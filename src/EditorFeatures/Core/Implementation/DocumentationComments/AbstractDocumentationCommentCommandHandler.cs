@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -93,15 +94,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var snippet = getSnippetAction(service, syntaxTree, text, caretPosition, documentOptions, cancellationToken);
-            if (snippet != null)
+            // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
+            var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
+            var returnValue = false;
+            foreach (var snapshot in snapshots)
             {
-                ApplySnippet(snippet, subjectBuffer, textView);
-                return true;
+                var snippet = getSnippetAction(service, syntaxTree, text, snapshot.Span.Start, documentOptions, cancellationToken);
+                if (snippet != null)
+                {
+                    ApplySnippet(snippet, subjectBuffer, textView);
+                    returnValue = true;
+                }
             }
 
-            return false;
+            return returnValue;
         }
+
 
         public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
             => nextHandler();
