@@ -1134,9 +1134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     case ConstructorDeclarationSyntax constructor:
                         constructors.Add(constructor);
                         continue;
-                    case NamespaceDeclarationSyntax @namespace:
-                        AppendConstructors(@namespace.Members, constructors, cancellationToken);
-                        break;
                     case ClassDeclarationSyntax @class:
                         AppendConstructors(@class.Members, constructors, cancellationToken);
                         break;
