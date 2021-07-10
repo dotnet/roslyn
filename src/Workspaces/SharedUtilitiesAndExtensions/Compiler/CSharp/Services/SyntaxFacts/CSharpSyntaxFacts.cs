@@ -1132,7 +1132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 switch (member)
                 {
                     case ConstructorDeclarationSyntax constructor:
-                        constructors.Add(constructor);
                         continue;
                     case ClassDeclarationSyntax @class:
                         AppendConstructors(@class.Members, constructors, cancellationToken);
