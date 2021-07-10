@@ -9,12 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="..\ref\17\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="..\ref\17\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="..\ref\17\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionEngine" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\17\Microsoft.VisualStudio.ExtensionEngine.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\17\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\17\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.0-previews-1-31318-291" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Settings.15.0" Version="17.0.0-previews-1-31318-291" />
   </ItemGroup>
