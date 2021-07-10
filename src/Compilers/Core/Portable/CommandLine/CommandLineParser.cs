@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         [return: NotNullIfNotNull(parameterName: "arg")]
         internal static string? RemoveQuotesAndSlashes(string? arg) =>
-            arg is object
+            arg is not null
                 ? RemoveQuotesAndSlashes(arg.AsMemory())
                 : null;
 
