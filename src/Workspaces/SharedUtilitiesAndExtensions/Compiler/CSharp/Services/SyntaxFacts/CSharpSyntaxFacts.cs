@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is NamespaceDeclarationSyntax ||
+            return node is BaseNamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
                    node is EnumDeclarationSyntax;
         }
@@ -857,7 +857,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.IncompleteMember:
                     return missingTokenPlaceholder;
                 case SyntaxKind.NamespaceDeclaration:
-                    return GetName(((NamespaceDeclarationSyntax)node).Name, options);
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return GetName(((BaseNamespaceDeclarationSyntax)node).Name, options);
                 case SyntaxKind.QualifiedName:
                     var qualified = (QualifiedNameSyntax)node;
                     return GetName(qualified.Left, options) + dotToken + GetName(qualified.Right, options);
