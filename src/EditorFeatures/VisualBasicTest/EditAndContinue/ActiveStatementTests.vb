@@ -175,7 +175,7 @@ Class C
         <AS:22>Me.value = a</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a</AS:25>
         Return 0
     <AS:26>End Function</AS:26>
@@ -217,7 +217,7 @@ Class C
         <AS:22>Me.value = a*8</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a*8</AS:25>
     <AS:26>End Function</AS:26>
 End Class
@@ -264,7 +264,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(Integer)")))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(a As Integer)")))
         End Sub
 
         <Fact>
