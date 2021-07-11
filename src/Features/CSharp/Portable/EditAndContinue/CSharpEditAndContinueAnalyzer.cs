@@ -3032,8 +3032,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     => RudeEditKind.InsertIntoInterface,
 
                 // Inserting a field into an enum:
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/54759
                 IFieldSymbol { ContainingType.TypeKind: TypeKind.Enum }
                     => RudeEditKind.Insert,
+#pragma warning restore format
 
                 _ => RudeEditKind.None
             };
