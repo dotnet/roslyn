@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 {
                     symbol = typeSymbol.DelegateInvokeMethod;
                 }
-                else if (typeSymbol.IsRecord && TryGetRecordPrimaryConstructor(typeSymbol, out var primaryConstructor))
+                else if (TryGetRecordPrimaryConstructor(typeSymbol, out var primaryConstructor))
                 {
                     symbol = primaryConstructor;
                 }

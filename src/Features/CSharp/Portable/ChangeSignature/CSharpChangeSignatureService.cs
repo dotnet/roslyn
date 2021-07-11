@@ -896,8 +896,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol &&
-                recordSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
+                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
             {
                 declaredParameters = primaryConstructor.Parameters;
             }
