@@ -711,6 +711,45 @@ class Class1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeToGlobalNamespace_SingleDocumentNoRef_FileScopedNamespace()
+        {
+            var defaultNamespace = "";
+            var declaredNamespace = "Foo.Bar";
+
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"" LanguageVersion=""10"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+using System;
+
+// Trivia1.
+namespace [||]{declaredNamespace};// Trivia2
+// Trivia3.
+class Class1
+{{
+}}
+// Trivia4
+</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"using System;
+
+// Trivia1.
+// Trivia2
+// Trivia3.
+class Class1
+{
+}
+// Trivia4
+";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeToGlobalNamespace_SingleDocumentLocalRef()
         {
             var defaultNamespace = "";

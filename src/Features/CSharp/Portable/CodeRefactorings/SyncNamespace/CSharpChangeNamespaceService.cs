@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax namespaceDecl)
         {
             var (namespaceOpeningTrivia, namespaceClosingTrivia) =
-                GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl as NamespaceDeclarationSyntax);
+                GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl);
             var members = namespaceDecl.Members;
             var eofToken = root.EndOfFileToken
                 .WithAdditionalAnnotations(WarningAnnotation);
@@ -470,23 +470,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
         private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
-            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax? namespaceDeclaration)
+            GetOpeningAndClosingTriviaOfNamespaceDeclaration(BaseNamespaceDeclarationSyntax baseNamespaceDeclaration)
         {
-            if (namespaceDeclaration is null)
+            var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            openingBuilder.AddRange(baseNamespaceDeclaration.GetLeadingTrivia());
+
+            var closing = ImmutableArray<SyntaxTrivia>.Empty;
+
+            if (baseNamespaceDeclaration is NamespaceDeclarationSyntax namespaceDeclaration)
             {
-                return (ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+                openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
+                openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
+
+                var closingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
+                closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
+                closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
+                closing = closingBuilder.ToImmutableAndFree();
+            }
+            else if (baseNamespaceDeclaration is FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclaration)
+            {
+                openingBuilder.AddRange(fileScopedNamespaceDeclaration.SemicolonToken.LeadingTrivia);
+                openingBuilder.AddRange(fileScopedNamespaceDeclaration.SemicolonToken.TrailingTrivia);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
-            var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
-            openingBuilder.AddRange(namespaceDeclaration.GetLeadingTrivia());
-            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
-            openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.TrailingTrivia);
-
-            var closingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
-            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.LeadingTrivia);
-            closingBuilder.AddRange(namespaceDeclaration.CloseBraceToken.TrailingTrivia);
-
-            return (openingBuilder.ToImmutableAndFree(), closingBuilder.ToImmutableAndFree());
+            return (openingBuilder.ToImmutableAndFree(), closing);
         }
     }
 }
