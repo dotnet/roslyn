@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDecl)
         {
             var (namespaceOpeningTrivia, namespaceClosingTrivia) =
-                GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl);
+                GetOpeningAndClosingTriviaOfNamespaceDeclaration(null);
             var members = namespaceDecl.Members;
             var eofToken = root.EndOfFileToken
                 .WithAdditionalAnnotations(WarningAnnotation);
@@ -470,8 +470,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
         private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
-            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
+            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax? namespaceDeclaration)
         {
+            if (namespaceDeclaration is null)
+            {
+                return (ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+            }
+
             var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
             openingBuilder.AddRange(namespaceDeclaration.GetLeadingTrivia());
             openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);
