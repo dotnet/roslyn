@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace.CSharpMatchFolderAndNamespaceDiagnosticAnalyzer,
@@ -29,7 +30,7 @@ build_property.RootNamespace = {DefaultNamespace}
         private static string CreateFolderPath(params string[] folders)
             => Path.Combine(Directory, Path.Combine(folders));
 
-        private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorConfig = null, string? fixedCode = null)
+        private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorConfig = null, string? fixedCode = null, LanguageVersion? languageVersion = null)
         {
             var filePath = Path.Combine(directory ?? Directory, fileName);
             fixedCode ??= fileContents;
@@ -37,16 +38,21 @@ build_property.RootNamespace = {DefaultNamespace}
             return RunTestAsync(
                 new[] { (filePath, fileContents) },
                 new[] { (filePath, fixedCode) },
-                editorConfig);
+                editorConfig, languageVersion);
         }
 
-        private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null)
+        private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null, LanguageVersion? languageVersion = null)
         {
             var testState = new VerifyCS.Test
             {
                 EditorConfig = editorconfig ?? EditorConfig,
                 CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck
             };
+
+            if (languageVersion is not null)
+            {
+                testState.LanguageVersion = languageVersion.Value;
+            }
 
             foreach (var (fileName, content) in originalSources)
             {
@@ -165,6 +171,34 @@ namespace {DefaultNamespace}.a.b
                 fileContents: code,
                 directory: folder,
                 fixedCode: fixedCode);
+        }
+
+        [Fact]
+        [WorkItem(54749, "https://github.com/dotnet/roslyn/issues/54749")]
+        public async Task SingleDocumentNoReference_FileScoped()
+        {
+            var folder = CreateFolderPath("B", "C");
+            var code =
+@"namespace [|A.B|];
+
+class Class1
+{
+}
+";
+
+            var fixedCode =
+@$"namespace {DefaultNamespace}.B.C;
+
+class Class1
+{{
+}}
+";
+            await RunTestAsync(
+                fileName: "Class1.cs",
+                fileContents: code,
+                directory: folder,
+                fixedCode: fixedCode,
+                languageVersion: LanguageVersion.CSharp10);
         }
 
         [Fact]

@@ -1757,7 +1757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.ValueText,
                 EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier.ValueText,
                 EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.ValueText,
-                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Name.ToString(),
+                BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Name.ToString(),
                 UsingDirectiveSyntax usingDirective => usingDirective.Name.ToString(),
                 ParameterSyntax parameter => parameter.Identifier.ValueText,
                 LocalDeclarationStatementSyntax localDeclaration => this.GetName(localDeclaration.Declaration),

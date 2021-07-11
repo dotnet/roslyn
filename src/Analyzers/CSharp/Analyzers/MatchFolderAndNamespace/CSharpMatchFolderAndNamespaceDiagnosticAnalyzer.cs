@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<NamespaceDeclarationSyntax>
+    internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<BaseNamespaceDeclarationSyntax>
     {
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
         }
     }
 }

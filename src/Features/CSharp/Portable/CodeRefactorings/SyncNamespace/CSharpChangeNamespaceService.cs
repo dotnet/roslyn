@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 {
     [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpChangeNamespaceService :
-        AbstractChangeNamespaceService<NamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
+        AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             }
 
             TextSpan containerSpan;
-            if (container is NamespaceDeclarationSyntax)
+            if (container is BaseNamespaceDeclarationSyntax)
             {
                 containerSpan = container.Span;
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 return string.Empty;
             }
 
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
             {
                 return CSharpSyntaxGenerator.Instance.GetName(namespaceDecl);
             }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         protected override SyntaxList<MemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode container)
         {
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
             {
                 return namespaceDecl.Members;
             }
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                 return MoveMembersFromGlobalToNamespace(compilationUnit, targetNamespaceParts);
             }
 
-            if (container is NamespaceDeclarationSyntax namespaceDecl)
+            if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
             {
                 // Move everything to global namespace
                 if (IsGlobalNamespace(targetNamespaceParts))
@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(CompilationUnitSyntax root, NamespaceDeclarationSyntax namespaceDecl)
+        private static CompilationUnitSyntax MoveMembersFromNamespaceToGlobal(CompilationUnitSyntax root, BaseNamespaceDeclarationSyntax namespaceDecl)
         {
             var (namespaceOpeningTrivia, namespaceClosingTrivia) =
-                GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl);
+                GetOpeningAndClosingTriviaOfNamespaceDeclaration(namespaceDecl as NamespaceDeclarationSyntax);
             var members = namespaceDecl.Members;
             var eofToken = root.EndOfFileToken
                 .WithAdditionalAnnotations(WarningAnnotation);
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
         private static CompilationUnitSyntax MoveMembersFromGlobalToNamespace(CompilationUnitSyntax compilationUnit, ImmutableArray<string> targetNamespaceParts)
         {
-            Debug.Assert(!compilationUnit.Members.Any(m => m is NamespaceDeclarationSyntax));
+            Debug.Assert(!compilationUnit.Members.Any(m => m is BaseNamespaceDeclarationSyntax));
 
             var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
                 name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
-                var namespaceDecl = node.AncestorsAndSelf().OfType<NamespaceDeclarationSyntax>().SingleOrDefault();
+                var namespaceDecl = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().SingleOrDefault();
                 if (namespaceDecl == null)
                 {
                     return null;
@@ -403,8 +403,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             return container;
 
             static bool ContainsNamespaceDeclaration(SyntaxNode node)
-                => node.DescendantNodes(n => n is CompilationUnitSyntax || n is NamespaceDeclarationSyntax)
-                .OfType<NamespaceDeclarationSyntax>().Any();
+                => node.DescendantNodes(n => n is CompilationUnitSyntax || n is BaseNamespaceDeclarationSyntax)
+                .OfType<BaseNamespaceDeclarationSyntax>().Any();
         }
 
         private static string? GetAliasQualifier(SyntaxNode? name)
@@ -470,8 +470,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
         /// trivia around closing brace are concatenated together respectively.
         /// </summary>
         private static (ImmutableArray<SyntaxTrivia> openingTrivia, ImmutableArray<SyntaxTrivia> closingTrivia)
-            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
+            GetOpeningAndClosingTriviaOfNamespaceDeclaration(NamespaceDeclarationSyntax? namespaceDeclaration)
         {
+            if (namespaceDeclaration is null)
+            {
+                return (ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+            }
+
             var openingBuilder = ArrayBuilder<SyntaxTrivia>.GetInstance();
             openingBuilder.AddRange(namespaceDeclaration.GetLeadingTrivia());
             openingBuilder.AddRange(namespaceDeclaration.OpenBraceToken.LeadingTrivia);

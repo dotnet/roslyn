@@ -948,18 +948,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node?.Kind() == SyntaxKind.ClassDeclaration;
 
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Kind() == SyntaxKind.NamespaceDeclaration;
+            => node.IsKind(SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
 
         public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
-            => node is NamespaceDeclarationSyntax namespaceDeclaration
-            ? namespaceDeclaration.Name
-            : null;
+            => (node as BaseNamespaceDeclarationSyntax)?.Name;
 
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
