@@ -366,32 +366,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol? symbol)
-        {
-            return symbol switch
+            => symbol switch
             {
                 IMethodSymbol m => m.Parameters,
-                IPropertySymbol p => p.Parameters,
-                INamedTypeSymbol nt when nt.IsRecord => GetRecordParameters(nt),
+                IPropertySymbol nt => nt.Parameters,
                 _ => ImmutableArray<IParameterSymbol>.Empty,
             };
-
-            ImmutableArray<IParameterSymbol> GetRecordParameters(INamedTypeSymbol recordSymbol)
-            {
-                const int RecordDeclarationRawKind = 9063;
-
-                // A bit hacky to determine the parameters of primary constructor associated with a given record.
-                // TODO: record structs.
-                var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
-                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.RawKind == RecordDeclarationRawKind);
-
-                if (primaryConstructor is null)
-                {
-                    return ImmutableArray<IParameterSymbol>.Empty;
-                }
-
-                return primaryConstructor.Parameters;
-            }
-        }
 
         public static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(this ISymbol? symbol)
             => symbol switch

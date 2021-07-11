@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -269,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             CancellationToken cancellationToken)
         {
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
+
             // Update <param> tags.
             // TODO: Record structs
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
@@ -757,13 +759,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
-        private static ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
-            var declaredParameters = declarationSymbol.GetParameters();
+            var declaredParameters = GetParameters(declarationSymbol);
+
             if (paramNodes.Count() != declaredParameters.Length)
             {
                 return ImmutableArray<SyntaxNode>.Empty;
@@ -887,5 +890,36 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override SyntaxToken CommaTokenWithElasticSpace()
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
+
+        protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+        {
+            Debug.Assert(typeSymbol.IsRecord);
+            primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
+                c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+            return primaryConstructor is not null;
+        }
+
+        protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
+        {
+            var declaredParameters = declarationSymbol.GetParameters();
+            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol)
+            {
+                Debug.Assert(declaredParameters.IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
+                // A bit hacky to determine the parameters of primary constructor associated with a given record.
+                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
+                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
+                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
+                // of the extension method and make sure the change is applicable to all these usages.
+                var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+
+                if (primaryConstructor is not null)
+                {
+                    declaredParameters = primaryConstructor.Parameters;
+                }
+            }
+
+            return declaredParameters;
+        }
     }
 }
