@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.LocalFunctionStatement,
-            // TODO: Record structs
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.AnonymousMethodExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
             SyntaxKind.SimpleLambdaExpression,
-            // TODO: record structs
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.RecordDeclaration);
 
         [ImportingConstructor]
@@ -272,11 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var updatedNode = potentiallyUpdatedNode as CSharpSyntaxNode;
 
             // Update <param> tags.
-            // TODO: Record structs
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.RecordDeclaration))
             {
                 var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
@@ -293,8 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
-            // TODO: Record structs
-            if (updatedNode.IsKind(SyntaxKind.RecordDeclaration, out RecordDeclarationSyntax? record) && record.ParameterList is not null)
+            if (updatedNode is RecordDeclarationSyntax { ParameterList: not null } record)
             {
                 var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
@@ -892,31 +891,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
 
         protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
-        {
-            Debug.Assert(typeSymbol.IsRecord);
-            primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
-                c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
-            return primaryConstructor is not null;
-        }
+            => typeSymbol.TryGetRecordPrimaryConstructor(out primaryConstructor);
 
         protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
         {
             var declaredParameters = declarationSymbol.GetParameters();
-            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol)
+            if (declarationSymbol is INamedTypeSymbol { IsRecord: true } recordSymbol &&
+                recordSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
             {
-                Debug.Assert(declaredParameters.IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
-                // A bit hacky to determine the parameters of primary constructor associated with a given record.
-                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
-                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
-                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
-                // of the extension method and make sure the change is applicable to all these usages.
-                var primaryConstructor = recordSymbol.InstanceConstructors.FirstOrDefault(
-                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
-
-                if (primaryConstructor is not null)
-                {
-                    declaredParameters = primaryConstructor.Parameters;
-                }
+                declaredParameters = primaryConstructor.Parameters;
             }
 
             return declaredParameters;
