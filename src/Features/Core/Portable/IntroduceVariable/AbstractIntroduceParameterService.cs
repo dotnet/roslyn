@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private class MyCodeAction : SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }
