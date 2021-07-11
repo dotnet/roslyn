@@ -657,8 +657,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (includeMethod)
             {
-                template.Append(")$end$");
+                template.Append(')');
             }
+
+            template.Append("$end$");
 
             // A snippet is manually constructed. Replacement fields are added for each argument, and the field name
             // matches the parameter name.
@@ -737,6 +739,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
+            if (token.RawKind == 0)
+            {
+                // There is no touching word, so return empty immediately
+                return ImmutableArray<ISymbol>.Empty;
+            }
+
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }

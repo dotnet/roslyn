@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeTypeAbstract
             Return (Nothing, New VisualBasicMakeTypeAbstractCodeFixProvider())
         End Function
 
+        <WorkItem(50003, "https://github.com/dotnet/roslyn/issues/50003")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeTypeAbstract)>
         Public Async Function TestMethod_CodeFix() As Task
             Await TestInRegularAndScript1Async("
@@ -22,7 +23,7 @@ Public Class [|Foo|]
     Public MustOverride Sub M()
 End Class",
 "
-Public MustOverride Class Foo
+Public MustInherit Class Foo
     Public MustOverride Sub M()
 End Class")
         End Function

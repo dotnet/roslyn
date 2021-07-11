@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -29,7 +30,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private abstract class AbstractTableDataSourceFindUsagesContext :
             FindUsagesContext, ITableDataSource, ITableEntriesSnapshotFactory
         {
-            public CancellationTokenSource? CancellationTokenSource { get; private set; }
+            /// <summary>
+            /// Cancellation token we own that we will trigger if the presenter for this particular
+            /// search is either closed, or repurposed to show results from another search.  Clients
+            /// using the <see cref="IStreamingFindUsagesPresenter"/> should use this token if they 
+            /// are populating the presenter in a fire-and-forget manner.  In other words if they kick
+            /// off work to compute the results that they themselves are not waiting on.  If they are
+            /// *not* kickign off work in a fire-and-forget manner, and are instead populating the 
+            /// presenter on their own thread, they should have their own cancellation token (for example
+            /// backed by a threaded-wait-dialog or CommandExecutionContext) that controls their scenario
+            /// which a client can use to cancel that work.
+            /// </summary>
+            /// <remarks>
+            /// Importantly, no code in this context or the presenter should actually examine this token
+            /// to see if their work is cancelled.  Instead, any cancellable work should have a cancellation
+            /// token passed in from the caller that should be used instead.
+            /// </remarks>
+            public readonly CancellationTokenSource CancellationTokenSource = new();
 
             private ITableDataSink _tableDataSink;
 
@@ -94,8 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 presenter.AssertIsForeground();
 
-                CancellationTokenSource = new CancellationTokenSource();
-
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
@@ -128,6 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
+                    presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
 
@@ -221,13 +237,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 Presenter.AssertIsForeground();
 
-                // Cancel any in flight find work that is going on.
-                if (CancellationTokenSource != null)
-                {
-                    CancellationTokenSource.Cancel();
-                    CancellationTokenSource.Dispose();
-                    CancellationTokenSource = null;
-                }
+                // Cancel any in flight find work that is going on. Note: disposal happens in our own
+                // implementation of IDisposable.Dispose.
+                CancellationTokenSource.Cancel();
             }
 
             public void Clear()
@@ -395,7 +407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
+            private ValueTask UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {
@@ -415,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         _findReferencesWindow.SetProgress(current, maximum);
                 }
 
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
             }
 
             #endregion
@@ -480,10 +492,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 _findReferencesWindow.Manager.RemoveSource(this);
 
-                CancelSearch();
-
                 // Remove ourselves from the list of contexts that are currently active.
                 Presenter._currentContexts.Remove(this);
+
+                CancelSearch();
+                CancellationTokenSource.Dispose();
             }
 
             #endregion

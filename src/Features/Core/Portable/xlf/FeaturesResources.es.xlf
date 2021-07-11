@@ -1,7 +1,12 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="new">#{0} directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">a.m./p.m. (abreviado)</target>
@@ -92,7 +97,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <target state="translated">Agregar "{0}" a un tipo genérico impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
@@ -107,7 +112,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
         <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="new">Adding a positional parameter to a record will prevent the debug session from continuing.</target>
+        <target state="translated">Al agregar un parámetro posicional a un registro impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
@@ -135,19 +140,24 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Las condiciones de alternancia no se captan y se les puede poner un nombre</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing">
+        <source>An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
         <source>Apply file header preferences</source>
-        <target state="new">Apply file header preferences</target>
+        <target state="translated">Aplicar preferencias de encabezado de archivo</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object/collection initialization preferences</source>
-        <target state="new">Apply object/collection initialization preferences</target>
+        <target state="translated">Aplicar preferencias de inicialización de objetos o colecciones</target>
         <note />
       </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <target state="translated">Se quitó una instrucción activa de su método original. Debe revertir los cambios para continuar o reiniciar la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -192,7 +202,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
         <source>TODO</source>
-        <target state="translated">TAREA</target>
+        <target state="new">TODO</target>
         <note>"TODO" is an indication that there is work still to be done.</note>
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">
@@ -232,7 +242,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <target state="translated">Si se cambia la visibilidad de {0}, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -280,6 +290,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Convertir en registro</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="new">Convert to record struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Convertir a struct</target>
@@ -312,7 +327,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="new">Deleting a positional parameter from a record will prevent the debug session from continuing.</target>
+        <target state="translated">Eliminar un parámetro posicional desde un registro impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -347,7 +362,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
         <source>Edit and continue is not supported by the runtime.</source>
-        <target state="new">Edit and continue is not supported by the runtime.</target>
+        <target state="translated">El runtime no admite editar y continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -377,7 +392,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
-        <target state="new">Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</target>
+        <target state="translated">Los métodos de registros implementados explícitamente deben tener nombres de parámetro que coincidan con el equivalente generado por el programa "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -417,7 +432,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Format_document">
         <source>Format document</source>
-        <target state="new">Format document</target>
+        <target state="translated">Dar formato al documento</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -517,12 +532,12 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing">
         <source>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</source>
-        <target state="new">Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</target>
+        <target state="translated">Al implementar un parámetro posicional de registro "{0}" como de solo lectura impedirá que continúe la sesión de depuración,</target>
         <note />
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</source>
-        <target state="new">Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</target>
+        <target state="translated">Al implementar un parámetro posicional de registro "{0}" con un accessor de conjunto impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -622,12 +637,12 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing">
         <source>Making a method an iterator will prevent the debug session from continuing.</source>
-        <target state="new">Making a method an iterator will prevent the debug session from continuing.</target>
+        <target state="translated">Convertir un método en un iterador impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_async_will_prevent_the_debug_session_from_continuing">
         <source>Making a method 'async' will prevent the debug session from continuing.</source>
-        <target state="new">Making a method 'async' will prevent the debug session from continuing.</target>
+        <target state="translated">Convertir un método en "asincrónico" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -675,11 +690,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Falta de carácter de control</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">Si se modifica "{0}", que contiene una expresión switch, la sesión de depuración no podrá continuar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
         <target state="translated">Si se modifica el cuerpo de "{0}", se impedirá que continúe la sesión de depuración porque el cuerpo tiene demasiadas instrucciones.</target>
@@ -687,7 +697,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Si se modifica el cuerpo de "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}.</target>
+        <target state="translated">Si se modifica el cuerpo de "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -717,7 +727,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Si se modifica el archivo de código fuente "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}.</target>
+        <target state="translated">Si se modifica el archivo de código fuente "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -737,7 +747,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Operators">
         <source>Operators</source>
-        <target state="new">Operators</target>
+        <target state="translated">Operadores</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -1922,12 +1932,12 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
-        <target state="new">Remove unnecessary casts</target>
+        <target state="translated">Quitar conversiones innecesarias</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
-        <target state="new">Remove unused variables</target>
+        <target state="translated">Quitar variables no utilizadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -1947,7 +1957,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
-        <target state="new">Sort accessibility modifiers</target>
+        <target state="translated">Ordenar modificadores de accesibilidad</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2090,6 +2100,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Si se actualiza un "{0}" en torno a una instrucción activa, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of '{0}' is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of '{0}' is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Usar cuerpo del bloque para las expresiones lambda</target>
@@ -2177,7 +2192,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
-        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <target state="translated">Puede usar la barra de navegación para cambiar contextos.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -2368,12 +2383,12 @@ Aunque es posible mostrar la diezmilésima parte de un segundo de un valor de ho
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="needs-review-translation">El especificador de formato personalizado "f" representa el dígito más significativo de la fracción de segundos, es decir, las décimas de segundo de un valor de fecha y hora.
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
 
-Si el especificador de formato "f" se usa sin otros especificadores de formato, se interpreta como el especificador de formato de fecha y hora estándar "f".
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-Cuando se usan especificadores de formato "f" como parte de una cadena de formato proporcionada al método ParseExact, TryParseExact, ParseExact o TryParseExact, el número de especificadores de formato "f" indica el número de dígitos más significativos de la fracción de segundos que deben estar presentes para analizar correctamente la cadena.</target>
-        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked="f"}</note>
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2448,7 +2463,7 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="code">
         <source>code</source>
-        <target state="new">code</target>
+        <target state="translated">código</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2619,7 +2634,7 @@ El especificador de formato estándar "f" representa una combinación de los pat
       </trans-unit>
       <trans-unit id="member_kind_and_name">
         <source>{0} '{1}'</source>
-        <target state="new">{0} '{1}'</target>
+        <target state="translated">{0} "{1}"</target>
         <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
@@ -3281,7 +3296,7 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Eliminar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Eliminar "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3381,7 +3396,7 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Quitar '{0}' que contiene una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Quitar "{0}", que contiene una instrucción activa, impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3507,7 +3522,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Not_Available">
         <source>Not Available ⚠</source>
-        <target state="needs-review-translation">No disponible</target>
+        <target state="translated">No disponible ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
@@ -3777,7 +3792,7 @@ Cuando se usa este especificador de formato estándar, la operación de formato 
       </trans-unit>
       <trans-unit id="static_constructor">
         <source>static constructor</source>
-        <target state="new">static constructor</target>
+        <target state="translated">constructor estático</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

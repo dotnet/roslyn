@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, backOffTimeSpan, shutdownToken)
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
@@ -90,6 +90,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (!item.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                         {
                             return;
+                        }
+
+                        if (!_processor._documentTracker.SupportsDocumentTracking
+                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace)
+                        {
+                            Debug.Fail($"Unexpected use of '{nameof(ExportIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
                         }
 
                         // check whether given item is for active document, otherwise, nothing to do here

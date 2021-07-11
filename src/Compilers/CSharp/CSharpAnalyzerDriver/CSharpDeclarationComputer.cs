@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     {
-                        var ns = (NamespaceDeclarationSyntax)node;
+                        var ns = (BaseNamespaceDeclarationSyntax)node;
                         foreach (var decl in ns.Members)
                         {
                             ComputeDeclarations(model, associatedSymbol: null, decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
-
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
                         {

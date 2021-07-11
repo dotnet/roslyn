@@ -282,38 +282,13 @@ Option Strict Off
 
 #Region "Attributes"
         <Fact>
-        Public Sub UpdateAttributes1()
-            Dim src1 = "<A1>Class C : End Class"
-            Dim src2 = "<A2>Class C : End Class"
-
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits(
-                "Update [A1]@1 -> [A2]@1")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.attribute))
-        End Sub
-
-        <Fact>
-        Public Sub UpdateAttributes2()
-            Dim src1 = "<A(1)>Class C : End Class"
-            Dim src2 = "<A(2)>Class C : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [A(1)]@1 -> [A(2)]@1")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute))
-        End Sub
-
-        <Fact>
         Public Sub UpdateAttributes_TopLevel1()
             Dim src1 = "<Assembly: A(1)>"
             Dim src2 = "<Assembly: A(2)>"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
+                "Update [<Assembly: A(1)>]@0 -> [<Assembly: A(2)>]@0",
                 "Update [Assembly: A(1)]@1 -> [Assembly: A(2)]@1")
 
             edits.VerifyRudeDiagnostics(
@@ -322,29 +297,32 @@ Option Strict Off
 
         <Fact>
         Public Sub UpdateAttributes_TopLevel2()
-            Dim src1 = "<Assembly: A(1)>"
-            Dim src2 = "<Module: A(1)>"
+            Dim src1 = "<Assembly: System.Obsolete(""1"")>"
+            Dim src2 = "<Module: System.Obsolete(""1"")>"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Assembly: A(1)]@1 -> [Module: A(1)]@1")
+                "Update [<Assembly: System.Obsolete(""1"")>]@0 -> [<Module: System.Obsolete(""1"")>]@0",
+                "Update [Assembly: System.Obsolete(""1"")]@1 -> [Module: System.Obsolete(""1"")]@1")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "Module: A(1)", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.Update, "Module: System.Obsolete(""1"")", FeaturesResources.attribute))
         End Sub
 
         <Fact>
         Public Sub DeleteAttributes()
-            Dim src1 = "<A, B>Class C : End Class"
-            Dim src2 = "<A>Class C : End Class"
+            Dim attribute = "Public Class AAttribute : Inherits System.Attribute : End Class" & vbCrLf &
+                            "Public Class BAttribute : Inherits System.Attribute : End Class" & vbCrLf
+
+            Dim src1 = attribute & "<A, B>Class C : End Class"
+            Dim src2 = attribute & "<A>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A, B>]@0 -> [<A>]@0",
-                "Delete [B]@4")
+                "Update [<A, B>Class C]@130 -> [<A>Class C]@130")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -365,29 +343,27 @@ Option Strict Off
         <Fact>
         Public Sub InsertAttributes1()
             Dim src1 = "<A>Class C : End Class"
-            Dim src2 = "<A, B>Class C : End Class"
+            Dim src2 = "<A, System.Obsolete>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@0 -> [<A, B>]@0",
-                "Insert [B]@4")
+                "Update [<A>Class C]@0 -> [<A, System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
         Public Sub InsertAttributes2()
             Dim src1 = "Class C : End Class"
-            Dim src2 = "<A>Class C : End Class"
+            Dim src2 = "<System.Obsolete>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@0",
-                "Insert [A]@1")
+                "Update [Class C]@0 -> [<System.Obsolete>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -411,7 +387,7 @@ Option Strict Off
             Dim src2 = "<C(3), A(1), B(2)>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Reorder [C(3)]@13 -> @1")
+            edits.VerifyEdits("Update [<A(1), B(2), C(3)>Class C]@0 -> [<C(3), A(1), B(2)>Class C]@0")
             edits.VerifyRudeDiagnostics()
         End Sub
 
@@ -421,7 +397,7 @@ Option Strict Off
             Dim src2 = "<B, C, A>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits("Reorder [A]@1 -> @7")
+            edits.VerifyEdits("Update [<A, B, C>Class C]@0 -> [<B, C, A>Class C]@0")
             edits.VerifyRudeDiagnostics()
         End Sub
 
@@ -438,21 +414,196 @@ Option Strict Off
 
         <Fact>
         Public Sub ReorderAndUpdateAttributes()
-            Dim src1 = "<A(1), B, C>Class C : End Class"
-            Dim src2 = "<B, C, A(2)>Class C : End Class"
+            Dim src1 = "<System.Obsolete(""1""), B, C>Class C : End Class"
+            Dim src2 = "<B, C, System.Obsolete(""2"")>Class C : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [A(1)]@1 -> @7",
-                "Update [A(1)]@1 -> [A(2)]@7")
+                "Update [<System.Obsolete(""1""), B, C>Class C]@0 -> [<B, C, System.Obsolete(""2"")>Class C]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
         End Sub
 
 #End Region
 
-#Region "Top-level Classes, Structs, Interfaces, Modules"
+#Region "Types"
+        <Theory>
+        <InlineData("Class", "Structure")>
+        <InlineData("Class", "Module")>
+        <InlineData("Class", "Interface")>
+        Public Sub Type_Kind_Update(oldKeyword As String, newKeyword As String)
+            Dim src1 = oldKeyword & " C : End " & oldKeyword
+            Dim src2 = newKeyword & " C : End " & newKeyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeKindUpdate, newKeyword & " C"))
+        End Sub
+
+        <Theory>
+        <InlineData("Public")>
+        Public Sub Type_Modifiers_Accessibility_Change(accessibility As String)
+
+            Dim src1 = accessibility + " Class C : End Class"
+            Dim src2 = "Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [" + accessibility + " Class C]@0 -> [Class C]@0")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", FeaturesResources.class_))
+        End Sub
+
+        <Theory>
+        <InlineData("Public", "Public")>
+        <InlineData("Friend", "Friend")>
+        <InlineData("", "Friend")>
+        <InlineData("Friend", "")>
+        <InlineData("Protected", "Protected")>
+        <InlineData("Private", "Private")>
+        <InlineData("Private Protected", "Private Protected")>
+        <InlineData("Friend Protected", "Friend Protected")>
+        Public Sub Type_Modifiers_Accessibility_Partial(accessibilityA As String, accessibilityB As String)
+
+            Dim srcA1 = accessibilityA + " Partial Class C : End Class"
+            Dim srcB1 = "Partial Class C : End Class"
+            Dim srcA2 = "Partial Class C : End Class"
+            Dim srcB2 = accessibilityB + " Partial Class C : End Class"
+
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        <InlineData("Interface")>
+        Public Sub Type_Modifiers_Friend_Remove(keyword As String)
+            Dim src1 = "Friend " & keyword & " C : End " & keyword
+            Dim src2 = keyword & " C : End " & keyword
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics()
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Module")>
+        <InlineData("Interface")>
+        Public Sub Type_Modifiers_Friend_Add(keyword As String)
+            Dim src1 = keyword & " C : End " & keyword
+            Dim src2 = "Friend " & keyword & " C : End " & keyword
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics()
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_Modifiers_NestedPrivateInInterface_Remove(keyword As String)
+            Dim src1 = "Interface C : Private " & keyword & " S : End " & keyword & " : End Interface"
+            Dim src2 = "Interface C : " & keyword & " S : End " & keyword & " : End Interface"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAccessibility, keyword + " S", GetResource(keyword)))
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_Modifiers_NestedPublicInClass_Add(keyword As String)
+            Dim src1 = "Class C : " & keyword & " S : End " & keyword & " : End Class"
+            Dim src2 = "Class C : Public " & keyword & " S : End " & keyword & " : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics()
+        End Sub
+
+        <Theory>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_Modifiers_NestedPublicInInterface_Add(keyword As String)
+            Dim src1 = "Interface I : " + keyword + " S : End " & keyword & " : End Interface"
+            Dim src2 = "Interface I : Public " + keyword + " S : End " & keyword & " : End Interface"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Public Sub Type_Attribute_Update_NotSupportedByRuntime1()
+            Dim attribute = "Public Class A1Attribute : Inherits System.Attribute : End Class" & vbCrLf &
+                            "Public Class A2Attribute : Inherits System.Attribute : End Class" & vbCrLf
+
+            Dim src1 = attribute & "<A1>Class C : End Class"
+            Dim src2 = attribute & "<A2>Class C : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(
+                "Update [<A1>Class C]@132 -> [<A2>Class C]@132")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Class C", FeaturesResources.class_))
+        End Sub
+
+        <Theory>
+        <InlineData("Module")>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_Attribute_Update_NotSupportedByRuntime(keyword As String)
+            Dim src1 = "<System.Obsolete(""1"")>" & keyword & " C : End " & keyword
+            Dim src2 = "<System.Obsolete(""2"")>" & keyword & " C : End " & keyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [<System.Obsolete(""1"")>" & keyword & " C]@0 -> [<System.Obsolete(""2"")>" & keyword & " C]@0")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, keyword & " C", GetResource(keyword)))
+        End Sub
+
+        <Theory>
+        <InlineData("Module")>
+        <InlineData("Class")>
+        <InlineData("Structure")>
+        <InlineData("Interface")>
+        Public Sub Type_PartialModifier_Add(keyword As String)
+            Dim src1 = keyword & " C : End " & keyword
+            Dim src2 = "Partial " & keyword & " C : End " & keyword
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [" & keyword & " C]@0 -> [Partial " & keyword & " C]@0")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Module_PartialModifier_Remove()
+            Dim src1 = "Partial Module C : End Module"
+            Dim src2 = "Module C : End Module"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Partial Module C]@0 -> [Module C]@0")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
         <Fact>
         Public Sub ClassInsert()
             Dim src1 = ""
@@ -521,108 +672,6 @@ Option Strict Off
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "C")))
-        End Sub
-
-        <Fact>
-        Public Sub TypeKindChange1()
-            Dim src1 = "Class C : End Class"
-            Dim src2 = "Structure C : End Structure"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Class C : End Class]@0 -> [Structure C : End Structure]@0",
-                "Update [Class C]@0 -> [Structure C]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeKindUpdate, "Structure C", VBFeaturesResources.structure_))
-        End Sub
-
-        <Fact>
-        Public Sub TypeKindChange2()
-            Dim src1 = "Public Module C : End Module"
-            Dim src2 = "Public Class C : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Public Module C : End Module]@0 -> [Public Class C : End Class]@0",
-                "Update [Public Module C]@0 -> [Public Class C]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeKindUpdate, "Public Class C", FeaturesResources.class_))
-        End Sub
-
-        <Fact>
-        Public Sub ModuleModifiersUpdate()
-            Dim src1 = "Module C : End Module"
-            Dim src2 = "Partial Module C : End Module"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Module C]@0 -> [Partial Module C]@0")
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub ModuleModifiersUpdate2()
-            Dim src1 = "Partial Module C : End Module"
-            Dim src2 = "Module C : End Module"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Partial Module C]@0 -> [Module C]@0")
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub InterfaceModifiersUpdate()
-            Dim src1 = "Public Interface C : End Interface"
-            Dim src2 = "Interface C : End Interface"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Public Interface C]@0 -> [Interface C]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", FeaturesResources.interface_))
-        End Sub
-
-        <Fact>
-        Public Sub InterfaceModifiersUpdate2()
-            Dim src1 = "Public Interface C : Sub Goo() : End Interface"
-            Dim src2 = "Interface C : Sub Goo() : End Interface"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Public Interface C]@0 -> [Interface C]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Interface C", FeaturesResources.interface_))
-        End Sub
-
-        <Fact>
-        Public Sub InterfaceModifiersUpdate3()
-            Dim src1 = "Interface C : Sub Goo() : End Interface"
-            Dim src2 = "Partial Interface C : Sub Goo() : End Interface"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Interface C]@0 -> [Partial Interface C]@0")
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub StructModifiersUpdate()
-            Dim src1 = "Structure C : End Structure"
-            Dim src2 = "Public Structure C : End Structure"
-
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyEdits("Update [Structure C]@0 -> [Public Structure C]@0")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Structure C", VBFeaturesResources.structure_))
         End Sub
 
         <Fact>
@@ -852,7 +901,11 @@ End Interface
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(),
-                    DocumentResults()
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("I.VirtualMethod")),
+                        SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("I.VirtualFunction"))
+                    })
                 })
         End Sub
 
@@ -919,10 +972,10 @@ End Class"
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E1(sender As Object, e As EventArgs)", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E2", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "Event E3", FeaturesResources.event_),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
-                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F1", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F2", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F3 As Integer", FeaturesResources.field),
+                Diagnostic(RudeEditKind.InsertIntoGenericType, "F4 As New Object", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F5(1, 2)", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "F6?", FeaturesResources.field),
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "WE As Object", VBFeaturesResources.WithEvents_field))
@@ -1082,7 +1135,8 @@ Delegate Sub D()
                         {
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F")),
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("M").GetMember("F")),
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember("F"))
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember("F")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("I").GetMember("F"))
                         })
                 })
         End Sub
@@ -1157,9 +1211,11 @@ End Interface
                     DocumentResults(
                         semanticEdits:=
                         {
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("AbstractMethod")),
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("VirtualMethod")),
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("ToString")),
-                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("IG"))
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("IG")),
+                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("I").GetMember("G"))
                         })
                 })
         End Sub
@@ -1220,7 +1276,7 @@ End Class
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)
                         })
                 })
-        End sub
+        End Sub
 
         <Fact>
         Public Sub Type_DeleteInsert_DataMembers_PartialMerge()
@@ -1257,7 +1313,7 @@ End Class
                         }),
                     DocumentResults()
                 })
-        End sub
+        End Sub
 #End Region
 
 #Region "Enums"
@@ -1293,7 +1349,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Enum_Modifiers_Update()
+        Public Sub Enum_Accessibility_Change()
             Dim src1 = "Public Enum Color : Red = 1 : Blue = 2 : End Enum"
             Dim src2 = "Enum Color : Red = 1 : Blue = 2 : End Enum"
             Dim edits = GetTopEdits(src1, src2)
@@ -1302,7 +1358,19 @@ End Class
                 "Update [Public Enum Color]@0 -> [Enum Color]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Enum Color", FeaturesResources.enum_))
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Enum Color", FeaturesResources.enum_))
+        End Sub
+
+        <Fact>
+        Public Sub Enum_Accessibility_NoChange()
+            Dim src1 = "Friend Enum Color : Red = 1 : Blue = 2 : End Enum"
+            Dim src2 = "Enum Color : Red = 1 : Blue = 2 : End Enum"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Friend Enum Color]@0 -> [Enum Color]@0")
+
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -1347,53 +1415,56 @@ End Class
         <Fact>
         Public Sub Enum_Attribute_Insert()
             Dim src1 = "Enum E : End Enum"
-            Dim src2 = "<A>Enum E : End Enum"
+            Dim src2 = "<System.Obsolete>Enum E : End Enum"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@0", "Insert [A]@1")
+                "Update [Enum E]@0 -> [<System.Obsolete>Enum E]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Enum E", FeaturesResources.enum_))
         End Sub
 
         <Fact>
         Public Sub Enum_MemberAttribute_Delete()
-            Dim src1 = "Enum E : <A>X : End Enum"
+            Dim src1 = "Enum E : <System.Obsolete>X : End Enum"
             Dim src2 = "Enum E : X : End Enum"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<A>]@9", "Delete [A]@10")
+                "Update [<System.Obsolete>X]@9 -> [X]@9")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "X", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
         Public Sub Enum_MemberAttribute_Insert()
             Dim src1 = "Enum E : X : End Enum"
-            Dim src2 = "Enum E : <A>X : End Enum"
+            Dim src2 = "Enum E : <System.Obsolete>X : End Enum"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@9", "Insert [A]@10")
+                "Update [X]@9 -> [<System.Obsolete>X]@9")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "<System.Obsolete>X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
         Public Sub Enum_MemberAttribute_Update()
-            Dim src1 = "Enum E : <A1>X : End Enum"
-            Dim src2 = "Enum E : <A2>X : End Enum"
+            Dim attribute = "Public Class A1Attribute : Inherits System.Attribute : End Class" & vbCrLf &
+                            "Public Class A2Attribute : Inherits System.Attribute : End Class" & vbCrLf
+
+            Dim src1 = attribute & "Enum E : <A1>X : End Enum"
+            Dim src2 = attribute & "Enum E : <A2>X : End Enum"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A1]@10 -> [A2]@10")
+                "Update [<A1>X]@141 -> [<A2>X]@141")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A2", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "<A2>X", FeaturesResources.enum_value))
         End Sub
 
         <Fact>
@@ -1558,7 +1629,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Delegates_Update_Modifiers()
+        Public Sub Delegates_Accessibility_Update()
             Dim src1 = "Public Delegate Sub D()"
             Dim src2 = "Private Delegate Sub D()"
             Dim edits = GetTopEdits(src1, src2)
@@ -1567,7 +1638,7 @@ End Class
                 "Update [Public Delegate Sub D()]@0 -> [Private Delegate Sub D()]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Delegate Sub D()", FeaturesResources.delegate_))
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Private Delegate Sub D()", FeaturesResources.delegate_))
         End Sub
 
         <Fact>
@@ -1696,15 +1767,14 @@ End Class
         <Fact>
         Public Sub Delegates_Parameter_AddAttribute()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
-            Dim src2 = "Public Delegate Function D(<A> a As Integer) As Integer"
+            Dim src2 = "Public Delegate Function D(<System.Obsolete> a As Integer) As Integer"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@27",
-                "Insert [A]@28")
+                "Update [a As Integer]@27 -> [<System.Obsolete> a As Integer]@27")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Delegate Function D(<System.Obsolete> a As Integer)", FeaturesResources.delegate_))
         End Sub
 
         <Fact>
@@ -1790,15 +1860,14 @@ End Class
         <Fact>
         Public Sub Delegates_AddAttribute()
             Dim src1 = "Public Delegate Function D(a As Integer) As Integer"
-            Dim src2 = "<A>Public Delegate Function D(a As Integer) As Integer"
+            Dim src2 = "<System.Obsolete>Public Delegate Function D(a As Integer) As Integer"
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Insert [<A>]@0",
-                "Insert [A]@1")
+                "Update [Public Delegate Function D(a As Integer) As Integer]@0 -> [<System.Obsolete>Public Delegate Function D(a As Integer) As Integer]@0")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Delegate Function D(a As Integer)", FeaturesResources.delegate_))
         End Sub
 
 #End Region
@@ -2133,7 +2202,7 @@ End Class
         ''' A new generic type can be added whether it's nested and inherits generic parameters from the containing type, or top-level.
         ''' </summary>
         <Fact>
-        public Sub NestedClassGeneric_Insert()
+        Public Sub NestedClassGeneric_Insert()
             Dim src1 = "
 Imports System
 Class C(Of T)
@@ -2245,7 +2314,7 @@ End Structure
         End Sub
 
         <Fact>
-        public sub NestedDelegateInPartialType_InsertDelete()
+        Public Sub NestedDelegateInPartialType_InsertDelete()
             Dim srcA1 = "Partial Structure S : End Structure"
             Dim srcB1 = "Partial Structure S : Delegate Sub D()" + vbCrLf + "End Structure"
             Dim srcA2 = "Partial Structure S : Delegate Sub D()" + vbCrLf + "End Structure"
@@ -2948,6 +3017,98 @@ End Class"
 #End Region
 
 #Region "Methods"
+        <Theory>
+        <InlineData("Shared")>
+        <InlineData("Overridable")>
+        <InlineData("Overrides")>
+        <InlineData("NotOverridable Overrides", "Overrides")>
+        Public Sub Method_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
+            If oldModifiers <> "" Then
+                oldModifiers &= " "
+            End If
+
+            If newModifiers <> "" Then
+                newModifiers &= " "
+            End If
+
+            Dim src1 = "Class C" & vbCrLf & oldModifiers & "Sub F() : End Sub : End Class"
+            Dim src2 = "Class C" & vbCrLf & newModifiers & "Sub F() : End Sub : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [" & oldModifiers & "Sub F() : End Sub]@9 -> [" & newModifiers & "Sub F() : End Sub]@9",
+                "Update [" & oldModifiers & "Sub F()]@9 -> [" & newModifiers & "Sub F()]@9")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "Sub F()", FeaturesResources.method))
+        End Sub
+
+        <Fact>
+        Public Sub Method_MustOverrideModifier_Update()
+            Dim src1 = "Class C" & vbCrLf & "MustOverride Sub F() : End Class"
+            Dim src2 = "Class C" & vbCrLf & "Sub F() : End Sub : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Sub F()", FeaturesResources.method))
+        End Sub
+
+        <Theory>
+        <InlineData("Shadows")>
+        <InlineData("Overloads")>
+        Public Sub Method_Modifiers_Update_NoImpact(oldModifiers As String, Optional newModifiers As String = "")
+            If oldModifiers <> "" Then
+                oldModifiers &= " "
+            End If
+
+            If newModifiers <> "" Then
+                newModifiers &= " "
+            End If
+
+            Dim src1 = "Class C " & vbLf & oldModifiers & "Sub F() : End Sub : End Class"
+            Dim src2 = "Class C " & vbLf & newModifiers & "Sub F() : End Sub : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [" & oldModifiers & "Sub F() : End Sub]@9 -> [" & newModifiers & "Sub F() : End Sub]@9",
+                "Update [" & oldModifiers & "Sub F()]@9 -> [" & newModifiers & "Sub F()]@9")
+
+            ' Currently, an edit is produced eventhough there is no metadata/IL change. Consider improving.
+            edits.VerifySemantics(
+                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F"))})
+        End Sub
+
+        <Fact>
+        Public Sub Method_AsyncModifier_Add()
+            Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Function F() As Task(Of String) : End Function]@11 -> [Async Function F() As Task(Of String) : End Function]@11",
+                "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Method_AsyncModifier_Remove()
+            Dim src1 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [Async Function F() As Task(Of String) : End Function]@11 -> [Function F() As Task(Of String) : End Function]@11",
+                "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function F()", FeaturesResources.method))
+        End Sub
 
         <Fact>
         Public Sub MethodUpdate1()
@@ -3076,8 +3237,6 @@ End Class"
             edits.VerifyEdits(
                 "Delete [<Obsolete> Sub goo(a As Integer) : End Sub]@11",
                 "Delete [<Obsolete> Sub goo(a As Integer)]@11",
-                "Delete [<Obsolete>]@11",
-                "Delete [Obsolete]@12",
                 "Delete [(a As Integer)]@29",
                 "Delete [a As Integer]@30",
                 "Delete [a]@30",
@@ -3145,9 +3304,7 @@ End Class"
 
             edits.VerifyEdits(
                 "Insert [<System.Obsolete>Private Sub F : End Sub]@11",
-                "Insert [<System.Obsolete>Private Sub F]@11",
-                "Insert [<System.Obsolete>]@11",
-                "Insert [System.Obsolete]@12")
+                "Insert [<System.Obsolete>Private Sub F]@11")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
                                   {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))})
@@ -3300,35 +3457,6 @@ Imports System.Runtime.InteropServices
         End Sub
 
         <Fact>
-        Public Sub MethodUpdate_AsyncModifier1()
-            Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
-            Dim src2 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
-
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Function F() As Task(Of String) : End Function]@11 -> [Async Function F() As Task(Of String) : End Function]@11",
-                "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
-
-            edits.VerifyRudeDiagnostics()
-        End Sub
-
-        <Fact>
-        Public Sub MethodUpdate_AsyncModifier2()
-            Dim src1 = "Class C : " & vbLf & "Async Function F() As Task(Of String) : End Function : End Class"
-            Dim src2 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
-
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Update [Async Function F() As Task(Of String) : End Function]@11 -> [Function F() As Task(Of String) : End Function]@11",
-                "Update [Async Function F() As Task(Of String)]@11 -> [Function F() As Task(Of String)]@11")
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function F()", FeaturesResources.method))
-        End Sub
-
-        <Fact>
         Public Sub MethodUpdate_IteratorModifier1()
             Dim src1 = "Class C : " & vbLf & "Function F() As Task(Of String) : End Function : End Class"
             Dim src2 = "Class C : " & vbLf & "Iterator Function F() As Task(Of String) : End Function : End Class"
@@ -3476,113 +3604,105 @@ End Class
         <Fact>
         Public Sub MethodUpdate_AddAttribute()
             Dim src1 = "Class C : " & vbLf & "Sub F() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<System.Obsolete>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@11",
-                "Insert [A]@12")
+                "Update [Sub F()]@11 -> [<System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_AddAttribute2()
             Dim src1 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A, B>Sub F() : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<A, System.Obsolete>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@11 -> [<A, B>]@11",
-                "Insert [B]@15")
+                "Update [<A>Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_AddAttribute3()
             Dim src1 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A><B>Sub F() : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<A><System.Obsolete>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<B>]@14",
-                "Insert [B]@15")
+                "Update [<A>Sub F()]@11 -> [<A><System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<B>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_AddAttribute4()
             Dim src1 = "Class C : " & vbLf & "Sub F() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A, B>Sub F() : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<A, System.Obsolete>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A, B>]@11",
-                "Insert [A]@12",
-                "Insert [B]@15")
+                "Update [Sub F()]@11 -> [<A, System.Obsolete>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A, B>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_UpdateAttribute()
-            Dim src1 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "<A(1)>Sub F() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "<System.Obsolete>Sub F() : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "<System.Obsolete(1)>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A]@12 -> [A(1)]@12")
+                "Update [<System.Obsolete>Sub F()]@11 -> [<System.Obsolete(1)>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(1)", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_DeleteAttribute()
-            Dim src1 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "<System.Obsolete>Sub F() : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<A>]@11",
-                "Delete [A]@12")
+                "Update [<System.Obsolete>Sub F()]@11 -> [Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_DeleteAttribute2()
-            Dim src1 = "Class C : " & vbLf & "<A, B>Sub F() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "<A, System.Obsolete>Sub F() : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A, B>]@11 -> [<A>]@11",
-                "Delete [B]@15")
+                "Update [<A, System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_DeleteAttribute3()
-            Dim src1 = "Class C : " & vbLf & "<A><B>Sub F() : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "<A><System.Obsolete>Sub F() : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "<A>Sub F() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<B>]@14",
-                "Delete [B]@15")
+                "Update [<A><System.Obsolete>Sub F()]@11 -> [<A>Sub F()]@11")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Sub F()", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Sub F()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -3934,19 +4054,14 @@ End Class
             Dim srcA2 = "Partial Class C" + vbCrLf + "Private Sub F() : End Sub : End Class"
             Dim srcB2 = "Partial Class C" + vbCrLf + "Partial Private Sub F() : End Sub : End Class"
 
-            ' TODO: current
-            GetTopEdits(srcA1, srcA2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ModifiersUpdate, "Private Sub F()", FeaturesResources.method))
-            GetTopEdits(srcB1, srcB2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ModifiersUpdate, "Partial Private Sub F()", FeaturesResources.method))
-
-            ' TODO: correct 
-            ' EditAndContinueValidation.VerifySemantics(
-            '      { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
-            '     
-            '     {
-            '         DocumentResults(),
-            '         DocumentResults(
-            '             semanticEdits:= { SemanticEdit(SemanticEditKind.Update, c => c.GetMember(Of NamedTypeSymbol)("C").GetMember("F")) }),
-            '     });
+            ' TODO: should be an update edit since the location of the implementation changed
+            ' semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("F"))}
+            EditAndContinueValidation.VerifySemantics(
+                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {
+                    DocumentResults(),
+                    DocumentResults()
+                })
         End Sub
 
         <Fact>
@@ -4025,6 +4140,21 @@ End Class
 #End Region
 
 #Region "Operators"
+
+        <Theory>
+        <InlineData("Narrowing", "Widening")>
+        <InlineData("Widening", "Narrowing")>
+        Public Sub Operator_Modifiers_Update(oldModifiers As String, newModifiers As String)
+            Dim src1 = "Class C" & vbCrLf & "Public Shared " & oldModifiers & " Operator CType(d As C) As Integer : End Operator : End Class"
+            Dim src2 = "Class C" & vbCrLf & "Public Shared " & newModifiers & " Operator CType(d As C) As Integer : End Operator : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits("Update [Public Shared " + oldModifiers + " Operator CType(d As C) As Integer]@9 -> [Public Shared " + newModifiers + " Operator CType(d As C) As Integer]@9")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Shared " & newModifiers & " Operator CType(d As C)", FeaturesResources.operator_))
+        End Sub
 
         <Fact>
         Public Sub OperatorInsert()
@@ -4290,7 +4420,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -4402,7 +4532,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingVisibility, visibility & " Sub New()", FeaturesResources.constructor))
+                Diagnostic(RudeEditKind.ChangingAccessibility, visibility & " Sub New()", FeaturesResources.constructor))
         End Sub
 
         <Fact>
@@ -4526,7 +4656,7 @@ End Class
                 {
                     DocumentResults(),
                     DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", FeaturesResources.constructor)})
+                        diagnostics:={Diagnostic(RudeEditKind.ChangingAccessibility, "Public Sub New()", FeaturesResources.constructor)})
                 })
         End Sub
 
@@ -4647,7 +4777,7 @@ End Class
         <InlineData("")>
         <InlineData("Friend")>
         <InlineData("Public")>
-        Public Sub InstanceCtor_Partial_VisibilityUpdate(visibility As String)
+        Public Sub InstanceCtor_Partial_AccessibilityUpdate(visibility As String)
             If visibility.Length > 0 Then
                 visibility &= " "
             End If
@@ -4663,7 +4793,7 @@ End Class
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.ModifiersUpdate, visibility & "Sub New()", FeaturesResources.constructor)}),
+                        diagnostics:={Diagnostic(RudeEditKind.ChangingAccessibility, visibility & "Sub New()", FeaturesResources.constructor)}),
                     DocumentResults()
                 })
         End Sub
@@ -4936,7 +5066,7 @@ End Class
         End Sub
 
         <Fact>
-        public sub PartialTypes_ConstructorWithInitializerUpdates()
+        Public Sub PartialTypes_ConstructorWithInitializerUpdates()
             Dim srcA1 = "
 Imports System
 
@@ -4954,7 +5084,7 @@ End Class
 Imports System
 
 Partial Class C
-    Dim <N:0.0>a = 1</N:0.0>
+    Dim a <N:0.0>= 1</N:0.0>
 
     Sub New(arg As UInteger)
         Console.WriteLine(2)
@@ -4979,7 +5109,7 @@ End Class
 Imports System
 
 Partial Class C
-    Dim <N:0.0>a = 2</N:0.0>    ' updated field initializer
+    Dim a <N:0.0>= 2</N:0.0>    ' updated field initializer
 
     Sub New(arg As UInteger)
         Console.WriteLine(2)
@@ -5099,7 +5229,7 @@ End Class
         End Sub
 
         <Fact>
-        public sub PartialDeclaration_Delete()
+        Public Sub PartialDeclaration_Delete()
             Dim srcA1 = "
 Partial Class C
     Sub New()
@@ -5309,12 +5439,35 @@ End Class
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(),
-                    DocumentResults()
+                    DocumentResults(semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("M.ExternSub"))})
                 })
         End Sub
 #End Region
 
 #Region "Fields"
+        <Theory>
+        <InlineData("Shared")>
+        <InlineData("Const")>
+        Public Sub Field_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
+            If oldModifiers <> "" Then
+                oldModifiers &= " "
+            End If
+
+            If newModifiers <> "" Then
+                newModifiers &= " "
+            End If
+
+            Dim src1 = "Class C : " & oldModifiers & "Dim F As Integer = 0 : End Class"
+            Dim src2 = "Class C : " & newModifiers & "Dim F As Integer = 0 : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits("Update [" & oldModifiers & "Dim F As Integer = 0]@10 -> [" & newModifiers & "Dim F As Integer = 0]@10")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "F As Integer = 0", FeaturesResources.field))
+        End Sub
+
         <Fact>
         Public Sub FieldUpdate_Rename1()
             Dim src1 = "Class C : Dim a As Integer = 0 : End Class"
@@ -5624,7 +5777,7 @@ End Class
                 "Update [Dim a As WE]@10 -> [WithEvents a As WE]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "WithEvents a As WE", VBFeaturesResources.WithEvents_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a As WE", VBFeaturesResources.WithEvents_field))
         End Sub
 
         <Fact>
@@ -5637,7 +5790,7 @@ End Class
                 "Update [WithEvents a As WE]@10 -> [Dim a As WE]@10")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim a As WE", FeaturesResources.field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "a As WE", FeaturesResources.field))
         End Sub
 
         <Fact>
@@ -6111,6 +6264,42 @@ End Class
 #End Region
 
 #Region "Properties"
+        <Theory>
+        <InlineData("Shared")>
+        <InlineData("Overridable")>
+        <InlineData("Overrides")>
+        <InlineData("NotOverridable Overrides", "Overrides")>
+        Public Sub Property_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
+            If oldModifiers <> "" Then
+                oldModifiers &= " "
+            End If
+
+            If newModifiers <> "" Then
+                newModifiers &= " "
+            End If
+
+            Dim src1 = "Class C" & vbLf & oldModifiers & "ReadOnly Property F As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
+            Dim src2 = "Class C" & vbLf & newModifiers & "ReadOnly Property F As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits("Update [" & oldModifiers & "ReadOnly Property F As Integer]@8 -> [" & newModifiers & "ReadOnly Property F As Integer]@8")
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "ReadOnly Property F", FeaturesResources.property_))
+        End Sub
+
+        <Fact>
+        Public Sub Property_MustOverrideModifier_Update()
+            Dim src1 = "Class C" & vbLf & "ReadOnly MustOverride Property F As Integer" & vbLf & "End Class"
+            Dim src2 = "Class C" & vbLf & "ReadOnly Property F As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, "ReadOnly Property F", FeaturesResources.property_))
+        End Sub
+
         <Fact>
         Public Sub PropertyReorder1()
             Dim src1 = "Class C : ReadOnly Property P" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : " &
@@ -6771,7 +6960,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -6781,7 +6970,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingVisibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
+                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
         End Sub
 
         <Fact>
@@ -7554,7 +7743,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim x = 0", FeaturesResources.field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "x = 0", FeaturesResources.field))
         End Sub
 
         <Fact>
@@ -7564,7 +7753,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Const x = 0", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "x = 0", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -8308,6 +8497,47 @@ End Class
 
 #Region "Events"
 
+        <Theory>
+        <InlineData("Shared")>
+        Public Sub Event_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
+            If oldModifiers <> "" Then
+                oldModifiers &= " "
+            End If
+
+            If newModifiers <> "" Then
+                newModifiers &= " "
+            End If
+
+            Dim src1 = "
+Class C
+   " & oldModifiers & " Custom Event E As Action
+    AddHandler(value As Action)
+    End AddHandler
+    RemoveHandler(value As Action)
+    End RemoveHandler
+    RaiseEvent()
+    End RaiseEvent
+  End Event
+End Class"
+
+            Dim src2 = "
+Class C
+   " & newModifiers & " Custom Event E As Action
+    AddHandler(value As Action)
+    End AddHandler
+    RemoveHandler(value As Action)
+    End RemoveHandler
+    RaiseEvent()
+    End RaiseEvent
+  End Event
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "Event E", FeaturesResources.event_))
+        End Sub
+
         <Fact>
         Public Sub EventAccessorReorder1()
             Dim src1 = "Class C : " &
@@ -8784,81 +9014,82 @@ End Class
         <Fact>
         Public Sub ParameterAttributeInsert1()
             Dim src1 = "Class C : " & vbLf & "Public Sub M(a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(<A>a As Integer) : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(<System.Obsolete>a As Integer) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@24",
-                "Insert [A]@25")
+                "Update [a As Integer]@24 -> [<System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
         Public Sub ParameterAttributeInsert2()
             Dim src1 = "Class C : " & vbLf & "Public Sub M(<A>a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(<A, B>a As Integer) : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(<A, System.Obsolete>a As Integer) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [<A>]@24 -> [<A, B>]@24",
-                "Insert [B]@28")
+                "Update [<A>a As Integer]@24 -> [<A, System.Obsolete>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
         Public Sub ParameterAttributeDelete()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M(<A>a As Integer) : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Sub M(<System.Obsolete>a As Integer) : End Sub : End Class"
             Dim src2 = "Class C : " & vbLf & "Public Sub M(a As Integer) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<A>]@24",
-                "Delete [A]@25")
+                "Update [<System.Obsolete>a As Integer]@24 -> [a As Integer]@24")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "a As Integer", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
         Public Sub ParameterAttributeUpdate()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M(<A(1), C>a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(<A(2), B>a As Integer) : End Sub : End Class"
+            Dim attribute = "Public Class AAttribute : Inherits System.Attribute : End Class" & vbCrLf &
+                            "Public Class BAttribute : Inherits System.Attribute : End Class" & vbCrLf
+
+            Dim src1 = attribute & "Class C : " & vbLf & "Public Sub M(<System.Obsolete(""1""), B>a As Integer) : End Sub : End Class"
+            Dim src2 = attribute & "Class C : " & vbLf & "Public Sub M(<System.Obsolete(""2""), A>a As Integer) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A(1)]@25 -> [A(2)]@25",
-                "Update [C]@31 -> [B]@31")
+                "Update [<System.Obsolete(""1""), B>a As Integer]@154 -> [<System.Obsolete(""2""), A>a As Integer]@154")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "A(2)", FeaturesResources.attribute),
-                Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "a As Integer", FeaturesResources.parameter))
         End Sub
 
         <Fact>
         Public Sub ReturnValueAttributeUpdate()
-            Dim src1 = "Class C : " & vbLf & "Public Function M() As <A>Integer" & vbLf & "Return 0 : End Function : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Function M() As <B>Integer" & vbLf & "Return 0 : End Function : End Class"
+            Dim attribute = "Public Class AAttribute : Inherits System.Attribute : End Class" & vbCrLf &
+                                "Public Class BAttribute : Inherits System.Attribute : End Class" & vbCrLf
+
+            Dim src1 = attribute + "Class C : " & vbLf & "Public Function M() As <A>Integer" & vbLf & "Return 0 : End Function : End Class"
+            Dim src2 = attribute + "Class C : " & vbLf & "Public Function M() As <B>Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [A]@35 -> [B]@35")
+                    "Update [As <A>Integer]@161 -> [As <B>Integer]@161")
 
             edits.VerifyRudeDiagnostics(
-               Diagnostic(RudeEditKind.Update, "B", FeaturesResources.attribute))
+                   Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub ParameterAttributeReorder()
-            Dim src1 = "Class C : " & vbLf & "Public Sub M(<A(1), A(2)>a As Integer) : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Sub M(<A(2), A(1)>a As Integer) : End Sub : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Sub M(<System.Obsolete(""1""), System.Obsolete(""2"")>a As Integer) : End Sub : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Sub M(<System.Obsolete(""2""), System.Obsolete(""1"")>a As Integer) : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Reorder [A(2)]@31 -> @25")
+                "Update [<System.Obsolete(""1""), System.Obsolete(""2"")>a As Integer]@24 -> [<System.Obsolete(""2""), System.Obsolete(""1"")>a As Integer]@24")
 
             edits.VerifyRudeDiagnostics()
         End Sub
@@ -8866,29 +9097,27 @@ End Class
         <Fact>
         Public Sub FunctionAsClauseAttributeInsert()
             Dim src1 = "Class C : " & vbLf & "Public Function M() As Integer" & vbLf & "Return 0 : End Function : End Class"
-            Dim src2 = "Class C : " & vbLf & "Public Function M() As <A>Integer" & vbLf & "Return 0 : End Function : End Class"
+            Dim src2 = "Class C : " & vbLf & "Public Function M() As <System.Obsolete>Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [<A>]@34",
-                "Insert [A]@35")
+                "Update [As Integer]@31 -> [As <System.Obsolete>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "<A>", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
         Public Sub FunctionAsClauseAttributeDelete()
-            Dim src1 = "Class C : " & vbLf & "Public Function M() As <A>Integer" & vbLf & "Return 0 : End Function : End Class"
+            Dim src1 = "Class C : " & vbLf & "Public Function M() As <System.Obsolete>Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim src2 = "Class C : " & vbLf & "Public Function M() As Integer" & vbLf & "Return 0 : End Function : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [<A>]@34",
-                "Delete [A]@35")
+                "Update [As <System.Obsolete>Integer]@31 -> [As Integer]@31")
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Function M()", VBFeaturesResources.attributes))
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "Public Function M()", FeaturesResources.method))
         End Sub
 
         <Fact>
@@ -8898,9 +9127,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Delete [As <A>Integer]@31",
-                "Delete [<A>]@34",
-                "Delete [A]@35")
+                "Delete [As <A>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "Public Function M()", VBFeaturesResources.as_clause))
@@ -8913,9 +9140,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Insert [As <A>Integer]@31",
-                "Insert [<A>]@34",
-                "Insert [A]@35")
+                "Insert [As <A>Integer]@31")
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "As <A>Integer", VBFeaturesResources.as_clause))

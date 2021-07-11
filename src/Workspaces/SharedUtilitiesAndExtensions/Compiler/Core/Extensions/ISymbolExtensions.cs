@@ -137,7 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var methodSymbol = (IMethodSymbol)symbol;
                     if (methodSymbol.MethodKind == MethodKind.Ordinary ||
                         methodSymbol.MethodKind == MethodKind.PropertyGet ||
-                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                        methodSymbol.MethodKind == MethodKind.PropertySet ||
+                        methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
+                        methodSymbol.MethodKind == MethodKind.Conversion)
                     {
                         return true;
                     }
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (!(symbol is IMethodSymbol method))
+            if (symbol is not IMethodSymbol method)
             {
                 return false;
             }

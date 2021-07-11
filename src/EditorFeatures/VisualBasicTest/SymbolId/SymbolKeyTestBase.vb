@@ -118,6 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                     Exit For
                 End Try
             Next
+
             Return list
         End Function
 
@@ -206,6 +207,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                         For Each parameter In method.Parameters
                             list.Add(parameter)
                         Next
+
                         If localDumper IsNot Nothing Then
                             localDumper.GetLocalSymbols(method, list)
                         End If

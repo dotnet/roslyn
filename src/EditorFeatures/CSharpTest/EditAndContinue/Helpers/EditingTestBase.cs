@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
@@ -31,6 +34,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             Iterator,
             ConstructorWithParameters
         }
+
+        public static string GetResource(string keyword)
+            => keyword switch
+            {
+                "class" => FeaturesResources.class_,
+                "struct" => CSharpFeaturesResources.struct_,
+                "interface" => FeaturesResources.interface_,
+                "record" => CSharpFeaturesResources.record_,
+                "record struct" => CSharpFeaturesResources.record_struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(keyword)
+            };
 
         internal static SemanticEditDescription[] NoSemanticEdits = Array.Empty<SemanticEditDescription>();
 
@@ -52,8 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             RudeEditDiagnosticDescription[]? diagnostics = null)
             => new(activeStatements, semanticEdits, diagnostics);
 
-        private static SyntaxTree ParseSource(string source)
-            => new CSharpEditAndContinueTestHelpers().ParseText(ActiveStatementsDescription.ClearTags(source));
+        private static SyntaxTree ParseSource(string markedSource)
+            => SyntaxFactory.ParseSyntaxTree(
+                ActiveStatementsDescription.ClearTags(markedSource),
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+                path: "test.cs");
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
@@ -149,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                  _ => "class C { void F() { " + bodySource + " } }",
              };
 
-        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource)
-            => new(oldSource, newSource);
+        internal static ActiveStatementsDescription GetActiveStatements(string oldSource, string newSource, ActiveStatementFlags[] flags = null, string path = "0")
+            => new(oldSource, newSource, source => SyntaxFactory.ParseSyntaxTree(source, path: path), flags);
 
         internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
             => new(oldSource, newSource);

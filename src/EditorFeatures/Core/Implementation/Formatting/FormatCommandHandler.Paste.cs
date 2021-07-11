@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.FormatOnPaste) ||
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FormattingOptions2.FormatOnPaste) ||
                 !caretPosition.HasValue)
             {
                 return;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetLanguageService<IFormattingInteractionService>();
             if (formattingService == null || !formattingService.SupportsFormatOnPaste)
             {
                 return;
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
             var changes = formattingService.GetFormattingChangesOnPasteAsync(
                 document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
+            if (changes.IsEmpty)
             {
                 return;
             }

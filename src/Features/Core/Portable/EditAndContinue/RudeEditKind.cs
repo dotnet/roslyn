@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ExperimentalFeaturesEnabled = 45,
 
         AwaitStatementUpdate = 46,
-        ChangingVisibility = 47,
+        ChangingAccessibility = 47,
 
         CapturingVariable = 48,
         NotCapturingVariable = 49,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         InsertMethodWithExplicitInterfaceSpecifier = 81,
         InsertIntoInterface = 82,
         InsertLocalFunctionIntoInterfaceMethod = 83,
-        SwitchExpressionUpdate = 84,
+        //SwitchExpressionUpdate = 84,
         ChangingFromAsynchronousToSynchronous = 85,
         ChangingStateMachineShape = 86,
 
@@ -127,6 +127,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         NotSupportedByRuntime = 97,
         MakeMethodAsync = 98,
         MakeMethodIterator = 99,
-        InsertNotSupportedByRuntime = 100
+        InsertNotSupportedByRuntime = 100,
+        ChangingAttributesNotSupportedByRuntime = 101,
+
+        ChangeImplicitMainReturnType = 102
     }
 }

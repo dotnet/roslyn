@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.DeleteRecordPositionalParameter,
                 RudeEditKind.NotSupportedByRuntime,
                 RudeEditKind.MakeMethodAsync,
-                RudeEditKind.MakeMethodIterator
+                RudeEditKind.MakeMethodIterator,
+                RudeEditKind.ChangeImplicitMainReturnType
             };
 
             var arg2 = new HashSet<RudeEditKind>()

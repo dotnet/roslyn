@@ -238,6 +238,33 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutableAndFree();
         }
 
+        public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
+        {
+            if (source.Length == 0)
+            {
+                return new ValueTask<ImmutableArray<TResult>>(ImmutableArray<TResult>.Empty);
+            }
+
+            if (source.Length == 1)
+            {
+                return selector(source[0], arg, cancellationToken);
+            }
+
+            return CreateTask();
+
+            async ValueTask<ImmutableArray<TResult>> CreateTask()
+            {
+                var builder = ArrayBuilder<TResult>.GetInstance();
+
+                foreach (var item in source)
+                {
+                    builder.AddRange(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+                }
+
+                return builder.ToImmutableAndFree();
+            }
+        }
+
         /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>
@@ -454,6 +481,19 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
@@ -517,6 +557,16 @@ namespace Microsoft.CodeAnalysis
         {
             return array.IsDefault ? ImmutableArray<T>.Empty : array;
         }
+
+        /// <summary>
+        /// Returns an empty array if the input nullable value type is null or the underlying array is null (default)
+        /// </summary>
+        public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
+            => array switch
+            {
+                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                { } underlying => underlying
+            };
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
@@ -624,6 +674,17 @@ namespace Microsoft.CodeAnalysis
             builder.AddRange(second);
             builder.AddRange(third);
             builder.AddRange(fourth);
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
             return builder.ToImmutableAndFree();
         }
 
@@ -777,5 +838,50 @@ namespace Microsoft.CodeAnalysis
 
         internal static int IndexOf<T>(this ImmutableArray<T> array, T item, IEqualityComparer<T> comparer)
             => array.IndexOf(item, startIndex: 0, comparer);
+
+        internal static bool IsSorted<T>(this ImmutableArray<T> array, IComparer<T> comparer)
+        {
+            for (var i = 1; i < array.Length; i++)
+            {
+                if (comparer.Compare(array[i - 1], array[i]) > 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // same as Array.BinarySearch but the ability to pass arbitrary value to the comparer without allocation
+        internal static int BinarySearch<TElement, TValue>(this ImmutableArray<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+            => BinarySearch(array.AsSpan(), value, comparer);
+
+        internal static int BinarySearch<TElement, TValue>(this ReadOnlySpan<TElement> array, TValue value, Func<TElement, TValue, int> comparer)
+        {
+            int low = 0;
+            int high = array.Length - 1;
+
+            while (low <= high)
+            {
+                int middle = low + ((high - low) >> 1);
+                int comparison = comparer(array[middle], value);
+
+                if (comparison == 0)
+                {
+                    return middle;
+                }
+
+                if (comparison > 0)
+                {
+                    high = middle - 1;
+                }
+                else
+                {
+                    low = middle + 1;
+                }
+            }
+
+            return ~low;
+        }
     }
 }

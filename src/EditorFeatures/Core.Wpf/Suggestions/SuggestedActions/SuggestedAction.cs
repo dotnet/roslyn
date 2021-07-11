@@ -96,10 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
-            SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+            SourceProvider.UIThreadOperationExecutor.Execute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true, action: context =>
             {
-                using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                Invoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+                // If we want to report progress, we need to create a scope inside the context -- the main context itself doesn't have a way
+                // to report progress. We pass the same allow cancellation and message so otherwise nothing changes.
+                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+                using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
+                Invoke(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token);
             });
         }
 

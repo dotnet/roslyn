@@ -169,11 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.Documentation,
-                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.RemarksDocumentation,
-                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
+                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
 
                 AddReturnsDocumentationParts(symbol, formatter);
                 AddValueDocumentationParts(symbol, formatter);
@@ -437,7 +437,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
-                    result[group] = parts.ToTaggedText(_getNavigationHint);
+                {
+                    var taggedText = parts.ToTaggedText(_getNavigationHint);
+                    if (group == SymbolDescriptionGroups.MainDescription)
+                    {
+                        // Mark the main description as a code block.
+                        taggedText = taggedText
+                            .Insert(0, new TaggedText(TextTags.CodeBlockStart, string.Empty))
+                            .Add(new TaggedText(TextTags.CodeBlockEnd, string.Empty));
+                    }
+
+                    result[group] = taggedText;
+                }
 
                 return result;
             }

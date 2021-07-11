@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                if (!(argument.Parent is TArgumentListSyntax argumentList))
+                if (argument.Parent is not TArgumentListSyntax argumentList)
                 {
                     return;
                 }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }
