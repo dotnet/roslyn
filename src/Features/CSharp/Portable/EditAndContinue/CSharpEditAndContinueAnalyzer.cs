@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
+        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, CancellationToken cancellationToken)
         {
             // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
             // for the purposes of declaration rude edits
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // declaration kind has changed. If it hasn't changed, then our standard code will handle it.
             if (oldNode.RawKind == newNode.RawKind)
             {
-                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
+                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol, cancellationToken);
                 return;
             }
 
@@ -690,9 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         RudeEditKind.ImplementRecordParameterAsReadOnly,
                         GetDiagnosticSpan(newNode, EditKind.Delete),
                         oldNode,
-                        new[] {
-                            property.Identifier.ToString()
-                        }));
+                        new[] { property.Identifier.ToString() }));
                 }
                 else if (property.AccessorList.Accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
                 {
@@ -703,14 +701,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         RudeEditKind.ImplementRecordParameterWithSet,
                         GetDiagnosticSpan(newNode, EditKind.Delete),
                         oldNode,
-                        new[] {
-                            property.Identifier.ToString()
-                        }));
+                        new[] { property.Identifier.ToString() }));
                 }
             }
             else if (oldNode is RecordDeclarationSyntax &&
-                newNode is MethodDeclarationSyntax &&
-                !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
+                     newNode is MethodDeclarationSyntax &&
+                     !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
             {
                 // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
                 // Explicitly implemented methods must have parameter names that match the compiler generated versions
@@ -724,9 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch,
                     GetDiagnosticSpan(newNode, EditKind.Update),
                     oldNode,
-                    new[] {
-                            oldSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat)
-                    }));
+                    new[] { oldSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat) }));
             }
         }
 
@@ -741,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch, classifyStatementSyntax: true);
+                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch);
                 classifier.ClassifyEdit();
             }
         }
@@ -785,9 +779,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region Syntax and Semantic Utils
-
-        protected override bool IsGlobalStatement(SyntaxNode node)
-            => node.IsKind(SyntaxKind.GlobalStatement);
 
         protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
         {
@@ -1213,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override SyntaxNode GetSymbolDeclarationSyntax(SyntaxReference reference, CancellationToken cancellationToken)
             => reference.GetSyntax(cancellationToken);
 
-        protected override OneOrMany<(ISymbol? oldSymbol, ISymbol? newSymbol)> GetSymbolsForEdit(
+        protected override OneOrMany<(ISymbol? oldSymbol, ISymbol? newSymbol, EditKind editKind)> GetSymbolEdits(
             EditKind editKind,
             SyntaxNode? oldNode,
             SyntaxNode? newNode,
@@ -1222,14 +1213,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             IReadOnlyDictionary<SyntaxNode, EditKind> editMap,
             CancellationToken cancellationToken)
         {
-            var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, editKind, oldModel!, cancellationToken) : null;
-            var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, editKind, newModel, cancellationToken) : null;
+            var oldSymbol = (oldNode != null) ? GetSymbolForEdit(oldNode, oldModel!, cancellationToken) : null;
+            var newSymbol = (newNode != null) ? GetSymbolForEdit(newNode, newModel, cancellationToken) : null;
 
             switch (editKind)
             {
                 case EditKind.Update:
                     Contract.ThrowIfNull(oldNode);
                     Contract.ThrowIfNull(newNode);
+                    Contract.ThrowIfNull(oldModel);
 
                     // Certain updates of a property/indexer node affects its accessors.
                     // Return all affected symbols for these updates.
@@ -1248,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var oldGetterSymbol = ((IPropertySymbol)oldSymbol).GetMethod;
                         var newGetterSymbol = ((IPropertySymbol)newSymbol).GetMethod;
 
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol), (oldGetterSymbol, newGetterSymbol)));
+                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind)));
                     }
 
                     // 2) Property/indexer declarations differ in readonly keyword.
@@ -1261,18 +1253,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         var oldPropertySymbol = (IPropertySymbol)oldSymbol;
                         var newPropertySymbol = (IPropertySymbol)newSymbol;
 
-                        using var _ = ArrayBuilder<(ISymbol?, ISymbol?)>.GetInstance(out var builder);
+                        using var _ = ArrayBuilder<(ISymbol?, ISymbol?, EditKind)>.GetInstance(out var builder);
 
-                        builder.Add((oldPropertySymbol, newPropertySymbol));
+                        builder.Add((oldPropertySymbol, newPropertySymbol, editKind));
 
                         if (oldPropertySymbol.GetMethod != null && newPropertySymbol.GetMethod != null && oldPropertySymbol.GetMethod.IsReadOnly != newPropertySymbol.GetMethod.IsReadOnly)
                         {
-                            builder.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod));
+                            builder.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod, editKind));
                         }
 
                         if (oldPropertySymbol.SetMethod != null && newPropertySymbol.SetMethod != null && oldPropertySymbol.SetMethod.IsReadOnly != newPropertySymbol.SetMethod.IsReadOnly)
                         {
-                            builder.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod));
+                            builder.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod, editKind));
                         }
 
                         return OneOrMany.Create(builder.ToImmutable());
@@ -1280,6 +1272,32 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     static bool DiffersInReadOnlyModifier(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
                         => (oldModifiers.IndexOf(SyntaxKind.ReadOnlyKeyword) >= 0) != (newModifiers.IndexOf(SyntaxKind.ReadOnlyKeyword) >= 0);
+
+                    // Change in attributes or modifiers of a field affects all its variable declarations.
+                    if (oldNode is BaseFieldDeclarationSyntax oldField && newNode is BaseFieldDeclarationSyntax newField)
+                    {
+                        return GetFieldSymbolUpdates(oldField.Declaration.Variables, newField.Declaration.Variables);
+                    }
+
+                    // Chnage in type of a field affects all its variable declarations.
+                    if (oldNode is VariableDeclarationSyntax oldVariableDeclaration && newNode is VariableDeclarationSyntax newVariableDeclaration)
+                    {
+                        return GetFieldSymbolUpdates(oldVariableDeclaration.Variables, newVariableDeclaration.Variables);
+                    }
+
+                    OneOrMany<(ISymbol?, ISymbol?, EditKind)> GetFieldSymbolUpdates(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)
+                    {
+                        if (oldVariables.Count == 1 && newVariables.Count == 1)
+                        {
+                            return OneOrMany.Create((oldModel.GetDeclaredSymbol(oldVariables[0], cancellationToken), newModel.GetDeclaredSymbol(newVariables[0], cancellationToken), EditKind.Update));
+                        }
+
+                        var result = from oldVariable in oldVariables
+                                     join newVariable in newVariables on oldVariable.Identifier.Text equals newVariable.Identifier.Text
+                                     select (oldModel.GetDeclaredSymbol(oldVariable, cancellationToken), newModel.GetDeclaredSymbol(newVariable, cancellationToken), EditKind.Update);
+
+                        return OneOrMany.Create(result.ToImmutableArray());
+                    }
 
                     break;
 
@@ -1295,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         if (HasEdit(editMap, node.Parent, editKind) && !HasEdit(editMap, node.Parent.Parent, editKind))
                         {
-                            return OneOrMany<(ISymbol?, ISymbol?)>.Empty;
+                            return OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty;
                         }
                     }
 
@@ -1307,35 +1325,43 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         var oldGetterSymbol = ((IPropertySymbol?)oldSymbol)?.GetMethod;
                         var newGetterSymbol = ((IPropertySymbol?)newSymbol)?.GetMethod;
-                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol), (oldGetterSymbol, newGetterSymbol)));
+                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind)));
+                    }
+
+                    // Inserting/deleting a type parameter constraint should result in an update of the corresponding type parameter symbol:
+                    if (node.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                    {
+                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
+                    }
+
+                    // Inserting/deleting a global statement should result in an update of the implicit main method:
+                    if (node.IsKind(SyntaxKind.GlobalStatement))
+                    {
+                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
                     }
 
                     break;
             }
 
             return (editKind == EditKind.Delete ? oldSymbol : newSymbol) is null ?
-                OneOrMany<(ISymbol?, ISymbol?)>.Empty : new OneOrMany<(ISymbol?, ISymbol?)>((oldSymbol, newSymbol));
+                OneOrMany<(ISymbol?, ISymbol?, EditKind)>.Empty : new OneOrMany<(ISymbol?, ISymbol?, EditKind)>((oldSymbol, newSymbol, editKind));
         }
 
         private static ISymbol? GetSymbolForEdit(
             SyntaxNode node,
-            EditKind editKind,
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (editKind == EditKind.Update)
-            {
-                if (node is FieldDeclarationSyntax field)
-                {
-                    // If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable declaration
-                    // Fortunately attributes are shared across all of them, so we don't need to be too fancy
-                    return model.GetDeclaredSymbol(field.Declaration.Variables.First(), cancellationToken);
-                }
-            }
-
             if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
             {
                 return null;
+            }
+
+            if (node.IsKind(SyntaxKind.TypeParameterConstraintClause))
+            {
+                var constraintClause = (TypeParameterConstraintClauseSyntax)node;
+                var symbolInfo = model.GetSymbolInfo(constraintClause.Name, cancellationToken);
+                return symbolInfo.Symbol;
             }
 
             // Top level code always lives in a synthesized Main method
@@ -1442,7 +1468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             //   C<G<K, T>> GroupBy<K>(Func<T, K> keySelector);
             //   C<G<K, E>> GroupBy<K, E>(Func<T, K> keySelector, Func<T, E> elementSelector);
 
-            if (!s_assemblyEqualityComparer.Equals(oldReturnType, newReturnType))
+            if (!TypesEquivalent(oldReturnType, newReturnType, exact: false))
             {
                 return false;
             }
@@ -1453,14 +1479,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // The types of the lambdas have to be the same if present.
             // The element selector may be added/removed.
 
-            if (!s_assemblyEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameters[0], newParameters[0]))
+            if (!ParameterTypesEquivalent(oldParameters[0], newParameters[0], exact: false))
             {
                 return false;
             }
 
             if (oldParameters.Length == newParameters.Length && newParameters.Length == 2)
             {
-                return s_assemblyEqualityComparer.ParameterEquivalenceComparer.Equals(oldParameters[1], newParameters[1]);
+                return ParameterTypesEquivalent(oldParameters[1], newParameters[1], exact: false);
             }
 
             return true;
@@ -1819,6 +1845,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        internal override string GetDisplayName(INamedTypeSymbol symbol)
+            => symbol.TypeKind switch
+            {
+                TypeKind.Struct => symbol.IsRecord ? CSharpFeaturesResources.record_struct : CSharpFeaturesResources.struct_,
+                TypeKind.Class => symbol.IsRecord ? CSharpFeaturesResources.record_ : FeaturesResources.class_,
+                _ => base.GetDisplayName(symbol)
+            };
+
+        internal override string GetDisplayName(IPropertySymbol symbol)
+            => symbol.IsIndexer ? CSharpFeaturesResources.indexer : base.GetDisplayName(symbol);
+
+        internal override string GetDisplayName(IMethodSymbol symbol)
+            => symbol.MethodKind switch
+            {
+                MethodKind.PropertyGet => symbol.AssociatedSymbol is IPropertySymbol { IsIndexer: true } ? CSharpFeaturesResources.indexer_getter : CSharpFeaturesResources.property_getter,
+                MethodKind.PropertySet => symbol.AssociatedSymbol is IPropertySymbol { IsIndexer: true } ? CSharpFeaturesResources.indexer_setter : CSharpFeaturesResources.property_setter,
+                MethodKind.StaticConstructor => FeaturesResources.static_constructor,
+                MethodKind.Destructor => CSharpFeaturesResources.destructor,
+                MethodKind.Conversion => CSharpFeaturesResources.conversion_operator,
+                MethodKind.LocalFunction => FeaturesResources.local_function,
+                _ => base.GetDisplayName(symbol)
+            };
+
         protected override string? TryGetDisplayName(SyntaxNode node, EditKind editKind)
             => TryGetDisplayNameImpl(node, editKind);
 
@@ -2112,7 +2161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private readonly SyntaxNode? _newNode;
             private readonly EditKind _kind;
             private readonly TextSpan? _span;
-            private readonly bool _classifyStatementSyntax;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
@@ -2121,8 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 SyntaxNode? newNode,
                 EditKind kind,
                 Match<SyntaxNode>? match = null,
-                TextSpan? span = null,
-                bool classifyStatementSyntax = false)
+                TextSpan? span = null)
             {
                 RoslynDebug.Assert(oldNode != null || newNode != null);
 
@@ -2136,7 +2183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _kind = kind;
                 _span = span;
                 _match = match;
-                _classifyStatementSyntax = classifyStatementSyntax;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode? spanNode = null, SyntaxNode? displayNode = null)
@@ -2289,40 +2335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ReportError(RudeEditKind.Insert);
                         return;
 
-                    case SyntaxKind.UsingDirective:
-                        // We don't report rude edits for using directives though we also don't do any
-                        // special processing, so inserting a using directive that changes semantics in
-                        // unedited code will not issue edits for that code. Inserting a using directive
-                        // and then consunming it will result in edits for the changes code as per usual.
-                        return;
-
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.InitAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.AccessorList:
-                    case SyntaxKind.VariableDeclarator:
-                    case SyntaxKind.VariableDeclaration:
-                        return;
-
                     case SyntaxKind.ArrowExpressionClause:
                         if (node.Parent.IsKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration))
                         {
@@ -2330,20 +2342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         break;
-
-                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
-                        return;
-
-                    case SyntaxKind.EnumMemberDeclaration:
-                        return;
-
-                    case SyntaxKind.TypeParameter:
-                    case SyntaxKind.TypeParameterList:
-                        return;
-
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        ReportError(RudeEditKind.Insert);
-                        return;
 
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
@@ -2358,12 +2356,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         return;
-                }
-
-                // When classifying statement syntax we could see potentially any node as an edit
-                if (!_classifyStatementSyntax)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
                 }
             }
 
@@ -2383,47 +2375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // To allow removal of declarations we would need to update method bodies that 
                         // were previously binding to them but now are binding to another symbol that was previously hidden.
                         ReportError(RudeEditKind.Delete);
-                        return;
-
-                    case SyntaxKind.UsingDirective:
-                        // We don't report rude edits for using directives though we also don't do any
-                        // special processing, so deleting a using directive that changes semantics in
-                        // unedited code will not issue edits for that code. Deleting code and then doing
-                        // something like Remove Unused Usings will report edits for the changes code as
-                        // normal.
-                        return;
-
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.PropertyDeclaration:
-                    case SyntaxKind.IndexerDeclaration:
-                    case SyntaxKind.EventDeclaration:
-                    case SyntaxKind.FieldDeclaration:
-                    case SyntaxKind.EventFieldDeclaration:
-                    case SyntaxKind.VariableDeclarator:
-                    case SyntaxKind.VariableDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                    case SyntaxKind.DelegateDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                        // We do not report member delete here since the member might be moving to a different part of a partial type declaration.
-                        // If that is not the case the semantic analysis reports the rude edit.
-                        return;
-
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.InitAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                    case SyntaxKind.EnumMemberDeclaration:
-                    case SyntaxKind.AccessorList:
-                        // We do not report error here since it will be reported in semantic analysis.
                         return;
 
                     case SyntaxKind.ArrowExpressionClause:
@@ -2448,24 +2399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         return;
-
-                    case SyntaxKind.TypeParameter:
-                    case SyntaxKind.TypeParameterList:
-                        return;
-
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        ReportError(RudeEditKind.Delete);
-                        return;
-
-                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
-                    case SyntaxKind.ParameterList when !_classifyStatementSyntax:
-                        return;
-                }
-
-                // When classifying statement syntax we could see potentially any node as an edit
-                if (!_classifyStatementSyntax)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
                 }
             }
 
@@ -2485,39 +2418,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ReportError(RudeEditKind.Update);
                         return;
 
-                    case SyntaxKind.UsingDirective:
-                        // We don't report rude edits for using directives though we also don't do any
-                        // special processing, so updating a using directive that changes semantics in
-                        // unedited code will not issue edits for that code.
-                        return;
-
                     case SyntaxKind.NamespaceDeclaration:
                     case SyntaxKind.FileScopedNamespaceDeclaration:
                         ClassifyUpdate((BaseNamespaceDeclarationSyntax)oldNode, (BaseNamespaceDeclarationSyntax)newNode);
                         return;
 
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.EnumDeclaration:
-                        return;
-
-                    case SyntaxKind.DelegateDeclaration:
-                        ClassifyUpdate((DelegateDeclarationSyntax)oldNode, (DelegateDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.FieldDeclaration:
-                        ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.EventFieldDeclaration:
-                        ClassifyUpdate((BaseFieldDeclarationSyntax)oldNode, (BaseFieldDeclarationSyntax)newNode);
-                        return;
-
                     case SyntaxKind.VariableDeclaration:
-                        ClassifyUpdate((VariableDeclarationSyntax)oldNode, (VariableDeclarationSyntax)newNode);
+                        if (!oldNode.IsParentKind(SyntaxKind.FieldDeclaration, SyntaxKind.EventFieldDeclaration))
+                        {
+                            ClassifyUpdate((VariableDeclarationSyntax)oldNode, (VariableDeclarationSyntax)newNode);
+                        }
+
                         return;
 
                     case SyntaxKind.VariableDeclarator:
@@ -2552,9 +2463,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ClassifyUpdate((IndexerDeclarationSyntax)oldNode, (IndexerDeclarationSyntax)newNode);
                         return;
 
-                    case SyntaxKind.EventDeclaration:
-                        return;
-
                     case SyntaxKind.EnumMemberDeclaration:
                         ClassifyUpdate((EnumMemberDeclarationSyntax)oldNode, (EnumMemberDeclarationSyntax)newNode);
                         return;
@@ -2565,23 +2473,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.AddAccessorDeclaration:
                     case SyntaxKind.RemoveAccessorDeclaration:
                         ClassifyUpdate((AccessorDeclarationSyntax)oldNode, (AccessorDeclarationSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.TypeParameterConstraintClause:
-                        ClassifyUpdate((TypeParameterConstraintClauseSyntax)oldNode, (TypeParameterConstraintClauseSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.TypeParameter:
-                        ClassifyUpdate((TypeParameterSyntax)oldNode, (TypeParameterSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
-                        // Parameter updates are allowed for local functions
-                        ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
-                        return;
-
-                    case SyntaxKind.AttributeList:
-                        ClassifyUpdate((AttributeListSyntax)oldNode, (AttributeListSyntax)newNode);
                         return;
 
                     case SyntaxKind.Attribute:
@@ -2596,19 +2487,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
 
                         return;
-
-                    case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.ParameterList:
-                    case SyntaxKind.BracketedParameterList:
-                    case SyntaxKind.AccessorList:
-                        return;
-
-                }
-
-                // When classifying statement syntax we could see potentially any node as an edit
-                if (!_classifyStatementSyntax)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -2623,24 +2501,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 ReportError(RudeEditKind.Renamed);
             }
 
-            private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-            }
-
-            private void ClassifyUpdate(BaseFieldDeclarationSyntax oldNode, BaseFieldDeclarationSyntax newNode)
-            {
-                if (oldNode.Kind() != newNode.Kind())
-                {
-                    ReportError(RudeEditKind.FieldKindUpdate);
-                    return;
-                }
-            }
-
             private void ClassifyUpdate(VariableDeclarationSyntax oldNode, VariableDeclarationSyntax newNode)
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
@@ -2648,8 +2508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     ReportError(RudeEditKind.TypeUpdate);
                     return;
                 }
-
-                // separators may be added/removed:
             }
 
             private void ClassifyUpdate(VariableDeclaratorSyntax oldNode, VariableDeclaratorSyntax newNode)
@@ -2685,12 +2543,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(MethodDeclarationSyntax oldNode, MethodDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
                 ClassifyMethodBodyRudeUpdate(
                     (SyntaxNode?)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
                     (SyntaxNode?)newNode.Body ?? newNode.ExpressionBody?.Expression,
@@ -2700,12 +2552,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConversionOperatorDeclarationSyntax oldNode, ConversionOperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
                 ClassifyMethodBodyRudeUpdate(
                     (SyntaxNode?)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
                     (SyntaxNode?)newNode.Body ?? newNode.ExpressionBody?.Expression,
@@ -2715,12 +2561,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(OperatorDeclarationSyntax oldNode, OperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
                 ClassifyMethodBodyRudeUpdate(
                     (SyntaxNode?)oldNode.Body ?? oldNode.ExpressionBody?.Expression,
                     (SyntaxNode?)newNode.Body ?? newNode.ExpressionBody?.Expression,
@@ -2776,12 +2616,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(PropertyDeclarationSyntax oldNode, PropertyDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
                 var containingType = (TypeDeclarationSyntax)newNode.Parent!;
 
                 // TODO: We currently don't support switching from auto-props to properties with accessors and vice versa.
@@ -2818,12 +2652,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(IndexerDeclarationSyntax oldNode, IndexerDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
                 if (SyntaxFactory.AreEquivalent(oldNode.ExpressionBody, newNode.ExpressionBody))
                 {
                     var oldBody = SyntaxUtilities.TryGetEffectiveGetterBody(oldNode.ExpressionBody, oldNode.AccessorList);
@@ -2835,64 +2663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         containingMethod: null,
                         containingType: (TypeDeclarationSyntax?)newNode.Parent);
                 }
-            }
-
-            private void ClassifyUpdate(TypeParameterSyntax oldNode, TypeParameterSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
-                {
-                    ReportError(RudeEditKind.VarianceUpdate);
-                    return;
-                }
-            }
-
-            private void ClassifyUpdate(TypeParameterConstraintClauseSyntax oldNode, TypeParameterConstraintClauseSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Constraints, newNode.Constraints))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                }
-            }
-
-            private void ClassifyUpdate(ParameterSyntax oldNode, ParameterSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
-                {
-                    ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-            }
-
-            private void ClassifyUpdate(AttributeListSyntax oldNode, AttributeListSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
-                {
-                    var spanNode = ((SyntaxNode?)newNode.Target) ?? newNode;
-                    ReportError(RudeEditKind.Update, spanNode: spanNode, displayNode: spanNode);
-                    return;
-                }
-
-                // changes in attribute separators are not interesting:
-            }
-
-            private static bool AreModifiersEquivalent(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers, SyntaxKind ignore, SyntaxKind? ignore2 = null)
-            {
-                var oldIgnoredModifierIndex = oldModifiers.IndexOf(ignore);
-                var newIgnoredModifierIndex = newModifiers.IndexOf(ignore);
-
-                if (oldIgnoredModifierIndex >= 0)
-                {
-                    oldModifiers = oldModifiers.RemoveAt(oldIgnoredModifierIndex);
-                }
-
-                if (newIgnoredModifierIndex >= 0)
-                {
-                    newModifiers = newModifiers.RemoveAt(newIgnoredModifierIndex);
-                }
-
-                return ignore2 is null
-                    ? SyntaxFactory.AreEquivalent(oldModifiers, newModifiers)
-                    : AreModifiersEquivalent(oldModifiers, newModifiers, ignore2.Value);
             }
 
             private void ClassifyMethodBodyRudeUpdate(
@@ -3047,42 +2817,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     GetDiagnosticSpan(newNode, EditKind.Insert),
                     newNode,
                     arguments: new[] { GetDisplayName(newNode, EditKind.Insert) }));
-            }
-        }
-
-        internal override void ReportUpdatedTypeSymbolDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, INamedTypeSymbol oldType, INamedTypeSymbol newType, SyntaxNode newDeclaration, CancellationToken cancellationToken)
-        {
-            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var oldNodes);
-            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var newNodes);
-
-            // Consider: better error messages
-            Report((b, t) => AddNodes(b, t.TypeParameterList?.Parameters), RudeEditKind.Update);
-            Report((b, t) => AddNodes(b, t.ConstraintClauses), RudeEditKind.Update);
-
-            void Report(Action<ArrayBuilder<SyntaxNode>, TypeDeclarationSyntax> addNodes, RudeEditKind rudeEditKind)
-            {
-                foreach (var syntaxRef in oldType.DeclaringSyntaxReferences)
-                {
-                    addNodes(oldNodes, (TypeDeclarationSyntax)syntaxRef.GetSyntax(cancellationToken));
-                }
-
-                foreach (var syntaxRef in newType.DeclaringSyntaxReferences)
-                {
-                    addNodes(newNodes, (TypeDeclarationSyntax)syntaxRef.GetSyntax(cancellationToken));
-                }
-
-                if (oldNodes.Count != newNodes.Count ||
-                    oldNodes.Zip(newNodes, (oldNode, newNode) => SyntaxFactory.AreEquivalent(oldNode, newNode)).Any(isEquivalent => !isEquivalent))
-                {
-                    diagnostics.Add(new RudeEditDiagnostic(
-                        rudeEditKind,
-                        GetDiagnosticSpan(newDeclaration, EditKind.Update),
-                        newDeclaration,
-                        arguments: new[] { GetDisplayName(newDeclaration, EditKind.Update) }));
-                }
-
-                oldNodes.Clear();
-                newNodes.Clear();
             }
         }
 
