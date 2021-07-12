@@ -174,28 +174,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 var solution = engine._solution;
-                symbol = await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                symbol = await MapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
 
                 foreach (var finder in engine._finders)
                 {
                     var cascaded = await finder.DetermineCascadedSymbolsAsync(symbol, solution, engine._options, cancellationToken).ConfigureAwait(false);
                     foreach (var cascade in cascaded)
-                        await AddLinkedSymbolsAsync(cascade).ConfigureAwait(false);
+                        await MapAndAddLinkedSymbolsAsync(cascade).ConfigureAwait(false);
                 }
-
-                await AddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
 
                 return;
 
-                async Task AddLinkedSymbolsAsync(ISymbol symbol)
+                async Task<ISymbol> MapAndAddLinkedSymbolsAsync(ISymbol symbol)
                 {
                     symbol = await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-
                     foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
                         if (to.Add(linked))
                             workQueue.Push(linked);
                     }
+
+                    return symbol;
                 }
             }
 
