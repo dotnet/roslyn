@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 foreach (var document in allDocuments)
-                    tasks.Add(CreateWorkAsync(() => ProcessDocumentsAsync(document, allSymbols, cancellationToken), cancellationToken));
+                    tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(document, allSymbols, cancellationToken), cancellationToken));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task ProcessDocumentsAsync(
+        private async Task ProcessDocumentAsync(
             Document document, ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
