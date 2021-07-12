@@ -264,6 +264,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
         End Function
 
+        Friend Overrides Iterator Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState) As IEnumerable(Of VisualBasicAttributeData)
+            Dim attributes = MyBase.GetCustomAttributesToEmit(compilationState)
+            For Each attribute In attributes
+                If AttributeData.IsTargetEarlyAttribute(attributeType:=attribute.AttributeClass, attributeArgCount:=attribute.CommonConstructorArguments.Length, description:=AttributeDescription.CallerArgumentExpressionAttribute) Then
+                    Dim callerArgumentExpressionParameterIndex = Me.CallerArgumentExpressionParameterIndex
+                    If callerArgumentExpressionParameterIndex <> -1 AndAlso TypeOf attribute Is SourceAttributeData Then
+                        Debug.Assert(callerArgumentExpressionParameterIndex >= 0)
+                        Debug.Assert(attribute.CommonConstructorArguments.Length = 1)
+                        ' We allow CallerArgumentExpression to have case-insensitive parameter name, but we
+                        ' want to emit the parameter name with correct casing, so that it works with C#.
+                        Dim correctedParameterName = ContainingSymbol.GetParameters()(callerArgumentExpressionParameterIndex).Name
+                        Dim oldTypedConstant = attribute.CommonConstructorArguments.Single()
+                        If correctedParameterName.Equals(oldTypedConstant.Value.ToString(), StringComparison.Ordinal) Then
+                            Yield attribute
+                            Continue For
+                        End If
+                        Dim newArgs = ImmutableArray.Create(New TypedConstant(oldTypedConstant.TypeInternal, oldTypedConstant.Kind, correctedParameterName))
+                        Yield New SourceAttributeData(attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
+                        Continue For
+                    End If
+                End If
+                Yield attribute
+            Next
+        End Function
+
         ' It is not strictly necessary to decode default value attributes early in VB,
         ' but it is necessary in C#, so this keeps the implementations consistent.
         Private Function EarlyDecodeAttributeForDefaultParameterValue(description As AttributeDescription, ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData

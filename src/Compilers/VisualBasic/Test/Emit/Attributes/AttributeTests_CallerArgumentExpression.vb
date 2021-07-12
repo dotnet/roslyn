@@ -35,31 +35,143 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Parameter, AllowMultiple:=True, Inherited:=False)>
+    Public NotInheritable Class CallerArgumentExpressionAttribute
+        Inherits Attribute
+
+        Public Sub New(parameterName As String)
+            ParameterName = parameterName
+        End Sub
+
+        Public ReadOnly Property ParameterName As String
+    End Class
+End Namespace
+
+Class Program
+    Public Shared Sub Main()
+        Log(123, 456)
+    End Sub
+
+    Const p1 As String = NameOf(p1)
+    Const p2 As String = NameOf(p2)
+
+    Private Shared Sub Log(p1 As Integer, p2 As Integer, <CallerArgumentExpression(p1), CallerArgumentExpression(p2)> ByVal Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="456").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Parameter, AllowMultiple:=True, Inherited:=False)>
+    Public NotInheritable Class CallerArgumentExpressionAttribute
+        Inherits Attribute
+
+        Public Sub New(parameterName As String, extraParam As Integer)
+            ParameterName = parameterName
+        End Sub
+
+        Public ReadOnly Property ParameterName As String
+    End Class
+End Namespace
+
+Class Program
+    Public Shared Sub Main()
+        Log(123, 456)
+    End Sub
+
+    Const p1 As String = NameOf(p1)
+    Const p2 As String = NameOf(p2)
+
+    Private Shared Sub Log(p1 As Integer, p2 As Integer, <CallerArgumentExpression(p1, 0), CallerArgumentExpression(p2, 1)> ByVal Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_CaseInsensitivity()
             Dim source As String = "
 Imports System
 Imports System.Runtime.CompilerServices
-Module Program
+Public Module Program
     Sub Main()
         Log(123)
     End Sub
 
     Private Const P As String = NameOf(P)
-    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = ""<default-arg>"")
+    Public Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = ""<default-arg>"")
         Console.WriteLine(arg)
     End Sub
 End Module
 "
 
             Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
-            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics()
-            ' PROTOTYPE(caller-expr): Confirm whether this should be case-sensitive or case-insensitive.
-            '            compilation.AssertTheseDiagnostics(
-            '<expected><![CDATA[
-            'BC42505: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
-            '    Sub Log(p As Integer, <CallerArgumentExpression(P)> Optional arg As String = "<default-arg>")
-            '                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            ']]></expected>)
+            CompileAndVerify(compilation, expectedOutput:="123").VerifyDiagnostics().VerifyTypeIL("Program", "
+.class public auto ansi sealed Program
+	extends [System.Runtime]System.Object
+{
+	.custom instance void [Microsoft.VisualBasic]Microsoft.VisualBasic.CompilerServices.StandardModuleAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Fields
+	.field private static literal string P = ""P""
+	// Methods
+	.method public static 
+		void Main () cil managed 
+	{
+		.custom instance void [System.Runtime]System.STAThreadAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2050
+		// Code size 13 (0xd)
+		.maxstack 8
+		.entrypoint
+		IL_0000: ldc.i4.s 123
+		IL_0002: ldstr ""123""
+		IL_0007: call void Program::Log(int32, string)
+		IL_000c: ret
+	} // end of method Program::Main
+	.method public static 
+		void Log (
+			int32 p,
+			[opt] string arg
+		) cil managed 
+	{
+		.param [2] = ""<default-arg>""
+			.custom instance void [System.Runtime]System.Runtime.CompilerServices.CallerArgumentExpressionAttribute::.ctor(string) = (
+				01 00 01 70 00 00
+			)
+		// Method begins at RVA 0x205e
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.1
+		IL_0001: call void [System.Console]System.Console::WriteLine(string)
+		IL_0006: ret
+	} // end of method Program::Log
+} // end of class Program
+")
+            Dim csCompilation = CreateCSharpCompilation("Program.Log(5 + 2);", referencedAssemblies:=TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp, {compilation.EmitToImageReference()}), compilationOptions:=New CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            CompileAndVerify(csCompilation, expectedOutput:="5 + 2").VerifyDiagnostics()
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
@@ -122,7 +234,6 @@ End Module
     </compilation>
 
             Dim compilation = CreateCompilationWithCustomILSource(source, il, options:=TestOptions.ReleaseExe, includeVbRuntime:=True, parseOptions:=TestOptions.RegularLatest)
-            ' PROTOTYPE(caller-expr): Confirm whether this should be case-sensitive or case-insensitive.
             CompileAndVerify(compilation, expectedOutput:="0 + 1").VerifyDiagnostics()
         End Sub
 
