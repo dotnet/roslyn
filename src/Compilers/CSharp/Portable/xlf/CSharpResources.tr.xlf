@@ -772,6 +772,11 @@
         <target state="translated">'{0}' kayıt üyesi genel olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}', kapsayan kayıt mühürlü olmadığından geçersiz kılmaya izin vermelidir.</target>
@@ -1137,6 +1142,11 @@
         <target state="new">lambda return type</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1150,6 +1160,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">kayıtta mühürlü ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5240,11 +5255,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Yapı birimleri parametresi olmayan açık oluşturucular içeremez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">Sabit listeleri açık parametresiz oluşturucu içeremez</target>
@@ -5268,11 +5278,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
         <target state="translated">'{0}': bir türe ifade üzerinden başvurulamaz; bunun yerine '{1}' deneyin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': struct'larda örnek özellik veya alan başlatıcıları olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">

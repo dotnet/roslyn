@@ -772,6 +772,11 @@
         <target state="translated">Der Datensatzmember "{0}" muss öffentlich sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">"{0}" muss Überschreibungen zulassen, weil der enthaltende Datensatz nicht versiegelt ist.</target>
@@ -1137,6 +1142,11 @@
         <target state="new">lambda return type</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1150,6 +1160,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">versiegelte "ToString" im Datensatz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5240,11 +5255,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <target state="translated">Der erste Operand eines überladenen Schiebeoperators muss den enthaltenden Typ aufweisen, und der zweite Operand muss eine ganze Zahl sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Strukturen können keine expliziten parameterlosen Konstruktoren enthalten.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">Enumerationen können keine expliziten parameterlosen Konstruktoren enthalten.</target>
@@ -5268,11 +5278,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
         <target state="translated">"{0}": Auf einen Typ kann nicht durch einen Ausdruck verwiesen werden. Verwenden Sie stattdessen "{1}".</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">"{0}": Instanzenfeld- oder -eigenschaftsinitialisierer können sich nicht in Strukturen befinden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">

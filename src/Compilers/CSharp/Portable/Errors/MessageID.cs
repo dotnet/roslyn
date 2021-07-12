@@ -229,6 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMemebers = MessageBase + 12806,
+        IDS_FeatureParameterlessStructConstructors = MessageBase + 12807,
+        IDS_FeatureStructFieldInitializers = MessageBase + 12808,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -354,6 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_AsyncMethodBuilderOverride: // semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers: // semantic check
+                case MessageID.IDS_FeatureParameterlessStructConstructors: // semantic check
+                case MessageID.IDS_FeatureStructFieldInitializers: // semantic check
                     return LanguageVersion.CSharp10;
 
                 // C# 9.0 features.

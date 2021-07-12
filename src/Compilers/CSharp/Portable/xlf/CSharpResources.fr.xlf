@@ -772,6 +772,11 @@
         <target state="translated">Le membre d'enregistrement '{0}' doit être public.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' doit autoriser la substitution, car l'enregistrement contenant n'est pas sealed.</target>
@@ -1137,6 +1142,11 @@
         <target state="new">lambda return type</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1150,6 +1160,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">ToString scellé dans l’enregistrement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5240,11 +5255,6 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
         <target state="translated">Le premier opérande d'un opérateur de décalage surchargé doit être du même type que le type conteneur et le type du second opérande doit être int</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Les structures ne peuvent pas contenir de constructeurs exempts de paramètres explicites</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">Les enums ne peuvent pas contenir de constructeurs sans paramètre explicites</target>
@@ -5268,11 +5278,6 @@ Si une telle classe est utilisée en tant que classe de base et si la classe dé
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
         <target state="translated">'{0}' : impossible de référencer un type par l'intermédiaire d'une expression ; essayez plutôt '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}' : impossible d'avoir des propriétés d'instance ou des initialiseurs de champ dans des structs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">

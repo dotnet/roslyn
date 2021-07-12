@@ -772,6 +772,11 @@
         <target state="translated">記錄成員 '{0}' 必須為公用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' 必須允許覆寫，因為包含的記錄並未密封。</target>
@@ -1137,6 +1142,11 @@
         <target state="new">lambda return type</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="new">positional fields in records</target>
@@ -1150,6 +1160,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">記錄中有密封的 ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStructFieldInitializers">
+        <source>struct field initializers</source>
+        <target state="new">struct field initializers</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
@@ -5240,11 +5255,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">多載移位 (Shift) 運算子的第一個運算元的類型必須和包含類型相同，而第二個運算元的類型必須是 int</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">結構無法包含明確無參數的建構函式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
         <target state="translated">列舉不能包含明確的無參數建構函式</target>
@@ -5268,11 +5278,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_BadTypeReference">
         <source>'{0}': cannot reference a type through an expression; try '{1}' instead</source>
         <target state="translated">'{0}': 不可透過運算式參考類型; 請嘗試改用 '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': 結構中不可有執行個體屬性或欄位初始設定式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDestructorName">

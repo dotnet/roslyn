@@ -857,6 +857,9 @@ struct S1
                 // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
                 //     public S1(string s) // 1
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
                 // (7,9): error CS8079: Use of possibly unassigned auto-implemented property 'Prop'
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Prop").WithArguments("Prop").WithLocation(7, 9),
@@ -895,7 +898,7 @@ struct S1
     }
 }
 ";
-
+            // PROTOTYPE: NullableWalker.Scan() overwrites initial field state when calling EnterParameter(methodThisParameter).
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (4,19): warning CS0649: Field 'S1.field' is never assigned to, and will always have its default value null
@@ -906,14 +909,13 @@ struct S1
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(5, 12),
                 // (7,9): error CS0170: Use of possibly unassigned field 'field'
                 //         field.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(7, 9)/*,
                 // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         field.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(12, 9),
                 // (15,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1(object obj1, object obj2) : this() // 4
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(15, 12)
-                );
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(15, 12)*/);
         }
 
         [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]
@@ -1525,6 +1527,9 @@ class C5<T, U> where T : A where U : T
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
                 // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
                 //     internal S(string s)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(6, 14),

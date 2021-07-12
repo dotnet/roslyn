@@ -795,14 +795,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We don't use a default initial state for value type instance constructors without `: this()` because
                     // any usages of uninitialized fields will get definite assignment errors anyway.
-                    if (!method.HasThisConstructorInitializer() && (!method.ContainingType.IsValueType || method.IsStatic))
+                    if (!method.HasThisConstructorInitializer(out _) && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
                         return true;
                     }
 
-                    return methodMainNode is BoundConstructorMethodBody ctorBody
-                        && ctorBody.Initializer?.Expression.ExpressionSymbol is MethodSymbol delegatedCtor
-                        && delegatedCtor.IsDefaultValueTypeConstructor();
+                    return method.IncludeFieldInitializersInBody();
                 }
             }
 
@@ -3073,7 +3071,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var boundObjectCreationExpression = node as BoundObjectCreationExpression;
                     var constructor = boundObjectCreationExpression?.Constructor;
-                    bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
+                    // PROTOTYPE: Test with structs with parameterless constructors.
+                    bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {

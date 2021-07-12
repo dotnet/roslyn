@@ -963,26 +963,93 @@ public record struct S
         }
 
         [Fact]
-        public void TypeDeclaration_NoParameterlessConstructor()
+        public void TypeDeclaration_ParameterlessConstructor_01()
         {
-            var src = @"
-public record struct S
+            var src =
+@"record struct S0();
+record struct S1;
+record struct S2
 {
-    public S() { }
-}
-";
-            // This will be allowed in C# 10
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-            var comp = CreateCompilation(src);
+    public S2() { }
+}";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,12): error CS0568: Structs cannot contain explicit parameterless constructors
-                //     public S() { }
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(4, 12)
-                );
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S0();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (2,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 8),
+                // (3,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(3, 8),
+                // (5,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(5, 12));
+
+            var verifier = CompileAndVerify(src);
+            verifier.VerifyIL("S0..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
+            verifier.VerifyMissing("S1..ctor()");
+            verifier.VerifyIL("S2..ctor()",
+@"{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}");
         }
 
         [Fact]
-        public void TypeDeclaration_NoInstanceInitializers()
+        public void TypeDeclaration_ParameterlessConstructor_02()
+        {
+            var src =
+@"record struct S1
+{
+    S1() { }
+}
+record struct S2
+{
+    internal S2() { }
+}";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(1, 8),
+                // (3,5): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S1").WithArguments("parameterless struct constructors", "10.0").WithLocation(3, 5),
+                // (3,5): error CS8938: The parameterless struct constructor must be 'public'.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (5,8): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // record struct S2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(5, 8),
+                // (7,14): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S2").WithArguments("parameterless struct constructors", "10.0").WithLocation(7, 14),
+                // (7,14): error CS8938: The parameterless struct constructor must be 'public'.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): error CS8918: The parameterless struct constructor must be 'public'.
+                //     S1() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S1").WithLocation(3, 5),
+                // (7,14): error CS8918: The parameterless struct constructor must be 'public'.
+                //     internal S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(7, 14));
+        }
+
+        [Fact]
+        public void TypeDeclaration_InstanceInitializers()
         {
             var src = @"
 public record struct S
@@ -991,18 +1058,25 @@ public record struct S
     public int Property { get; set; } = 43;
 }
 ";
-            // This will be allowed in C# 10, or we need to improve the message
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
-            var comp = CreateCompilation(src);
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+                // (2,15): error CS8773: Feature 'record structs' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public record struct S
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "struct").WithArguments("record structs", "10.0").WithLocation(2, 15),
+                // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int field = 42;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "field").WithArguments("S").WithLocation(4, 16),
-                // (5,16): error CS0573: 'S': cannot have instance property or field initializers in structs
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "field").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
+                // (5,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int Property { get; set; } = 43;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Property").WithArguments("S").WithLocation(5, 16)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Property").WithArguments("struct field initializers", "10.0").WithLocation(5, 16));
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
         }
+
+        // PROTOTYPE: Verify initializers are executed from synthesized and explicit parameterless constructors.
+        // PROTOTYPE: Verify explicit parameterless constructor calls 'this(...)' for primary constructor.
 
         [Fact]
         public void TypeDeclaration_NoDestructor()
@@ -1115,18 +1189,9 @@ partial record struct S3();
                 // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
-                // (6,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S2();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(6, 25),
-                // (8,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(8, 25),
                 // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25),
-                // (9,25): error CS0568: Structs cannot contain explicit parameterless constructors
-                // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );
         }
 
@@ -1620,8 +1685,6 @@ record struct C(int X, int Y)
         [Fact]
         public void RecordProperties_01_EmptyParameterList()
         {
-            // We will allow declaring parameterless constructors
-            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var src = @"
 using System;
 record struct C()
@@ -1633,11 +1696,7 @@ record struct C()
         Console.Write(c.Z);
     }
 }";
-            CreateCompilation(src).VerifyEmitDiagnostics(
-                // (3,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(3, 16)
-                );
+            CreateCompilation(src).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -2857,7 +2916,7 @@ public record struct iii
             var text = @"
 static record struct R(int I)
 {
-    R() : this(0) { }
+    public R() : this(0) { }
     ~R() { }
 }
 ";
@@ -2866,9 +2925,6 @@ static record struct R(int I)
                 // (2,22): error CS0106: The modifier 'static' is not valid for this item
                 // static record struct R(int I)
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 22),
-                // (4,5): error CS0568: Structs cannot contain explicit parameterless constructors
-                //     R() : this(0) { }
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "R").WithLocation(4, 5),
                 // (5,6): error CS0575: Only class types can contain destructors
                 //     ~R() { }
                 Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "R").WithArguments("R.~R()").WithLocation(5, 6)
@@ -2935,11 +2991,7 @@ record struct C()
     int Property { get; set; } = 42;
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3388,9 +3440,6 @@ record struct C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
-                // record struct C()
-                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16),
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),

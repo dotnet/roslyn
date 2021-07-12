@@ -1691,9 +1691,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
     <value>Conversion, equality, or inequality operators declared in interfaces must be abstract</value>
   </data>
-  <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
-    <value>Structs cannot contain explicit parameterless constructors</value>
-  </data>
   <data name="ERR_EnumsCantContainDefaultConstructor" xml:space="preserve">
     <value>Enums cannot contain explicit parameterless constructors</value>
   </data>
@@ -1708,9 +1705,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_BadTypeReference" xml:space="preserve">
     <value>'{0}': cannot reference a type through an expression; try '{1}' instead</value>
-  </data>
-  <data name="ERR_FieldInitializerInStruct" xml:space="preserve">
-    <value>'{0}': cannot have instance property or field initializers in structs</value>
   </data>
   <data name="ERR_BadDestructorName" xml:space="preserve">
     <value>Name of destructor must match name of type</value>
@@ -6597,6 +6591,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeaturePositionalFieldsInRecords" xml:space="preserve">
     <value>positional fields in records</value>
   </data>
+  <data name="IDS_FeatureParameterlessStructConstructors" xml:space="preserve">
+    <value>parameterless struct constructors</value>
+  </data>
+  <data name="IDS_FeatureStructFieldInitializers" xml:space="preserve">
+    <value>struct field initializers</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6666,6 +6666,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_GlobalUsingOutOfOrder" xml:space="preserve">
     <value>A global using directive must precede all non-global using directives.</value>
+  </data>
+  <data name="ERR_NonPublicParameterlessStructConstructor" xml:space="preserve">
+    <value>The parameterless struct constructor must be 'public'.</value>
   </data>
   <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
     <value>static abstract members in interfaces</value>
