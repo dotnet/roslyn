@@ -11,7 +11,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
@@ -34,8 +33,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
-
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public bool OpenFileOnly(OptionSet options)
             => false;

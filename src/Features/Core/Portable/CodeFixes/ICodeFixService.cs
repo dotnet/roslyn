@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal interface ICodeFixService
     {
-        Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan textSpan, bool includeSuppressionFixes, CodeActionRequestPriority priority, bool isBlocking, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(Document document, TextSpan textSpan, bool includeSuppressionFixes, bool isBlocking, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
         Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CancellationToken cancellationToken);
         Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CancellationToken cancellationToken);
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
@@ -28,6 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => service.GetFixesAsync(document, range, includeConfigurationFixes, isBlocking: false, cancellationToken);
 
         public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, bool includeConfigurationFixes, bool isBlocking, CancellationToken cancellationToken)
-            => service.GetFixesAsync(document, range, includeConfigurationFixes, CodeActionRequestPriority.None, isBlocking, addOperationScope: _ => null, cancellationToken);
+            => service.GetFixesAsync(document, range, includeConfigurationFixes, isBlocking, addOperationScope: _ => null, cancellationToken);
     }
 }

@@ -139,9 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {
             private readonly DiagnosticDescriptor _descriptor =
-                new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
-
-            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+                    new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options) => false;
 
