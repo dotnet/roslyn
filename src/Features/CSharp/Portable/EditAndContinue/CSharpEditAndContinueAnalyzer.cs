@@ -780,9 +780,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Syntax and Semantic Utils
 
-        protected override bool IsGlobalStatement(SyntaxNode node)
-            => node.IsKind(SyntaxKind.GlobalStatement);
-
         protected override TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node)
         {
             if (node is CompilationUnitSyntax unit)
@@ -1331,8 +1328,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, editKind), (oldGetterSymbol, newGetterSymbol, editKind)));
                     }
 
-                    // Inserting/deleting a type parameter constraint should result in an update of the correpsonding type parameter symbol:
+                    // Inserting/deleting a type parameter constraint should result in an update of the corresponding type parameter symbol:
                     if (node.IsKind(SyntaxKind.TypeParameterConstraintClause))
+                    {
+                        return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
+                    }
+
+                    // Inserting/deleting a global statement should result in an update of the implicit main method:
+                    if (node.IsKind(SyntaxKind.GlobalStatement))
                     {
                         return OneOrMany.Create(ImmutableArray.Create((oldSymbol, newSymbol, EditKind.Update)));
                     }
