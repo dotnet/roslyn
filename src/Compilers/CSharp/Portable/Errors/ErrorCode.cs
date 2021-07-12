@@ -1983,6 +1983,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        #region diagnostics introduced for C# 11.0
+
+        ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives = 9100,
+
+        #endregion
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

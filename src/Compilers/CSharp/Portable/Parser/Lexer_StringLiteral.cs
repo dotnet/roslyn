@@ -22,6 +22,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var quoteCharacter = TextWindow.PeekChar();
             Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
 
+            if (TextWindow.PeekChar() == '"' &&
+                TextWindow.PeekChar(1) == '"' &&
+                TextWindow.PeekChar(2) == '"')
+            {
+                ScanRawStringLiteral(ref info);
+                if (inDirective)
+                    this.AddError(ErrorCode.ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives);
+                return;
+            }
+
             TextWindow.AdvanceChar();
             _builder.Length = 0;
 
