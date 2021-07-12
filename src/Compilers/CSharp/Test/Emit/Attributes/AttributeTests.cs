@@ -5495,11 +5495,20 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
+                // (2,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Goo<int>").WithArguments("generic attributes", "10.0").WithLocation(2, 2));
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
 
         /// <summary>
@@ -5546,12 +5555,20 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source);
-
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2),
+                // (2,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Goo<int>").WithArguments("generic attributes", "10.0").WithLocation(2, 2));
+
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
+                // [Goo<int>]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
         }
 
         [WorkItem(541423, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541423")]
@@ -7109,18 +7126,65 @@ public class Test
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics(
-                // (3,16): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
+                // (3,16): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // class Gen2<T>: System.Attribute {}
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute"),
-                // (5,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 16),
+                // (5,2): error CS0616: 'Gen<T>' is not an attribute class
                 // [Gen]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen").WithArguments("Gen<T>"),
-                // (6,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(6, 2));
+        }
+
+        [Fact]
+        public void OpenGenericTypeInAttributeWithGenericAttributeFeature()
+        {
+            var source =
+@"
+class Gen<T> {}
+class Gen2<T> : System.Attribute {}
+class Gen3<T> : System.Attribute { Gen3(T parameter) { } }
+
+[Gen]
+[Gen2]
+[Gen2()]
+[Gen2<U>]
+[Gen2<System.Collections.Generic.List<U>>]
+[Gen3(1)]
+public class Test<U>
+{
+	public static int Main()
+	{
+		return 1;
+	}
+}";
+            CSharpCompilationOptions opt = TestOptions.ReleaseDll;
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+
+            compilation.VerifyDiagnostics(
+                // (6,2): error CS0616: 'Gen<T>' is not an attribute class
+                // [Gen]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(6, 2),
+                // (7,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                // [Gen2]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(7, 2),
+                // (8,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                // [Gen2()]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(8, 2),
+                // (9,2): error CS8940: 'U': an attribute type argument cannot use type parameters
+                // [Gen2<U>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<U>").WithArguments("U").WithLocation(9, 2),
+                // (10,2): error CS8940: 'System.Collections.Generic.List<U>': an attribute type argument cannot use type parameters
+                // [Gen2<System.Collections.Generic.List<U>>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "Gen2<System.Collections.Generic.List<U>>").WithArguments("System.Collections.Generic.List<U>").WithLocation(10, 2),
+                // (11,2): error CS0305: Using the generic type 'Gen3<T>' requires 1 type arguments
+                // [Gen3(1)]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen3").WithArguments("Gen3<T>", "type", "1").WithLocation(11, 2));
         }
 
         [Fact]
@@ -7141,15 +7205,25 @@ public class Test
 	}
 }";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
+                // (2,2): error CS0616: 'Gen<T>' is not an attribute class
                 // [Gen]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen").WithArguments("Gen<T>"),
-                // (3,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(2, 2),
+                // (3,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
                 // [Gen2]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(3, 2));
+
+            comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0616: 'Gen<T>' is not an attribute class
+                // [Gen]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Gen").WithArguments("Gen<T>").WithLocation(2, 2),
+                // (3,2): error CS0305: Using the generic type 'Gen2<T>' requires 1 type arguments
+                // [Gen2]
+                Diagnostic(ErrorCode.ERR_BadArity, "Gen2").WithArguments("Gen2<T>", "type", "1").WithLocation(3, 2));
         }
 
         [WorkItem(544230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544230")]
@@ -7744,9 +7818,9 @@ class D
                 // (4,2): error CS0616: 'A' is not an attribute class
                 // [A]
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(4, 2),
-                // (5,2): error CS0404: Cannot apply attribute class 'B<U>' because it is generic
+                // (5,2): error CS0616: 'B<U>' is not an attribute class
                 // [B]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<U>").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "B").WithArguments("B<U>").WithLocation(5, 2),
                 // (6,2): error CS0305: Using the generic type 'C<U>' requires 1 type arguments
                 // [C]
                 Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<U>", "type", "1").WithLocation(6, 2));
@@ -7995,16 +8069,16 @@ public class IA
             var source = @"
 using System;
 
-[A<>]
-[A<int>]
-[B]
-[B<>]
-[B<int>]
-[C]
-[C<>]
-[C<int>]
-[C<,>]
-[C<int, int>]
+[A<>] // 1, 2
+[A<int>] // 3, 4
+[B] // 5
+[B<>] // 6, 7
+[B<int>] // 8
+[C] // 9
+[C<>] // 10, 11
+[C<int>] // 12, 13
+[C<,>] // 14, 15
+[C<int, int>] // 16
 class Test
 {
 }
@@ -8013,58 +8087,98 @@ public class A : Attribute
 {
 }
 
-public class B<T> : Attribute
+public class B<T> : Attribute // 17
 {
 }
 
-public class C<T, U> : Attribute
+public class C<T, U> : Attribute // 18
 {
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-
-                // NOTE: Dev11 reports ERR_AttributeCantBeGeneric for these, but this makes more sense.
-
                 // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<>]
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type"),
+                // [A<>] // 1, 2
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
+                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [A<>] // 1, 2
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
                 // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                // [A<int>]
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type"),
+                // [A<int>] // 3, 4
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [A<int>] // 3, 4
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
+                // [B] // 5
+                Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
+                // (7,2): error CS7003: Unexpected use of an unbound generic name
+                // [B<>] // 6, 7
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
+                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [B<>] // 6, 7
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<>").WithArguments("generic attributes", "10.0").WithLocation(7, 2),
+                // (8,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [B<int>] // 8
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "B<int>").WithArguments("generic attributes", "10.0").WithLocation(8, 2),
+                // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C] // 9
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
+                // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<>] // 10, 11
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
+                // (10,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<>] // 10, 11
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(10, 2),
+                // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<int>] // 12, 13
+                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
+                // (11,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<int>] // 12, 13
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int>").WithArguments("generic attributes", "10.0").WithLocation(11, 2),
+                // (12,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2),
+                // (12,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<,>").WithArguments("generic attributes", "10.0").WithLocation(12, 2),
+                // (13,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<int, int>] // 16
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<int, int>").WithArguments("generic attributes", "10.0").WithLocation(13, 2),
+                // (22,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class B<T> : Attribute // 17
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(22, 21),
+                // (26,24): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class C<T, U> : Attribute // 18
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(26, 24));
 
-                // (6,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
-                // [B]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B").WithArguments("B<T>"),
-                // (7,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
-                // [B<>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B<>").WithArguments("B<T>"),
-                // (8,2): error CS0404: Cannot apply attribute class 'B<T>' because it is generic
-                // [B<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "B<int>").WithArguments("B<T>"),
-                // (9,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
-                // [C]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C").WithArguments("C<T, U>"),
-                // (10,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
-                // [C<>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<>").WithArguments("C<T, U>"),
-                // (11,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
-                // [C<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<int>").WithArguments("C<T, U>"),
-                // (12,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
-                // [C<,>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<,>").WithArguments("C<T, U>"),
-                // (13,2): error CS0404: Cannot apply attribute class 'C<T, U>' because it is generic
-                // [C<int, int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "C<int, int>").WithArguments("C<T, U>"),
-
-                // (22,21): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // public class B<T> : Attribute
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"),
-                // (26,24): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // public class C<T, U> : Attribute
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<>] // 1, 2
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(4, 2),
+                // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
+                // [A<int>] // 3, 4
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(5, 2),
+                // (6,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
+                // [B] // 5
+                Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(6, 2),
+                // (7,2): error CS7003: Unexpected use of an unbound generic name
+                // [B<>] // 6, 7
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(7, 2),
+                // (9,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C] // 9
+                Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(9, 2),
+                // (10,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<>] // 10, 11
+                Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(10, 2),
+                // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
+                // [C<int>] // 12, 13
+                Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
+                // (12,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<,>] // 14, 15
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
@@ -8087,21 +8201,35 @@ public class C<T> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
-                // [Alias]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>"),
-                // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
-                // [Alias<>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>"),
-                // (7,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
-                // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"),
-
-                // (12,21): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
+                // (12,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // public class C<T> : Attribute
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Attribute").WithArguments("generic attributes", "10.0").WithLocation(12, 21),
+                // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
+                // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2),
+                // (7,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(7, 2));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(6, 2),
+                // (7,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(7, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
@@ -8135,17 +8263,34 @@ class Test
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
+                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [Alias]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias").WithArguments("C<int>"),
-                // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<>").WithArguments("C<int>"),
-                // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>"));
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [Alias<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "Alias<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+
+            // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
+            // attribute at emit-time.
+            comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                    // [Alias<>]
+                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<>").WithArguments("Alias", "using alias").WithLocation(5, 2),
+                    // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
+                    // [Alias<int>]
+                    Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Alias<int>").WithArguments("Alias", "using alias").WithLocation(6, 2));
         }
 
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
@@ -8167,21 +8312,87 @@ class Test
 
 public class Outer<T>
 {
-    // Not a subtype of Attribute, since that wouldn't compile.
     public class Inner 
     {
     }
 }
 ";
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-            // (5,2): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
-            // [InnerAlias]
-            Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "InnerAlias").WithArguments("Outer<int>.Inner"),
-            // (8,17): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
-            //     [OuterAlias.Inner]
-            Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
+                // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                // [InnerAlias]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [InnerAlias]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "InnerAlias").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                //     [OuterAlias.Inner]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17),
+                // (8,6): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     [OuterAlias.Inner]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "OuterAlias.Inner").WithArguments("generic attributes", "10.0").WithLocation(8, 6));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    // [InnerAlias]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
+                    // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    //     [OuterAlias.Inner]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17));
+        }
+
+        [Fact]
+        public void NestedWithGenericAttributeFeature()
+        {
+            var source = @"
+[Outer<int>.Inner]
+class Test
+{
+    [Outer<int>.Inner]
+    static void Main()
+    {
+    }
+}
+
+public class Outer<T>
+{
+    public class Inner : System.Attribute
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AliasedGenericAttributeType_NestedWithGenericAttributeFeature_IsAttribute()
+        {
+            var source = @"
+using InnerAlias = Outer<int>.Inner;
+using OuterAlias = Outer<int>;
+
+[InnerAlias]
+class Test
+{
+    [OuterAlias.Inner]
+    static void Main()
+    {
+    }
+}
+
+public class Outer<T>
+{
+    public class Inner : System.Attribute
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(687816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687816")]
@@ -9202,6 +9413,589 @@ namespace System.Runtime.InteropServices
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
             );
         }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage()
+        {
+            var lib_cs = @"
+public class A<T> : System.Attribute {}
+public class A : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_2()
+        {
+            var source = @"
+class A<T> : System.Attribute {}
+class A : System.Attribute {}
+
+[A]
+public class C
+{
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 14)
+                );
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_3()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class AAttribute : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_4()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+public class A : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_5()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+public class AAttribute : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void MetadataForUsingGenericAttribute()
+        {
+            var source = @"
+public class A<T> : System.Attribute {}
+public class C
+{
+    [A<int>]
+    public void M() { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = (MethodSymbol)module.ContainingAssembly.GlobalNamespace.GetMember("C.M");
+                var attribute = m.GetAttributes().Single();
+                Assert.Equal("A<System.Int32>", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Equal("A<System.Int32>..ctor()", attribute.AttributeConstructor.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void AmbiguityWithGenericAttribute()
+        {
+            var source = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+
+[A<int>]
+public class C
+{
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class AAttribute<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 30),
+                // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2));
+        }
+
+        [Fact, WorkItem(54772, "https://github.com/dotnet/roslyn/issues/54772")]
+        public void ResolveAmbiguityWithGenericAttribute()
+        {
+            var source = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+
+[@A<int>]
+[AAttribute<int>]
+public class C
+{
+}";
+            // This behavior is incorrect. No ambiguity errors should be reported in the above program.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class AAttribute<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 30),
+                // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "@A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [AAttribute<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "AAttribute<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+        }
+
+        [Fact]
+        public void InheritGenericAttribute()
+        {
+            var source1 = @"
+public class C<T> : System.Attribute { }
+public class D : C<int> { }
+";
+
+            var source2 = @"
+[D]
+public class Program { }
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 21));
+
+            var comp1 = CreateCompilation(source1);
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
+            comp2.VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: new[] { comp1.EmitToImageReference() }, parseOptions: TestOptions.Regular9);
+            comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritGenericAttributeInMetadata()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C`1<T>
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit D
+        extends class C`1<int32>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+        ldarg.0
+        call        instance void class C`1<int32>::.ctor()
+        ret
+    }
+}
+";
+
+            var source = @"
+[D]
+public class Program { }
+";
+            // Note that this behavior predates the "generic attributes" feature in C# 10.
+            // If a type deriving from a generic attribute is found in metadata, it's permitted to be used as an attribute in C# 9 and below.
+            var comp = CreateCompilationWithIL(source, il, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilationWithIL(source, il);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritAttribute_BaseInsideGeneric()
+        {
+            var source1 = @"
+public class C<T>
+{
+    public class Inner : System.Attribute { }
+}
+public class D : C<int>.Inner { }
+";
+
+            var source2 = @"
+[D]
+public class Program { }
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,26): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public class Inner : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(4, 26));
+
+            var comp1 = CreateCompilation(source1);
+            var comp2 = CreateCompilation(source2, references: new[] { comp1.ToMetadataReference() }, parseOptions: TestOptions.Regular9);
+            comp2.VerifyDiagnostics();
+
+            comp2 = CreateCompilation(source2, references: new[] { comp1.EmitToImageReference() }, parseOptions: TestOptions.Regular9);
+            comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttribute_Constraints()
+        {
+            var source = @"
+public class C<T> : System.Attribute where T : struct { }
+
+[C<object>] // 1
+[C<int>]
+public class Program { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,4): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C<T>'
+                // [C<object>] // 1
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "object").WithArguments("C<T>", "T", "object").WithLocation(4, 4));
+        }
+
+        [Fact]
+        public void GenericAttribute_ErrorTypeArg()
+        {
+            var source = @"
+public class C<T> : System.Attribute { }
+
+[C<ERROR>]
+[C<System>]
+[C<>]
+public class Program { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 21),
+                // (4,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<ERROR>").WithArguments("generic attributes", "10.0").WithLocation(4, 2),
+                // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<System>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (5,4): error CS0118: 'System' is a namespace but is used like a type
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
+                // (6,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "C<>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,4): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // [C<ERROR>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(4, 4),
+                // (5,4): error CS0118: 'System' is a namespace but is used like a type
+                // [C<System>]
+                Diagnostic(ErrorCode.ERR_BadSKknown, "System").WithArguments("System", "namespace", "type").WithLocation(5, 4),
+                // (6,2): error CS7003: Unexpected use of an unbound generic name
+                // [C<>]
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_Reflection_CoreClr()
+        {
+            var source = @"
+using System;
+
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+public class Program {
+    public static void Main() {
+        var attr = Attribute.GetCustomAttribute(typeof(Program), typeof(Attr<int>));
+        Console.Write(attr);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.Int32]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_AllowMultiple_False()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+[Attr<object>]
+[Attr<int>] // 1
+public class C {
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,2): error CS0579: Duplicate 'Attr<>' attribute
+                // [Attr<int>] // 1
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<int>").WithArguments("Attr<>").WithLocation(9, 2));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_AllowMultiple_True()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+[Attr<object>]
+[Attr<int>]
+public class Program {
+    static void Main() {
+        var attrs = Attribute.GetCustomAttributes(typeof(Program));
+        foreach (var attr in attrs)
+        {
+            Console.Write(attr);
+            Console.Write(' ');
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.Int32] Attr`1[System.Object] Attr`1[System.Int32]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttributeInvalidMultipleFromMetadata()
+        {
+            // This IL includes an attribute with `AllowMultiple = false` (the default).
+            // Then the class `D` includes two copies of the attribute.
+            var il = @"
+.class public auto ansi beforefieldinit C`1<T>
+       extends [mscorlib]System.Attribute
+{
+  // [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+  .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+    01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+    4d 75 6c 74 69 70 6c 65 00
+  )
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit D
+{
+    .custom instance void class C`1<int32>::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void class C`1<int32>::.ctor() = (
+        01 00 00 00
+    )
+
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+        ldarg.0
+        call        instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+";
+
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var attrs = Attribute.GetCustomAttributes(typeof(D));
+        foreach (var attr in attrs)
+        {
+            Console.Write(attr);
+            Console.Write(' ');
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "C`1[System.Int32] C`1[System.Int32]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
+        public void GenericAttribute_Dynamic_01()
+        {
+            var source = @"
+using System;
+
+class Attr1 : Attribute
+{
+    public Attr1(Type t) { }
+}
+
+class Attr2<T> : Attribute { }
+
+[Attr1(typeof(dynamic))]
+[Attr2<dynamic>]
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,8): error CS1962: The typeof operator cannot be used on the dynamic type
+                // [Attr1(typeof(dynamic))]
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(11, 8));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var attrs = cClass.GetAttributes();
+            Assert.Equal(
+                new[] { "Attr1(typeof(dynamic))", "Attr2<dynamic>" },
+                GetAttributeStrings(attrs));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
+        public void GenericAttribute_Dynamic_02()
+        {
+            var source = @"
+using System;
+
+var attr = Attribute.GetCustomAttribute(typeof(C), typeof(Attr<object>));
+Console.Write(attr);
+
+class Attr<T> : Attribute { }
+
+[Attr<dynamic>]
+class C { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: validate, expectedOutput: "Attr`1[System.Object]");
+            verifier.VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var attrs = cClass.GetAttributes();
+                Assert.Equal(
+                    new[] { "Attr<System.Object>" },
+                    GetAttributeStrings(attrs)
+                );
+            }
+        }
+
         #endregion
     }
 }
