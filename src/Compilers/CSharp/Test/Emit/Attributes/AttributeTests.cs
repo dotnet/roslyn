@@ -9870,6 +9870,130 @@ public class Program {
             verifier.VerifyDiagnostics();
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttributeInvalidMultipleFromMetadata()
+        {
+            // This IL includes an attribute with `AllowMultiple = false` (the default).
+            // Then the class `D` includes two copies of the attribute.
+            var il = @"
+.class public auto ansi beforefieldinit C`1<T>
+       extends [mscorlib]System.Attribute
+{
+  // [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+  .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+    01 00 ff 7f 00 00 01 00 54 02 0d 41 6c 6c 6f 77
+    4d 75 6c 74 69 70 6c 65 00
+  )
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Attribute::.ctor()
+    ret
+  }
+}
+
+.class public auto ansi beforefieldinit D
+{
+    .custom instance void class C`1<int32>::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void class C`1<int32>::.ctor() = (
+        01 00 00 00
+    )
+
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+        ldarg.0
+        call        instance void [mscorlib]System.Attribute::.ctor()
+        ret
+    }
+}
+";
+
+            var source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var attrs = Attribute.GetCustomAttributes(typeof(D));
+        foreach (var attr in attrs)
+        {
+            Console.Write(attr);
+            Console.Write(' ');
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "C`1[System.Int32] C`1[System.Int32]");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GenericAttribute_Dynamic_01()
+        {
+            var source = @"
+using System;
+
+class Attr1 : Attribute
+{
+    public Attr1(Type t) { }
+}
+
+class Attr2<T> : Attribute { }
+
+[Attr1(typeof(dynamic))]
+[Attr2<dynamic>]
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,8): error CS1962: The typeof operator cannot be used on the dynamic type
+                // [Attr1(typeof(dynamic))]
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(11, 8));
+
+            var cClass = comp.GetMember<NamedTypeSymbol>("C");
+            var attrs = cClass.GetAttributes();
+            Assert.Equal(
+                new[] { "Attr1(typeof(dynamic))", "Attr2<dynamic>" },
+                GetAttributeStrings(attrs));
+        }
+
+        [Fact]
+        public void GenericAttribute_Dynamic_02()
+        {
+            var source = @"
+using System;
+
+var attr = Attribute.GetCustomAttribute(typeof(C), typeof(Attr<object>));
+Console.Write(attr);
+
+class Attr<T> : Attribute { }
+
+[Attr<dynamic>]
+class C { }
+";
+            var verifier = CompileAndVerify(source, symbolValidator: validate, expectedOutput: "Attr`1[System.Object]");
+            verifier.VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var attrs = cClass.GetAttributes();
+                Assert.Equal(
+                    new[] { "Attr<System.Object>" },
+                    GetAttributeStrings(attrs)
+                );
+            }
+        }
+
         #endregion
     }
 }
