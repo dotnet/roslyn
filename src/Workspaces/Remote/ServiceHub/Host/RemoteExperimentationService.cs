@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote.Services
             if (isEnabledValueTask.IsCompleted)
                 return isEnabledValueTask.Result;
 
-            isEnabledValueTask.Preserve();
+            isEnabledValueTask.Forget();
             return false;
         }
     }
