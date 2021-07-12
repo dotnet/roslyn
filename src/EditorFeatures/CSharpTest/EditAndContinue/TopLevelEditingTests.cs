@@ -1196,22 +1196,28 @@ class C
         }
 
         [Fact]
-        public void Type_BaseInterface_Update2()
+        public void Type_BaseInterface_Delete_Inherited()
         {
-            var src1 = "class C : IGoo, IBar { }";
-            var src2 = "class C : IGoo { }";
+            var src1 = @"
+interface B {}
+interface A : B {}
+
+class C : A, B {}
+";
+            var src2 = @"
+interface B {}
+interface A : B {}
+
+class C : A {}
+";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits(
-                "Update [class C : IGoo, IBar { }]@0 -> [class C : IGoo { }]@0");
-
-            edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
+            edits.VerifySemantics();
         }
 
         [Fact]
-        public void Type_BaseInterface_Update3()
+        public void Type_BaseInterface_Reorder()
         {
             var src1 = "class C : IGoo, IBar { }";
             var src2 = "class C : IBar, IGoo { }";
@@ -11597,7 +11603,7 @@ class C
         }
 
         [Fact]
-        public void EventField_Reorder()
+        public void Field_Event_Reorder()
         {
             var src1 = "class C { int a = 0; int b = 1; event int c = 2; }";
             var src2 = "class C { event int c = 2; int a = 0; int b = 1; }";
@@ -11612,7 +11618,7 @@ class C
         }
 
         [Fact]
-        public void EventField_Partial_InsertDelete()
+        public void Field_Event_Partial_InsertDelete()
         {
             var srcA1 = "partial class C { }";
             var srcB1 = "partial class C { event int E = 2; }";

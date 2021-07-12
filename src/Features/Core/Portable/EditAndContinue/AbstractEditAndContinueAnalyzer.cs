@@ -2407,7 +2407,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         protected static bool BaseTypesEquivalent(INamedTypeSymbol oldType, INamedTypeSymbol newType, bool exact)
             => TypesEquivalent(oldType.BaseType, newType.BaseType, exact) &&
-               oldType.Interfaces.SequenceEqual(newType.Interfaces, exact, (x, y, exact) => TypesEquivalent(x, y, exact));
+               oldType.AllInterfaces.SequenceEqual(newType.AllInterfaces, exact, (x, y, exact) => TypesEquivalent(x, y, exact));
 
         protected static bool MemberSignaturesEquivalent(
             ISymbol? oldMember,
