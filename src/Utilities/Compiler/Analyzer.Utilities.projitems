@@ -116,8 +116,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SymbolVisibilityGroup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\CompilationCategorizedAnalyzerConfigOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledSortedSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Range.cs" />

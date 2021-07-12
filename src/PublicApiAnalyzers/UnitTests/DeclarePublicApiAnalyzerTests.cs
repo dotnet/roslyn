@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
-        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string? editorConfigText, params DiagnosticResult[] expected)
+        private async Task VerifyCSharpAsync(string source, string? shippedApiText, string? unshippedApiText, string editorConfigText, params DiagnosticResult[] expected)
         {
             var test = new CSharpCodeFixVerifier<DeclarePublicApiAnalyzer, DeclarePublicApiFix>.Test
             {
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 {
                     Sources = { source },
                     AdditionalFiles = { },
+                    AnalyzerConfigFiles = { ("/.editorconfig", editorConfigText) },
                 },
-                AnalyzerConfigDocument = editorConfigText,
             };
 
             if (shippedApiText != null)
@@ -223,12 +223,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(null)]
         [InlineData("")]
         [InlineData("dotnet_public_api_analyzer.require_api_files = false")]
         [InlineData("dotnet_public_api_analyzer.require_api_files = true")]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both(string? editorconfigText)
+        public async Task AnalyzerFileMissing_Both(string editorconfigText)
         {
             var source = @"
 public class C
@@ -241,13 +240,12 @@ public class C
             string? unshippedText = null;
 
             var expectedDiagnostics = Array.Empty<DiagnosticResult>();
-            if (editorconfigText == null ||
-                !editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
+            if (!editorconfigText.EndsWith("true", StringComparison.OrdinalIgnoreCase))
             {
                 expectedDiagnostics = new[] { GetCSharpResultAt(2, 14, DeclarePublicApiAnalyzer.DeclareNewApiRule, "C") };
             }
 
-            await VerifyCSharpAsync(source, shippedText, unshippedText, editorconfigText, expectedDiagnostics);
+            await VerifyCSharpAsync(source, shippedText, unshippedText, $"[*]\r\n{editorconfigText}", expectedDiagnostics);
         }
 
         [Fact]
@@ -761,6 +759,112 @@ C.Property.get -> int";
 #pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments("C.Property.get -> int");
             await VerifyCSharpAsync(source, shippedText, unshippedText, expected);
+        }
+
+        [Fact]
+        [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
+        public async Task DuplicateObliviousSymbolsInSameApiFile()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.Field -> int
+C.Property.set -> void
+~C.Property.get -> int
+{|RS0025:~C.Property.get -> int|}
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
+        public async Task DuplicateSymbolUsingObliviousInSameApiFiles()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+{|RS0025:~C.Property.get -> int|}
+";
+
+            var unshippedText = @"";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
+        public async Task DuplicateSymbolUsingObliviousInDifferentApiFiles()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.Field -> int
+~C.Property.get -> int
+C.Property.set -> void
+";
+
+            var unshippedText = @"#nullable enable
+{|RS0025:C.Property.get -> int|}";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
+        public async Task MultipleDuplicateSymbolsUsingObliviousInDifferentApiFiles()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+}
+";
+
+            var shippedText = @"#nullable enable
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+";
+
+            var unshippedText = @"#nullable enable
+{|RS0025:~C.Property.get -> int|}
+{|RS0025:C.Property.get -> int|}
+{|RS0025:~C.Property.set -> void|}";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText);
         }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]

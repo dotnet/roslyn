@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if CODEANALYSIS_V3_OR_BETTER
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+#endif
+
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Analyzer.Utilities.Extensions
 {
@@ -18,8 +20,34 @@ namespace Analyzer.Utilities.Extensions
         private static readonly byte[] mscorlibPublicKeyToken = new byte[]
             { 0xB7, 0x7A, 0x5C, 0x56, 0x19, 0x34, 0xE0, 0x89 };
 
+#if CODEANALYSIS_V3_OR_BETTER
         private const string WebAppProjectGuidString = "{349C5851-65DF-11DA-9384-00065B846F21}";
         private const string WebSiteProjectGuidString = "{E24C65DC-7377-472B-9ABA-BC803B73C61A}";
+
+        /// <summary>
+        /// Gets a value indicating whether the project of the compilation is a Web SDK project based on project properties.
+        /// </summary>
+        internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options)
+        {
+            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation);
+            if (string.Equals(propertyValue?.Trim(), "true", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.ProjectTypeGuids, compilation);
+            if (!RoslynString.IsNullOrEmpty(propertyValue) &&
+                (propertyValue.Contains(WebAppProjectGuidString, StringComparison.OrdinalIgnoreCase) ||
+                 propertyValue.Contains(WebSiteProjectGuidString, StringComparison.OrdinalIgnoreCase)))
+            {
+                var guids = propertyValue.Split(';').Select(g => g.Trim()).ToImmutableArray();
+                return guids.Contains(WebAppProjectGuidString, StringComparer.OrdinalIgnoreCase) ||
+                    guids.Contains(WebSiteProjectGuidString, StringComparer.OrdinalIgnoreCase);
+            }
+
+            return false;
+        }
+#endif
 
         /// <summary>
         /// Gets a type by its full type name and cache it at the compilation level.
@@ -63,30 +91,6 @@ namespace Analyzer.Utilities.Extensions
                 }
 
                 return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the project of the compilation is a Web SDK project based on project properties.
-        /// </summary>
-        internal static bool IsWebProject(this Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
-        {
-            var propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.UsingMicrosoftNETSdkWeb, compilation, cancellationToken);
-            if (string.Equals(propertyValue?.Trim(), "true", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            propertyValue = options.GetMSBuildPropertyValue(MSBuildPropertyOptionNames.ProjectTypeGuids, compilation, cancellationToken);
-            if (!RoslynString.IsNullOrEmpty(propertyValue) &&
-                (propertyValue.Contains(WebAppProjectGuidString, StringComparison.OrdinalIgnoreCase) ||
-                 propertyValue.Contains(WebSiteProjectGuidString, StringComparison.OrdinalIgnoreCase)))
-            {
-                var guids = propertyValue.Split(';').Select(g => g.Trim()).ToImmutableArray();
-                return guids.Contains(WebAppProjectGuidString, StringComparer.OrdinalIgnoreCase) ||
-                    guids.Contains(WebSiteProjectGuidString, StringComparer.OrdinalIgnoreCase);
             }
 
             return false;

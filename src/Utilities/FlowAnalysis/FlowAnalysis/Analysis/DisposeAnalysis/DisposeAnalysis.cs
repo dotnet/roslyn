@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
-            CancellationToken cancellationToken,
             out PointsToAnalysisResult? pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool performCopyAnalysisIfNotUserConfigured = false,
@@ -55,21 +53,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 throw new ArgumentNullException(nameof(cfg));
             }
 
-            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, wellKnownTypeProvider.Compilation, cancellationToken));
+            Debug.Assert(!analyzerOptions.IsConfiguredToSkipAnalysis(rule, owningSymbol, wellKnownTypeProvider.Compilation));
 
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind, cancellationToken);
+                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, interproceduralAnalysisKind);
             var disposeOwnershipTransferAtConstructor = analyzerOptions.GetDisposeOwnershipTransferAtConstructorOption(
-                rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: defaultDisposeOwnershipTransferAtConstructor, cancellationToken);
+                rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: defaultDisposeOwnershipTransferAtConstructor);
             var disposeOwnershipTransferAtMethodCall = analyzerOptions.GetDisposeOwnershipTransferAtMethodCall(
-                rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: defaultDisposeOwnershipTransferAtMethodCall, cancellationToken);
+                rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: defaultDisposeOwnershipTransferAtMethodCall);
             return TryGetOrComputeResult(cfg, owningSymbol, analyzerOptions, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicate,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor,
                 disposeOwnershipTransferAtMethodCall, trackInstanceFields, exceptionPathsAnalysis,
-                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind, cancellationToken),
-                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
-                isConfiguredToSkipAnalysis: (ISymbol symbol) => analyzerOptions.IsConfiguredToSkipAnalysis(rule, symbol, owningSymbol, wellKnownTypeProvider.Compilation, cancellationToken),
+                pointsToAnalysisKind: analyzerOptions.GetPointsToAnalysisKindOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultPointsToAnalysisKind),
+                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation, defaultValue: performCopyAnalysisIfNotUserConfigured),
+                isConfiguredToSkipAnalysis: (ISymbol symbol) => analyzerOptions.IsConfiguredToSkipAnalysis(rule, symbol, owningSymbol, wellKnownTypeProvider.Compilation),
                 out pointsToAnalysisResult);
         }
 

@@ -83,14 +83,12 @@ namespace Analyzer.Utilities
         public const string NewtonsoftJsonJsonSerializerSettings = "Newtonsoft.Json.JsonSerializerSettings";
         public const string NewtonsoftJsonTypeNameHandling = "Newtonsoft.Json.TypeNameHandling";
         public const string NUnitFrameworkAssert = "NUnit.Framework.Assert";
+        public const string NUnitFrameworkInterfacesITestBuilder = "NUnit.Framework.Interfaces.ITestBuilder";
         public const string NUnitFrameworkOneTimeSetUpAttribute = "NUnit.Framework.OneTimeSetUpAttribute";
         public const string NUnitFrameworkOneTimeTearDownAttribute = "NUnit.Framework.OneTimeTearDownAttribute";
         public const string NUnitFrameworkSetUpAttribute = "NUnit.Framework.SetUpAttribute";
         public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
         public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
-        public const string NUnitFrameworkTestCaseAttribute = "NUnit.Framework.TestCaseAttribute";
-        public const string NUnitFrameworkTestCaseSourceAttribute = "NUnit.Framework.TestCaseSourceAttribute";
-        public const string NUnitFrameworkTheoryAttribute = "NUnit.Framework.TheoryAttribute";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
         public const string SystemActivator = "System.Activator";
         public const string SystemAppContext = "System.AppContext";
@@ -266,6 +264,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeCompilerServicesINotifyCompletion = "System.Runtime.CompilerServices.INotifyCompletion";
         public const string SystemRuntimeCompilerServicesInternalsVisibleToAttribute = "System.Runtime.CompilerServices.InternalsVisibleToAttribute";
         public const string SystemRuntimeCompilerServicesRestrictedInternalsVisibleToAttribute = "System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute";
+        public const string SystemRuntimeCompilerServicesRuntimeFeatureVirtualStaticsInInterfaces = "System.Runtime.CompilerServices.RuntimeFeature.VirtualStaticsInInterfaces";
         public const string SystemRuntimeCompilerServicesTypeForwardedToAttribute = "System.Runtime.CompilerServices.TypeForwardedToAttribute";
         public const string SystemRuntimeExceptionServicesHandleProcessCorruptedStateExceptionsAttribute = "System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute";
         public const string SystemRuntimeInteropServicesCharSet = "System.Runtime.InteropServices.CharSet";
@@ -302,6 +301,7 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnSerializingAttribute = "System.Runtime.Serialization.OnSerializingAttribute";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemRuntimeSerializationStreamingContext = "System.Runtime.Serialization.StreamingContext";
+        public const string SystemRuntimeVersioningRequiresPreviewFeaturesAttribute = "System.Runtime.Versioning.RequiresPreviewFeaturesAttribute";
         public const string SystemRuntimeVersioningSupportedOSPlatformAttribute = "System.Runtime.Versioning.SupportedOSPlatformAttribute";
         public const string SystemRuntimeVersioningUnsupportedOSPlatformAttribute = "System.Runtime.Versioning.UnsupportedOSPlatformAttribute";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
