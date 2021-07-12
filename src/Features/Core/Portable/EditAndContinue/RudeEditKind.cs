@@ -120,14 +120,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ImplementRecordParameterAsReadOnly = 92,
         ImplementRecordParameterWithSet = 93,
-        AddRecordPositionalParameter = 94,
-        DeleteRecordPositionalParameter = 95,
+        //AddRecordPositionalParameter = 94,
+        //DeleteRecordPositionalParameter = 95,
         ExplicitRecordMethodParameterNamesMustMatch = 96,
 
         NotSupportedByRuntime = 97,
         MakeMethodAsync = 98,
         MakeMethodIterator = 99,
         InsertNotSupportedByRuntime = 100,
-        ChangingAttributesNotSupportedByRuntime = 101
+        ChangingAttributesNotSupportedByRuntime = 101,
+
+        ChangeImplicitMainReturnType = 102,
+        ChangingParameterTypes = 103,
+        ChangingReturnType = 104,
+        ChangingTypeParameters = 105,
     }
 }

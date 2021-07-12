@@ -49,11 +49,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
-                RudeEditKind.AddRecordPositionalParameter,
-                RudeEditKind.DeleteRecordPositionalParameter,
                 RudeEditKind.NotSupportedByRuntime,
                 RudeEditKind.MakeMethodAsync,
-                RudeEditKind.MakeMethodIterator
+                RudeEditKind.MakeMethodIterator,
+                RudeEditKind.ChangeImplicitMainReturnType
             };
 
             var arg2 = new HashSet<RudeEditKind>()
