@@ -1467,14 +1467,13 @@ class Program
     }
 }";
 
-            // PROTOTYPE: S1..ctor() is not being called.
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"0
-0
+1
 2");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      101 (0x65)
+  // Code size      111 (0x6f)
   .maxstack  2
   IL_0000:  ldtoken    ""S0""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -1482,21 +1481,23 @@ class Program
   IL_000f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
   IL_0014:  call       ""System.Linq.Expressions.Expression<System.Func<S0>> System.Linq.Expressions.Expression.Lambda<System.Func<S0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
   IL_0019:  call       ""void Program.Report<S0>(System.Linq.Expressions.Expression<System.Func<S0>>)""
-  IL_001e:  ldtoken    ""S1""
-  IL_0023:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0028:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Type)""
-  IL_002d:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_0032:  call       ""System.Linq.Expressions.Expression<System.Func<S1>> System.Linq.Expressions.Expression.Lambda<System.Func<S1>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0037:  call       ""void Program.Report<S1>(System.Linq.Expressions.Expression<System.Func<S1>>)""
-  IL_003c:  ldtoken    ""S2..ctor()""
-  IL_0041:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
-  IL_0046:  castclass  ""System.Reflection.ConstructorInfo""
-  IL_004b:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
-  IL_0050:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
-  IL_0055:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
-  IL_005a:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_005f:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
-  IL_0064:  ret
+  IL_001e:  ldtoken    ""S1..ctor()""
+  IL_0023:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0028:  castclass  ""System.Reflection.ConstructorInfo""
+  IL_002d:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_0032:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
+  IL_0037:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_003c:  call       ""System.Linq.Expressions.Expression<System.Func<S1>> System.Linq.Expressions.Expression.Lambda<System.Func<S1>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0041:  call       ""void Program.Report<S1>(System.Linq.Expressions.Expression<System.Func<S1>>)""
+  IL_0046:  ldtoken    ""S2..ctor()""
+  IL_004b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0050:  castclass  ""System.Reflection.ConstructorInfo""
+  IL_0055:  call       ""System.Linq.Expressions.Expression[] System.Array.Empty<System.Linq.Expressions.Expression>()""
+  IL_005a:  call       ""System.Linq.Expressions.NewExpression System.Linq.Expressions.Expression.New(System.Reflection.ConstructorInfo, System.Collections.Generic.IEnumerable<System.Linq.Expressions.Expression>)""
+  IL_005f:  call       ""System.Linq.Expressions.ParameterExpression[] System.Array.Empty<System.Linq.Expressions.ParameterExpression>()""
+  IL_0064:  call       ""System.Linq.Expressions.Expression<System.Func<S2>> System.Linq.Expressions.Expression.Lambda<System.Func<S2>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0069:  call       ""void Program.Report<S2>(System.Linq.Expressions.Expression<System.Func<S2>>)""
+  IL_006e:  ret
 }");
         }
 
