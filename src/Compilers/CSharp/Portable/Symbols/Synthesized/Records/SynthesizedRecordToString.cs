@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString), F.StringLiteral(value)));
             }
+
             static BoundStatement makeAppendChar(SyntheticBoundNodeFactory F, BoundLocal builder, char value)
             {
                 return F.ExpressionStatement(F.Call(receiver: builder, F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendChar), F.CharLiteral(value)));

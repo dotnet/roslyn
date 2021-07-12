@@ -171,7 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var member = printableMembers[i];
                     var memberHeader = $"{member.Name} = ";
                     if (i > 0)
+                    {
                         memberHeader = ", " + memberHeader;
+                    }
 
                     block.Add(makeAppendString(F, builder, memberHeader));
 
