@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<MemberDeclarationSyntax> members,
             CoreInternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
-            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
+            Debug.Assert(
+                node.Kind() is SyntaxKind.NamespaceDeclaration or SyntaxKind.FileScopedNamespaceDeclaration ||
+                (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
             {
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = false;
             bool hasReturnWithExpression = false;
             GlobalStatementSyntax firstGlobalStatement = null;
+            bool hasNonEmptyGlobalSatement = false;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             foreach (var member in members)
@@ -73,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var global = (GlobalStatementSyntax)member;
                     firstGlobalStatement ??= global;
                     var topLevelStatement = global.Statement;
+
+                    if (!topLevelStatement.IsKind(SyntaxKind.EmptyStatement))
+                    {
+                        hasNonEmptyGlobalSatement = true;
+                    }
 
                     if (!hasAwaitExpressions)
                     {
@@ -98,7 +106,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // wrap all global statements in a compilation unit into a simple program type:
             if (firstGlobalStatement is object)
             {
-                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression));
+                var diagnostics = ImmutableArray<Diagnostic>.Empty;
+
+                if (!hasNonEmptyGlobalSatement)
+                {
+                    var bag = DiagnosticBag.GetInstance();
+                    bag.Add(ErrorCode.ERR_SimpleProgramIsEmpty, ((EmptyStatementSyntax)firstGlobalStatement.Statement).SemicolonToken.GetLocation());
+                    diagnostics = bag.ToReadOnlyAndFree();
+                }
+
+                childrenBuilder.Add(CreateSimpleProgram(firstGlobalStatement, hasAwaitExpressions, isIterator, hasReturnWithExpression, diagnostics));
             }
 
             // wrap all members that are defined in a namespace or compilation unit into an implicit type:
@@ -130,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: ImmutableArray<Diagnostic>.Empty);
         }
 
-        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression)
+        private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.SimpleProgram,
@@ -144,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: ImmutableArray<Diagnostic>.Empty);
+                diagnostics: diagnostics);
         }
 
         /// <summary>
@@ -295,9 +312,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics: diagnostics.ToReadOnlyAndFree());
         }
 
+        public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+            => this.VisitBaseNamespaceDeclaration(node);
+
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+            => this.VisitBaseNamespaceDeclaration(node);
+
+        private SingleNamespaceDeclaration VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax node)
         {
-            var children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
+            var children = VisitNamespaceChildren(node, node.Members, ((Syntax.InternalSyntax.BaseNamespaceDeclarationSyntax)node.Green).Members);
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
@@ -323,6 +346,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
+
+            if (node is FileScopedNamespaceDeclarationSyntax)
+            {
+                if (node.Parent is FileScopedNamespaceDeclarationSyntax)
+                {
+                    // Happens when user writes:
+                    //      namespace A.B;
+                    //      namespace X.Y;
+                    diagnostics.Add(ErrorCode.ERR_MultipleFileScopedNamespace, node.Name.GetLocation());
+                }
+                else if (node.Parent is NamespaceDeclarationSyntax)
+                {
+                    // Happens with:
+                    //
+                    //      namespace A.B
+                    //      {
+                    //          namespace X.Y;
+                    diagnostics.Add(ErrorCode.ERR_FileScopedAndNormalNamespace, node.Name.GetLocation());
+                }
+                else
+                {
+                    // Happens with cases like:
+                    //
+                    //      namespace A.B { }
+                    //      namespace X.Y;
+                    //
+                    // or even
+                    //
+                    //      class C { }
+                    //      namespace X.Y;
+
+                    Debug.Assert(node.Parent is CompilationUnitSyntax);
+                    var compilationUnit = (CompilationUnitSyntax)node.Parent;
+                    if (node != compilationUnit.Members[0])
+                    {
+                        diagnostics.Add(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, node.Name.GetLocation());
+                    }
+                }
+            }
+            else
+            {
+                Debug.Assert(node is NamespaceDeclarationSyntax);
+
+                //      namespace X.Y;
+                //      namespace A.B { }
+                if (node.Parent is FileScopedNamespaceDeclarationSyntax)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileScopedAndNormalNamespace, node.Name.GetLocation());
+                }
+            }
+
             if (ContainsGeneric(node.Name))
             {
                 // We're not allowed to have generics.

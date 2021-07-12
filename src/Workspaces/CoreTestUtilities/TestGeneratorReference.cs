@@ -34,7 +34,7 @@ namespace Roslyn.Test.Utilities
         }
 
         public TestGeneratorReference(IIncrementalGenerator generator)
-            : this(GeneratorDriver.WrapGenerator(generator))
+            : this(generator.AsSourceGenerator())
         {
         }
 

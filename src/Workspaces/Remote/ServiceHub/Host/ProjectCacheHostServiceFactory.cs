@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Remote
     [Shared]
     internal partial class ProjectCacheHostServiceFactory : IWorkspaceServiceFactory
     {
-        private const int ImplicitCacheTimeoutInMS = 10000;
+        private static readonly TimeSpan s_implicitCacheTimeout = TimeSpan.FromMilliseconds(10000);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new ProjectCacheService(workspaceServices.Workspace, ImplicitCacheTimeoutInMS);
+            => new ProjectCacheService(workspaceServices.Workspace, s_implicitCacheTimeout);
     }
 }

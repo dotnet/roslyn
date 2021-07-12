@@ -481,6 +481,19 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? FirstOrDefault<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var val in array)
+            {
+                if (predicate(val, arg))
+                {
+                    return val;
+                }
+            }
+
+            return default;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
@@ -544,6 +557,16 @@ namespace Microsoft.CodeAnalysis
         {
             return array.IsDefault ? ImmutableArray<T>.Empty : array;
         }
+
+        /// <summary>
+        /// Returns an empty array if the input nullable value type is null or the underlying array is null (default)
+        /// </summary>
+        public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T>? array)
+            => array switch
+            {
+                null or { IsDefault: true } => ImmutableArray<T>.Empty,
+                { } underlying => underlying
+            };
 
         /// <summary>
         /// Returns an array of distinct elements, preserving the order in the original array.
@@ -651,6 +674,17 @@ namespace Microsoft.CodeAnalysis
             builder.AddRange(second);
             builder.AddRange(third);
             builder.AddRange(fourth);
+            return builder.ToImmutableAndFree();
+        }
+
+        internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
+        {
+            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
+            builder.AddRange(first);
+            builder.AddRange(second);
+            builder.AddRange(third);
+            builder.AddRange(fourth);
+            builder.AddRange(fifth);
             return builder.ToImmutableAndFree();
         }
 

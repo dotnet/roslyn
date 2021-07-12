@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.StackAllocUpdate, nameof(FeaturesResources.Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ExperimentalFeaturesEnabled, nameof(FeaturesResources.Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.AwaitStatementUpdate, nameof(FeaturesResources.Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.ChangingVisibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingAccessibility, nameof(FeaturesResources.Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.CapturingVariable, nameof(FeaturesResources.Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.NotCapturingVariable, nameof(FeaturesResources.Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.DeletingCapturedVariable, nameof(FeaturesResources.Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing));
@@ -145,8 +145,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.AddRecordPositionalParameter, nameof(FeaturesResources.Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing));
-            AddRudeEdit(RudeEditKind.DeleteRecordPositionalParameter, nameof(FeaturesResources.Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, nameof(FeaturesResources.Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0));
 
             AddRudeEdit(RudeEditKind.NotSupportedByRuntime, nameof(FeaturesResources.Edit_and_continue_is_not_supported_by_the_runtime));
@@ -154,6 +152,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.MakeMethodIterator, nameof(FeaturesResources.Making_a_method_an_iterator_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertNotSupportedByRuntime, nameof(FeaturesResources.Adding_0_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingAttributesNotSupportedByRuntime, nameof(FeaturesResources.Updating_the_attributes_of_0_is_not_supported_by_the_runtime));
+            AddRudeEdit(RudeEditKind.ChangingParameterTypes, nameof(FeaturesResources.Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingReturnType, nameof(FeaturesResources.Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.ChangingTypeParameters, nameof(FeaturesResources.Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing));
+
+            AddRudeEdit(RudeEditKind.ChangeImplicitMainReturnType, FeaturesResources.An_update_that_causes_the_return_type_of_implicit_main_to_change_will_prevent_the_debug_session_from_continuing);
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));

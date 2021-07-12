@@ -16,6 +16,7 @@
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1+Test.cs" Link="CSharpCodeRefactoringVerifier`1+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1.cs" Link="CSharpCodeRefactoringVerifier`1.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
+    <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\SharedVerifierState.cs" Link="SharedVerifierState.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
     <Compile Include="..\..\..\EditorFeatures\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1+Test.cs" Link="VisualBasicCodeRefactoringVerifier`1+Test.cs" />

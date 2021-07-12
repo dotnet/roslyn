@@ -7,17 +7,18 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class DriverStateTable
     {
-        private readonly ImmutableDictionary<object, IStateTable> _tables;
+        private readonly ImmutableSegmentedDictionary<object, IStateTable> _tables;
 
-        internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableDictionary<object, IStateTable>.Empty);
+        internal static DriverStateTable Empty { get; } = new DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable>.Empty);
 
-        private DriverStateTable(ImmutableDictionary<object, IStateTable> tables)
+        private DriverStateTable(ImmutableSegmentedDictionary<object, IStateTable> tables)
         {
             _tables = tables;
         }
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         public sealed class Builder
         {
-            private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary.CreateBuilder<object, IStateTable>();
+            private readonly ImmutableSegmentedDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableSegmentedDictionary.CreateBuilder<object, IStateTable>();
             private readonly ImmutableArray<ISyntaxInputNode> _syntaxInputNodes;
             private readonly ImmutableDictionary<ISyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<ISyntaxInputNode, Exception>();
             private readonly DriverStateTable _previousTable;

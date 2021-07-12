@@ -47,9 +47,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return null;
             }
 
+            var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
             return new SolutionChangeAction(
-                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name),
-                cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
+                title,
+                cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
+                title);
         }
 
         public Task<Solution> PullMembersUpAsync(

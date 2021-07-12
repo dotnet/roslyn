@@ -24,11 +24,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal abstract class EditAndContinueTestHelpers
     {
         public static readonly EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
-        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities = EditAndContinueCapabilities.Baseline |
-                                                                                     EditAndContinueCapabilities.AddInstanceFieldToExistingType |
-                                                                                     EditAndContinueCapabilities.AddStaticFieldToExistingType |
-                                                                                     EditAndContinueCapabilities.AddMethodToExistingType |
-                                                                                     EditAndContinueCapabilities.NewTypeDefinition;
+
+        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities =
+            EditAndContinueCapabilities.Baseline |
+            EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+            EditAndContinueCapabilities.AddStaticFieldToExistingType |
+            EditAndContinueCapabilities.AddMethodToExistingType |
+            EditAndContinueCapabilities.NewTypeDefinition;
+
+        public static readonly EditAndContinueCapabilities Net6RuntimeCapabilities =
+            Net5RuntimeCapabilities |
+            EditAndContinueCapabilities.ChangeCustomAttributes;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
         public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
@@ -140,6 +146,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
+                var assertMessagePrefix = (documentCount > 0) ? $"Document #{documentIndex}" : null;
+
                 var expectedResult = expectedResults[documentIndex];
 
                 var includeFirstLineInDiagnostics = expectedResult.Diagnostics.Any(d => d.FirstLine != null) == true;
@@ -163,13 +171,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
-                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEditErrors.ToDescription(newText, includeFirstLineInDiagnostics));
+                VerifyDiagnostics(expectedResult.Diagnostics, result.RudeEditErrors.ToDescription(newText, includeFirstLineInDiagnostics), assertMessagePrefix);
 
                 if (!expectedResult.SemanticEdits.IsDefault)
                 {
                     if (result.HasChanges)
                     {
-                        VerifySemanticEdits(expectedResult.SemanticEdits, result.SemanticEdits, oldModel.Compilation, newModel.Compilation, oldRoot, newRoot);
+                        VerifySemanticEdits(expectedResult.SemanticEdits, result.SemanticEdits, oldModel.Compilation, newModel.Compilation, oldRoot, newRoot, assertMessagePrefix);
 
                         allEdits.AddRange(result.SemanticEdits);
                     }
@@ -206,8 +214,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
             => VerifyDiagnostics(expected, actual.ToDescription(newSource, expected.Any(d => d.FirstLine != null)));
 
-        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual)
-            => AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n");
+        public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
+            => AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
 
         private void VerifySemanticEdits(
             ImmutableArray<SemanticEditDescription> expectedSemanticEdits,
@@ -215,12 +223,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Compilation oldCompilation,
             Compilation newCompilation,
             SyntaxNode oldRoot,
-            SyntaxNode newRoot)
+            SyntaxNode newRoot,
+            string? message = null)
         {
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
                 expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider(newCompilation)}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"));
+                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"),
+                message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
             {

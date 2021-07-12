@@ -183,6 +183,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case LocalFunctionStatement:
                         return ((LocalFunctionStatementSyntax)parent).ReturnType == node;
 
+                    case ParenthesizedLambdaExpression:
+                        return ((ParenthesizedLambdaExpressionSyntax)parent).ReturnType == node;
+
                     case SimpleBaseType:
                         return true;
 

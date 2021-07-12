@@ -143,10 +143,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
                 source = new BoundInterpolatedString(
                     unconvertedSource.Syntax,
-                    unconvertedSource.Parts,
+                    interpolationData: null,
+                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
                     unconvertedSource.ConstantValue,
                     unconvertedSource.Type,
                     unconvertedSource.HasErrors);
+            }
+
+            if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
+            {
+                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                return new BoundConversion(
+                    syntax,
+                    BindUnconvertedInterpolatedStringToHandlerType(unconvertedSource, (NamedTypeSymbol)destination, diagnostics, isHandlerConversion: true),
+                    conversion,
+                    @checked: CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
+                    conversionGroupOpt,
+                    constantValueOpt: null,
+                    destination);
             }
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
@@ -339,11 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, n = source.SwitchArms.Length; i < n; i++)
             {
                 var oldCase = source.SwitchArms[i];
+                Debug.Assert(oldCase.Syntax is SwitchExpressionArmSyntax);
+                var binder = GetRequiredBinder(oldCase.Syntax);
                 var oldValue = oldCase.Value;
                 var newValue =
                     targetTyped
-                    ? CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
-                    : GenerateConversionForAssignment(destination, oldValue, diagnostics);
+                    ? binder.CreateConversion(oldValue.Syntax, oldValue, underlyingConversions[i], isCast: false, conversionGroupOpt: null, destination, diagnostics)
+                    : binder.GenerateConversionForAssignment(destination, oldValue, diagnostics);
                 var newCase = (oldValue == newValue) ? oldCase :
                     new BoundSwitchExpressionArm(oldCase.Syntax, oldCase.Locals, oldCase.Pattern, oldCase.WhenClause, newValue, oldCase.Label, oldCase.HasErrors);
                 builder.Add(newCase);

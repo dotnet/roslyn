@@ -871,6 +871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         isLeaf = False
                         Return Label.AttributeList
                     End If
+
                     isLeaf = True
                     Return Label.Ignored
 
@@ -879,6 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     If nodeOpt IsNot Nothing AndAlso nodeOpt.Parent.IsParentKind(SyntaxKind.AttributesStatement) Then
                         Return Label.Attribute
                     End If
+
                     Return Label.Ignored
 
                 Case Else
