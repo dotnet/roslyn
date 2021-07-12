@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if HAS_IOPERATION
+#if HAS_IOPERATION && CODEANALYSIS_V3_OR_BETTER
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace Analyzer.Utilities
                     }
 
                     if (_allowExcludedSymbolNames &&
-                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation, operationBlockAnalysisContext.CancellationToken))
+                        operationBlockAnalysisContext.Options.IsConfiguredToSkipAnalysis(SupportedDiagnostics[0], method, operationBlockAnalysisContext.Compilation))
                     {
                         return;
                     }

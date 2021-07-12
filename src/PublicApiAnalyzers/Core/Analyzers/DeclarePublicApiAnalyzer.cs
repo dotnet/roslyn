@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string InvalidReasonMisplacedNullableEnable = "The '#nullable enable' marker can only appear as the first line in the shipped API file";
         internal const string PublicApiIsShippedPropertyBagKey = "PublicAPIIsShipped";
 
+        private const char ObliviousMarker = '~';
+
         /// <summary>
         /// Boolean option to configure if public API analyzer should bail out silently if public API files are missing.
         /// </summary>
@@ -448,7 +450,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         {
             foreach (ApiLine cur in apiList)
             {
-                if (publicApiMap.TryGetValue(cur.Text, out ApiLine existingLine))
+                string textWithoutOblivious = cur.Text.TrimStart(ObliviousMarker);
+                if (publicApiMap.TryGetValue(textWithoutOblivious, out ApiLine existingLine))
                 {
                     LinePositionSpan existingLinePositionSpan = existingLine.SourceText.Lines.GetLinePositionSpan(existingLine.Span);
                     Location existingLocation = Location.Create(existingLine.Path, existingLine.Span, existingLinePositionSpan);
@@ -459,7 +462,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 }
                 else
                 {
-                    publicApiMap.Add(cur.Text, cur);
+                    publicApiMap.Add(textWithoutOblivious, cur);
                 }
             }
         }

@@ -106,7 +106,6 @@ namespace Analyzer.Utilities
             PointsToAnalysisKind defaultPointsToAnalysisKind,
             bool trackInstanceFields,
             bool trackExceptionPaths,
-            CancellationToken cancellationToken,
             [NotNullWhen(returnValue: true)] out DisposeAnalysisResult? disposeAnalysisResult,
             [NotNullWhen(returnValue: true)] out PointsToAnalysisResult? pointsToAnalysisResult,
             InterproceduralAnalysisPredicate? interproceduralAnalysisPredicate = null,
@@ -117,8 +116,7 @@ namespace Analyzer.Utilities
             {
                 disposeAnalysisResult = DisposeAnalysis.TryGetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                     analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, defaultPointsToAnalysisKind, trackInstanceFields,
-                    trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                    interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
+                    trackExceptionPaths, out pointsToAnalysisResult, interproceduralAnalysisPredicate: interproceduralAnalysisPredicate,
                     defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                 if (disposeAnalysisResult != null)
                 {
