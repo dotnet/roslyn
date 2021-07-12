@@ -9821,6 +9821,28 @@ public class Program {
             verifier.VerifyDiagnostics();
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_AllowMultiple_False()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+[Attr<object>]
+[Attr<int>] // 1
+public class C {
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,2): error CS0579: Duplicate 'Attr<>' attribute
+                // [Attr<int>] // 1
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<int>").WithArguments("Attr<>").WithLocation(9, 2));
+        }
+
         #endregion
     }
 }
