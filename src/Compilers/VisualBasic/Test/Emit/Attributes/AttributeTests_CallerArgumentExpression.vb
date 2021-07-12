@@ -35,6 +35,80 @@ End Module
         End Sub
 
         <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Parameter, AllowMultiple:=True, Inherited:=False)>
+    Public NotInheritable Class CallerArgumentExpressionAttribute
+        Inherits Attribute
+
+        Public Sub New(parameterName As String)
+            ParameterName = parameterName
+        End Sub
+
+        Public ReadOnly Property ParameterName As String
+    End Class
+End Namespace
+
+Class Program
+    Public Shared Sub Main()
+        Log(123, 456)
+    End Sub
+
+    Const p1 As String = NameOf(p1)
+    Const p2 As String = NameOf(p2)
+
+    Private Shared Sub Log(p1 As Integer, p2 As Integer, <CallerArgumentExpression(p1), CallerArgumentExpression(p2)> ByVal Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="456").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Parameter, AllowMultiple:=True, Inherited:=False)>
+    Public NotInheritable Class CallerArgumentExpressionAttribute
+        Inherits Attribute
+
+        Public Sub New(parameterName As String, extraParam As Integer)
+            ParameterName = parameterName
+        End Sub
+
+        Public ReadOnly Property ParameterName As String
+    End Class
+End Namespace
+
+Class Program
+    Public Shared Sub Main()
+        Log(123, 456)
+    End Sub
+
+    Const p1 As String = NameOf(p1)
+    Const p2 As String = NameOf(p2)
+
+    Private Shared Sub Log(p1 As Integer, p2 As Integer, <CallerArgumentExpression(p1, 0), CallerArgumentExpression(p2, 1)> ByVal Optional arg As String = ""<default-arg>"")
+        Console.WriteLine(arg)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="<default-arg>").VerifyDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
         Public Sub TestGoodCallerArgumentExpressionAttribute_CaseInsensitivity()
             Dim source As String = "
 Imports System

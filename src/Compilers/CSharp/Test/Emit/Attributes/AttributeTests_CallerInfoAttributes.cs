@@ -44,6 +44,84 @@ class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        Log(123, 456);
+    }
+    const string p1 = nameof(p1);
+    const string p2 = nameof(p2);
+    static void Log(int p1, int p2, [CallerArgumentExpression(p1), CallerArgumentExpression(p2)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: "456").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestGoodCallerArgumentExpressionAttribute_MultipleAttributes_IncorrectCtor()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName, int extraParam)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+
+class Program
+{
+    public static void Main()
+    {
+        Log(123, 456);
+    }
+    const string p1 = nameof(p1);
+    const string p2 = nameof(p2);
+    static void Log(int p1, int p2, [CallerArgumentExpression(p1, 0), CallerArgumentExpression(p2, 1)] string arg = ""<default-arg>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: "<default-arg>").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
             string source = @"
