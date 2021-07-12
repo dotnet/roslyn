@@ -212,13 +212,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static readonly Func<Document, ISymbol, string> s_logDocument = (d, s) =>
-            (d.Name != null && s.Name != null) ? string.Format("{0} - {1}", d.Name, s.Name) : string.Empty;
-
         private async Task ProcessDocumentAsync(
             Document document, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, s_logDocument, document, symbol, cancellationToken))
+            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
             {
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
