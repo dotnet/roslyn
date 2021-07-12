@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 1000,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
+        // use 64bit OOP
+        public static readonly Option2<bool> OOP64Bit = new Option2<bool>(
+            FeatureName, nameof(OOP64Bit), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP64Bit)));
+
         // use Server GC for 64-bit OOP
         public static readonly Option2<bool> OOPServerGC = new Option2<bool>(
             FeatureName, nameof(OOPServerGC), defaultValue: false,
@@ -46,6 +51,21 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return services.GetRequiredService<IOptionService>().GetOption(OOPServerGC)
                 || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPServerGC) == true;
+        }
+
+        /// <summary>
+        /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
+        /// </summary>
+        public static bool IsUsingServiceHubOutOfProcess(HostWorkspaceServices services)
+        {
+            var optionService = services.GetRequiredService<IOptionService>();
+            if (Environment.Is64BitOperatingSystem && optionService.GetOption(OOP64Bit))
+            {
+                // OOP64Bit is set and supported
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
@@ -71,6 +91,9 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS);
+            RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,
+            RemoteHostOptions.OOP64Bit,
+            RemoteHostOptions.OOPServerGC,
+            RemoteHostOptions.OOPCoreClr);
     }
 }
