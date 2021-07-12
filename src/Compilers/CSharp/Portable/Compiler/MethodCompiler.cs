@@ -1707,6 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constructorSyntax.Identifier.ValueText);
                 }
 
+                Debug.Assert(!sourceMethod.IsDefaultValueTypeConstructor(requireZeroInit: false));
                 if (sourceMethod.IsExtern)
                 {
                     return null;

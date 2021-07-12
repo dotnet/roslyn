@@ -440,6 +440,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 var containingType = method.ContainingType.OriginalDefinition;
                 var constructors = containingType.InstanceConstructors;
+                // If there are field initializers and an explicit constructor with parameters
+                // (that is, more than one constructor), the implicit parameterless constructor
+                // is treated as the zero-init constructor and does not execute field initializers.
                 return constructors.Length > 1 || !containingType.HasFieldInitializers();
             }
             return false;
