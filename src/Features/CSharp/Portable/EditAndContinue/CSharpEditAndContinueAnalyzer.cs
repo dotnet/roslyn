@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch, classifyStatementSyntax: true);
+                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch);
                 classifier.ClassifyEdit();
             }
         }
@@ -2161,7 +2161,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             private readonly SyntaxNode? _newNode;
             private readonly EditKind _kind;
             private readonly TextSpan? _span;
-            private readonly bool _classifyStatementSyntax;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
@@ -2170,8 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 SyntaxNode? newNode,
                 EditKind kind,
                 Match<SyntaxNode>? match = null,
-                TextSpan? span = null,
-                bool classifyStatementSyntax = false)
+                TextSpan? span = null)
             {
                 RoslynDebug.Assert(oldNode != null || newNode != null);
 
@@ -2185,7 +2183,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _kind = kind;
                 _span = span;
                 _match = match;
-                _classifyStatementSyntax = classifyStatementSyntax;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode? spanNode = null, SyntaxNode? displayNode = null)
