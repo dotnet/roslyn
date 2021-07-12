@@ -17,19 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class Lexer
     {
-        private void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
+        private void ScanStringLiteral(ref TokenInfo info, bool inDirective)
         {
             var quoteCharacter = TextWindow.PeekChar();
             Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
 
             TextWindow.AdvanceChar();
             _builder.Length = 0;
+
             while (true)
             {
                 char ch = TextWindow.PeekChar();
-                if (ch == '\\' && allowEscapes)
+
+                // Normal string & char constants can have escapes. Strings in directives cannot.
+                if (ch == '\\' && !inDirective)
                 {
-                    // normal string & char constants can have escapes
                     char c2;
                     ch = this.ScanEscapeSequence(out c2);
                     _builder.Append(ch);
@@ -716,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private void ScanInterpolatedStringLiteralNestedString()
             {
                 var discarded = default(TokenInfo);
-                lexer.ScanStringLiteral(ref discarded, true);
+                lexer.ScanStringLiteral(ref discarded, inDirective: false);
             }
 
             private void ScanInterpolatedStringLiteralNestedVerbatimString()
