@@ -13867,6 +13867,292 @@ readonly struct S
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IEventSymbol>("E").RemoveMethod));
         }
 
+        [Fact]
+        public void EventField_AddAttribute()
+        {
+            var src1 = @"
+class C
+{
+    event Action F;
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [event Action F;]@18 -> [[System.Obsolete]event Action F;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+        }
+
+        [Fact]
+        public void EventField_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    event Action F;
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_AddAttribute()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [event Action F { add {} remove {} }]@18 -> [[System.Obsolete]event Action F { add {} remove {} }]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+        }
+
+        [Fact]
+        public void Event_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void EventAccessor_AddAttribute()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [remove {}]@42 -> [[System.Obsolete]remove {}]@42");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+        }
+
+        [Fact]
+        public void EventAccessor_AddAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void EventField_DeleteAttribute()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+            var src2 = @"
+class C
+{
+    event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]event Action F;]@18 -> [event Action F;]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+        }
+
+        [Fact]
+        public void EventField_DeleteAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F;
+}";
+            var src2 = @"
+class C
+{
+    event Action F;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Event_DeleteAttribute()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]event Action F { add {} remove {} }]@18 -> [event Action F { add {} remove {} }]@18");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+        }
+
+        [Fact]
+        public void Event_DeleteAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    [System.Obsolete]event Action F { add {} remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
+                   SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void EventAccessor_DeleteAttribute()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[System.Obsolete]remove {}]@42 -> [remove {}]@42");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+        }
+
+        [Fact]
+        public void EventAccessor_DeleteAttribute_SupportedByRuntime()
+        {
+            var src1 = @"
+class C
+{
+    event Action F { add {} [System.Obsolete]remove {} }
+}";
+            var src2 = @"
+class C
+{
+    event Action F { add {} remove {} }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+               ActiveStatementsDescription.Empty,
+               new[] {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
+               },
+               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
         #endregion
 
         #region Parameter

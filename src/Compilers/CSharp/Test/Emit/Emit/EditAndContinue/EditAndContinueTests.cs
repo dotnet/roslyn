@@ -2087,6 +2087,91 @@ class C
         }
 
         [Fact]
+        public void EventFields_Attributes()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    static event EventHandler E;
+}
+");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    [System.ComponentModel.Browsable(false)]
+    static event EventHandler E;
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var event0 = compilation0.GetMember<EventSymbol>("C.E");
+            var event1 = compilation1.GetMember<EventSymbol>("C.E");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "add_E", "remove_E", ".ctor");
+
+            CheckAttributes(reader0,
+                new CustomAttributeRow(Handle(1, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Field), Handle(4, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Field), Handle(5, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(1, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(2, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(1, TableIndex.Assembly), Handle(3, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(2, TableIndex.MethodDef), Handle(4, TableIndex.MemberRef)));
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, event0, event1)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames());
+            CheckNames(readers, reader1.GetEventDefNames(), "E");
+
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(1, TableIndex.Event), Handle(10, TableIndex.MemberRef)));
+
+            CheckEncLog(reader1,
+                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MemberRef, EditAndContinueOperation.Default),
+                Row(12, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default));
+
+            CheckEncMap(reader1,
+                Handle(12, TableIndex.TypeRef),
+                Handle(13, TableIndex.TypeRef),
+                Handle(14, TableIndex.TypeRef),
+                Handle(10, TableIndex.MemberRef),
+                Handle(8, TableIndex.CustomAttribute),
+                Handle(1, TableIndex.Event),
+                Handle(3, TableIndex.MethodSemantics),
+                Handle(4, TableIndex.MethodSemantics),
+                Handle(2, TableIndex.AssemblyRef));
+        }
+
+        [Fact]
         public void AddNestedTypeAndMembers()
         {
             var source0 =
