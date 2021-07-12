@@ -36,5 +36,6 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="$(RepositoryEngineeringDir)targets\UseNetStandardOverDesktopReferences.targets" />
   <Import Project="$(RepositoryEngineeringDir)targets\DiaSymReaderNative.targets" />
 </Project>

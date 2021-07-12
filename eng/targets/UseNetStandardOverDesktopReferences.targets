@@ -1,0 +1,27 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">  
+    <!-- 
+      By default, when a project targeting net472, the desktop version of the references in NuGet pacakges will be chosen over netstandard2.0 ones
+      (See https://github.com/dotnet/sdk/issues/1791 for more details on this behavior). This is not an issue in terms of the functionality of the product.
+      However, it's causing us problem during IBC optimization. We are shipping two copies of SCI and SRM in VS, and are responsible for their optimization.
+      Our setup is authored such that their netstandard2.0 version is explicitly deployed to PrivateAssemblies folder, and the version referenced by csi
+      targeting net472 is deployed to MsBuild folder as part of the compiler toolset (see `src\NuGet\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets`.)
+      The way our current system works is to profile both devenv and vbcscompiler processes in OptProf, and the IBC data collected are combined and used to optimize
+      both copies of SCI and SRM. But ibcmerge can't accept IBC files collected from binaries with different MVID, doing so will cause it to fail (or ignore mismatched files)
+      (see https://github.com/dotnet/roslyn/issues/53197.)
+
+      This is a workaround for the issue above:
+        - Basically we are forcing all console projects shipped as a part of Microsoft.CodeAnalysis.Compilers.vsix to take netstandard2.0 version of SCI and SRM as references.
+        - We need to do this for all those projects (instead of csi only) because the content of all sources of toolset nupkg must be consistent.
+    -->
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" ExcludeAssets="All" GeneratePathProperty="true"/>
+    <Reference Include="System.Collections.Immutable">
+      <HintPath>$(PkgSystem_Collections_Immutable)\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" ExcludeAssets="All" GeneratePathProperty="true"/>
+    <Reference Include="System.Reflection.Metadata">
+      <HintPath>$(PkgSystem_Reflection_Metadata)\lib\netstandard2.0\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
