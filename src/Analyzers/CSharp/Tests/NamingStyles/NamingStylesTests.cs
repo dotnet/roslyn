@@ -91,8 +91,8 @@ $@"class C
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [InlineData("Mars_bar", "bar")]
-        [InlineData("Sars_Bar", "bar")]
+        [InlineData("mars_bar", "mars_Bar")]
+        [InlineData("Sars_Bar", "sars_Bar")]
         public async Task TestCamelCaseField_UnderscoreInName(string fieldName, string correctedName)
         {
             await TestInRegularAndScriptAsync(
