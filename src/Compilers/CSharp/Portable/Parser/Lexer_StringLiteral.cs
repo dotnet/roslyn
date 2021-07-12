@@ -20,83 +20,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
         {
             var quoteCharacter = TextWindow.PeekChar();
-            if (quoteCharacter == '\'' || quoteCharacter == '"')
+            Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
+
+            TextWindow.AdvanceChar();
+            _builder.Length = 0;
+            while (true)
             {
-                TextWindow.AdvanceChar();
-                _builder.Length = 0;
-                while (true)
+                char ch = TextWindow.PeekChar();
+                if (ch == '\\' && allowEscapes)
                 {
-                    char ch = TextWindow.PeekChar();
-                    if (ch == '\\' && allowEscapes)
+                    // normal string & char constants can have escapes
+                    char c2;
+                    ch = this.ScanEscapeSequence(out c2);
+                    _builder.Append(ch);
+                    if (c2 != SlidingTextWindow.InvalidCharacter)
                     {
-                        // normal string & char constants can have escapes
-                        char c2;
-                        ch = this.ScanEscapeSequence(out c2);
-                        _builder.Append(ch);
-                        if (c2 != SlidingTextWindow.InvalidCharacter)
-                        {
-                            _builder.Append(c2);
-                        }
-                    }
-                    else if (ch == quoteCharacter)
-                    {
-                        TextWindow.AdvanceChar();
-                        break;
-                    }
-                    else if (SyntaxFacts.IsNewLine(ch) ||
-                            (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
-                    {
-                        //String and character literals can contain any Unicode character. They are not limited
-                        //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
-                        //double check that it was not real user-code contents. This will be rare.
-                        Debug.Assert(TextWindow.Width > 0);
-                        this.AddError(ErrorCode.ERR_NewlineInConst);
-                        break;
-                    }
-                    else
-                    {
-                        TextWindow.AdvanceChar();
-                        _builder.Append(ch);
+                        _builder.Append(c2);
                     }
                 }
-
-                info.Text = TextWindow.GetText(true);
-                if (quoteCharacter == '\'')
+                else if (ch == quoteCharacter)
                 {
-                    info.Kind = SyntaxKind.CharacterLiteralToken;
-                    if (_builder.Length != 1)
-                    {
-                        this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
-                    }
-
-                    if (_builder.Length > 0)
-                    {
-                        info.StringValue = TextWindow.Intern(_builder);
-                        info.CharValue = info.StringValue[0];
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                        info.CharValue = SlidingTextWindow.InvalidCharacter;
-                    }
+                    TextWindow.AdvanceChar();
+                    break;
+                }
+                else if (SyntaxFacts.IsNewLine(ch) ||
+                        (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
+                {
+                    //String and character literals can contain any Unicode character. They are not limited
+                    //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
+                    //double check that it was not real user-code contents. This will be rare.
+                    Debug.Assert(TextWindow.Width > 0);
+                    this.AddError(ErrorCode.ERR_NewlineInConst);
+                    break;
                 }
                 else
                 {
-                    info.Kind = SyntaxKind.StringLiteralToken;
-                    if (_builder.Length > 0)
-                    {
-                        info.StringValue = TextWindow.Intern(_builder);
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                    }
+                    TextWindow.AdvanceChar();
+                    _builder.Append(ch);
+                }
+            }
+
+            info.Text = TextWindow.GetText(true);
+            if (quoteCharacter == '\'')
+            {
+                info.Kind = SyntaxKind.CharacterLiteralToken;
+                if (_builder.Length != 1)
+                {
+                    this.AddError((_builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
+                }
+
+                if (_builder.Length > 0)
+                {
+                    info.StringValue = TextWindow.Intern(_builder);
+                    info.CharValue = info.StringValue[0];
+                }
+                else
+                {
+                    info.StringValue = string.Empty;
+                    info.CharValue = SlidingTextWindow.InvalidCharacter;
                 }
             }
             else
             {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
+                info.Kind = SyntaxKind.StringLiteralToken;
+                if (_builder.Length > 0)
+                {
+                    info.StringValue = TextWindow.Intern(_builder);
+                }
+                else
+                {
+                    info.StringValue = string.Empty;
+                }
             }
         }
 
