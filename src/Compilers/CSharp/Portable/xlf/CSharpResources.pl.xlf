@@ -77,6 +77,11 @@
         <target state="translated">Właściwość lub indeksator „{0}” tylko do inicjowania można przypisać tylko w inicjatorze obiektu, w elemencie „this” lub „base” w konstruktorze wyrażenia albo w metodzie dostępu „init”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttrTypeArgCannotBeTypeVar">
+        <source>'{0}': an attribute type argument cannot use type parameters</source>
+        <target state="new">'{0}': an attribute type argument cannot use type parameters</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="translated">Atrybut „{0}” nie jest prawidłowy w metodach dostępu zdarzenia. Jest on prawidłowy tylko w deklaracjach „{1}”.</target>
@@ -1205,6 +1210,11 @@
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="new">file-scoped namespace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureGenericAttributes">
+        <source>generic attributes</source>
+        <target state="new">generic attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
@@ -4681,11 +4691,6 @@
         <target state="translated">Nie można przekonwertować wartości null na parametr typu „{0}”, ponieważ może on być nienullowalnym typem wartości. Zamiast tego rozważ użycie elementu „default({0}!)”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AttributeCantBeGeneric">
-        <source>Cannot apply attribute class '{0}' because it is generic</source>
-        <target state="translated">Nie można zastosować klasy atrybutów „{0}”, ponieważ jest ona typu ogólnego</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DuplicateBound">
         <source>Duplicate constraint '{0}' for type parameter '{1}'</source>
         <target state="translated">Zduplikowane ograniczenie „{0}” dla parametru typu „{1}”</target>
@@ -5913,11 +5918,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       <trans-unit id="ERR_UnifyingInterfaceInstantiations">
         <source>'{0}' cannot implement both '{1}' and '{2}' because they may unify for some type parameter substitutions</source>
         <target state="translated">'Element „{0}” nie może implementować jednocześnie elementu „{1}” i „{2}”, ponieważ mogą się one łączyć przy niektórych podstawieniach parametrów typu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_GenericDerivingFromAttribute">
-        <source>A generic type cannot derive from '{0}' because it is an attribute class</source>
-        <target state="translated">Typ ogólny nie może pochodzić od „{0}”, ponieważ jest klasą atrybutów</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TyVarNotFoundInConstraint">
@@ -7180,8 +7180,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
-        <source>'{0}' is ambiguous between '{1}' and '{2}'; use either '@{0}' or '{0}Attribute'</source>
-        <target state="translated">„{0}” jest niejednoznaczne między „{1}” i „{2}”; użyj „@{0}” lub „{0}Attribute”</target>
+        <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
+        <target state="needs-review-translation">„{0}” jest niejednoznaczne między „{1}” i „{2}”; użyj „@{0}” lub „{0}Attribute”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">

@@ -295,6 +295,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var attributeTypesBuilder = new NamedTypeSymbol[totalAttributesCount];
 
                 Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, diagnostics);
+                for (var i = 0; i < totalAttributesCount; i++)
+                {
+                    if (attributeTypesBuilder[i].IsGenericType)
+                    {
+                        MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, attributesToBind[i]);
+                    }
+                }
+
                 ImmutableArray<NamedTypeSymbol> boundAttributeTypes = attributeTypesBuilder.AsImmutableOrNull();
 
                 this.EarlyDecodeWellKnownAttributeTypes(boundAttributeTypes, attributesToBind);

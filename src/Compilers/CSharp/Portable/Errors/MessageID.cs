@@ -233,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
+        IDS_FeatureGenericAttributes = MessageBase + 12810,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -361,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers: // semantic check
                 case MessageID.IDS_FeatureLineSpanDirective:
                 case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
+                case MessageID.IDS_FeatureGenericAttributes: // semantic check
                     return LanguageVersion.CSharp10;
 
                 // C# 9.0 features.
