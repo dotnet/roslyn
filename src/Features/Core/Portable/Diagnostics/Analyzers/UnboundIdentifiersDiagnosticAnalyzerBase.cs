@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -32,8 +31,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract DiagnosticDescriptor DiagnosticDescriptor { get; }
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool IsNameOf(SyntaxNode node);
-
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(DiagnosticDescriptor);

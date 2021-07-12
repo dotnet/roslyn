@@ -159,23 +159,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var loadDiagnostic = await document.State.GetLoadDiagnosticAsync(cancellationToken).ConfigureAwait(false);
                 if (loadDiagnostic != null)
+                {
                     return ImmutableArray.Create(DiagnosticData.Create(loadDiagnostic, document));
+                }
 
                 var project = document.Project;
                 var analyzers = GetAnalyzers(project.Solution.State.Analyzers, project);
                 if (analyzers.IsEmpty)
+                {
                     return ImmutableArray<DiagnosticData>.Empty;
+                }
 
                 var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
-                using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
+                var builder = ArrayBuilder<DiagnosticData>.GetInstance();
                 foreach (var analyzer in analyzers)
+                {
                     builder.AddRange(await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false));
+                }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
 
             private static ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(HostDiagnosticAnalyzers hostAnalyzers, Project project)
