@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         /// <summary>
         /// Return the changed solution if all changes in pullMembersUpOptions are applied.
         /// </summary>
-        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>>
+        /// <param name="pullMembersUpOptions">Contains the members to pull up and all the fix operations</param>
         Task<Solution> PullMembersUpAsync(
             Document document,
             PullMembersUpOptions pullMembersUpOptions,
