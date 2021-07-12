@@ -207,8 +207,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <remarks><paramref name="projects"/> will always be a single project.  We just pass this in as a set to
             /// avoid allocating a fresh set every time this calls into FindMemberImplementationsArrayAsync.
             /// </remarks>
-            protected async Task AddDownSymbolsAsync(
-                ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
+            protected static async Task AddDownSymbolsAsync(
+                FindReferencesSearchEngine engine, ISymbol symbol,
+                HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(projects.Count == 1, "Only a single project should be passed in");
@@ -217,19 +218,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 if (!InvolvesInheritance(symbol))
                     return;
 
+                var solution = engine._solution;
                 if (symbol.IsImplementableMember())
                 {
                     var implementations = await SymbolFinder.FindMemberImplementationsArrayAsync(
-                        symbol, this.Solution, projects, cancellationToken).ConfigureAwait(false);
+                        symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, implementations, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, implementations, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     var overrrides = await SymbolFinder.FindOverridesArrayAsync(
-                        symbol, this.Solution, projects, cancellationToken).ConfigureAwait(false);
+                        symbol, solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -239,7 +241,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// then it is also added to <paramref name="workQueue"/> to allow fixed point algorithms to continue.
             /// </summary>
             protected static async Task AddUpSymbolsAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
+                FindReferencesSearchEngine engine, ISymbol symbol,
+                HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 if (!InvolvesInheritance(symbol))

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var current = workQueue.Pop();
 
                     // Keep adding symbols downwards in this project as long as we keep finding new symbols.
-                    await AddDownSymbolsAsync(current, _initialAndDownSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
+                    await AddDownSymbolsAsync(this.Engine, current, _initialAndDownSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

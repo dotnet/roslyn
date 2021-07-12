@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // For each symbol we're examining try to walk both up and down from it to see if we discover any
                     // new symbols in this project.  As long as we keep finding symbols, we'll keep searching from them
                     // in both directions.
-                    await AddDownSymbolsAsync(current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
+                    await AddDownSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
                     await AddUpSymbolsAsync(this.Engine, current, _allSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
                 }
             }
