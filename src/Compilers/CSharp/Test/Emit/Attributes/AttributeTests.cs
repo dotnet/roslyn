@@ -9843,6 +9843,33 @@ public class C {
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "Attr<int>").WithArguments("Attr<>").WithLocation(9, 2));
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_AllowMultiple_True()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+[Attr<object>]
+[Attr<int>]
+public class Program {
+    static void Main() {
+        var attrs = Attribute.GetCustomAttributes(typeof(Program));
+        foreach (var attr in attrs)
+        {
+            Console.Write(attr);
+            Console.Write(' ');
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.Int32] Attr`1[System.Object] Attr`1[System.Int32]");
+            verifier.VerifyDiagnostics();
+        }
+
         #endregion
     }
 }
