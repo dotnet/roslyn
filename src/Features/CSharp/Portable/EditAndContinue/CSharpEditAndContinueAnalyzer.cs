@@ -1140,8 +1140,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => propertyOrIndexerDeclaration.IsKind(SyntaxKind.PropertyDeclaration, out PropertyDeclarationSyntax? propertyDecl) &&
                SyntaxUtilities.HasBackingField(propertyDecl);
 
-        internal override SyntaxNode? TryGetAssociatedMemberDeclaration(SyntaxNode node)
-            => node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration) ? node.Parent.Parent : null;
+        internal override bool TryGetAssociatedMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? declaration)
+        {
+            if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
+            {
+                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList, SyntaxKind.BracketedParameterList));
+                declaration = node.Parent!.Parent!;
+                return true;
+            }
+
+            if (node.Parent.IsParentKind(SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration))
+            {
+                declaration = node.Parent.Parent!;
+                return true;
+            }
+
+            declaration = null;
+            return false;
+        }
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
             => declaration is VariableDeclaratorSyntax { Initializer: not null } || declaration is PropertyDeclarationSyntax { Initializer: not null };
@@ -1309,29 +1325,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (editKind == EditKind.Update)
             {
-                if (node.IsKind(SyntaxKind.Parameter))
-                {
-                    // If this is a parameter of a delegate, the symbol will be the Invoke method, but we need to go back up to the delegate itself
-                    // so the analysis can see the attributes
-                    var parameterSymbol = model.GetRequiredDeclaredSymbol(node, cancellationToken);
-                    if (parameterSymbol.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke } invokeMethodSymbol)
-                    {
-                        parameterSymbol = invokeMethodSymbol.ContainingSymbol;
-                    }
-
-                    return parameterSymbol;
-                }
-
                 if (node is FieldDeclarationSyntax field)
                 {
                     // If attributes on a field change then we get the field declaration here, but GetDeclaredSymbol needs an actual variable declaration
                     // Fortunately attributes are shared across all of them, so we don't need to be too fancy
                     return model.GetDeclaredSymbol(field.Declaration.Variables.First(), cancellationToken);
                 }
-            }
-            else if (node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter))
-            {
-                return null;
             }
 
             if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
@@ -1426,36 +1425,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     return true;
             }
-        }
-
-        protected override void ReportLambdaSignatureRudeEdits(
-            SemanticModel oldModel,
-            SyntaxNode oldLambdaBody,
-            SemanticModel newModel,
-            SyntaxNode newLambdaBody,
-            EditAndContinueCapabilities capabilities,
-            ArrayBuilder<RudeEditDiagnostic> diagnostics,
-            out bool hasErrors,
-            CancellationToken cancellationToken)
-        {
-            base.ReportLambdaSignatureRudeEdits(oldModel, oldLambdaBody, newModel, newLambdaBody, capabilities, diagnostics, out hasErrors, cancellationToken);
-
-            if (IsLocalFunctionBody(oldLambdaBody) != IsLocalFunctionBody(newLambdaBody))
-            {
-                var newLambda = GetLambda(newLambdaBody);
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
-                    GetDiagnosticSpan(newLambda, EditKind.Update),
-                    newLambda,
-                    new[] { GetDisplayName(newLambda) }));
-                hasErrors = true;
-            }
-        }
-
-        private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
-        {
-            var lambda = LambdaUtilities.GetLambda(lambdaBody);
-            return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
         }
 
         private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -2363,22 +2332,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         break;
 
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
-                        // Parameter inserts are allowed for local functions
-                        if (node.Parent?.Parent is RecordDeclarationSyntax)
-                        {
-                            ReportError(RudeEditKind.AddRecordPositionalParameter);
-                        }
-                        else
-                        {
-                            ReportError(RudeEditKind.Insert);
-                        }
-
                         return;
 
                     case SyntaxKind.EnumMemberDeclaration:
+                        return;
+
                     case SyntaxKind.TypeParameter:
-                    case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
+                        return;
+
+                    case SyntaxKind.TypeParameterConstraintClause:
                         ReportError(RudeEditKind.Insert);
                         return;
 
@@ -2488,21 +2451,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterList:
+                        return;
+
                     case SyntaxKind.TypeParameterConstraintClause:
                         ReportError(RudeEditKind.Delete);
                         return;
 
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
                     case SyntaxKind.ParameterList when !_classifyStatementSyntax:
-                        if (oldNode.Parent?.Parent is RecordDeclarationSyntax)
-                        {
-                            ReportError(RudeEditKind.DeleteRecordPositionalParameter);
-                        }
-                        else
-                        {
-                            ReportError(RudeEditKind.Delete);
-                        }
-
                         return;
                 }
 
@@ -2539,16 +2495,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.FileScopedNamespaceDeclaration:
                         ClassifyUpdate((BaseNamespaceDeclarationSyntax)oldNode, (BaseNamespaceDeclarationSyntax)newNode);
                         return;
+
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                        ClassifyUpdate((TypeDeclarationSyntax)oldNode, (TypeDeclarationSyntax)newNode);
-                        return;
-
                     case SyntaxKind.EnumDeclaration:
-                        ClassifyUpdate((EnumDeclarationSyntax)oldNode, (EnumDeclarationSyntax)newNode);
                         return;
 
                     case SyntaxKind.DelegateDeclaration:
@@ -2670,49 +2623,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 ReportError(RudeEditKind.Renamed);
             }
 
-            private void ClassifyUpdate(TypeDeclarationSyntax oldNode, TypeDeclarationSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.BaseList, newNode.BaseList))
-                {
-                    ReportError(RudeEditKind.BaseTypeOrInterfaceUpdate);
-                }
-            }
-
-            private void ClassifyUpdate(EnumDeclarationSyntax oldNode, EnumDeclarationSyntax newNode)
-            {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.BaseList, newNode.BaseList))
-                {
-                    ReportError(RudeEditKind.EnumUnderlyingTypeUpdate);
-                    return;
-                }
-
-                // The list of members has been updated (separators added).
-                // We report a Rude Edit for each updated member.
-            }
-
             private void ClassifyUpdate(DelegateDeclarationSyntax oldNode, DelegateDeclarationSyntax newNode)
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
                     return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
                 }
             }
 
@@ -2738,12 +2654,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(VariableDeclaratorSyntax oldNode, VariableDeclaratorSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 // If the argument lists are mismatched the field must have mismatched "fixed" modifier, 
                 // which is reported by the field declaration.
                 if (oldNode.ArgumentList is null == newNode.ArgumentList is null)
@@ -2775,21 +2685,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(MethodDeclarationSyntax oldNode, MethodDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.ExplicitInterfaceSpecifier, newNode.ExplicitInterfaceSpecifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
                     return;
                 }
 
@@ -2802,12 +2700,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(ConversionOperatorDeclarationSyntax oldNode, ConversionOperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.ImplicitOrExplicitKeyword, newNode.ImplicitOrExplicitKeyword))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2823,12 +2715,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(OperatorDeclarationSyntax oldNode, OperatorDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.OperatorToken, newNode.OperatorToken))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.ReturnType, newNode.ReturnType))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
@@ -2846,7 +2732,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (oldNode.Kind() != newNode.Kind())
                 {
-                    ReportError(RudeEditKind.AccessorKindUpdate);
                     return;
                 }
 
@@ -2862,12 +2747,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(EnumMemberDeclarationSyntax oldNode, EnumMemberDeclarationSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.EqualsValue, newNode.EqualsValue))
                 {
                     ReportError(RudeEditKind.InitializerUpdate);
@@ -2900,18 +2779,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.ExplicitInterfaceSpecifier, newNode.ExplicitInterfaceSpecifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
                     return;
                 }
 
@@ -2957,12 +2824,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return;
                 }
 
-                if (!SyntaxFactory.AreEquivalent(oldNode.ExplicitInterfaceSpecifier, newNode.ExplicitInterfaceSpecifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 if (SyntaxFactory.AreEquivalent(oldNode.ExpressionBody, newNode.ExpressionBody))
                 {
                     var oldBody = SyntaxUtilities.TryGetEffectiveGetterBody(oldNode.ExpressionBody, oldNode.AccessorList);
@@ -2978,60 +2839,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyUpdate(TypeParameterSyntax oldNode, TypeParameterSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword))
                 {
                     ReportError(RudeEditKind.VarianceUpdate);
                     return;
                 }
-
-                // attribute changes are handled by semantics
             }
 
             private void ClassifyUpdate(TypeParameterConstraintClauseSyntax oldNode, TypeParameterConstraintClauseSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Name, newNode.Name))
+                if (!SyntaxFactory.AreEquivalent(oldNode.Constraints, newNode.Constraints))
                 {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
+                    ReportError(RudeEditKind.TypeUpdate);
                 }
-
-                Debug.Assert(!SyntaxFactory.AreEquivalent(oldNode.Constraints, newNode.Constraints));
-                ReportError(RudeEditKind.TypeUpdate);
             }
 
             private void ClassifyUpdate(ParameterSyntax oldNode, ParameterSyntax newNode)
             {
-                if (!SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier))
-                {
-                    ReportError(RudeEditKind.Renamed);
-                    return;
-                }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers))
-                {
-                    ReportError(RudeEditKind.ModifiersUpdate);
-                    return;
-                }
-
                 if (!SyntaxFactory.AreEquivalent(oldNode.Type, newNode.Type))
                 {
                     ReportError(RudeEditKind.TypeUpdate);
                     return;
                 }
-
-                if (!SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default))
-                {
-                    ReportError(RudeEditKind.InitializerUpdate);
-                    return;
-                }
-
-                // Attribute changes handled in semantics
             }
 
             private void ClassifyUpdate(AttributeListSyntax oldNode, AttributeListSyntax newNode)
@@ -3202,6 +3031,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 { ContainingType: { TypeKind: TypeKind.Interface } } and not INamedTypeSymbol
                     => RudeEditKind.InsertIntoInterface,
 
+                // Inserting a field into an enum:
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/54759
+                IFieldSymbol { ContainingType.TypeKind: TypeKind.Enum }
+                    => RudeEditKind.Insert,
+#pragma warning restore format
+
                 _ => RudeEditKind.None
             };
 
@@ -3215,16 +3050,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportTypeDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, INamedTypeSymbol oldType, INamedTypeSymbol newType, SyntaxNode newDeclaration, CancellationToken cancellationToken)
+        internal override void ReportUpdatedTypeSymbolDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, INamedTypeSymbol oldType, INamedTypeSymbol newType, SyntaxNode newDeclaration, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var oldNodes);
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var newNodes);
 
             // Consider: better error messages
-            Report((b, t) => AddNodes(b, t.AttributeLists), RudeEditKind.Update);
             Report((b, t) => AddNodes(b, t.TypeParameterList?.Parameters), RudeEditKind.Update);
             Report((b, t) => AddNodes(b, t.ConstraintClauses), RudeEditKind.Update);
-            Report((b, t) => AddNodes(b, t.BaseList?.Types), RudeEditKind.BaseTypeOrInterfaceUpdate);
 
             void Report(Action<ArrayBuilder<SyntaxNode>, TypeDeclarationSyntax> addNodes, RudeEditKind rudeEditKind)
             {

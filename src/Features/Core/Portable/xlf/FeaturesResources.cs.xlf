@@ -110,11 +110,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Přidání prvku {0} do rozhraní zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a positional parameter to a record will prevent the debug session from continuing.</source>
-        <target state="translated">Když se do záznamu přidá parametr pozice, ladicí relace nebude moct pokračovat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
         <target state="translated">Přidání metody s explicitním specifikátorem rozhraní zabrání v pokračování relace ladění.</target>
@@ -240,6 +235,21 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing type parameters of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing type parameters of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
         <target state="translated">Když se změní viditelnost pro {0}, ladicí relace nebude moct pokračovat.</target>
@@ -323,11 +333,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Vytvořit a přiřadit zbývající položky jako vlastnosti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a positional parameter from a record will prevent the debug session from continuing.</source>
-        <target state="translated">Když se ze záznamu odstraní parametr pozice, ladicí relace nebude moct pokračovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
