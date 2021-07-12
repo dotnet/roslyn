@@ -972,6 +972,11 @@
         <target state="translated">Executar Análise de Código em {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
         <source>Running code analysis for '{0}'...</source>
         <target state="translated">Executando a análise de código para '{0}'...</target>
