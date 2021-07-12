@@ -9937,6 +9937,7 @@ class Program
         }
 
         [Fact]
+        [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
         public void GenericAttribute_Dynamic_01()
         {
             var source = @"
@@ -9966,7 +9967,8 @@ class C { }
                 GetAttributeStrings(attrs));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(54778, "https://github.com/dotnet/roslyn/issues/54778")]
         public void GenericAttribute_Dynamic_02()
         {
             var source = @"
