@@ -132,21 +132,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have 4 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
-            //  2. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
+            //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
+            //     params array. This is very efficient as the runtime can allocate a buffer for the string with exactly the correct length and
+            //     make no intermediate allocations.
+            //  3. The WellKnownType DefaultInterpolatedStringHandler is available, and none of the interpolation holes contain an await expression.
             //     The builder is a ref struct, and we can guarantee the lifetime won't outlive the stack if the string doesn't contain any
             //     awaits, but if it does we cannot use it. This builder is the only way that ref structs can be directly used as interpolation
             //     hole components, which means that ref structs components and await expressions cannot be combined. It is already illegal for
             //     the user to use ref structs in an async method today, but if that were to ever change, this would still need to be respected.
             //     We also cannot use this method if the interpolated string appears within a catch filter, as the builder is disposable and we
             //     cannot put a try/finally inside a filter block.
-            //  3. The string is composed entirely of components that are strings themselves. We can turn this into a single call to string.Concat.
-            //     We prefer the builder over this because the builder can use pooling to avoid new allocations, while this call will potentially
-            //     need to allocate a param array.
-            //  4. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
+            //  4. The string is composed of more than 4 components that are all strings themselves. We can turn this into a single
+            //     call to string.Concat. We prefer the builder over this because the builder can use pooling to avoid new allocations, while this
+            //     call will need to allocate a param array.
+            //  5. The string has heterogeneous data and either InterpolatedStringHandler is unavailable, or one of the holes contains an await
             //     expression. This is turned into a call to string.Format.
             //
-            // We need to do the determination of 1, 2, or 3/4 up front, rather than in lowering, as it affects diagnostics (ref structs not being
-            // able to be used, for example). However, between 3 and 4, we don't need to know at this point, so that logic is deferred for lowering.
+            // We need to do the determination of 1, 2, 3, or 4/5 up front, rather than in lowering, as it affects diagnostics (ref structs not being
+            // able to be used, for example). However, between 4 and 5, we don't need to know at this point, so that logic is deferred for lowering.
 
             if (unconvertedInterpolatedString.ConstantValue is not null)
             {
@@ -155,13 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
             }
 
+            // Case 2. Attempt to see if all parts are strings.
+            if (unconvertedInterpolatedString.Parts.Length <= 4 &&
+                unconvertedInterpolatedString.Parts.All(p => p is BoundLiteral
+                                                               or BoundStringInsert { Value: { Type: { SpecialType: SpecialType.System_String } }, Alignment: null, Format: null }))
+            {
+                return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
+            }
+
             if (tryBindAsHandlerType(out var result))
             {
-                // Case 2
+                // Case 3
                 return result;
             }
 
-            // The specifics of 3 vs 4 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
+            // The specifics of 4 vs 5 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
             // object.
             return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
 
