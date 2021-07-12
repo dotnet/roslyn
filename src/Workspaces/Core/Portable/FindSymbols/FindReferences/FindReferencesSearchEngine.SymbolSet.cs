@@ -164,14 +164,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-                FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 foreach (var symbol in symbols)
-                    await AddCascadedAndLinkedSymbolsToAsync(engine, symbol, to, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, symbol, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
             }
 
             protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> to, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 var solution = engine._solution;
                 symbol = await MapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     symbol = await MapToAppropriateSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
                     foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                     {
-                        if (to.Add(linked))
+                        if (seenSymbols.Add(linked))
                             workQueue.Push(linked);
                     }
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             /// <summary>
             /// Finds all the symbols 'down' the inheritance hierarchy of <paramref name="symbol"/> in the given
-            /// project.  The symbols found are added to <paramref name="to"/>.  If <paramref name="to"/> did not
+            /// project.  The symbols found are added to <paramref name="seenSymbols"/>.  If <paramref name="seenSymbols"/> did not
             /// contain that symbol, then it is also added to <paramref name="workQueue"/> to allow fixed point
             /// algorithms to continue.
             /// </summary>
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// avoid allocating a fresh set every time this calls into FindMemberImplementationsArrayAsync.
             /// </remarks>
             protected async Task AddDownSymbolsAsync(
-                ISymbol symbol, HashSet<ISymbol> to, Stack<ISymbol> workQueue,
+                ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(projects.Count == 1, "Only a single project should be passed in");
@@ -222,24 +222,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var implementations = await SymbolFinder.FindMemberImplementationsArrayAsync(
                         symbol, this.Solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, implementations, to, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, implementations, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     var overrrides = await SymbolFinder.FindOverridesArrayAsync(
                         symbol, this.Solution, projects, cancellationToken).ConfigureAwait(false);
 
-                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, overrrides, to, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(this.Engine, overrrides, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             /// <summary>
             /// Finds all the symbols 'up' the inheritance hierarchy of <paramref name="symbol"/> in the solution.  The
-            /// symbols found are added to <paramref name="to"/>.  If <paramref name="to"/> did not contain that symbol,
+            /// symbols found are added to <paramref name="seenSymbols"/>.  If <paramref name="seenSymbols"/> did not contain that symbol,
             /// then it is also added to <paramref name="workQueue"/> to allow fixed point algorithms to continue.
             /// </summary>
             protected static async Task AddUpSymbolsAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> to, Stack<ISymbol> workQueue,
+                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 if (!InvolvesInheritance(symbol))
@@ -252,15 +252,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // We have a normal method.  Find any interface methods up the inheritance hierarchy that it implicitly
                     // or explicitly implements and cascade to those.
                     foreach (var match in await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false))
-                        await AddCascadedAndLinkedSymbolsToAsync(engine, match, to, workQueue, cancellationToken).ConfigureAwait(false);
+                        await AddCascadedAndLinkedSymbolsToAsync(engine, match, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
                 }
 
                 // If we're overriding a member, then add it to the up-set
                 if (symbol.GetOverriddenMember() is { } overriddenMember)
-                    await AddCascadedAndLinkedSymbolsToAsync(engine, overriddenMember, to, workQueue, cancellationToken).ConfigureAwait(false);
+                    await AddCascadedAndLinkedSymbolsToAsync(engine, overriddenMember, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
 
                 // An explicit interface method will cascade to all the methods that it implements in the up direction.
-                await AddCascadedAndLinkedSymbolsToAsync(engine, symbol.ExplicitInterfaceImplementations(), to, workQueue, cancellationToken).ConfigureAwait(false);
+                await AddCascadedAndLinkedSymbolsToAsync(engine, symbol.ExplicitInterfaceImplementations(), seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
             }
         }
     }
