@@ -2116,6 +2116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             .WithLeadingTrivia(lambda.GetLeadingTrivia())
                             .WithTrailingTrivia(lambda.GetTrailingTrivia());
                     }
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
                 default:
                     return declaration;
             }

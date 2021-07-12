@@ -122,6 +122,11 @@
         <target state="translated">參考相等檢查最好使用 'is null'</target>
         <note>'is null' is a C# string and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">建議使用模式比對</target>

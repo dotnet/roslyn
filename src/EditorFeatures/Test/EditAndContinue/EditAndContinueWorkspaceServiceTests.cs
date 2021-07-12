@@ -3682,7 +3682,7 @@ class C
 
             var hotReload = new UnitTestingHotReloadService(workspace.Services);
 
-            await hotReload.StartSessionAsync(solution, CancellationToken.None);
+            await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
 
             var sessionId = hotReload.GetTestAccessor().SessionId;
             var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
@@ -3694,13 +3694,13 @@ class C
 
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
 
-            var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            var result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
             Assert.Empty(result.diagnostics);
             Assert.Equal(1, result.updates.Length);
 
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 
-            result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
             AssertEx.Equal(
                 new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_will_prevent_the_debug_session_from_continuing, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
