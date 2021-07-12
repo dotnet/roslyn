@@ -269,6 +269,7 @@
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                     return true;
                 default:
                     return false;

@@ -2118,5 +2118,51 @@ switch(shape)
         }
 
         #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatements()
+        {
+            var src1 = @"
+Console.WriteLine(1);
+Console.WriteLine(2);
+
+var x = 0;
+while (true)
+{
+    x++;
+}
+
+Console.WriteLine(3);
+";
+            var src2 = @"
+Console.WriteLine(4);
+Console.WriteLine(5);
+
+var x = 1;
+while (true)
+{
+    x--;
+}
+
+Console.WriteLine(6);
+";
+            var match = GetTopEdits(src1, src2).Match;
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "Console.WriteLine(1);", "Console.WriteLine(4);" },
+                { "Console.WriteLine(2);", "Console.WriteLine(5);" },
+                { "var x = 0;", "var x = 1;" },
+                { "while (true) {     x++; }", "while (true) {     x--; }" },
+                { "Console.WriteLine(3);", "Console.WriteLine(6);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
     }
 }

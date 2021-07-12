@@ -251,7 +251,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (workspace.CurrentSolution.GetDocument(documentId) == null)
                 {
-                    var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
+                    var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
+                    if (project is null)
+                    {
+                        // This is a source generated document shown in Solution Explorer, but is no longer valid since
+                        // the configuration and/or platform changed since the last generation completed.
+                        return false;
+                    }
+
+                    var generatedDocument = project
                                                                      .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
                                                                      .GetAwaiter().GetResult();
 

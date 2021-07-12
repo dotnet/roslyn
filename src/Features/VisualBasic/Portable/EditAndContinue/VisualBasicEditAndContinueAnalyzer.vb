@@ -799,6 +799,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Syntax And Semantic Utils"
 
+        Protected Overrides Function IsGlobalStatement(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
+            Return Nothing
+        End Function
+
         Protected Overrides ReadOnly Property LineDirectiveKeyword As String
             Get
                 Return "ExternalSource"
@@ -1001,8 +1009,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
 
-        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode) As SyntaxNode
-            Return If(node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock), node.Parent, Nothing)
+        Friend Overrides Function TryGetAssociatedMemberDeclaration(node As SyntaxNode, <Out> ByRef declaration As SyntaxNode) As Boolean
+            If node.IsKind(SyntaxKind.Parameter, SyntaxKind.TypeParameter) Then
+                Contract.ThrowIfFalse(node.IsParentKind(SyntaxKind.ParameterList, SyntaxKind.TypeParameterList))
+                declaration = node.Parent.Parent
+                Return True
+            End If
+
+            If node.IsParentKind(SyntaxKind.PropertyBlock, SyntaxKind.EventBlock) Then
+                declaration = node.Parent
+                Return True
+            End If
+
+            declaration = Nothing
+            Return False
         End Function
 
         Friend Overrides Function HasBackingField(propertyDeclaration As SyntaxNode) As Boolean
@@ -1265,14 +1285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             ' Avoid duplicate semantic edits - don't return symbols for statements within blocks.
             Select Case node.Kind()
-                Case SyntaxKind.OperatorStatement,
-                     SyntaxKind.SubNewStatement,
-                     SyntaxKind.SetAccessorStatement,
-                     SyntaxKind.GetAccessorStatement,
-                     SyntaxKind.AddHandlerAccessorStatement,
-                     SyntaxKind.RemoveHandlerAccessorStatement,
-                     SyntaxKind.RaiseEventAccessorStatement,
-                     SyntaxKind.NamespaceStatement
+                Case SyntaxKind.ImportsStatement,
+                     SyntaxKind.NamespaceStatement,
+                     SyntaxKind.NamespaceBlock
                     Return False
 
                 Case SyntaxKind.SimpleAsClause
@@ -1280,40 +1295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         node = node.Parent             ' for attributes on return types of functions
                     End If
 
-                Case SyntaxKind.Parameter
-                    If editKind = EditKind.Update Then
-                        ' for delegate invoke methods we need to go one step higher, to the delegate itself
-                        Dim parameterSymbol = model.GetDeclaredSymbol(node, cancellationToken)
-                        Dim containingDelegate = TryCast(parameterSymbol.ContainingSymbol, IMethodSymbol)
-                        If containingDelegate IsNot Nothing AndAlso containingDelegate.MethodKind = MethodKind.DelegateInvoke Then
-                            parameterSymbol = containingDelegate.ContainingSymbol
-                        End If
-
-                        symbols = OneOrMany.Create(parameterSymbol)
-                        Return True
-                    End If
-
-                    Return False
-
-                Case SyntaxKind.TypeParameter
-                    If editKind <> EditKind.Update Then
-                        Return False
-                    End If
-
-                Case SyntaxKind.ImportsStatement,
-                     SyntaxKind.NamespaceBlock
-                    Return False
-
-                Case SyntaxKind.ModifiedIdentifier
-                    If Not node.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                        Return False
-                    End If
-
                 Case SyntaxKind.VariableDeclarator
-                    If Not node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
-                        Return False
-                    End If
-
                     Dim variableDeclarator = CType(node, VariableDeclaratorSyntax)
                     If variableDeclarator.Names.Count > 1 Then
                         symbols = OneOrMany.Create(variableDeclarator.Names.SelectAsArray(Function(n) model.GetDeclaredSymbol(n, cancellationToken)))
@@ -2256,18 +2238,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.EnumMemberDeclaration,
+                         SyntaxKind.Parameter,
                          SyntaxKind.TypeParameter,
-                         SyntaxKind.StructureConstraint,
+                         SyntaxKind.TypeParameterList
+                        Return
+
+                    Case SyntaxKind.StructureConstraint,
                          SyntaxKind.TypeParameterSingleConstraintClause,
                          SyntaxKind.TypeParameterMultipleConstraintClause,
                          SyntaxKind.ClassConstraint,
                          SyntaxKind.StructureConstraint,
                          SyntaxKind.NewConstraint,
                          SyntaxKind.TypeConstraint,
-                         SyntaxKind.TypeParameterList,
-                         SyntaxKind.Parameter,
-                         SyntaxKind.AttributesStatement,
                          SyntaxKind.SimpleAsClause
+                        ReportError(RudeEditKind.Insert)
+                        Return
+
+                    Case SyntaxKind.AttributesStatement
+                        ' Module/assembly attribute
                         ReportError(RudeEditKind.Insert)
                         Return
 
@@ -2288,21 +2276,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.ParameterList
-                        ClassifyParameterInsert(DirectCast(node, ParameterListSyntax))
                         Return
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(node.Kind())
                 End Select
-            End Sub
-
-            Private Sub ClassifyParameterInsert(parameterList As ParameterListSyntax)
-                ' Sub M -> Sub M() is ok
-                If parameterList.Parameters.Count = 0 Then
-                    Return
-                End If
-
-                ReportError(RudeEditKind.Insert)
             End Sub
 
 #End Region
@@ -2374,7 +2352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Case SyntaxKind.TypeParameter,
                          SyntaxKind.TypeParameterList,
                          SyntaxKind.Parameter,
-                         SyntaxKind.TypeParameterSingleConstraintClause,
+                         SyntaxKind.ParameterList
+                        Return
+
+                    Case SyntaxKind.TypeParameterSingleConstraintClause,
                          SyntaxKind.TypeParameterMultipleConstraintClause,
                          SyntaxKind.ClassConstraint,
                          SyntaxKind.StructureConstraint,
@@ -2384,9 +2365,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         ReportError(RudeEditKind.Delete)
                         Return
 
-                    Case SyntaxKind.ParameterList
-                        ClassifyDelete(DirectCast(oldNode, ParameterListSyntax))
-
                     Case SyntaxKind.VariableDeclarator
                         ' Ignore, errors will be reported for children (ModifiedIdentifier, AsClause)
                         Return
@@ -2394,15 +2372,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(oldNode.Kind)
                 End Select
-            End Sub
-
-            Private Sub ClassifyDelete(oldNode As ParameterListSyntax)
-                ' Sub Goo() -> Sub Goo is ok
-                If oldNode.Parameters.Count = 0 Then
-                    Return
-                End If
-
-                ReportError(RudeEditKind.Delete)
             End Sub
 #End Region
 
@@ -2428,22 +2397,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Case SyntaxKind.ClassBlock,
                          SyntaxKind.StructureBlock,
                          SyntaxKind.InterfaceBlock,
-                         SyntaxKind.ModuleBlock
-                        ClassifyUpdate(DirectCast(oldNode, TypeBlockSyntax), DirectCast(newNode, TypeBlockSyntax))
-                        Return
-
-                    Case SyntaxKind.ClassStatement,
+                         SyntaxKind.ModuleBlock,
+                         SyntaxKind.ClassStatement,
                          SyntaxKind.StructureStatement,
                          SyntaxKind.InterfaceStatement,
-                         SyntaxKind.ModuleStatement
-                        ClassifyUpdate(DirectCast(oldNode, TypeStatementSyntax), DirectCast(newNode, TypeStatementSyntax))
-                        Return
-
-                    Case SyntaxKind.EnumBlock
-                        Return
-
-                    Case SyntaxKind.EnumStatement
-                        ClassifyUpdate(DirectCast(oldNode, EnumStatementSyntax), DirectCast(newNode, EnumStatementSyntax))
+                         SyntaxKind.ModuleStatement,
+                         SyntaxKind.EnumBlock,
+                         SyntaxKind.EnumStatement
                         Return
 
                     Case SyntaxKind.DelegateSubStatement,
@@ -2469,7 +2429,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
                     Case SyntaxKind.DeclareSubStatement,
                          SyntaxKind.DeclareFunctionStatement
-                        ClassifyUpdate(DirectCast(oldNode, DeclareStatementSyntax), DirectCast(newNode, DeclareStatementSyntax))
                         Return
 
                     Case SyntaxKind.SubStatement,
@@ -2486,7 +2445,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.OperatorStatement
-                        ClassifyUpdate(DirectCast(oldNode, OperatorStatementSyntax), DirectCast(newNode, OperatorStatementSyntax))
                         Return
 
                     Case SyntaxKind.ConstructorBlock
@@ -2580,33 +2538,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ReportError(RudeEditKind.Renamed)
             End Sub
 
-            Private Sub ClassifyUpdate(oldNode As TypeStatementSyntax, newNode As TypeStatementSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                End If
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As TypeBlockSyntax, newNode As TypeBlockSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Inherits, newNode.Inherits) OrElse
-                   Not SyntaxFactory.AreEquivalent(oldNode.Implements, newNode.Implements) Then
-                    ReportError(RudeEditKind.BaseTypeOrInterfaceUpdate)
-                End If
-
-                ' type member list separators
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As EnumStatementSyntax, newNode As EnumStatementSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.UnderlyingType, newNode.UnderlyingType) Then
-                    ReportError(RudeEditKind.EnumUnderlyingTypeUpdate)
-                    Return
-                End If
-            End Sub
-
             Private Sub ClassifyUpdate(oldNode As DelegateStatementSyntax, newNode As DelegateStatementSyntax)
                 ' Function changed to Sub or vice versa. Note that Function doesn't need to have AsClause.
                 If oldNode.RawKind <> newNode.RawKind Then
@@ -2618,19 +2549,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ReportError(RudeEditKind.TypeUpdate)
                     Return
                 End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ModifiedIdentifierSyntax, newNode As ModifiedIdentifierSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 ' TODO (tomat): We could be smarter and consider the following syntax changes to be legal:
                 ' Dim a? As Integer <-> Dim a As Integer?
                 ' Dim a() As Integer <-> Dim a As Integer()
@@ -2676,11 +2597,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As PropertyStatementSyntax, newNode As PropertyStatementSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 If Not SyntaxFactory.AreEquivalent(oldNode.ImplementsClause, newNode.ImplementsClause) Then
                     ReportError(RudeEditKind.ImplementsClauseUpdate)
                     Return
@@ -2717,11 +2633,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' A custom event can't be matched with a field event and vice versa:
                 Debug.Assert(SyntaxFactory.AreEquivalent(oldNode.CustomKeyword, newNode.CustomKeyword))
 
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 If Not SyntaxFactory.AreEquivalent(oldNode.ImplementsClause, newNode.ImplementsClause) Then
                     ReportError(RudeEditKind.ImplementsClauseUpdate)
                     Return
@@ -2748,11 +2659,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return
                 End If
 
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 ' TODO (tomat): We can support this
                 If Not SyntaxFactory.AreEquivalent(oldNode.HandlesClause, newNode.HandlesClause) Then
                     ReportError(RudeEditKind.HandlesClauseUpdate)
@@ -2765,48 +2671,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End If
             End Sub
 
-            Private Sub ClassifyUpdate(oldNode As DeclareStatementSyntax, newNode As DeclareStatementSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.CharsetKeyword, newNode.CharsetKeyword) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.LibraryName, newNode.LibraryName) Then
-                    ReportError(RudeEditKind.DeclareLibraryUpdate)
-                    Return
-                End If
-
-                Debug.Assert(Not SyntaxFactory.AreEquivalent(oldNode.AliasName, newNode.AliasName))
-                ReportError(RudeEditKind.DeclareAliasUpdate)
-            End Sub
-
             Private Sub ClassifyUpdate(oldNode As OperatorBlockSyntax, newNode As OperatorBlockSyntax)
                 ClassifyMethodBodyRudeUpdate(oldNode,
                                              newNode,
                                              containingMethod:=Nothing,
                                              containingType:=DirectCast(newNode.Parent, TypeBlockSyntax))
-            End Sub
-
-            Private Sub ClassifyUpdate(oldNode As OperatorStatementSyntax, newNode As OperatorStatementSyntax)
-                Dim oldWidening = oldNode.Modifiers.IndexOf(SyntaxKind.WideningKeyword) >= 0
-                Dim oldNarrowing = oldNode.Modifiers.IndexOf(SyntaxKind.NarrowingKeyword) >= 0
-                Dim newWidening = newNode.Modifiers.IndexOf(SyntaxKind.WideningKeyword) >= 0
-                Dim newNarrowing = newNode.Modifiers.IndexOf(SyntaxKind.NarrowingKeyword) >= 0
-
-                If newWidening <> oldWidening OrElse newNarrowing <> oldNarrowing Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As AccessorBlockSyntax, newNode As AccessorBlockSyntax)
@@ -2820,11 +2689,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As EnumMemberDeclarationSyntax, newNode As EnumMemberDeclarationSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 If Not SyntaxFactory.AreEquivalent(oldNode.Initializer, newNode.Initializer) Then
                     ReportError(RudeEditKind.InitializerUpdate)
                     Return
@@ -2845,11 +2709,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As TypeParameterSyntax, newNode As TypeParameterSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
                 If Not SyntaxFactory.AreEquivalent(oldNode.VarianceKeyword, newNode.VarianceKeyword) Then
                     ReportError(RudeEditKind.VarianceUpdate)
                     Return
@@ -2857,25 +2716,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Sub
 
             Private Sub ClassifyUpdate(oldNode As ParameterSyntax, newNode As ParameterSyntax)
-                If Not SyntaxFactory.AreEquivalent(oldNode.Identifier, newNode.Identifier) Then
-                    ReportError(RudeEditKind.Renamed)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Modifiers, newNode.Modifiers) Then
-                    ReportError(RudeEditKind.ModifiersUpdate)
-                    Return
-                End If
-
-                If Not SyntaxFactory.AreEquivalent(oldNode.Default, newNode.Default) Then
-                    ReportError(RudeEditKind.InitializerUpdate)
-                    Return
-                End If
-
-                If ClassifyTypeAndInitializerUpdates(oldNode.Default, oldNode.AsClause, newNode.Default, newNode.AsClause) Then
-                    Return
-                End If
-
                 ClassifyUpdate(oldNode.Identifier, newNode.Identifier)
             End Sub
 
@@ -3051,27 +2891,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return RudeEditKind.None
 
                 Case SymbolKind.Field
-                    'Dim field = DirectCast(newSymbol, IFieldSymbol)
-                    ' TODO:
-                    ' Can't insert WithEvents field since it is effectively a virtual property.
-                    ' WithEvents X As C
-                    'If field.Modifiers.Any(SyntaxKind.WithEventsKeyword) Then
-                    '    ReportError(RudeEditKind.Insert)
-                    '    Return
-                    'End If
+                    ' Inserting a field into an enum is not allowed.
+                    If newSymbol.ContainingType.TypeKind = TypeKind.Enum Then
+                        Return RudeEditKind.Insert
+                    End If
 
-                    'Dim containingType = field.Parent
-                    'If containingType.IsKind(SyntaxKind.ModuleBlock) Then
-                    '    ReportError(RudeEditKind.Insert)
-                    '    Return
-                    'End If
                     Return RudeEditKind.None
             End Select
 
             Return RudeEditKind.None
         End Function
 
-        Friend Overrides Sub ReportTypeDeclarationInsertDeleteRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldType As INamedTypeSymbol, newType As INamedTypeSymbol, newDeclaration As SyntaxNode, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUpdatedTypeSymbolDeclarationRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldType As INamedTypeSymbol, newType As INamedTypeSymbol, newDeclaration As SyntaxNode, cancellationToken As CancellationToken)
             Dim oldNodes = ArrayBuilder(Of SyntaxNode).GetInstance()
             Dim newNodes = ArrayBuilder(Of SyntaxNode).GetInstance()
 
@@ -3101,24 +2932,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 End Sub
 
             ' Consider better error messages
-            report(Sub(b, t) AddNodes(b, t.BlockStatement.AttributeLists), RudeEditKind.Update)
             report(Sub(b, t) AddNodes(b, t.BlockStatement.TypeParameterList?.Parameters), RudeEditKind.Update)
-
-            report(Sub(b, t)
-                       For Each inherit In t.Inherits
-                           For Each baseType In inherit.Types
-                               b.Add(baseType)
-                           Next
-                       Next
-                   End Sub, RudeEditKind.BaseTypeOrInterfaceUpdate)
-
-            report(Sub(b, t)
-                       For Each impl In t.Implements
-                           For Each baseInterface In impl.Types
-                               b.Add(baseInterface)
-                           Next
-                       Next
-                   End Sub, RudeEditKind.BaseTypeOrInterfaceUpdate)
 
             oldNodes.Free()
             newNodes.Free()
