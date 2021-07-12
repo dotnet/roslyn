@@ -2160,18 +2160,12 @@ class C<T> : System.Attribute { }";
                 // class C<T> : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 14)
                 );
-        }
 
-        [Fact]
-        public void GenericAttributeClassWithMultiplePartsWithGenericAttributeFeature()
-        {
-            var source =
-@"class C<T> { }
-class C<T> : System.Attribute { }";
-            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7)
+                );
         }
 
         [WorkItem(543822, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543822")]

@@ -8181,85 +8181,6 @@ public class C<T, U> : Attribute // 18
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(12, 2));
         }
 
-        [Fact]
-        public void GenericAttributeTypeWithGenericAttributeFeature()
-        {
-            var source = @"
-using System;
-using System.Collections.Generic;
-
-[A<>]
-[A<int>]
-[B]
-[B<>]
-[B<int>]
-[B<List<int>>]
-[C]
-[C<>]
-[C<int>]
-[C<,>]
-[C<int, int>]
-[C<int, string, byte>]
-[D<int>(1)]
-[D<string>(""1"")]
-[D<Type>(typeof(int))]
-[D<Test>(new Test())]
-class Test
-{
-}
-
-public class A : Attribute
-{
-}
-
-public class B<T> : Attribute
-{
-}
-
-public class C<T, U> : Attribute
-{
-}
-
-public class D<T> : Attribute
-{
-    public D(T value) { }
-}
-";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                    // (5,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                    // [A<>]
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<>").WithArguments("A", "type").WithLocation(5, 2),
-                    // (6,2): error CS0308: The non-generic type 'A' cannot be used with type arguments
-                    // [A<int>]
-                    Diagnostic(ErrorCode.ERR_HasNoTypeVars, "A<int>").WithArguments("A", "type").WithLocation(6, 2),
-                    // (7,2): error CS0305: Using the generic type 'B<T>' requires 1 type arguments
-                    // [B]
-                    Diagnostic(ErrorCode.ERR_BadArity, "B").WithArguments("B<T>", "type", "1").WithLocation(7, 2),
-                    // (8,2): error CS7003: Unexpected use of an unbound generic name
-                    // [B<>]
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "B<>").WithLocation(8, 2),
-                    // (11,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                    // [C]
-                    Diagnostic(ErrorCode.ERR_BadArity, "C").WithArguments("C<T, U>", "type", "2").WithLocation(11, 2),
-                    // (12,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                    // [C<>]
-                    Diagnostic(ErrorCode.ERR_BadArity, "C<>").WithArguments("C<T, U>", "type", "2").WithLocation(12, 2),
-                    // (13,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                    // [C<int>]
-                    Diagnostic(ErrorCode.ERR_BadArity, "C<int>").WithArguments("C<T, U>", "type", "2").WithLocation(13, 2),
-                    // (14,2): error CS7003: Unexpected use of an unbound generic name
-                    // [C<,>]
-                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<,>").WithLocation(14, 2),
-                    // (16,2): error CS0305: Using the generic type 'C<T, U>' requires 2 type arguments
-                    // [C<int, string, byte>]
-                    Diagnostic(ErrorCode.ERR_BadArity, "C<int, string, byte>").WithArguments("C<T, U>", "type", "2").WithLocation(16, 2),
-                    // (20,2): error CS0181: Attribute constructor parameter 'value' has type 'Test', which is not a valid attribute parameter type
-                    // [D<Test>(new Test())]
-                    Diagnostic(ErrorCode.ERR_BadAttributeParamType, "D<Test>").WithArguments("value", "Test").WithLocation(20, 2));
-        }
-
         [WorkItem(611177, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611177")]
         [Fact]
         public void AliasedGenericAttributeType_Source()
@@ -8391,7 +8312,6 @@ class Test
 
 public class Outer<T>
 {
-    // Not a subtype of Attribute, since that wouldn't compile.
     public class Inner 
     {
     }
@@ -9659,7 +9579,7 @@ public class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'; use either '@A<>' or 'A<>Attribute'
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
                 );
@@ -9672,13 +9592,51 @@ public class C
                 // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // public class A<T> : System.Attribute {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
-                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'; either use '@A<>' or explicitly include the 'Attribute' suffix
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
                 // [A<int>]
                 Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
                 // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 // [A<int>]
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2));
+        }
+
+        [Fact, WorkItem(54772, "https://github.com/dotnet/roslyn/issues/54772")]
+        public void ResolveAmbiguityWithGenericAttribute()
+        {
+            var source = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+
+[@A<int>]
+[AAttribute<int>]
+public class C
+{
+}";
+            // This behavior is incorrect. No ambiguity errors should be reported in the above program.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
                 );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class AAttribute<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(2, 30),
+                // (3,21): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // public class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "System.Attribute").WithArguments("generic attributes", "10.0").WithLocation(3, 21),
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'. Either use '@A<>' or explicitly include the 'Attribute' suffix.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "@A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2),
+                // (5,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [@A<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "@A<int>").WithArguments("generic attributes", "10.0").WithLocation(5, 2),
+                // (6,2): error CS8773: Feature 'generic attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
+                // [AAttribute<int>]
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "AAttribute<int>").WithArguments("generic attributes", "10.0").WithLocation(6, 2));
         }
 
         [Fact]
@@ -9841,6 +9799,26 @@ public class Program { }
                 // (6,2): error CS7003: Unexpected use of an unbound generic name
                 // [C<>]
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "C<>").WithLocation(6, 2));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void GenericAttribute_Reflection_CoreClr()
+        {
+            var source = @"
+using System;
+
+public class Attr<T> : Attribute { }
+
+[Attr<int>]
+public class Program {
+    public static void Main() {
+        var attr = Attribute.GetCustomAttribute(typeof(Program), typeof(Attr<int>));
+        Console.Write(attr);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "Attr`1[System.Int32]");
+            verifier.VerifyDiagnostics();
         }
 
         #endregion
