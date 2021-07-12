@@ -243,15 +243,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (_priority == CodeActionRequestPriority.None)
                     return true;
 
+                // The compiler analyzer always counts for any priority.  It's diagnostics may be fixed
+                // by high pri or normal pri fixers.
+                if (analyzer.IsCompilerAnalyzer())
+                    return true;
+
                 // Otherwise, check our special internal flag to tell.
-                //
-                // Note: the compiler analyzer is always considered high-pri.  This is needed as there can 
-                // be high pri fixers that operate entirely off of compiler diagnostics.  For example, the 
-                // add-using fixer is high pri, and it works off of compiler diagnostics.  So we always have
-                // to run that one up front.
-                var analyzerPriority =
-                    analyzer.IsCompilerAnalyzer() ? CodeActionRequestPriority.High :
-                    analyzer is IBuiltInAnalyzer { RequestPriority: var rp } ? rp : CodeActionRequestPriority.Normal;
+                var analyzerPriority = analyzer is IBuiltInAnalyzer { RequestPriority: var requestPriority }
+                    ? requestPriority
+                    : CodeActionRequestPriority.Normal;
                 return _priority == analyzerPriority;
             }
 
