@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
             }
 
+            // If we encounter any errors while scanning this raw string, then always treat its constant value
+            // as unknown.
             if (this.HasErrors)
                 info.StringValue = "";
 
@@ -171,6 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 info.StringValue = this.HasErrors ? "" : TextWindow.Intern(_builder);
+
+                // Make sure that even if we fail to determine the constant content value of the string that
+                // we still consume all the way to original end that we computed.
                 TextWindow.Reset(tokenEnd);
             }
             finally
