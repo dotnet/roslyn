@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <returns>The number of quotes that were consumed</returns>
         private int ConsumeQuoteSequence()
         {
-            Debug.Assert(TextWindow.PeekChar() == '"');
-
             var start = TextWindow.Position;
             while (TextWindow.PeekChar() == '"')
                 TextWindow.AdvanceChar();
