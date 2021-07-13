@@ -546,6 +546,7 @@ pattern
   | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | list_pattern
   | parenthesized_pattern
   | recursive_pattern
   | relational_pattern
@@ -589,12 +590,16 @@ discard_pattern
   : '_'
   ;
 
+list_pattern
+  : '[' (pattern (',' pattern)* ','?)? ']' variable_designation?
+  ;
+
 parenthesized_pattern
   : '(' pattern ')'
   ;
 
 recursive_pattern
-  : type? positional_pattern_clause? length_pattern_clause? property_pattern_clause? variable_designation?
+  : type? positional_pattern_clause? property_pattern_clause? variable_designation?
   ;
 
 positional_pattern_clause
@@ -603,10 +608,6 @@ positional_pattern_clause
 
 subpattern
   : name_colon? pattern
-  ;
-
-length_pattern_clause
-  : '[' pattern ']'
   ;
 
 property_pattern_clause

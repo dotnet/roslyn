@@ -828,10 +828,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
-        // new patterns added in C# 10.0
+        // PROTOTYPE(list-patterns) new patterns added
         SlicePattern = 9034,
-        LengthPatternClause = 9035,
-        ListPatternClause = 9036,
+        ListPattern = 9035,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 

@@ -180,7 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // include lambda itself.
                 firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
             }
-            // PROTOTYPE(list-patterns) SyntaxKind.ListPatternClause
             else if (node.IsKind(SyntaxKind.PropertyPatternClause))
             {
                 // include the pattern recursive pattern syntax and/or subpattern

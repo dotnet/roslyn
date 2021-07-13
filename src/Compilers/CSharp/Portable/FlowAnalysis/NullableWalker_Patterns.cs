@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSlicePattern(BoundSlicePattern node)
         {
+            Visit(node.Pattern);
+            return null;
+        }
+
+        public override BoundNode VisitListPattern(BoundListPattern node)
+        {
+            VisitAndUnsplitAll(node.Subpatterns);
+            Visit(node.VariableAccess);
             return null;
         }
 
@@ -148,6 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         LearnFromNullTest(inputSlot, inputType, ref this.State, markDependentSlotsNotNull: false);
                     }
+                    break;
+                case BoundListPattern lp:
+                    // PROTOTYPE(list-patterns)
                     break;
                 case BoundRecursivePattern rp:
                     {

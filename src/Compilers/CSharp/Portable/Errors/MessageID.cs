@@ -227,8 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE(list-patterns) To reduce conflicts with upstream. Should be moved/indexed eventually.
         IDS_FeatureListPattern = MessageBase + 12850,
-        IDS_FeatureSlicePattern,
-        IDS_FeatureLengthPattern,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -514,8 +512,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // PROTOTYPE(list-patterns)
                 case MessageID.IDS_FeatureListPattern:
-                case MessageID.IDS_FeatureSlicePattern:
-                case MessageID.IDS_FeatureLengthPattern:
                     return LanguageVersion.Preview;
             }
         }

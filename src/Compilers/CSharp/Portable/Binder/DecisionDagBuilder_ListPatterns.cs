@@ -10,40 +10,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        private void MakeTestsAndBindingsForLengthAndListPatterns(BoundDagTemp input, BoundRecursivePattern recursive, ArrayBuilder<BoundPatternBinding> bindings, ArrayBuilder<Tests> tests)
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
         {
-            if (recursive.HasErrors)
-                return;
+            Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
+                         input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
+                         input.Type.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
+                         list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) == (list.HasSlice ? 1 : 0) &&
+                         list.LengthProperty is not null);
 
-            Debug.Assert(recursive.LengthProperty is not null || input.Type.IsSZArray());
-            var syntax = recursive.Syntax;
-            var lengthProperty = recursive.LengthProperty ?? (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, input);
-            tests.Add(new Tests.One(lengthEvaluation));
-            var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+            var syntax = list.Syntax;
+            var subpatterns = list.Subpatterns;
+            var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
+            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
 
-            if (recursive.LengthPattern is not null)
+            if (list.HasErrors)
             {
-                tests.Add(MakeTestsAndBindings(lengthTemp, recursive.LengthPattern, bindings));
+                tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
             }
-
-            if (recursive.ListPatternClause is { Subpatterns: var subpatterns } clause)
+            else if (list.HasSlice &&
+                     subpatterns.Length == 1 &&
+                     subpatterns[0] is BoundSlicePattern { Pattern: null })
             {
-                Debug.Assert(!subpatterns.IsDefaultOrEmpty);
-                Debug.Assert(subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) <= 1);
+                // If `..` is the only pattern in the list, bail. This is a no-op and we don't need to match anything further.
+                // If there's a subpattern, we're going to need the length value to extract a slice for the input,
+                // in which case we will test the length even if there is no other patterns in the list.
+                // i.e. the length is required to be non-negative for the match to be correct.
+            }
+            else
+            {
+                Debug.Assert(list.LengthProperty is not null);
 
-                if (clause.HasSlice &&
-                    subpatterns.Length == 1 &&
-                    subpatterns[0] is BoundSlicePattern { Pattern: null })
-                {
-                    // If `..` is the only pattern in the list, bail. This is a no-op and we don't need to match anything further.
-                    // If there's a subpattern, we're going to need the length value to extract a slice for the input,
-                    // in which case we will test the length even if there is no other patterns in the list.
-                    // i.e. the length is required to be non-negative for the match to be correct.
-                    return;
-                }
-
-                tests.Add(new Tests.One(clause.HasSlice
+                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, input);
+                tests.Add(new Tests.One(lengthEvaluation));
+                var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+                tests.Add(new Tests.One(list.HasSlice
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
 
@@ -66,12 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, clause.IndexerAccess, clause.IndexerSymbol, input);
+                    var indexEvaluation = new BoundDagIndexerEvaluation(syntax, subpattern.InputType, lengthTemp, index++, list.IndexerAccess, list.IndexerSymbol, input);
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(syntax, subpattern.InputType, indexEvaluation);
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
                 }
             }
+
+            if (list.VariableAccess is not null)
+            {
+                bindings.Add(new BoundPatternBinding(list.VariableAccess, input));
+            }
+
+            return Tests.AndSequence.Create(tests);
         }
     }
 }

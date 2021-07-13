@@ -247,8 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagIndexerEvaluation { IndexerAccess: null, IndexerSymbol: null } e:
                         {
-                            // array indexer access
-
+                            // array[int]
                             Debug.Assert(input.Type?.IsSZArray() == true);
                             BoundExpression access = _factory.ArrayAccess(input, makeImplicitIndexArgument(e.Index, e.LengthTemp));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
@@ -258,8 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagIndexerEvaluation { IndexerSymbol: PropertySymbol indexer } e:
                         {
-                            // implicit Index indexer access via this[int]
-
+                            // this[int]
                             BoundExpression access = _factory.Indexer(input, indexer, makeImplicitIndexArgument(e.Index, e.LengthTemp));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
@@ -268,8 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagIndexerEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
                         {
-                            // explicit Index indexer access via applicable indexer member
-
+                            // this[Index]
                             BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitIndexArgument(e.Index, e.Index < 0));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
@@ -278,8 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagSliceEvaluation { IndexerAccess: null, SliceMethod: null } e:
                         {
-                            // array slice
-
+                            // RuntimeHelpers.GetSubArray(T[], Range)
                             TypeSymbol inputType = input.Type;
                             Debug.Assert(inputType is { });
                             Debug.Assert(inputType.IsSZArray());
@@ -298,8 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagSliceEvaluation { SliceMethod: MethodSymbol sliceMethod } e:
                         {
-                            // implicit Range indexer access via Slice method
-
+                            // Slice(int, int)
                             Debug.Assert(sliceMethod.ParameterCount == 2);
                             Debug.Assert(sliceMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
                             Debug.Assert(sliceMethod.Parameters[1].Type.SpecialType == SpecialType.System_Int32);
@@ -314,8 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundDagSliceEvaluation { IndexerAccess: BoundIndexerAccess indexerAccess } e:
                         {
-                            // explicit Range indexer access via applicable indexer member
-
+                            // this[Range]
                             BoundExpression access = makeIndexerAccess(e.Syntax, indexerAccess, makeExplicitRangeArgument(e));
                             var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);

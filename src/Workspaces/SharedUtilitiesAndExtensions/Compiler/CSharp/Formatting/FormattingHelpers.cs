@@ -160,7 +160,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            // PROTOTYPE(list-patterns) SyntaxKind.ListPatternClause
             return token.Parent is ExpressionSyntax || token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
         }
 
@@ -331,7 +330,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.SwitchExpression);
 
         public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
-            // PROTOTYPE(list-patterns) SyntaxKind.ListPatternClause
             => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.PropertyPatternClause);
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)

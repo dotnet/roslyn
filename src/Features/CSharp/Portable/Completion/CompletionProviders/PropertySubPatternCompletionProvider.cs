@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            return token.Parent.IsKind(SyntaxKind.PropertyPatternClause, SyntaxKind.ListPatternClause) ? token : default;
+            return token.Parent.IsKind(SyntaxKind.PropertyPatternClause) ? token : default;
         }
     }
 }

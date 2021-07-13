@@ -1941,7 +1941,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(list-patterns)
         ERR_UnsupportedTypeForListPattern = 9200,
         ERR_UnsupportedTypeForSlicePattern,
-        ERR_UnsupportedTypeForLengthPattern,
         ERR_MisplacedSlicePattern,
 
         #endregion

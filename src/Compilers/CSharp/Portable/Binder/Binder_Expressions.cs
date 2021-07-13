@@ -7878,7 +7878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool argIsIndex = argIsIndexNotRange.Value();
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            if (!TryFindIndexOrRangeIndexerPattern(syntax, receiverOpt, receiverType, argIsIndex: argIsIndex,
+            if (!TryFindIndexOrRangeIndexerPattern(receiverOpt, receiverType, argIsIndex: argIsIndex,
                 out PropertySymbol? lengthOrCountProperty, out Symbol? patternSymbol, diagnostics, ref useSiteInfo))
             {
                 return false;
@@ -7892,6 +7892,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindToNaturalType(argument, diagnostics),
                 patternSymbol.GetTypeOrReturnType().Type);
 
+            ReportDiagnosticsIfObsolete(diagnostics, patternSymbol, syntax, hasBaseReceiver: false);
+            ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
+
+            if (!argIsIndex)
+            {
+                checkWellKnown(WellKnownMember.System_Range__get_Start);
+                checkWellKnown(WellKnownMember.System_Range__get_End);
+            }
+            checkWellKnown(WellKnownMember.System_Index__GetOffset);
+
             _ = MessageID.IDS_FeatureIndexOperator.CheckFeatureAvailability(diagnostics, syntax);
             if (arguments.Names.Count > 0)
             {
@@ -7902,15 +7912,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.Names[0].GetLocation());
             }
             return true;
+
+            void checkWellKnown(WellKnownMember member)
+            {
+                // Check required well-known member. They may not be needed
+                // during lowering, but it's simpler to always require them to prevent
+                // the user from getting surprising errors when optimizations fail
+                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+            }
         }
 
         private bool TryFindIndexOrRangeIndexerPattern(
-            SyntaxNode syntax,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             [NotNullWhen(true)] out Symbol? patternSymbol,
+            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
             BindingDiagnosticBag diagnostics,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -7927,12 +7945,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
 
             if (TryLookupLengthOrCount(receiverType, lookupResult, out lengthOrCountProperty, ref useSiteInfo) &&
-                TryFindIndexOrRangeIndexerPattern(syntax, lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
+                TryFindIndexOrRangeIndexerPattern(lookupResult, receiverOpt, receiverType, argIsIndex, out patternSymbol, diagnostics, ref useSiteInfo))
             {
                 CheckImplicitThisCopyInReadOnlyMember(receiverOpt, lengthOrCountProperty.GetMethod, diagnostics);
-                // PROTOTYPE we should check whether lengthOrCountProperty.GetMethod might be obsolete
-                ReportDiagnosticsIfObsolete(diagnostics, lengthOrCountProperty, syntax, hasBaseReceiver: false);
-
                 lookupResult.Free();
                 return true;
             }
@@ -7943,16 +7958,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool TryFindIndexOrRangeIndexerPattern(
-            SyntaxNode syntax,
             LookupResult lookupResult,
             BoundExpression? receiverOpt,
             TypeSymbol receiverType,
             bool argIsIndex,
             [NotNullWhen(true)] out Symbol? patternSymbol,
+            // PROTOTYPE(list-patterns) We should take either of these and adjust the caller.
             BindingDiagnosticBag diagnostics,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool forPattern = false)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(lookupResult.IsClear);
             if (argIsIndex)
             {
                 // Look for `T this[int i]` indexer
@@ -7978,10 +7993,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             property.OriginalDefinition is { ParameterCount: 1 } original &&
                             original.Parameters[0] is { Type: { SpecialType: SpecialType.System_Int32 }, RefKind: RefKind.None })
                         {
-                            ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: false);
                             // note: implicit copy check on the indexer accessor happens in CheckPropertyValueKind
                             patternSymbol = property;
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
                             return true;
                         }
                     }
@@ -7996,9 +8009,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (substring is object)
                 {
                     patternSymbol = substring;
-                    checkWellKnown(WellKnownMember.System_Range__get_Start);
-                    checkWellKnown(WellKnownMember.System_Range__get_End);
-                    checkWellKnown(WellKnownMember.System_Index__GetOffset);
                     return true;
                 }
             }
@@ -8033,10 +8043,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             patternSymbol = method;
                             CheckImplicitThisCopyInReadOnlyMember(receiverOpt, method, diagnostics);
-                            ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
-                            checkWellKnown(WellKnownMember.System_Range__get_Start);
-                            checkWellKnown(WellKnownMember.System_Range__get_End);
-                            checkWellKnown(WellKnownMember.System_Index__GetOffset);
                             return true;
                         }
                     }
@@ -8045,17 +8051,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             patternSymbol = null;
             return false;
-
-            void checkWellKnown(WellKnownMember member)
-            {
-                // For list or slice patterns, there's no index or range expression in the source so we won't report missing members here.
-                if (forPattern)
-                    return;
-                // Check required well-known member. They may not be needed
-                // during lowering, but it's simpler to always require them to prevent
-                // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
-            }
         }
 
         private bool TryLookupLengthOrCount(
@@ -8064,6 +8059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(lookupResult.IsClear);
             // PROTOTYPE(list-patterns) Assert about whether diagnostics and dependencies are being accumulated.
             return tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, ref useSiteInfo) ||
                    tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, ref useSiteInfo);

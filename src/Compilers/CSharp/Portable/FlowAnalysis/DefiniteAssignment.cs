@@ -1318,6 +1318,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.ListPattern:
+                    {
+                        var pattern = (BoundListPattern)node;
+                        var symbol = pattern.Variable as LocalSymbol;
+                        if ((object)symbol != null)
+                        {
+                            // we do not track definite assignment for pattern variables when they are
+                            // promoted to fields for top-level code in scripts and interactive
+                            int slot = GetOrCreateSlot(symbol);
+                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                        }
+
+                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        break;
+                    }
+
                 case BoundKind.LocalDeclaration:
                     {
                         var local = (BoundLocalDeclaration)node;
@@ -1627,25 +1643,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat.Pattern, definitely);
                             }
                         }
-                        if (pat.LengthPattern is not null)
-                        {
-                            AssignPatternVariables(pat.LengthPattern, definitely);
-                        }
                         if (!pat.Properties.IsDefaultOrEmpty)
                         {
                             foreach (BoundSubpattern sub in pat.Properties)
                             {
                                 AssignPatternVariables(sub.Pattern, definitely);
-                            }
-                        }
-                        if (pat.ListPatternClause is not null)
-                        {
-                            if (!pat.ListPatternClause.Subpatterns.IsDefaultOrEmpty)
-                            {
-                                foreach (BoundPattern p in pat.ListPatternClause.Subpatterns)
-                                {
-                                    AssignPatternVariables(p, definitely);
-                                }
                             }
                         }
                         if (definitely)
@@ -1659,6 +1661,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             AssignPatternVariables(subpat.Pattern, definitely);
                         }
+                        break;
+                    }
+                case BoundKind.ListPattern:
+                    {
+                        var pat = (BoundListPattern)pattern;
+                        foreach (BoundPattern p in pat.Subpatterns)
+                        {
+                            AssignPatternVariables(p, definitely);
+                        }
+                        if (definitely)
+                            Assign(pat, null, false, false);
                         break;
                     }
                 case BoundKind.RelationalPattern:

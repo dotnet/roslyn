@@ -992,11 +992,6 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnsupportedTypeForLengthPattern">
-        <source>Length patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Length patterns may not be used for a value of type '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="new">List patterns may not be used for a value of type '{0}'.</target>
@@ -1060,11 +1055,6 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">zapieczętowany obiekt ToString w rekordzie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureSlicePattern">
-        <source>slice pattern</source>
-        <target state="new">slice pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">

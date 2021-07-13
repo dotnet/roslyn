@@ -1088,15 +1088,18 @@ class C
 
             var compilation = CreateCompilation(source, new[] { vbCompilation.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics(
-                // (6,31): error CS9200: List patterns may not be used for a value of type 'C1'.
+                // (6,33): error CS8400: Feature 'type pattern' is not available in C# 8.0. Please use language version 9.0 or greater.
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_UnsupportedTypeForListPattern, "{ Prop[1]: var x }").WithArguments("C1").WithLocation(6, 31),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "Prop[1]").WithArguments("type pattern", "9.0").WithLocation(6, 33),
+                // (6,33): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop[1] }'
+                //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop[1]").WithArguments("Prop[1]").WithLocation(6, 33),
                 // (6,33): error CS0246: The type or namespace name 'Prop' could not be found (are you missing a using directive or an assembly reference?)
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Prop").WithArguments("Prop").WithLocation(6, 33),
-                // (6,37): error CS8652: The feature 'length pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1]").WithArguments("length pattern").WithLocation(6, 37),
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[1]").WithLocation(6, 37),
                 // (6,40): error CS1003: Syntax error, ',' expected
                 //         b = /*<bind>*/o is C1 { Prop[1]: var x }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(6, 40),
@@ -1111,7 +1114,19 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
   Pattern: 
     IRecursivePatternOperation (OperationKind.RecursivePattern, Type: null, IsInvalid) (Syntax: 'C1 { Prop[1]: var x }') (InputType: System.Object, NarrowedType: C1, DeclaredSymbol: null, MatchedType: C1, DeconstructSymbol: null)
       DeconstructionSubpatterns (0)
-      PropertySubpatterns (0)
+      PropertySubpatterns (2):
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'Prop[1]')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Prop[1]')
+                Children(0)
+            Pattern: 
+              ITypePatternOperation (OperationKind.TypePattern, Type: null, IsInvalid) (Syntax: 'Prop[1]') (InputType: ?, NarrowedType: Prop[], MatchedType: Prop[])
+          IPropertySubpatternOperation (OperationKind.PropertySubpattern, Type: null, IsInvalid) (Syntax: 'var x')
+            Member: 
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var x')
+                Children(0)
+            Pattern: 
+              IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'var x') (InputType: ?, NarrowedType: ?, DeclaredSymbol: ?? x, MatchesNull: True)
 ";
 
             VerifyOperationTreeForTest<IsPatternExpressionSyntax>(compilation, expectedOperationTree);
