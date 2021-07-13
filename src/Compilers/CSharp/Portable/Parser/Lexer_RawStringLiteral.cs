@@ -122,13 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             info.Kind = SyntaxKind.MultiLineRawStringLiteralToken;
 
-            var afterStartDelimeter = this.TextWindow.Position;
-
             var indentationWhitespace = PooledStringBuilder.GetInstance();
             var currentLineWhitespace = PooledStringBuilder.GetInstance();
             try
             {
                 // Do the first pass, finding the end of the raw string.
+                var afterStartDelimeter = this.TextWindow.Position;
+
                 var lineCount = 0;
                 while (ScanMultiLineRawStringLiteralLine(
                     startingQuoteCount,
