@@ -134,11 +134,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             info.Kind = SyntaxKind.MultiLineRawStringLiteralToken;
 
+            // The indentation-whitespace computed from the very last line of the raw string literal
             var indentationWhitespace = PooledStringBuilder.GetInstance();
+
+            // The leading whitespace of whatever line we are currently on.
             var currentLineWhitespace = PooledStringBuilder.GetInstance();
             try
             {
-                // Do the first pass, finding the end of the raw string.
+                // Do the first pass, finding the end of the raw string, and determining the 'indentation whitespace'
+                // that must be complimentary with all content lines of the raw string literal.
                 var afterStartDelimeter = TextWindow.Position;
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
