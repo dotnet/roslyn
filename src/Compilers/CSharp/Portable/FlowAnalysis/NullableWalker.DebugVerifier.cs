@@ -215,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode? VisitListPattern(BoundListPattern node)
             {
                 VisitList(node.Subpatterns);
+                Visit(node.VariableAccess);
                 // Ignore indexer access (just a node to hold onto some symbols)
                 return null;
             }
