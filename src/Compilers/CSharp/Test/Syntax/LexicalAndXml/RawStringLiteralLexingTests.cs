@@ -20,6 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" {|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\n{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " ")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
             MarkupTestFile.GetSpans(markup, out var input, out IDictionary<string, ImmutableArray<TextSpan>> spans);
@@ -34,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
 
             Assert.Equal(expectedKind, token.Kind());
             Assert.Equal(input.Length, token.FullWidth);
+            Assert.Equal(input, token.ToFullString());
             Assert.NotNull(token.Value);
             Assert.NotNull(token.ValueText);
             Assert.Equal(expectedValue, token.ValueText);
@@ -44,6 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             }
             else
             {
+                // If we get any diagnostics, then the token's value text should always be empty.
+                Assert.Equal("", token.ValueText);
+
                 var diagnostics = token.GetDiagnostics();
                 Assert.True(diagnostics.Count() == 1);
 
