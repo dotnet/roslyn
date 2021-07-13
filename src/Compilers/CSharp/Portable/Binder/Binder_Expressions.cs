@@ -5835,6 +5835,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = GetSpecialType(specialType, diagnostics, node);
             }
 
+            if (node.Kind() is SyntaxKind.SingleLineRawStringLiteralExpression or SyntaxKind.MultiLineRawStringLiteralExpression)
+                MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node, node.Location);
+
             return new BoundLiteral(node, cv, type);
         }
 

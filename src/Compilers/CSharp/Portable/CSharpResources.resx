@@ -6806,4 +6806,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_Unterminated_raw_string_literal" xml:space="preserve">
     <value>Unterminated raw string literal</value>
   </data>
+  <data name="IDS_FeatureRawStringLiterals" xml:space="preserve">
+    <value>raw string literals</value>
+  </data>
 </root>

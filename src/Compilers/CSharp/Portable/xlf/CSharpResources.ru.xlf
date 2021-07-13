@@ -1272,6 +1272,11 @@
         <target state="new">positional fields in records</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureRawStringLiterals">
+        <source>raw string literals</source>
+        <target state="new">raw string literals</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
         <target state="new">record structs</target>

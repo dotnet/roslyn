@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,6 +12,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     {
         public RawStringLiteralParsingTests(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public void TestDownlevel()
+        {
+            CreateCompilation(
+@"class C
+{
+    const string s = """""" """"""; 
+}", parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (3,22): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     const string s = """ """; 
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @""""""" """"""").WithArguments("raw string literals").WithLocation(3, 22));
         }
 
         [Fact]
@@ -75,6 +89,78 @@ class C
 {
     int s = """""" """""".Length; 
 }").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInSwitch()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M(string s)
+    {
+        switch (s)
+        {
+            case """""" a """""":
+            case """""" b """""":
+                break;
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestReachableSwitchCase1()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        switch ("""""" a """""")
+        {
+            case """""" a """""":
+                break;
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestReachableSwitchCase2()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        switch ("""""" a """""")
+        {
+            case """""""" a """""""":
+                break;
+        }
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestUneachableSwitchCase1()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        switch ("""""" a """""")
+        {
+            case """""""" b """""""":
+                break;
+        }
+    }
+}").VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17));
         }
     }
 }

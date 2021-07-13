@@ -233,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
+
+        IDS_FeatureRawStringLiterals = MessageBase + 12810,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -340,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (feature)
             {
                 // C# preview features.
+                case MessageID.IDS_FeatureRawStringLiterals:
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                     return LanguageVersion.Preview;
 
