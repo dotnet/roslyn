@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
                     ? SharedCompilationId
-                    : BuildServerConnection.GetPipeNameForPath(clientDirectory);
+                    : BuildServerConnection.GetPipeName(clientDirectory);
 
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with

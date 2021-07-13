@@ -4,21 +4,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32.SafeHandles;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.CommandLine
@@ -34,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <summary>
         /// Determines if the compiler server is supported in this environment.
         /// </summary>
-        internal static bool IsCompilerServerSupported => GetPipeNameForPath("") is object;
+        internal static bool IsCompilerServerSupported => GetPipeName("") is object;
 
         internal static BuildRequest CreateBuildRequest(
             Guid requestId,
@@ -272,7 +267,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        public static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        /// <summary>
+        /// This will attempt to start a compiler server process using the executable inside the 
+        /// directory <paramref name="clientDirectory"/>. This returns "true" if starting the 
+        /// compiler server process was successful, it does not state whether the server successfully
+        /// started or not (it could crash on startup).
+        /// </summary>
+        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
         {
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
@@ -351,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        public static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
+        internal static async Task<NamedPipeClientStream?> TryConnectToServerAsync(
             string pipeName,
             int timeoutMs,
             ICompilerServerLogger logger,
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
-        internal static string? GetPipeNameForPath(string compilerExeDirectory)
+        internal static string GetPipeName(string clientDirectory)
         {
             // Prefix with username and elevation
             bool isAdmin = false;
@@ -472,25 +473,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             var userName = Environment.UserName;
-            if (userName == null)
-            {
-                return null;
-            }
-
-            return GetPipeName(userName, isAdmin, compilerExeDirectory);
+            return GetPipeName(userName, isAdmin, clientDirectory);
         }
 
         internal static string GetPipeName(
             string userName,
             bool isAdmin,
-            string compilerExeDirectory)
+            string clientDirectory)
         {
             // Normalize away trailing slashes.  File APIs include / exclude this with no 
             // discernable pattern.  Easiest to normalize it here vs. auditing every caller
             // of this method.
-            compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
+            clientDirectory = clientDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
-            var pipeNameInput = $"{userName}.{isAdmin}.{compilerExeDirectory}";
+            var pipeNameInput = $"{userName}.{isAdmin}.{clientDirectory}";
             using (var sha = SHA256.Create())
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(pipeNameInput));
@@ -558,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// is <paramref name="workingDir"/>.  This function must emulate <see cref="Path.GetTempPath"/> as 
         /// closely as possible.
         /// </summary>
-        public static string? GetTempPath(string? workingDir)
+        internal static string? GetTempPath(string? workingDir)
         {
             if (PlatformInformation.IsUnix)
             {

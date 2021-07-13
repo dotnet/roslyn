@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (hasShared)
             {
-                pipeName = pipeName ?? GetPipeName(buildPaths);
+                pipeName = pipeName ?? BuildServerConnection.GetPipeName(buildPaths.ClientDirectory);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
                 var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, pipeName, keepAliveOpt);
                 if (serverResult.HasValue)
@@ -295,16 +295,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     Debug.Assert(false);
                     return null;
             }
-        }
-
-        /// <summary>
-        /// Given the full path to the directory containing the compiler exes,
-        /// retrieves the name of the pipe for client/server communication on
-        /// that instance of the compiler.
-        /// </summary>
-        private static string GetPipeName(BuildPaths buildPaths)
-        {
-            return BuildServerConnection.GetPipeNameForPath(buildPaths.ClientDirectory);
         }
 
         private static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)

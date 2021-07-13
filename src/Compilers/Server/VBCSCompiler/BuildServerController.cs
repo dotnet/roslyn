@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private static string? GetDefaultPipeName()
         {
-            return BuildServerConnection.GetPipeNameForPath(BuildClient.GetClientDirectory());
+            return BuildServerConnection.GetPipeName(BuildClient.GetClientDirectory());
         }
 
         internal int RunServer(
