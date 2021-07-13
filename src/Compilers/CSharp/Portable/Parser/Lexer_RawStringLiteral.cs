@@ -284,17 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
                     return;
                 }
-
-                // this whitespace line is longer then the indentation whitespace.  Include everything past the matching
-                // prefix to the string value.  If it is the same length or shorter, then ignore the contents of the
-                // blank line.
-                if (currentLineWhitespace.Length > indentationWhitespace.Length)
-                {
-                    for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
-                        _builder.Append(currentLineWhitespace[i]);
-                }
-
-                return;
             }
             else
             {
@@ -308,12 +297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
                     return;
                 }
-
-                // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
-                // string value.
-                for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
-                    _builder.Append(currentLineWhitespace[i]);
             }
+
+            // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
+            // string value.
+            for (var i = indentationWhitespace.Length; i < currentLineWhitespace.Length; i++)
+                _builder.Append(currentLineWhitespace[i]);
 
             // Consume up to the next new line.
             while (true)
