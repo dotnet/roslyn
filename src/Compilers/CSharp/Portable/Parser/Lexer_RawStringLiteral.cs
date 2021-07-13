@@ -147,12 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 var contentLineCount = 0;
-                while (ScanMultiLineRawStringLiteralLine(
-                    startingQuoteCount,
-                    indentationWhitespace.Builder))
-                {
+                while (ScanMultiLineRawStringLiteralLine(startingQuoteCount, indentationWhitespace.Builder))
                     contentLineCount++;
-                }
 
                 // If the initial scan failed then just bail out without a constant value.
                 if (this.HasErrors)
