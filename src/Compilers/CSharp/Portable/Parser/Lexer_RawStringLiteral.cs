@@ -257,11 +257,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
-            // the initial newline in `"""   \r\n` is not added to the contents.
             var newLineWidth = GetNewLineWidth(TextWindow.PeekChar());
-
             for (var i = 0; i < newLineWidth; i++)
             {
+                // the initial newline in `"""   \r\n` is not added to the contents.
                 if (!firstContentLine)
                     _builder.Append(TextWindow.PeekChar());
 
