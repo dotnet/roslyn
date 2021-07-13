@@ -316,7 +316,25 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 var rx = new Regex("(?<=[_])");
                 var words = rx.Split(name);
-                foreach (var word in words
+                var spanStart = 0;
+                var firstWord = true;
+                foreach (var word in words)
+                {
+                    if (firstWord)
+                    {
+                        firstWord = false;
+                        spanStart += word.Length;
+                        continue;
+                    }
+
+                    var spanToCheck = TextSpan.FromBounds(spanStart, spanStart + word.Length);
+                    if (!restWordCheck(name, spanToCheck))
+                    {
+                        violations.Add(Substring(name, spanToCheck));
+                    }
+
+                    spanStart += word.Length;
+                }
             }
 
             if (violations.Count > 0)
