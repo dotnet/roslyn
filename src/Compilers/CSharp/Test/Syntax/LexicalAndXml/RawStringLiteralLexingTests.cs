@@ -8,13 +8,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
 {
-    public class RawStringLiteralLexingTests
+    public class RawStringLiteralLexingTests : CSharpTestBase
     {
         [Theory]
         #region Single Line Cases
@@ -141,6 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
                 Assert.Equal(expectedDiagnostic.Key, actualDiagnostic.Id);
                 Assert.Equal(expectedDiagnostic.Value.Single(), actualDiagnostic.Location.SourceSpan);
             }
+        }
+
+        [Fact]
+        public void TestDirectiveWithRawString()
+        {
+            CreateCompilation(
+@"
+#line 1 """"""c:\""""""").VerifyDiagnostics(
+                // (2,9): error CS9100: Raw string literals are not allowed in preprocessor directives
+                // #line 1 """c:\"""
+                Diagnostic(ErrorCode.ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives, "").WithLocation(2, 9));
         }
     }
 }

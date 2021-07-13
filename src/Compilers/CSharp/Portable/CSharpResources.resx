@@ -6791,4 +6791,19 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
+  <data name="ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal" xml:space="preserve">
+    <value>Line does not start with the same whitespace as the last line of the raw string literal</value>
+  </data>
+  <data name="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives" xml:space="preserve">
+    <value>Raw string literals are not allowed in preprocessor directives</value>
+  </data>
+  <data name="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line" xml:space="preserve">
+    <value>Raw string literal delimeter must be on its own line</value>
+  </data>
+  <data name="ERR_Too_many_closing_quotes_for_raw_string_literal" xml:space="preserve">
+    <value>Too many closing quotes for raw string literal</value>
+  </data>
+  <data name="ERR_Unterminated_raw_string_literal" xml:space="preserve">
+    <value>Unterminated raw string literal</value>
+  </data>
 </root>

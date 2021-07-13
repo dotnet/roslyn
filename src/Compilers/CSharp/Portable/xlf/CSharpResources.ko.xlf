@@ -742,6 +742,11 @@
         <target state="new">The #line directive value is missing or out of range</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal">
+        <source>Line does not start with the same whitespace as the last line of the raw string literal</source>
+        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">함수 포인터 '{1}'과(와) 일치하는 '{0}'에 대한 오버로드가 없습니다.</target>
@@ -967,6 +972,16 @@
         <target state="translated">속성 하위 패턴은 일치시킬 속성 또는 필드에 대한 참조가 필요합니다(예: '{{ Name: {0} }}')</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line">
+        <source>Raw string literal delimeter must be on its own line</source>
+        <target state="new">Raw string literal delimeter must be on its own line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives">
+        <source>Raw string literals are not allowed in preprocessor directives</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">'{0}' 형식에는 기본 인터페이스 멤버의 재추상화가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해 보세요.</target>
@@ -1122,6 +1137,11 @@
         <target state="translated">식을 제어하는 switch 주위에 괄호가 필요합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Too_many_closing_quotes_for_raw_string_literal">
+        <source>Too many closing quotes for raw string literal</source>
+        <target state="new">Too many closing quotes for raw string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">최상위 문은 네임스페이스 및 형식 선언 앞에 와야 합니다.</target>
@@ -1166,6 +1186,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">'{0}'에는 'UnmanagedCallersOnly' 특성이 지정되어 있으며 이 항목은 대리자 형식으로 변환할 수 없습니다. 이 메서드에 대한 함수 포인터를 가져오세요.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_Unterminated_raw_string_literal">
+        <source>Unterminated raw string literal</source>
+        <target state="new">Unterminated raw string literal</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>

@@ -742,6 +742,11 @@
         <target state="new">The #line directive value is missing or out of range</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal">
+        <source>Line does not start with the same whitespace as the last line of the raw string literal</source>
+        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Нет перегруженного метода для "{0}", который соответствует указателю на функцию "{1}".</target>
@@ -967,6 +972,16 @@
         <target state="translated">Для вложенного шаблона свойств требуется ссылка на свойство или поле для сопоставления, например, "{{ Name: {0} }}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Raw_string_literal_delimeter_must_be_on_its_own_line">
+        <source>Raw string literal delimeter must be on its own line</source>
+        <target state="new">Raw string literal delimeter must be on its own line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives">
+        <source>Raw string literals are not allowed in preprocessor directives</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Невозможно внедрить тип "{0}", так как он переопределяет абстракцию элемента базового интерфейса. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false (ложь).</target>
@@ -1122,6 +1137,11 @@
         <target state="translated">Вокруг главного выражения switch требуются скобки.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Too_many_closing_quotes_for_raw_string_literal">
+        <source>Too many closing quotes for raw string literal</source>
+        <target state="new">Too many closing quotes for raw string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Инструкции верхнего уровня должны предшествовать объявлениям пространств имен и типов.</target>
@@ -1166,6 +1186,11 @@
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.</source>
         <target state="translated">"{0}" имеет атрибут "UnmanagedCallersOnly" и не может быть преобразован в тип делегата. Получите указатель на функцию для этого метода.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="ERR_Unterminated_raw_string_literal">
+        <source>Unterminated raw string literal</source>
+        <target state="new">Unterminated raw string literal</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
