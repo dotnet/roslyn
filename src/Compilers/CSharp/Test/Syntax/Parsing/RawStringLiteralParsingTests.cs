@@ -66,5 +66,15 @@ class C
 {
 }").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestMemberAccess()
+        {
+            CreateCompilation(
+@"class C
+{
+    int s = """""" """""".Length; 
+}").VerifyDiagnostics();
+        }
     }
 }
