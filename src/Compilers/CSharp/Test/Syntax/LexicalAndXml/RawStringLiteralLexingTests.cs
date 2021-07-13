@@ -20,20 +20,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\" {|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\t\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "\t", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"a\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"abc\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "abc", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" abc \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " abc ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  abc  \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "  abc  ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \" ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\" ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\" \"\"\" \"\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\"\" ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"'\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "'", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \"\"\"{|CS9102:\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " ")]
+        [InlineData("\"\"\"\t\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "\t")]
+        [InlineData("\"\"\"a\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "a")]
+        [InlineData("\"\"\"abc\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "abc")]
+        [InlineData("\"\"\" abc \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " abc ")]
+        [InlineData("\"\"\"  abc  \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "  abc  ")]
+        [InlineData("\"\"\" \" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \" ")]
+        [InlineData("\"\"\" \"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\" ")]
+        [InlineData("\"\"\"\" \"\"\" \"\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\"\" ")]
+        [InlineData("\"\"\"'\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "'")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \"\"\"{|CS9102:\"\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"a{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" a {|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \"{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\n{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\" \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\" \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
@@ -58,166 +58,167 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n  \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"  \n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a\"", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a\"\"", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n\"a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n\"\"a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na{|CS9104:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na{|CS9104:\"\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n a \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\"  \n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \na\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a\"")]
+        [InlineData("\"\"\"  \na\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a\"\"")]
+        [InlineData("\"\"\"  \n\"a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"a")]
+        [InlineData("\"\"\"  \n\"\"a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"a")]
+        [InlineData("\"\"\"  \na{|CS9104:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \na{|CS9104:\"\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \na\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a")]
+        [InlineData("\"\"\"  \n a\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a")]
+        [InlineData("\"\"\"  \na \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a ")]
+        [InlineData("\"\"\"  \n a \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a ")]
+        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \na\n\"\"\"{|CS9102:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\r\n{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\r\n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\r\n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\"\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \r\n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \r\n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\" \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\" \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \r\n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \r\n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"  \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\"  \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\r\n \"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"\r\n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \r\n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \r\n  \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"  \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\na{|CS9104:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\na{|CS9104:\"\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\na\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\n a\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\na \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\n\r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a \r\n", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \r\n\r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a \r\n", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"  \n\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\"  \n\"\"\"\n\"\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"", /*trailingTrivia*/ true)]
+        [InlineData("\"\"\"  \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \r\na{|CS9104:\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \r\na{|CS9104:\"\"\"\"|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \r\na\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a")]
+        [InlineData("\"\"\"  \r\n a\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a")]
+        [InlineData("\"\"\"  \r\na \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a ")]
+        [InlineData("\"\"\"  \r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a ")]
+        [InlineData("\"\"\"  \r\n\r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a ")]
+        [InlineData("\"\"\"  \r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a \r\n")]
+        [InlineData("\"\"\"  \r\n\r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a \r\n")]
+        [InlineData("\"\"\"  \n\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"")]
+        [InlineData("\"\"\"  \n\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"")]
+        [InlineData("\"\"\"\"  \n\"\"\"\n\"\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"")]
         #endregion
         #region Multi Line Indentation Cases
         [InlineData(
 @"""""""
  abc
-""""""", SyntaxKind.MultiLineRawStringLiteralToken, " abc", /*trailingTrivia*/ true)]
+""""""", SyntaxKind.MultiLineRawStringLiteralToken, " abc")]
         [InlineData(
 @"""""""
  abc
- """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc", /*trailingTrivia*/ true)]
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
         [InlineData(
 @"""""""
   abc
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
         [InlineData(
 @"""""""
     abc
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc")]
         [InlineData(
 @"""""""
 {|CS9103:|}abc
- """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
  abc
 {|CS9103:|}def
- """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
   abc
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\ndef")]
         [InlineData(
 @"""""""
   abc
      def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   def", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   def")]
         [InlineData(
 @"""""""
   abc
 
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
         [InlineData(
 @"""""""
   abc
   
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
         [InlineData(
 @"""""""
   abc
    
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n \r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n \r\ndef")]
         [InlineData(
 @"""""""
   abc
     
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n  \r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n  \r\ndef")]
         [InlineData(
 @"""""""
   abc
      
   def
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   \r\ndef", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   \r\ndef")]
         [InlineData(
 @"""""""
 {|CS9103: |}abc
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
   ""
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"")]
         [InlineData(
 @"""""""
   """"
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"")]
         [InlineData(
 @"""""""""
   """"""
-  """"""""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"", /*trailingTrivia*/ true)]
+  """"""""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"")]
         [InlineData(
 @"""""""
 
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
  
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
   
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData(
 @"""""""
    
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, " ", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, " ")]
         [InlineData(
 @"""""""
     
-  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  ", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n{|CS9103: |}abc\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n{|CS9103: |}abc\n \t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n{|CS9103:\t|}abc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n \tabc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\tabc", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n\t\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\t", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n\t\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n{|CS9103:\t|}\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
-        [InlineData("\"\"\"\n{|CS9103: |}\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "", /*trailingTrivia*/ true)]
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  ")]
+        [InlineData("\"\"\"\n{|CS9103: |}abc\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103: |}abc\n \t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103:\t|}abc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n \tabc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\tabc")]
+        [InlineData("\"\"\"\n\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n\t\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\t")]
+        [InlineData("\"\"\"\n\t\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103:\t|}\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103: |}\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         #endregion
-        public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue, bool trailingTrivia = false)
+        public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
             TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: false);
             TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false);
 
-            if (trailingTrivia == true)
+            // If we don't have an unterminated raw string, then also try with some trailing trivia attached.
+            if (!markup.Contains("CS" + (int)ErrorCode.ERR_Unterminated_raw_string_literal))
             {
                 TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true);
                 TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true);
@@ -225,8 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         }
 
         private void TestSingleToken(
-            string markup, SyntaxKind expectedKind, string expectedValue,
-            bool leadingTrivia, bool trailingTrivia)
+            string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia, bool trailingTrivia)
         {
             if (leadingTrivia)
                 markup = " /*leading*/ " + markup;
