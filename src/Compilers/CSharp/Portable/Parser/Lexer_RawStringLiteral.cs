@@ -41,25 +41,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var startingQuoteCount = ConsumeQuoteSequence();
 
             Debug.Assert(startingQuoteCount >= 3);
-            while (true)
+
+            // Keep consuming whitespace after the initial quote sequence.
+            ConsumeWhitespace(builder: null);
+
+            if (SyntaxFacts.IsNewLine(TextWindow.PeekChar()))
             {
-                var currentChar = TextWindow.PeekChar();
-
-                // Keep consuming whitespace after the initial quote sequence.
-                ConsumeWhitespace(builder: null);
-
-                if (SyntaxFacts.IsNewLine(currentChar))
-                {
-                    // Past the initial whitespace, and we hit a newline, this is a multi line raw string literal.
-                    ScanMultiLineRawStringLiteral(ref info, startingQuoteCount);
-                }
-                else
-                {
-                    // Past the initial whitespace, and we hit anything else, this is a single line raw string literal.
-                    ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
-                }
-
-                break;
+                // Past the initial whitespace, and we hit a newline, this is a multi line raw string literal.
+                ScanMultiLineRawStringLiteral(ref info, startingQuoteCount);
+            }
+            else
+            {
+                // Past the initial whitespace, and we hit anything else, this is a single line raw string literal.
+                ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
             }
 
             Debug.Assert(info.StringValue != null);
