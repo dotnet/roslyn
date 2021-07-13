@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         }
                     }
 
-                    if (this.CurrentToken.Kind is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken &&
+                    if (this.CurrentToken.Kind is SyntaxKind.StringLiteralToken &&
                         (line.IsMissing || line.GetTrailingTriviaWidth() > 0 || this.CurrentToken.GetLeadingTriviaWidth() > 0)) //require separation between line number and file name
                     {
                         file = this.EatToken();
