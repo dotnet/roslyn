@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 
     public class SymbolIsBannedAnalyzerTests
     {
+        private const string BannedSymbolsFileName = "BannedSymbols.txt";
+
         private static DiagnosticResult GetCSharpResultAt(int markupKey, DiagnosticDescriptor descriptor, string bannedMemberName, string message)
             => VerifyCS.Diagnostic(descriptor)
                 .WithLocation(markupKey)
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedApiText) },
                 },
             };
 
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                 TestState =
                 {
                     Sources = { source },
-                    AdditionalFiles = { (SymbolIsBannedAnalyzer.BannedSymbolsFileName, bannedApiText) },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedApiText) },
                 },
             };
 
@@ -206,6 +208,46 @@ namespace N
             var bannedText = @"T:N.Banned;";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_BannedApi_MultipleFiles()
+        {
+            var source = @"
+namespace N
+{
+    class BannedA { }
+    class BannedB { }
+    class NotBanned { }
+    class C
+    {
+        void M()
+        {
+            var a = {|#0:new BannedA()|};
+            var b = {|#1:new BannedB()|};
+            var c = new NotBanned();
+        }
+    }
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        ("BannedSymbols.txt", @"T:N.BannedA") ,
+                        ("BannedSymbols.Other.txt", @"T:N.BannedB"),
+                        ("OtherFile.txt", @"T:N.NotBanned")
+                    },
+                },
+            };
+
+            test.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""));
+            test.ExpectedDiagnostics.Add(GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", ""));
+
+            await test.RunAsync();
         }
 
         [Fact]
@@ -1044,6 +1086,43 @@ namespace N
             var bannedText = @"M:N.C1.Method1";
 
             await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task VisualBasic_BannedApi_MultipleFiles()
+        {
+            var source = @"
+Namespace N
+    Class BannedA : End Class
+    Class BannedB : End Class
+    Class NotBanned : End Class
+    Class C
+        Sub M()
+            Dim a As {|#0:New BannedA()|}
+            Dim b As {|#1:New BannedB()|}
+            Dim c As New NotBanned()
+        End Sub
+    End Class
+End Namespace";
+
+            var test = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalFiles =
+                    {
+                        ("BannedSymbols.txt", @"T:N.BannedA") ,
+                        ("BannedSymbols.Other.txt", @"T:N.BannedB"),
+                        ("OtherFile.txt", @"T:N.NotBanned")
+                    },
+                },
+            };
+
+            test.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""));
+            test.ExpectedDiagnostics.Add(GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", ""));
+
+            await test.RunAsync();
         }
 
         [Fact]

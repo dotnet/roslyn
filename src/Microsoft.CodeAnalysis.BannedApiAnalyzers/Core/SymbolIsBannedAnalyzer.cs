@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     internal static class SymbolIsBannedAnalyzer
     {
-        public const string BannedSymbolsFileName = "BannedSymbols.txt";
-
         public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
             title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
@@ -181,7 +179,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             {
                 var query =
                     from additionalFile in compilationContext.Options.AdditionalFiles
-                    where StringComparer.Ordinal.Equals(Path.GetFileName(additionalFile.Path), SymbolIsBannedAnalyzer.BannedSymbolsFileName)
+                    let fileName = Path.GetFileName(additionalFile.Path)
+                    where fileName != null && fileName.StartsWith("BannedSymbols.", StringComparison.Ordinal) && fileName.EndsWith(".txt", StringComparison.Ordinal)
                     let sourceText = additionalFile.GetText(compilationContext.CancellationToken)
                     where sourceText != null
                     from line in sourceText.Lines
