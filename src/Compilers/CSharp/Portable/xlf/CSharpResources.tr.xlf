@@ -823,8 +823,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
-        <source>Conditional expression is not valid in language version '{0}' because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version '{3}' or greater.</source>
-        <target state="new">Conditional expression is not valid in language version '{0}' because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version '{3}' or greater.</target>
+        <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
+        <target state="new">Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
