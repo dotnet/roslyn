@@ -1867,7 +1867,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -1917,7 +1917,8 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a = 1", FeaturesResources.const_field));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "const int a = 1, b = 2", FeaturesResources.const_field));
         }
 
         [Fact]
@@ -10483,7 +10484,9 @@ class C
                 });
         }
 
-        [Fact, WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [Fact]
+        [WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        [WorkItem(54758, "https://github.com/dotnet/roslyn/issues/54758")]
         public void InsertDeleteMethod_Active()
         {
             // Moving active method declaration in a file with active statements.
@@ -10506,7 +10509,8 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2, path: "1"),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        // TODO: this is odd AS location https://github.com/dotnet/roslyn/issues/54758
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "      partial c", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });
         }
 

@@ -214,6 +214,61 @@ class Program
         }
 
         [Fact]
+        public void OneLiteral()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine( $""Hello"" );
+    }
+}";
+            string expectedOutput = @"Hello";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""Hello""
+  IL_0005:  call       ""void System.Console.WriteLine(string)""
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void OneInsert()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var hello = $""Hello"";
+        Console.WriteLine( $""{hello}"" );
+    }
+}";
+            string expectedOutput = @"Hello";
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            verifier.VerifyIL("Program.Main", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldstr      ""Hello""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000e
+  IL_0008:  pop
+  IL_0009:  ldstr      """"
+  IL_000e:  call       ""void System.Console.WriteLine(string)""
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
         public void TwoInserts()
         {
             string source =
@@ -1200,6 +1255,164 @@ static class C
                 //         System.IFormattable i = $"{""}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
                 );
+        }
+
+        [Fact, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
+        public void InterpolatedStringHandler_ConcatPreferencesForAllStringElements()
+        {
+            var code = @"
+using System;
+Console.WriteLine(TwoComponents());
+Console.WriteLine(ThreeComponents());
+Console.WriteLine(FourComponents());
+Console.WriteLine(FiveComponents());
+
+string TwoComponents()
+{
+    string s1 = ""1"";
+    string s2 = ""2"";
+    return $""{s1}{s2}"";
+}
+
+string ThreeComponents()
+{
+    string s1 = ""1"";
+    string s2 = ""2"";
+    string s3 = ""3"";
+    return $""{s1}{s2}{s3}"";
+}
+
+string FourComponents()
+{
+    string s1 = ""1"";
+    string s2 = ""2"";
+    string s3 = ""3"";
+    string s4 = ""4"";
+    return $""{s1}{s2}{s3}{s4}"";
+}
+
+string FiveComponents()
+{
+    string s1 = ""1"";
+    string s2 = ""2"";
+    string s3 = ""3"";
+    string s4 = ""4"";
+    string s5 = ""5"";
+    return $""{s1}{s2}{s3}{s4}{s5}"";
+}
+";
+
+            var handler = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
+
+            var verifier = CompileAndVerify(new[] { code, handler }, expectedOutput: @"
+12
+123
+1234
+value:1
+value:2
+value:3
+value:4
+value:5
+");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__TwoComponents|0_0()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (string V_0) //s2
+  IL_0000:  ldstr      ""1""
+  IL_0005:  ldstr      ""2""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""string string.Concat(string, string)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__ThreeComponents|0_1()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (string V_0, //s2
+                string V_1) //s3
+  IL_0000:  ldstr      ""1""
+  IL_0005:  ldstr      ""2""
+  IL_000a:  stloc.0
+  IL_000b:  ldstr      ""3""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""string string.Concat(string, string, string)""
+  IL_0018:  ret
+}
+");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__FourComponents|0_2()", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  .locals init (string V_0, //s2
+                string V_1, //s3
+                string V_2) //s4
+  IL_0000:  ldstr      ""1""
+  IL_0005:  ldstr      ""2""
+  IL_000a:  stloc.0
+  IL_000b:  ldstr      ""3""
+  IL_0010:  stloc.1
+  IL_0011:  ldstr      ""4""
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  call       ""string string.Concat(string, string, string, string)""
+  IL_001f:  ret
+}
+");
+
+            verifier.VerifyIL("<Program>$.<<Main>$>g__FiveComponents|0_3()", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  3
+  .locals init (string V_0, //s1
+                string V_1, //s2
+                string V_2, //s3
+                string V_3, //s4
+                string V_4, //s5
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_5)
+  IL_0000:  ldstr      ""1""
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""2""
+  IL_000b:  stloc.1
+  IL_000c:  ldstr      ""3""
+  IL_0011:  stloc.2
+  IL_0012:  ldstr      ""4""
+  IL_0017:  stloc.3
+  IL_0018:  ldstr      ""5""
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloca.s   V_5
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldc.i4.5
+  IL_0023:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+  IL_0028:  ldloca.s   V_5
+  IL_002a:  ldloc.0
+  IL_002b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.1
+  IL_0033:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0038:  ldloca.s   V_5
+  IL_003a:  ldloc.2
+  IL_003b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0040:  ldloca.s   V_5
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0048:  ldloca.s   V_5
+  IL_004a:  ldloc.s    V_4
+  IL_004c:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
+  IL_0051:  ldloca.s   V_5
+  IL_0053:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0058:  ret
+}
+");
         }
 
         [Theory]
@@ -2948,15 +3161,14 @@ System.Console.WriteLine($""{$""{i}""}"");";
 
             var interpolatedStringBuilder = GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false);
 
-            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:value:1");
+            var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"value:1");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       55 (0x37)
-  .maxstack  4
+  // Code size       32 (0x20)
+  .maxstack  3
   .locals init (int V_0, //i
-                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
-                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_2)
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_1
@@ -2964,20 +3176,12 @@ System.Console.WriteLine($""{$""{i}""}"");";
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloca.s   V_1
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldc.i4.1
-  IL_0011:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
-  IL_0016:  ldloca.s   V_2
-  IL_0018:  ldloc.0
-  IL_0019:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
-  IL_001e:  ldloca.s   V_2
-  IL_0020:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0025:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_002a:  ldloca.s   V_1
-  IL_002c:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0031:  call       ""void System.Console.WriteLine(string)""
-  IL_0036:  ret
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int)""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_001a:  call       ""void System.Console.WriteLine(string)""
+  IL_001f:  ret
 }
 ");
         }
