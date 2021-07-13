@@ -175,7 +175,7 @@ Class C
         <AS:22>Me.value = a</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a</AS:25>
         Return 0
     <AS:26>End Function</AS:26>
@@ -217,7 +217,7 @@ Class C
         <AS:22>Me.value = a*8</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a*8</AS:25>
     <AS:26>End Function</AS:26>
 End Class
@@ -264,7 +264,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(Integer)")))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(a As Integer)")))
         End Sub
 
         <Fact>
@@ -1503,10 +1503,10 @@ End Class
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
@@ -1514,7 +1514,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = 0"))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As Integer = 0"))
         End Sub
 
         <Fact>
@@ -1533,18 +1533,17 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.as_clause))
+            edits.VerifyRudeDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_InitToAsNew()
             Dim src1 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
@@ -1945,7 +1944,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -1990,7 +1989,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ModifiersUpdate, "a As Integer = 1", FeaturesResources.const_field))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field),
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field))
         End Sub
 
         <Fact>
@@ -2144,7 +2144,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub
@@ -2225,7 +2225,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub

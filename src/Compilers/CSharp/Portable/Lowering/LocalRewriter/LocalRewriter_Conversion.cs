@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -16,16 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            if (node.ConversionKind == ConversionKind.InterpolatedString)
+            switch (node.ConversionKind)
             {
-                return RewriteInterpolatedStringConversion(node);
-            }
+                case ConversionKind.InterpolatedString:
+                    return RewriteInterpolatedStringConversion(node);
+                case ConversionKind.InterpolatedStringHandler:
+                    Debug.Assert(node.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
 
-            if (node.ConversionKind is ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression)
-            {
-                // Skip through target-typed conditionals and switches
-                Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
-                return Visit(node.Operand)!;
+                    (ArrayBuilder<BoundExpression> handlerPatternExpressions, BoundLocal handlerLocal) = RewriteToInterpolatedStringHandlerPattern((BoundInterpolatedString)node.Operand);
+                    return _factory.Sequence(ImmutableArray.Create(handlerLocal.LocalSymbol), handlerPatternExpressions.ToImmutableAndFree(), handlerLocal);
+                case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
+                    // Skip through target-typed conditionals and switches
+                    Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
+                    return Visit(node.Operand)!;
             }
 
             var rewrittenType = VisitType(node.Type);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.UserDefinedOperator;
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document>? documents,
@@ -23,10 +23,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var op = symbol.GetPredefinedOperator();
-            return FindDocumentsAsync(project, documents, op, cancellationToken);
+            var documentsWithOp = await FindDocumentsAsync(project, documents, op, cancellationToken).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithOp.Concat(documentsWithGlobalAttributes);
         }
 
-        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -36,9 +38,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var op = symbol.GetPredefinedOperator();
 
-            return FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
+            var opReferences = await FindReferencesInDocumentAsync(symbol, document, semanticModel, t =>
                 IsPotentialReference(syntaxFacts, op, t),
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+
+            return opReferences.Concat(suppressionReferences);
         }
 
         private static bool IsPotentialReference(

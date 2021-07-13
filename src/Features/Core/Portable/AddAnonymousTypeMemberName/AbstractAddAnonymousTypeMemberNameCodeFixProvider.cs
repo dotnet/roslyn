@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_member_name, createChangedDocument)
+                : base(FeaturesResources.Add_member_name, createChangedDocument, nameof(FeaturesResources.Add_member_name))
             {
             }
         }
