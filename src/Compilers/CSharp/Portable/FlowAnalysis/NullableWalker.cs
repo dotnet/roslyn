@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameters(); // assign parameters
                 if (methodThisParameter is object)
                 {
-                    EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
+                    _variables.SetType(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
 
                 makeNotNullMembersMaybeNull();
@@ -3071,7 +3071,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var boundObjectCreationExpression = node as BoundObjectCreationExpression;
                     var constructor = boundObjectCreationExpression?.Constructor;
-                    // PROTOTYPE: Test with structs with parameterless constructors.
                     bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))

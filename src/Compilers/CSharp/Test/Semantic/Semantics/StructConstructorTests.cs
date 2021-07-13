@@ -1581,9 +1581,15 @@ struct S3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "F1").WithLocation(10, 12),
                 // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller
                 //     public S1() { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.F1").WithLocation(10, 12),
+                // (16,5): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     S2(object? obj) { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S2").WithArguments("field", "F2").WithLocation(16, 5),
                 // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.F2").WithLocation(16, 5),
