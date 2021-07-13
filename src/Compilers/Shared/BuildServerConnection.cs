@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         internal static Task<BuildResponse> RunServerShutdownRequestAsync(
-            string? pipeName,
+            string pipeName,
             int? timeoutOverride,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
-            string? pipeName,
+            string pipeName,
             string clientDirectory,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken) =>
@@ -89,16 +89,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static async Task<BuildResponse> RunServerBuildRequestAsync(
             BuildRequest buildRequest,
-            string? pipeName,
+            string pipeName,
             int? timeoutOverride,
             Func<string, ICompilerServerLogger, bool> tryCreateServerFunc,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken)
         {
-            if (pipeName is null)
-            {
-                throw new ArgumentException(nameof(pipeName));
-            }
+            Debug.Assert(pipeName is object);
 
             // early check for the build hash. If we can't find it something is wrong; no point even trying to go to the server
             if (string.IsNullOrWhiteSpace(BuildProtocolConstants.GetCommitHash()))
@@ -106,28 +103,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return new IncorrectHashBuildResponse();
             }
 
-            var pipeTask = tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken);
-            if (pipeTask is null)
+            using var pipe = await tryConnectToServer(pipeName, timeoutOverride, logger, tryCreateServerFunc, cancellationToken).ConfigureAwait(false);
+            if (pipe is null)
             {
                 return new RejectedBuildResponse("Failed to connect to server");
             }
             else
             {
-                using var pipe = await pipeTask.ConfigureAwait(false);
-                if (pipe is null)
-                {
-                    return new RejectedBuildResponse("Failed to connect to server");
-                }
-                else
-                {
-                    return await tryRunRequestAsync(pipe, buildRequest, logger, cancellationToken).ConfigureAwait(false);
-                }
+                return await tryRunRequestAsync(pipe, buildRequest, logger, cancellationToken).ConfigureAwait(false);
             }
 
             // This code uses a Mutex.WaitOne / ReleaseMutex pairing. Both of these calls must occur on the same thread 
             // or an exception will be thrown. This code lives in a separate non-async function to help ensure this 
             // invariant doesn't get invalidated in the future by an `await` being inserted. 
-            static Task<NamedPipeClientStream?>? tryConnectToServer(
+            static Task<NamedPipeClientStream?> tryConnectToServer(
                 string pipeName,
                 int? timeoutOverride,
                 ICompilerServerLogger logger,
@@ -137,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 var originalThreadId = Environment.CurrentManagedThreadId;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-                Task<NamedPipeClientStream?>? pipeTask = null;
                 IServerMutex? clientMutex = null;
                 try
                 {
@@ -154,9 +142,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         // the server and we need to fall back to the command line.
                         //
                         // Example: https://github.com/dotnet/roslyn/issues/24124
-#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
-                        return null;
-#pragma warning restore VSTHRD114 // Avoid returning a null Task
+                        return Task.FromResult<NamedPipeClientStream?>(null);
                     }
 
                     if (!holdsMutex)
@@ -167,9 +153,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
-#pragma warning disable VSTHRD114 // Avoid returning a null Task (False positive: https://github.com/microsoft/vs-threading/issues/637)
-                                return null;
-#pragma warning restore VSTHRD114 // Avoid returning a null Task
+                                return Task.FromResult<NamedPipeClientStream?>(null);
                             }
                         }
                         catch (AbandonedMutexException)
@@ -185,10 +169,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                     if (wasServerRunning || tryCreateServerFunc(pipeName, logger))
                     {
-                        pipeTask = TryConnectToServerAsync(pipeName, timeout, logger, cancellationToken);
+                        return TryConnectToServerAsync(pipeName, timeout, logger, cancellationToken);
                     }
-
-                    return pipeTask;
+                    else
+                    {
+                        return Task.FromResult<NamedPipeClientStream?>(null);
+                    }
                 }
                 finally
                 {
