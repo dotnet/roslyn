@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             for (var i = 0; i < newLineWidth; i++)
             {
                 if (!firstContentLine)
-                    _builder.Append(TextWindow.PeekChar(i));
+                    _builder.Append(TextWindow.PeekChar());
 
                 TextWindow.AdvanceChar();
             }

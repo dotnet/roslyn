@@ -44,32 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\" a {|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \"{|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         [InlineData("\"\"\" \"\"{|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" {|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " ")]
-        [InlineData(" /*leading*/ \"\"\"\t\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "\t")]
-        [InlineData(" /*leading*/ \"\"\"a\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "a")]
-        [InlineData(" /*leading*/ \"\"\"abc\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "abc")]
-        [InlineData(" /*leading*/ \"\"\" abc \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " abc ")]
-        [InlineData(" /*leading*/ \"\"\"  abc  \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "  abc  ")]
-        [InlineData(" /*leading*/ \"\"\" \" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \" ")]
-        [InlineData(" /*leading*/ \"\"\" \"\" \"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\" ")]
-        [InlineData(" /*leading*/ \"\"\"\" \"\"\" \"\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, " \"\"\" ")]
-        [InlineData(" /*leading*/ \"\"\"'\"\"\"", SyntaxKind.SingleLineRawStringLiteralToken, "'")]
-        [InlineData(" /*leading*/ \"\"\" \"\"\"{|CS9102:\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"\"{|CS9102:\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"\"{|CS9102:\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"\"{|CS9102:\"\"\"\"|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\"a{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" a {|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\"a{|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" a {|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"{|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
-        [InlineData(" /*leading*/ \"\"\" \"\"{|CS9101:\r\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         #endregion
         #region Multi Line Cases
         [InlineData("\"\"\"\n{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
@@ -114,9 +88,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"  \r\n a\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a")]
         [InlineData("\"\"\"  \r\na \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "a ")]
         [InlineData("\"\"\"  \r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a ")]
+        [InlineData("\"\"\"  \r\n\r\n a \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a ")]
+        [InlineData("\"\"\"  \r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " a \r\n")]
+        [InlineData("\"\"\"  \r\n\r\n a \r\n\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n a \r\n")]
         #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
+            TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false);
+            TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: true);
+        }
+
+        private void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia)
+        {
+            if (leadingTrivia)
+                markup = " /*leading*/ " + markup;
+
             MarkupTestFile.GetSpans(markup, out var input, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             Assert.True(spans.Count == 0 || spans.Count == 1);
