@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsAtEndOfText(char currentChar)
             => currentChar == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd();
 
-        private void ScanRawStringLiteral(ref TokenInfo info)
+        private void ScanRawStringLiteral(ref TokenInfo info, bool allowNewLines)
         {
             _builder.Length = 0;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Keep consuming whitespace after the initial quote sequence.
             ConsumeWhitespace(builder: null);
 
-            if (SyntaxFacts.IsNewLine(TextWindow.PeekChar()))
+            if (allowNewLines && SyntaxFacts.IsNewLine(TextWindow.PeekChar()))
             {
                 // Past the initial whitespace, and we hit a newline, this is a multi line raw string literal.
                 ScanMultiLineRawStringLiteral(ref info, startingQuoteCount);

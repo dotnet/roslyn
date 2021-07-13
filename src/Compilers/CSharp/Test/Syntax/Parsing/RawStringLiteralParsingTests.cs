@@ -162,5 +162,106 @@ class C
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17));
         }
+
+        [Fact]
+        public void TestSingleLineRawLiteralInSingleLineInterpolatedString()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $""{""""""a""""""}"";
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSingleLineRawLiteralInMultiLineInterpolatedString1()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $@""{""""""a""""""}"";
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestSingleLineRawLiteralInMultiLineInterpolatedString2()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $@""{
+            """"""a""""""
+        }"";
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestMultiLineRawLiteralInSingleLineInterpolatedString()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $""{""""""
+""""""}"";
+    }
+}").VerifyDiagnostics(
+            // (5,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+            //         var v = $"{"""
+            Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(5, 18),
+            // (5,23): error CS9101: Unterminated raw string literal
+            //         var v = $"{"""
+            Diagnostic(ErrorCode.ERR_Unterminated_raw_string_literal, "").WithLocation(5, 23),
+            // (5,23): error CS1002: ; expected
+            //         var v = $"{"""
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 23),
+            // (6,7): error CS9101: Unterminated raw string literal
+            // """}";
+            Diagnostic(ErrorCode.ERR_Unterminated_raw_string_literal, @"
+").WithLocation(6, 7),
+            // (6,7): error CS1002: ; expected
+            // """}";
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 7));
+        }
+
+        [Fact]
+        public void TestMultiLineRawLiteralInMultiLineInterpolatedString1()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $@""{""""""
+""""""}"";
+    }
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestMultiLineRawLiteralInMultiLineInterpolatedString2()
+        {
+            CreateCompilation(
+@"class C
+{
+    void M()
+    {
+        var v = $@""{
+""""""
+""""""
+}"";
+    }
+}").VerifyDiagnostics();
+        }
     }
 }

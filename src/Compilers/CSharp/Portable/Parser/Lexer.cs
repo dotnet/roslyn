@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case '\"':
                 case '\'':
-                    this.ScanStringLiteral(ref info, inDirective: false);
+                    this.ScanStringLiteral(ref info, inDirective: false, allowNewLines: true);
                     break;
 
                 case '/':
@@ -2909,7 +2909,7 @@ top:
                     break;
 
                 case '\"':
-                    this.ScanStringLiteral(ref info, inDirective: true);
+                    this.ScanStringLiteral(ref info, inDirective: true, allowNewLines: true);
                     break;
 
                 case '\\':
