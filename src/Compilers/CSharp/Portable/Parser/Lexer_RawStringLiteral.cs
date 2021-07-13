@@ -59,6 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ScanSingleLineRawStringLiteral(ref info, startingQuoteCount);
             }
 
+            if (this.HasErrors)
+                info.StringValue = "";
+
             Debug.Assert(info.StringValue != null);
             info.Text = TextWindow.GetText(intern: true);
         }
@@ -118,8 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ScanMultiLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
         {
-            Debug.Assert(SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()));
-
             info.Kind = SyntaxKind.MultiLineRawStringLiteralToken;
 
             var indentationWhitespace = PooledStringBuilder.GetInstance();
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // Do the first pass, finding the end of the raw string.
                 var afterStartDelimeter = this.TextWindow.Position;
+                Debug.Assert(SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()));
 
                 var lineCount = 0;
                 while (ScanMultiLineRawStringLiteralLine(
@@ -137,38 +139,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     lineCount++;
                 }
 
+                // If the initial scan failed then just bail out without a constant value.
                 if (this.HasErrors)
-                {
-                    // If the initial scan failed then just bail out without a constant value.
-                    info.StringValue = "";
                     return;
-                }
 
                 // The last line will be the `        """` line and will not count toward content.
                 var contentLineCount = lineCount - 1;
 
                 // Now, do the second pass, building up the literal value.  This may produce an error as well if the
                 // indentation whitespace of the lines isn't complimentary.
+                var tokenEnd = this.TextWindow.Position;
                 this.TextWindow.Reset(afterStartDelimeter);
                 Debug.Assert(SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()));
 
                 for (var currentLine = 0; currentLine < contentLineCount; currentLine++)
                 {
                     AddMultiLineRawStringLiteralLineContents(
-                        startingQuoteCount,
                         indentationWhitespace.Builder,
                         currentLineWhitespace.Builder,
                         firstContentLine: currentLine == 0);
+
+                    // If processing the line produced errors, then bail out from continued processing.
+                    if (this.HasErrors)
+                        break;
                 }
 
-                if (this.HasErrors)
-                {
-                    info.StringValue = "";
-                }
-                else
-                {
-                    info.StringValue = this.TextWindow.Intern(_builder);
-                }
+                info.StringValue = this.HasErrors ? "" : this.TextWindow.Intern(_builder);
+                this.TextWindow.Reset(tokenEnd);
             }
             finally
             {
@@ -223,8 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private bool AddMultiLineRawStringLiteralLineContents(
-            int startingQuoteCount,
+        private void AddMultiLineRawStringLiteralLineContents(
             StringBuilder indentationWhitespace,
             StringBuilder currentLineWhitespace,
             bool firstContentLine)
@@ -252,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         lineStartPosition,
                         width: TextWindow.Position - lineStartPosition,
                         ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
-                    return false;
+                    return;
                 }
 
                 // this whitespace line is longer then the indentation whitespace.  Include everything past the matching
@@ -264,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         _builder.Append(currentLineWhitespace[i]);
                 }
 
-                return true;
+                return;
             }
             else
             {
@@ -276,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         lineStartPosition,
                         width: TextWindow.Position - lineStartPosition,
                         ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
-                    return false;
+                    return;
                 }
 
                 // Skip the leading whitespace that matches the terminator line and add any whitespace past that to the
@@ -291,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
 
                 if (SyntaxFacts.IsNewLine(currentChar))
-                    return true;
+                    return;
 
                 _builder.Append(currentChar);
                 TextWindow.AdvanceChar();
