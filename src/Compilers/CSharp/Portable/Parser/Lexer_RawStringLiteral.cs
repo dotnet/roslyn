@@ -75,10 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
 
                 // See if we reached the end of the line or file before hitting the end.
-                if (SyntaxFacts.IsNewLine(currentChar) || IsAtEndOfText(currentChar))
+                if (SyntaxFacts.IsNewLine(currentChar))
                 {
                     this.AddError(this.TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
-                    info.StringValue = "";
+                    return;
+                }
+                else if (IsAtEndOfText(currentChar))
+                {
+                    this.AddError(this.TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
                     return;
                 }
 

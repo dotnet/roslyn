@@ -864,5 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LineSpanDirectiveTrivia = 9071,
         SingleLineRawStringLiteralToken = 9072,
         MultiLineRawStringLiteralToken = 9073,
+        SingleLineRawStringLiteralExpression = 9074,
+        MultiLineRawStringLiteralExpression = 9075,
     }
 }

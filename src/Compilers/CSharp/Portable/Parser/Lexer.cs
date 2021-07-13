@@ -385,6 +385,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // we do not record a separate "value" for an interpolated string token, as it must be rescanned during parsing.
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.Text, trailingNode);
                         break;
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
                     case SyntaxKind.StringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
