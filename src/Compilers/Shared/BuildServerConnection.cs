@@ -191,64 +191,94 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 }
             }
 
-            // Try to compile using the server. Returns a null-containing Task if a response
-            // from the server cannot be retrieved.
+            // Try and run the given BuildRequest on the server. If the request cannot be run then 
+            // an appropriate error response will be returned.
             static async Task<BuildResponse> tryRunRequestAsync(
                 NamedPipeClientStream pipeStream,
                 BuildRequest request,
                 ICompilerServerLogger logger,
                 CancellationToken cancellationToken)
             {
-                BuildResponse response;
-                using (pipeStream)
+                try
                 {
-                    // Write the request
+                    logger.Log($"Begin writing request for {request.RequestId}");
+                    await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
+                    logger.Log($"End writing request for {request.RequestId}");
+                }
+                catch (Exception e)
+                {
+                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
+                    return new RejectedBuildResponse($"Error writing build request: {e.Message}");
+                }
+
+                // Wait for the compilation and a monitor to detect if the server disconnects
+                var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+                logger.Log($"Begin reading response for {request.RequestId}");
+
+                var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
+                var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
+                await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+
+                logger.Log($"End reading response for {request.RequestId}");
+
+                BuildResponse response;
+                if (responseTask.IsCompleted)
+                {
+                    // await the task to log any exceptions
                     try
                     {
-                        logger.Log($"Begin writing request for {request.RequestId}");
-                        await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                        logger.Log($"End writing request for {request.RequestId}");
+                        response = await responseTask.ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {
-                        logger.LogException(e, $"Error writing build request for {request.RequestId}");
-                        return new RejectedBuildResponse($"Error writing build request: {e.Message}");
+                        logger.LogException(e, $"Reading response for {request.RequestId}");
+                        response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
+                }
+                else
+                {
+                    logger.LogError($"Client disconnect for {request.RequestId}");
+                    response = new RejectedBuildResponse($"Client disconnected");
+                }
 
-                    // Wait for the compilation and a monitor to detect if the server disconnects
-                    var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                // Cancel whatever task is still around
+                serverCts.Cancel();
+                RoslynDebug.Assert(response != null);
+                return response;
+            }
+        }
 
-                    logger.Log($"Begin reading response for {request.RequestId}");
+        /// <summary>
+        /// The IsConnected property on named pipes does not detect when the client has disconnected
+        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
+        /// which serves to check the pipe for disconnection.
+        /// </summary>
+        internal static async Task MonitorDisconnectAsync(
+            PipeStream pipeStream,
+            Guid requestId,
+            ICompilerServerLogger logger,
+            CancellationToken cancellationToken = default)
+        {
+            var buffer = Array.Empty<byte>();
 
-                    var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                    var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
-                    await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
+            while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
+            {
+                try
+                {
+                    // Wait a tenth of a second before trying again
+                    await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
 
-                    logger.Log($"End reading response for {request.RequestId}");
-
-                    if (responseTask.IsCompleted)
-                    {
-                        // await the task to log any exceptions
-                        try
-                        {
-                            response = await responseTask.ConfigureAwait(false);
-                        }
-                        catch (Exception e)
-                        {
-                            logger.LogException(e, $"Reading response for {request.RequestId}");
-                            response = new RejectedBuildResponse($"Error reading response: {e.Message}");
-                        }
-                    }
-                    else
-                    {
-                        logger.LogError($"Client disconnect for {request.RequestId}");
-                        response = new RejectedBuildResponse($"Client disconnected");
-                    }
-
-                    // Cancel whatever task is still around
-                    serverCts.Cancel();
-                    RoslynDebug.Assert(response != null);
-                    return response;
+                    await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    // It is okay for this call to fail.  Errors will be reflected in the
+                    // IsConnected property which will be read on the next iteration of the
+                    logger.LogException(e, $"Error poking pipe {requestId}.");
                 }
             }
         }
@@ -259,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        private static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
         {
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
@@ -400,40 +430,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 logger.LogException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// The IsConnected property on named pipes does not detect when the client has disconnected
-        /// if we don't attempt any new I/O after the client disconnects. We start an async I/O here
-        /// which serves to check the pipe for disconnection.
-        /// </summary>
-        internal static async Task MonitorDisconnectAsync(
-            PipeStream pipeStream,
-            Guid requestId,
-            ICompilerServerLogger logger,
-            CancellationToken cancellationToken = default)
-        {
-            var buffer = Array.Empty<byte>();
-
-            while (!cancellationToken.IsCancellationRequested && pipeStream.IsConnected)
-            {
-                try
-                {
-                    // Wait a tenth of a second before trying again
-                    await Task.Delay(millisecondsDelay: 100, cancellationToken).ConfigureAwait(false);
-
-                    await pipeStream.ReadAsync(buffer, 0, 0, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e)
-                {
-                    // It is okay for this call to fail.  Errors will be reflected in the
-                    // IsConnected property which will be read on the next iteration of the
-                    logger.LogException(e, $"Error poking pipe {requestId}.");
-                }
             }
         }
 
