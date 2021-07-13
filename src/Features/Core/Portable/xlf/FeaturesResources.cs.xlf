@@ -235,14 +235,14 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Pokud se změní {0} na {1}, relace ladění nebude moct pokračovat, protože dojde ke změně tvaru stavového počítače.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
         <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
@@ -3024,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastního formátu, interpretuje se jako standardní specifikátor formátu data a času g.</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">proměnná rozsahu</target>
@@ -3184,11 +3189,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
         <target state="translated">Aktualizace klauzule Implements pro {0} zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Změna omezení z {0} na {1} zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">Aktualizace odchylky pro {0} zabrání v pokračování relace ladění.</target>
@@ -3232,11 +3232,6 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">Aktualizace druhu přistupujícího objektu pro vlastnost/událost zabrání v pokračování relace ladění.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">Aktualizace tohoto druhu metody (Sub/Function) zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3851,6 +3846,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Pro hodnoty DateTimeOffset je specifikátor formátu K ekvivalentní specifikátoru formátu zzz a vytváří výsledný řetězec, který obsahuje posun hodnoty DateTimeOffset proti UTC.
 
 Pokud se specifikátor formátu K použije bez dalších specifikátorů vlastního formátu, interpretuje se jako standardní specifikátor formátu data a času a vyvolá FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">

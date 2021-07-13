@@ -235,14 +235,14 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Le remplacement de '{0}' par '{1}' va empêcher la session de débogage de se poursuivre, car cela change la forme de la machine à états.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing constraints of '{0}' will prevent the debug session from continuing.</source>
+        <target state="new">Changing constraints of '{0}' will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing parameter types of '{0}' will prevent the debug session from continuing.</source>
         <target state="new">Changing parameter types of '{0}' will prevent the debug session from continuing.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="new">Changing return type of '{0}' will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_will_prevent_the_debug_session_from_continuing">
@@ -3024,6 +3024,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
 Si le spécificateur de format "g" est utilisé sans autres spécificateurs de format personnalisés, il est interprété en tant que spécificateur de format de date et d'heure standard : "g".</target>
         <note />
       </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="range_variable">
         <source>range variable</source>
         <target state="translated">variable de plage</target>
@@ -3184,11 +3189,6 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
         <target state="translated">La mise à jour de la clause Implements de '{0}' empêche la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">Le remplacement de la contrainte '{0}' en '{1}' empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
         <target state="translated">La mise à jour de la variance de '{0}' empêche la session de débogage de se poursuivre.</target>
@@ -3232,11 +3232,6 @@ Si le spécificateur de format "g" est utilisé sans autres spécificateurs de f
       <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
         <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
         <target state="translated">La mise à jour du genre d'un accesseur de propriété/événement empêche la session de débogage de se poursuivre.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">La mise à jour du genre d'une méthode (Sub/Function) empêche la session de débogage de se poursuivre.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
@@ -3851,6 +3846,11 @@ If the "K" format specifier is used without other custom format specifiers, it's
 Pour les valeurs DateTimeOffset, le spécificateur de format "K" est équivalent au spécificateur de format "zzz". Il produit une chaîne qui contient le décalage de la valeur DateTimeOffset par rapport à l'heure UTC.
 
 Si le spécificateur de format "K" est utilisé sans autres spécificateurs de format personnalisés, il est interprété en tant que spécificateur de format de date et d'heure standard, et lève une exception FormatException.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
