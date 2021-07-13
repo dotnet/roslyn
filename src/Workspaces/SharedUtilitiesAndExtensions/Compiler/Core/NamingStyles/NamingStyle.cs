@@ -256,6 +256,31 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 }
             }
 
+            if (!violations.Any() && name.Contains("_"))
+            {
+                var rx = new Regex("(?<=[_])");
+                var words = rx.Split(name).Where(str => str.Length > 0);
+                var spanStart = 0;
+                var firstWord = true;
+                foreach (var word in words)
+                {
+                    if (firstWord)
+                    {
+                        firstWord = false;
+                        spanStart += word.Length;
+                        continue;
+                    }
+
+                    var spanToCheck = TextSpan.FromBounds(spanStart, spanStart + word.Length);
+                    if (!wordCheck(name, spanToCheck))
+                    {
+                        violations.Add(Substring(name, spanToCheck));
+                    }
+
+                    spanStart += word.Length;
+                }
+            }
+
             if (violations.Count > 0)
             {
                 reason = string.Format(resourceId, string.Join(", ", violations));
@@ -315,7 +340,7 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             if (!violations.Any() && name.Contains("_"))
             {
                 var rx = new Regex("(?<=[_])");
-                var words = rx.Split(name);
+                var words = rx.Split(name).Where(str => str.Length > 0);
                 var spanStart = 0;
                 var firstWord = true;
                 foreach (var word in words)

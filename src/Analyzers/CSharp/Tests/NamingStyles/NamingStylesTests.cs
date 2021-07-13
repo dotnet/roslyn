@@ -316,6 +316,27 @@ $@"class C
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("mars_bar", "Mars_Bar")]
+        [InlineData("Sars_bar", "Sars_Bar")]
+        public async Task TestPascalCaseMethod_UnderscoreInName(string methodName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    void [|{methodName}|]()
+    {{
+    }}
+}}",
+$@"class C
+{{
+    void [|{correctedName}|]()
+    {{
+    }}
+}}",
+            options: s_options.MethodNamesArePascalCase);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_IndexerNameIsIgnored()
         {
