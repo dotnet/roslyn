@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternParsingTests_ListPatterns : ParsingTests
     {
+        // PROTOTYPE(list-patterns)
+        private static CSharpParseOptions RegularWithoutListPatterns => TestOptions.Regular9;
+
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
             UsingExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), expectedErrors);
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[]]");
             verify();
 
-            UsingExpression(@"c is [[]]", TestOptions.Regular9,
+            UsingExpression(@"c is [[]]", RegularWithoutListPatterns,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is [[]]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[]]").WithArguments("list pattern").WithLocation(1, 6),
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[],] v");
             verify();
 
-            UsingExpression(@"c is [[],] v", TestOptions.Regular9,
+            UsingExpression(@"c is [[],] v", RegularWithoutListPatterns,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is [[],]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[[],] v").WithArguments("list pattern").WithLocation(1, 6),
@@ -241,12 +244,221 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void ListPattern_06()
+        {
+            UsingExpression(@"c is [List<int>]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "List");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ListPattern_07()
+        {
+            UsingExpression(@"c is [string[]]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.TypePattern);
+                    {
+                        N(SyntaxKind.ArrayType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.ArrayRankSpecifier);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.OmittedArraySizeExpression);
+                                {
+                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ListPattern_08()
+        {
+            UsingExpression(@"c is [var(x,y)]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.VarPattern);
+                    {
+                        N(SyntaxKind.VarKeyword);
+                        N(SyntaxKind.ParenthesizedVariableDesignation);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ListPattern_09()
+        {
+            UsingExpression(@"c is [>0]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.RelationalPattern);
+                    {
+                        N(SyntaxKind.GreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NoRegressionOnArrayTypePattern_01()
+        {
+            UsingExpression(@"c is string[]");
+
+            N(SyntaxKind.IsExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.OmittedArraySizeExpression);
+                        {
+                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NoRegressionOnArrayTypePattern_02()
+        {
+            UsingExpression(@"c is a[0]");
+
+            N(SyntaxKind.IsExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ArrayType);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.ArrayRankSpecifier);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void SlicePattern_01()
         {
             UsingExpression(@"c is [..]");
             verify();
 
-            UsingExpression(@"c is [..]", TestOptions.Regular9,
+            UsingExpression(@"c is [..]", RegularWithoutListPatterns,
                 // (1,6): error CS8652: The feature 'list pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // c is [..]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "[..]").WithArguments("list pattern").WithLocation(1, 6));
@@ -866,6 +1078,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.NumericLiteralExpression);
                 {
                     N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_19()
+        {
+            UsingExpression(@"c is [..>5]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.RelationalPattern);
+                        {
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "5");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
                 }
             }
             EOF();

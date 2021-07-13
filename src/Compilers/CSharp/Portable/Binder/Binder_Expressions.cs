@@ -7967,6 +7967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(lookupResult.IsClear);
             if (argIsIndex)
             {
                 // Look for `T this[int i]` indexer
@@ -8058,6 +8059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             [NotNullWhen(true)] out PropertySymbol? lengthOrCountProperty,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(lookupResult.IsClear);
             // PROTOTYPE(list-patterns) Assert about whether diagnostics and dependencies are being accumulated.
             return tryLookupLengthOrCount(WellKnownMemberNames.LengthPropertyName, out lengthOrCountProperty, ref useSiteInfo) ||
                    tryLookupLengthOrCount(WellKnownMemberNames.CountPropertyName, out lengthOrCountProperty, ref useSiteInfo);
