@@ -17,6 +17,379 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestBeginInvoke()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(string s1, string s2)
+    {
+    }
+
+    static string GetString() => null;
+
+    public static void Main()
+    {
+        D d = M;
+        d.BeginInvoke(GetString(), callback: null, @object: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            // Begin/EndInvoke are not currently supported.
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  5
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""default""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(ref string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(ref string s1, string s2)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s = string.Empty;
+        d.EndInvoke(ref s, null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            // Begin/EndInvoke are not currently supported.
+            CompileAndVerify(compilation).VerifyDiagnostics().VerifyIL("Program.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (string V_0) //s
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(ref string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  ldsfld     ""string string.Empty""
+  IL_0011:  stloc.0
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldnull
+  IL_0015:  callvirt   ""void Program.D.EndInvoke(ref string, System.IAsyncResult)""
+  IL_001a:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke2()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s5 = nameof(s5);
+    delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue(""default"")] ref string s1, string s2, string s3, string s4, string s5);
+
+    static void M(ref string s1, string s2, string s3, string s4, string s5)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        d.EndInvoke(result: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (29,22): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     delegate void D([CallerArgumentExpression(s5)] [Optional] [DefaultParameterValue("default")] ref string s1, string s2, string s3, string s4, string s5);
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 22),
+                // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's1' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                //         d.EndInvoke(result: null);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s1", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke3()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = ""default"");
+
+    static void M(string s1, ref string s2)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s = string.Empty;
+        d.EndInvoke(result: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (28,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(28, 33),
+                // (28,63): error CS1741: A ref or out parameter cannot have a default value
+                //     delegate void D(string s1, [CallerArgumentExpression(s1)] ref string s2 = "default");
+                Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(28, 63),
+                // (38,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                //         d.EndInvoke(result: null);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(38, 11));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestEndInvoke4()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string s1 = nameof(s1);
+    delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue(""default"")] ref string s2);
+
+    static void M(string s1, ref string s2)
+    {
+    }
+
+    public static void Main()
+    {
+        D d = M;
+        string s = string.Empty;
+        d.EndInvoke(result: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (29,33): error CS9006: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
+                //     delegate void D(string s1, [CallerArgumentExpression(s1)] [Optional] [DefaultParameterValue("default")] ref string s2);
+                Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(29, 33),
+                // (39,11): error CS7036: There is no argument given that corresponds to the required formal parameter 's2' of 'Program.D.EndInvoke(ref string, IAsyncResult)'
+                //         d.EndInvoke(result: null);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "EndInvoke").WithArguments("s2", "Program.D.EndInvoke(ref string, System.IAsyncResult)").WithLocation(39, 11));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestBeginInvoke_ReferringToCallbackParameter()
+        {
+            string source = @"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+namespace System.Runtime.InteropServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, Inherited = false)]
+    public sealed class OptionalAttribute : Attribute
+    {
+        public OptionalAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter)]
+    public sealed class DefaultParameterValueAttribute : Attribute
+    {
+        public DefaultParameterValueAttribute(object value)
+        {
+            Value = value;
+        }
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    const string callback = nameof(callback);
+    delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue(""default"")] string s2);
+
+    static void M(string s1, string s2)
+    {
+    }
+
+    static string GetString() => null;
+
+    public static void Main()
+    {
+        D d = M;
+        d.BeginInvoke(GetString(), callback: null, @object: null);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation).VerifyDiagnostics(
+                // (29,33): warning CS9005: The CallerArgumentExpressionAttribute applied to parameter 's2' will have no effect. It is applied with an invalid parameter name.
+                //     delegate void D(string s1, [CallerArgumentExpression(callback)] [Optional] [DefaultParameterValue("default")] string s2);
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("s2").WithLocation(29, 33)
+                ).VerifyIL("Program.Main", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  5
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Program.M(string, string)""
+  IL_0007:  newobj     ""Program.D..ctor(object, System.IntPtr)""
+  IL_000c:  call       ""string Program.GetString()""
+  IL_0011:  ldstr      ""default""
+  IL_0016:  ldnull
+  IL_0017:  ldnull
+  IL_0018:  callvirt   ""System.IAsyncResult Program.D.BeginInvoke(string, string, System.AsyncCallback, object)""
+  IL_001d:  pop
+  IL_001e:  ret
+}
+");
+        }
+
         #region CallerArgumentExpression - Invocations
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute()

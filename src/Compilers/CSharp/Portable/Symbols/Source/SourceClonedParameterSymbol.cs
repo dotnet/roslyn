@@ -4,32 +4,27 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-
-    // PROTOTYPE(caller-expr): Make SourceClonedParameterSymbol abstract and introduce new specialized types (same as being done in VB).
-
     /// <summary>
     /// Represents a source parameter cloned from another <see cref="SourceParameterSymbol"/>, when they must share attribute data and default constant value.
     /// For example, parameters on a property symbol are cloned to generate parameters on accessors.
     /// Similarly parameters on delegate invoke method are cloned to delegate begin/end invoke methods.
     /// </summary>
-    internal sealed class SourceClonedParameterSymbol : SourceParameterSymbolBase
+    internal abstract class SourceClonedParameterSymbol : SourceParameterSymbolBase
     {
         // if true suppresses params-array and default value:
         private readonly bool _suppressOptional;
 
-        private readonly SourceParameterSymbol _originalParam;
+        protected readonly SourceParameterSymbol _originalParam;
 
         internal SourceClonedParameterSymbol(SourceParameterSymbol originalParam, Symbol newOwner, int newOrdinal, bool suppressOptional)
             : base(newOwner, newOrdinal)
         {
             Debug.Assert((object)originalParam != null);
-
             _suppressOptional = suppressOptional;
             _originalParam = originalParam;
         }
@@ -74,15 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ConstantValue DefaultValueFromAttributes
         {
             get { return _originalParam.DefaultValueFromAttributes; }
-        }
-
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
-        {
-            return new SourceClonedParameterSymbol(
-                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
-                this.ContainingSymbol,
-                this.Ordinal,
-                _suppressOptional);
         }
 
         #region Forwarded
@@ -140,26 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsIUnknownConstant
         {
             get { return _originalParam.IsIUnknownConstant; }
-        }
-
-        internal override bool IsCallerFilePath
-        {
-            get { return _originalParam.IsCallerFilePath; }
-        }
-
-        internal override bool IsCallerLineNumber
-        {
-            get { return _originalParam.IsCallerLineNumber; }
-        }
-
-        internal override bool IsCallerMemberName
-        {
-            get { return _originalParam.IsCallerMemberName; }
-        }
-
-        internal override int CallerArgumentExpressionParameterIndex
-        {
-            get { return _originalParam.CallerArgumentExpressionParameterIndex; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
