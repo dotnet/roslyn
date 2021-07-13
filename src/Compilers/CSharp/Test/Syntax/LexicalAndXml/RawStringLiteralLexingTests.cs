@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"  \n\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n\"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         [InlineData("\"\"\"  \n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n \"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" \n \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \n  \"\"{|CS9101:|}", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"  \n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
         #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
