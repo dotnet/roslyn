@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
     {
         [Theory]
         [InlineData("\"\"\"{|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\" {|CS9101:|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"{|CS9101:\n|}", SyntaxKind.SingleLineRawStringLiteralToken, "")]
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
             MarkupTestFile.GetSpans(markup, out var input, out IDictionary<string, ImmutableArray<TextSpan>> spans);

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 builder?.Append(ch);
+                TextWindow.AdvanceChar();
             }
         }
 
@@ -77,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // See if we reached the end of the line or file before hitting the end.
                 if (SyntaxFacts.IsNewLine(currentChar))
                 {
-                    this.AddError(this.TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
                     return;
                 }
                 else if (IsAtEndOfText(currentChar))
                 {
-                    this.AddError(this.TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
                     return;
                 }
 
@@ -106,16 +107,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var excessQuoteCount = currentQuoteCount - startingQuoteCount;
                     this.AddError(
-                        position: this.TextWindow.Position - excessQuoteCount,
+                        position: TextWindow.Position - excessQuoteCount,
                         width: excessQuoteCount,
                         ErrorCode.ERR_Too_many_closing_quotes_for_raw_string_literal);
                 }
 
                 // We have enough quotes to finish this string at this point.
-                var afterStartDelimeter = this.TextWindow.LexemeStartPosition + startingQuoteCount;
+                var afterStartDelimeter = TextWindow.LexemeStartPosition + startingQuoteCount;
                 var valueLength = beforeEndDelimeter - afterStartDelimeter;
 
-                info.StringValue = this.TextWindow.GetText(
+                info.StringValue = TextWindow.GetText(
                     position: afterStartDelimeter,
                     length: valueLength,
                     intern: true);
@@ -132,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 // Do the first pass, finding the end of the raw string.
-                var afterStartDelimeter = this.TextWindow.Position;
-                Debug.Assert(SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()));
+                var afterStartDelimeter = TextWindow.Position;
+                Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 var lineCount = 0;
                 while (ScanMultiLineRawStringLiteralLine(
@@ -152,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Now, do the second pass, building up the literal value.  This may produce an error as well if the
                 // indentation whitespace of the lines isn't complimentary.
-                var tokenEnd = this.TextWindow.Position;
-                this.TextWindow.Reset(afterStartDelimeter);
-                Debug.Assert(SyntaxFacts.IsNewLine(this.TextWindow.PeekChar()));
+                var tokenEnd = TextWindow.Position;
+                TextWindow.Reset(afterStartDelimeter);
+                Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
                 for (var currentLine = 0; currentLine < contentLineCount; currentLine++)
                 {
@@ -168,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         break;
                 }
 
-                info.StringValue = this.HasErrors ? "" : this.TextWindow.Intern(_builder);
-                this.TextWindow.Reset(tokenEnd);
+                info.StringValue = this.HasErrors ? "" : TextWindow.Intern(_builder);
+                TextWindow.Reset(tokenEnd);
             }
             finally
             {
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     var excessQuoteCount = currentQuoteCount - startingQuoteCount;
                     this.AddError(
-                        position: this.TextWindow.Position - excessQuoteCount,
+                        position: TextWindow.Position - excessQuoteCount,
                         width: excessQuoteCount,
                         ErrorCode.ERR_Too_many_closing_quotes_for_raw_string_literal);
                 }
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
                 if (IsAtEndOfText(currentChar))
                 {
-                    this.AddError(this.TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
                     return false;
                 }
 
