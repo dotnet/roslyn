@@ -29,6 +29,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Iterator
         End Enum
 
+        Public Shared Function GetResource(keyword As String) As String
+            Select Case keyword
+                Case "Class"
+                    Return FeaturesResources.class_
+                Case "Structure"
+                    Return VBFeaturesResources.structure_
+                Case "Module"
+                    Return VBFeaturesResources.module_
+                Case "Interface"
+                    Return FeaturesResources.interface_
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(keyword)
+            End Select
+        End Function
+
         Friend Shared NoSemanticEdits As SemanticEditDescription() = Array.Empty(Of SemanticEditDescription)
 
         Friend Overloads Shared Function Diagnostic(rudeEditKind As RudeEditKind, squiggle As String, ParamArray arguments As String()) As RudeEditDiagnosticDescription

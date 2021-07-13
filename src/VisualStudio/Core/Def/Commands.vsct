@@ -530,7 +530,7 @@
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_REFROOT_ADD" />
     </CommandPlacement>
   
-    <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0x0203">
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
   </CommandPlacements>

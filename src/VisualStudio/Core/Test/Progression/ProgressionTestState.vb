@@ -26,9 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         Public Function GetGraphWithDocumentNode(filePath As String) As Graph
-            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution, CancellationToken.None)
+            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution)
             Dim documentId = Workspace.Documents.Single(Function(d) d.FilePath = filePath).Id
-            graphBuilder.AddNodeForDocument(Workspace.CurrentSolution.GetDocument(documentId))
+            graphBuilder.AddNodeForDocument(Workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None)
             Return graphBuilder.Graph
         End Function
 
@@ -41,15 +41,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                 symbol = symbolTransform(symbol)
             End If
 
-            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution, CancellationToken.None)
-            graphBuilder.AddNodeAsync(symbol, document.Project, document).Wait(CancellationToken.None)
+            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution)
+            Await graphBuilder.AddNodeAsync(symbol, document.Project, document, CancellationToken.None)
             Return graphBuilder.Graph
         End Function
 
         Public Async Function GetGraphContextAfterQuery(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
             Dim graphBuilder = Await graphQuery.GetGraphAsync(Workspace.CurrentSolution, graphContext, CancellationToken.None)
-            graphBuilder.ApplyToGraph(graphContext.Graph)
+            graphBuilder.ApplyToGraph(graphContext.Graph, CancellationToken.None)
 
             Return graphContext
         End Function
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         Public Async Function GetGraphContextAfterQueryWithSolution(graph As Graph, solution As Solution, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
             Dim graphBuilder = Await graphQuery.GetGraphAsync(solution, graphContext, CancellationToken.None)
-            graphBuilder.ApplyToGraph(graphContext.Graph)
+            graphBuilder.ApplyToGraph(graphContext.Graph, CancellationToken.None)
 
             Return graphContext
         End Function

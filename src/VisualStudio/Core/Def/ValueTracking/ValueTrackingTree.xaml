@@ -39,7 +39,7 @@
             Background="{DynamicResource {x:Static vs:ProgressBarColors.BackgroundBrushKey}}" />
         
         <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-            <TreeView  x:Name="ValueTrackingTreeView" ItemsSource="{Binding Roots}" SelectedItemChanged="ValueTrackingTreeView_SelectedItemChanged" BorderThickness="0">
+            <TreeView  x:Name="ValueTrackingTreeView" ItemsSource="{Binding Roots}" BorderThickness="0" PreviewKeyDown="ValueTrackingTreeView_PreviewKeyDown" MouseDown="ValueTrackingTreeView_MouseClickPreview" PreviewMouseDoubleClick="ValueTrackingTreeView_MouseClickPreview">
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />

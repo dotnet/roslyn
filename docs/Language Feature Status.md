@@ -23,6 +23,7 @@ efforts behind them.
 | [Default in deconstruction](https://github.com/dotnet/roslyn/pull/25562) | [decon-default](https://github.com/dotnet/roslyn/tree/features/decon-default) | [Implemented](https://github.com/dotnet/roslyn/issues/25559) | [jcouv](https://github.com/jcouv) | [gafter](https://github.com/gafter) | [jcouv](https://github.com/jcouv) |
 | [List patterns](https://github.com/dotnet/csharplang/issues/3435) | [list-patterns](https://github.com/dotnet/roslyn/tree/features/list-patterns) | [In Progress](https://github.com/dotnet/roslyn/issues/51289) | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv), [333fred](https://github.com/333fred) | [333fred](https://github.com/333fred) |
 
+
 # C# 10.0
 
 | Feature | Branch | State | Developer | Reviewer | LDM Champ |
@@ -36,6 +37,7 @@ efforts behind them.
 | [Source Generator V2 APIs](https://github.com/dotnet/roslyn/issues/51257) | [features/source-generators](https://github.com/dotnet/roslyn/tree/features/source-generators) | [Merged into 17.0p2](https://github.com/dotnet/roslyn/issues/51257) | [chsienki](https://github.com/chsienki/) | [rikkigibson](https://github.com/rikkigibson), [jaredpar](https://github.com/jaredpar), [cston](https://github.com/cston) | N/A |
 | [Mix declarations and variables in deconstruction](https://github.com/dotnet/csharplang/issues/125) | main | [Merged into 16.10](https://github.com/dotnet/roslyn/issues/47746) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [jcouv](https://github.com/jcouv) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [Async method builder override](https://github.com/dotnet/csharplang/issues/1407) | main | [Merged into 17.0p2](https://github.com/dotnet/roslyn/issues/51999) | [jcouv](https://github.com/jcouv) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [stephentoub](https://github.com/stephentoub) |
+| [Enhanced `#line` directive](https://github.com/dotnet/csharplang/issues/4747) | main | [Merged into 17.0p2](https://github.com/dotnet/roslyn/issues/54509) | [cston](https://github.com/cston) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 
 # VB 16.9
 
