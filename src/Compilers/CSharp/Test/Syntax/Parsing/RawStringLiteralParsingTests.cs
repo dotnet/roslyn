@@ -216,22 +216,10 @@ class C
 """"""}"";
     }
 }").VerifyDiagnostics(
-            // (5,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
-            //         var v = $"{"""
-            Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(5, 18),
-            // (5,23): error CS9101: Unterminated raw string literal
-            //         var v = $"{"""
-            Diagnostic(ErrorCode.ERR_Unterminated_raw_string_literal, "").WithLocation(5, 23),
-            // (5,23): error CS1002: ; expected
-            //         var v = $"{"""
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 23),
-            // (6,7): error CS9101: Unterminated raw string literal
-            // """}";
-            Diagnostic(ErrorCode.ERR_Unterminated_raw_string_literal, @"
-").WithLocation(6, 7),
-            // (6,7): error CS1002: ; expected
-            // """}";
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 7));
+                // (5,20): error CS9105: Multi-line raw string literals are only allowed in verbatim interpolated strings
+                //         var v = $"{"""
+                Diagnostic(ErrorCode.ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings, @"""""""
+""""""").WithLocation(5, 20));
         }
 
         [Fact]

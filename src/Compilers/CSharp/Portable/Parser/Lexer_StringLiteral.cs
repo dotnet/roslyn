@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class Lexer
     {
-        private void ScanStringLiteral(ref TokenInfo info, bool inDirective, bool allowNewLines)
+        private void ScanStringLiteral(ref TokenInfo info, bool inDirective)
         {
             var quoteCharacter = TextWindow.PeekChar();
             Debug.Assert(quoteCharacter == '\'' || quoteCharacter == '"');
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.PeekChar(1) == '"' &&
                 TextWindow.PeekChar(2) == '"')
             {
-                ScanRawStringLiteral(ref info, allowNewLines);
+                ScanRawStringLiteral(ref info);
                 if (inDirective)
                 {
                     // Reinterpret this as just a string literal so that the directive parser can consume this.  
@@ -734,8 +734,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanInterpolatedStringLiteralNestedString()
             {
-                var discarded = default(TokenInfo);
-                _lexer.ScanStringLiteral(ref discarded, inDirective: false, _allowNewlines);
+                var info = default(TokenInfo);
+                var position = _lexer.TextWindow.Position;
+                _lexer.ScanStringLiteral(ref info, inDirective: false);
+
+                if (!_allowNewlines && info.Kind == SyntaxKind.MultiLineRawStringLiteralToken && error == null)
+                    error = _lexer.MakeError(position, _lexer.TextWindow.Position - position, ErrorCode.ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings);
             }
 
             private void ScanInterpolatedStringLiteralNestedVerbatimString()

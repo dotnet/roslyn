@@ -787,6 +787,11 @@
         <target state="translated">O método inicializador do módulo '{0}' precisa ser estático, não pode ter parâmetros e precisa retornar 'void'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Não é possível que haja vários arquivos de configuração do analisador no mesmo diretório ('{0}').</target>

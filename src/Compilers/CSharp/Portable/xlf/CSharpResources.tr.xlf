@@ -787,6 +787,11 @@
         <target state="translated">'{0}' modül başlatıcısı metodu statik olmalıdır, hiç parametresi olmamalıdır ve 'void' döndürmelidir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>

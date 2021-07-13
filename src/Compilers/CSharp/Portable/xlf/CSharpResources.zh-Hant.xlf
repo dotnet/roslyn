@@ -787,6 +787,11 @@
         <target state="translated">模組初始設定式方法 '{0}' 必須是靜態，不得具有任何參數，而且必須傳回 'void'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
