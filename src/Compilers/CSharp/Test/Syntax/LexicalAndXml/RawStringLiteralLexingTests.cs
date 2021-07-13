@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             }
         }
 
-        private void TestSingleToken(
+        private static void TestSingleToken(
             string markup, SyntaxKind expectedKind, string expectedValue, bool leadingTrivia, bool trailingTrivia)
         {
             if (leadingTrivia)
