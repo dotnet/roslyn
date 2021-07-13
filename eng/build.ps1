@@ -355,6 +355,11 @@ function TestUsingRunTests() {
   $dotnet = InitializeDotNetCli
 
   if ($testVsi) {
+    if ($ci) {
+      # Copy the correct (17.0) version of Microsoft.VisualStudio.Threading to the expected location
+      Copy-Item "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.Threading.16.0\Microsoft.VisualStudio.Threading.dll" -Destination "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\IDE\PrivateAssemblies" -Force
+    }
+
     Deploy-VsixViaTool
 
     if ($ci) {
