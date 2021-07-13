@@ -2017,7 +2017,7 @@ class C { }
             {
                 ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
-                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("NonSemantic", ""));
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, disabledOutputs: disabledOutput, parseOptions: parseOptions);
