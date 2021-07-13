@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.ComponentModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 
@@ -35,6 +36,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing, Optional disabledOutputs As IncrementalGeneratorOutputKind = IncrementalGeneratorOutputKind.None) As VisualBasicGeneratorDriver
             Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), disabledOutputs)
+        End Function
+
+        ' 3.11 BACK COMPAT OVERLOAD -- DO NOT TOUCH
+        <EditorBrowsable(EditorBrowsableState.Never)>
+        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), additionalTexts As ImmutableArray(Of AdditionalText), parseOptions As VisualBasicParseOptions, analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider) As VisualBasicGeneratorDriver
+            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), IncrementalGeneratorOutputKind.None)
         End Function
 
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
