@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var token = await syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
 
-            if (token.RawKind == 0)
+            if (token == default)
             {
                 return null;
             }
