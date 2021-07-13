@@ -156,6 +156,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Now, do the second pass, building up the literal value.  This may produce an error as well if the
                 // indentation whitespace of the lines isn't complimentary.
+
+                // Reset us to right after the starting delimiter.  Note: if we fail to generate a constant value we'll
+                // ensure that we reset back to the original end we scanned to above.
                 var tokenEnd = TextWindow.Position;
                 TextWindow.Reset(afterStartDelimeter);
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
