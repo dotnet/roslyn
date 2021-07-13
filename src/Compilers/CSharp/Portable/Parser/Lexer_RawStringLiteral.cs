@@ -140,20 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var afterStartDelimeter = TextWindow.Position;
                 Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
-                var lineCount = 0;
+                var contentLineCount = 0;
                 while (ScanMultiLineRawStringLiteralLine(
                     startingQuoteCount,
                     indentationWhitespace.Builder))
                 {
-                    lineCount++;
+                    contentLineCount++;
                 }
 
                 // If the initial scan failed then just bail out without a constant value.
                 if (this.HasErrors)
                     return;
-
-                // The last line will be the `        """` line and will not count toward content.
-                var contentLineCount = lineCount - 1;
 
                 // Now, do the second pass, building up the literal value.  This may produce an error as well if the
                 // indentation whitespace of the lines isn't complimentary.
