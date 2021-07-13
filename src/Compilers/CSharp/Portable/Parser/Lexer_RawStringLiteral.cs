@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        private bool IsAtEndOfText(char currentChar)
+            => currentChar == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd();
+
         private void ScanRawStringLiteral(ref TokenInfo info)
         {
             _builder.Length = 0;
@@ -69,8 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
 
                 // See if we reached the end of the line or file before hitting the end.
-                if (SyntaxFacts.IsNewLine(currentChar) ||
-                    (currentChar == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
+                if (SyntaxFacts.IsNewLine(currentChar) || IsAtEndOfText(currentChar))
                 {
                     this.AddError(this.TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_single_raw_string_literal);
                     info.StringValue = "";
@@ -208,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             while (true)
             {
                 var currentChar = TextWindow.PeekChar();
-
-                if (currentChar == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
+                if (IsAtEndOfText(currentChar))
                 {
                     this.AddError(this.TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_single_raw_string_literal);
                     return false;
