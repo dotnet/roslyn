@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.NonSemantic, cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 

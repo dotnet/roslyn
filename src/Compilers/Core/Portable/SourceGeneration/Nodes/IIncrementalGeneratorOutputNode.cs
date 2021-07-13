@@ -31,6 +31,6 @@ namespace Microsoft.CodeAnalysis
         None = 0,
         Source = 0b1,
         PostInit = 0b10,
-        NonSemantic = 0b100
+        Implementation = 0b100
     }
 }

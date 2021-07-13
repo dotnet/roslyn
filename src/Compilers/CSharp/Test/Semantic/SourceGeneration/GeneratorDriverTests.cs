@@ -1999,10 +1999,10 @@ class C { }
 
         [Theory]
         [CombinatorialData]
-        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.NonSemantic)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
-        [InlineData(IncrementalGeneratorOutputKind.NonSemantic | IncrementalGeneratorOutputKind.PostInit)]
-        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.NonSemantic | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
         public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
         {
             var source = @"
@@ -2017,7 +2017,7 @@ class C { }
             {
                 ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
-                ctx.RegisterNonSemanticSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("NonSemantic", ""));
+                ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("NonSemantic", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, disabledOutputs: disabledOutput, parseOptions: parseOptions);
