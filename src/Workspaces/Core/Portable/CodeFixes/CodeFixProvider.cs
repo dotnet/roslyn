@@ -4,8 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -36,21 +34,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public virtual FixAllProvider? GetFixAllProvider()
             => null;
-
-        /// <summary>
-        /// What priority this provider should run at.
-        /// </summary>
-        internal CodeActionRequestPriority RequestPriority
-        {
-            get
-            {
-                var priority = ComputeRequestPriority();
-                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
-                return priority;
-            }
-        }
-
-        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
-            => CodeActionRequestPriority.Normal;
     }
 }
