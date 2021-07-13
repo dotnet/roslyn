@@ -20,7 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 @"class C
 {
     string s = """""" """"""; 
-}").VerifyDiagnostics();
+}").VerifyDiagnostics(
+                // (3,12): warning CS0414: The field 'C.s' is assigned but its value is never used
+                //     string s = """ """; 
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("C.s").WithLocation(3, 12));
         }
 
         [Fact]
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = """""" """""" + 'a'; 
+    const string s = """""" """""" + ""a""; 
 }").VerifyDiagnostics();
         }
 
@@ -49,7 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             CreateCompilation(
 @"class C
 {
-    const string s = 'a' + """""" """"""; 
+    const string s = ""a"" + """""" """"""; 
+}").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestInAttribute()
+        {
+            CreateCompilation(
+@"
+[System.Obsolete(""""""obsolete"""""")]
+class C
+{
 }").VerifyDiagnostics();
         }
     }
