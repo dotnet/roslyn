@@ -96,6 +96,118 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"  \n\"\"\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"")]
         [InlineData("\"\"\"\"  \n\"\"\"\n\"\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"")]
         #endregion
+        #region Multi Line Indentation Cases
+        [InlineData(
+@"""""""
+ abc
+""""""", SyntaxKind.MultiLineRawStringLiteralToken, " abc")]
+        [InlineData(
+@"""""""
+ abc
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
+        [InlineData(
+@"""""""
+  abc
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
+        [InlineData(
+@"""""""
+    abc
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc")]
+        [InlineData(
+@"""""""
+{|CS9103:|}abc
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+ abc
+{|CS9103:|}def
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+  abc
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\ndef")]
+        [InlineData(
+@"""""""
+  abc
+     def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   def")]
+        [InlineData(
+@"""""""
+  abc
+
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
+        [InlineData(
+@"""""""
+  abc
+  
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
+        [InlineData(
+@"""""""
+  abc
+   
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n \r\ndef")]
+        [InlineData(
+@"""""""
+  abc
+    
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n  \r\ndef")]
+        [InlineData(
+@"""""""
+  abc
+     
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   \r\ndef")]
+        [InlineData(
+@"""""""
+{|CS9103: |}abc
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+  ""
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"")]
+        [InlineData(
+@"""""""
+  """"
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"")]
+        [InlineData(
+@"""""""""
+  """"""
+  """"""""", SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"")]
+        [InlineData(
+@"""""""
+
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+ 
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+  
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData(
+@"""""""
+   
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, " ")]
+        [InlineData(
+@"""""""
+    
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  ")]
+        [InlineData("\"\"\"\n{|CS9103: |}abc\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103: |}abc\n \t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103:\t|}abc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n \tabc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\tabc")]
+        [InlineData("\"\"\"\n\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n\t\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\t")]
+        [InlineData("\"\"\"\n\t\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103:\t|}\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        [InlineData("\"\"\"\n{|CS9103: |}\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
+        #endregion
         public void TestSingleToken(string markup, SyntaxKind expectedKind, string expectedValue)
         {
             TestSingleToken(markup, expectedKind, expectedValue, leadingTrivia: false);
