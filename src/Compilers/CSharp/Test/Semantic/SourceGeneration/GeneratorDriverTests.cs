@@ -1996,5 +1996,53 @@ class C { }
 
             Assert.Empty(additionalTextsContents);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.NonSemantic)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.NonSemantic | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.NonSemantic | IncrementalGeneratorOutputKind.PostInit)]
+        public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
+                ctx.RegisterNonSemanticSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("NonSemantic", ""));
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, disabledOutputs: disabledOutput, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Single(result.Results);
+            Assert.Empty(result.Results[0].Diagnostics);
+
+            // verify the expected outputs were generated
+            // NOTE: adding new output types will cause this test to fail. Update above as needed.
+            foreach (var kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
+            {
+                if ((IncrementalGeneratorOutputKind)kind == IncrementalGeneratorOutputKind.None)
+                    continue;
+
+                if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
+                {
+                    Assert.DoesNotContain(result.Results[0].GeneratedSources, (s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs");
+                }
+                else
+                {
+                    Assert.Contains(result.Results[0].GeneratedSources, (s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs");
+                }
+            }
+        }
     }
 }
