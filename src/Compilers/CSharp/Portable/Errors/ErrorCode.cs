@@ -1986,8 +1986,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         #region diagnostics introduced for C# 11.0
 
         ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives = 9100,
-        ERR_Unterminated_single_line_raw_string_literal = 9101,
-        ERR_Too_many_closing_quotes_for_raw_string_literal = 9101,
+        ERR_Unterminated_single_raw_string_literal = 9101,
+        ERR_Too_many_closing_quotes_for_raw_string_literal = 9102,
+        ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal = 9103,
 
         #endregion
 
