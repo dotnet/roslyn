@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // See if we reached the end of the line or file before hitting the end.
                 if (SyntaxFacts.IsNewLine(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: GetNewLineWidth(currentChar), ErrorCode.ERR_Unterminated_raw_string_literal);
                     return;
                 }
                 else if (IsAtEndOfText(currentChar))
@@ -120,6 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     intern: true);
                 return;
             }
+        }
+
+        private int GetNewLineWidth(char currentChar)
+        {
+            Debug.Assert(SyntaxFacts.IsNewLine(currentChar));
+            return currentChar == '\r' && TextWindow.PeekChar(1) == '\n' ? 2 : 1;
         }
 
         private void ScanMultiLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)
@@ -181,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int startingQuoteCount, StringBuilder indentationWhitespace)
         {
             Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
-            TextWindow.AdvanceChar();
+            TextWindow.AdvanceChar(GetNewLineWidth(TextWindow.PeekChar()));
 
             indentationWhitespace.Clear();
             ConsumeWhitespace(indentationWhitespace);
@@ -212,14 +218,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
                 if (IsAtEndOfText(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
                     return false;
                 }
 
                 if (SyntaxFacts.IsNewLine(currentChar))
                     return true;
 
-                TextWindow.AdvanceChar();
+                if (currentChar == '"')
+                {
+                    // Don't allow a content line to contain a quote sequence that looks like a delimiter (or longer)
+                    currentQuoteCount = ConsumeQuoteSequence();
+                    if (currentQuoteCount >= startingQuoteCount)
+                    {
+                        this.AddError(
+                            position: TextWindow.Position - currentQuoteCount,
+                            width: currentQuoteCount,
+                            ErrorCode.ERR_Raw_string_literal_delimeter_must_be_on_its_own_line);
+                        return false;
+                    }
+                }
+                else
+                {
+                    TextWindow.AdvanceChar();
+                }
             }
         }
 
@@ -231,10 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(SyntaxFacts.IsNewLine(TextWindow.PeekChar()));
 
             // the initial newline in `"""   \r\n` is not added to the contents.
-            if (!firstContentLine)
-                _builder.Append(TextWindow.PeekChar());
+            var newLineWidth = GetNewLineWidth(TextWindow.PeekChar());
 
-            TextWindow.AdvanceChar();
+            for (var i = 0; i < newLineWidth; i++)
+            {
+                if (!firstContentLine)
+                    _builder.Append(TextWindow.PeekChar(i));
+
+                TextWindow.AdvanceChar();
+            }
 
             var lineStartPosition = TextWindow.Position;
             currentLineWhitespace.Clear();
