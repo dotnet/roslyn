@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="generators">The generators that will run as part of this driver.</param>
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver.</param>
         /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver.</param>
-        internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
-            : base(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental: parseOptions.LanguageVersion == LanguageVersion.Preview)
+        internal CSharpGeneratorDriver(CSharpParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, IncrementalGeneratorOutputKind disabledOutputs)
+            : base(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental: parseOptions.LanguageVersion == LanguageVersion.Preview, disabledOutputs)
         {
         }
 
@@ -55,9 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="additionalTexts">A list of <see cref="AdditionalText"/>s available to generators in this driver, or <c>null</c> if there are none.</param>
         /// <param name="parseOptions">The <see cref="CSharpParseOptions"/> that should be used when parsing generated files, or <c>null</c> to use <see cref="CSharpParseOptions.Default"/></param>
         /// <param name="optionsProvider">An <see cref="AnalyzerConfigOptionsProvider"/> that can be used to retrieve analyzer config values by the generators in this driver, or <c>null</c> if there are none.</param>
+        /// <param name="disabledOutputs">A bit field of <see cref="IncrementalGeneratorOutputKind"/> that indicates the output types that should be diabled and not produce ouput.</param>
         /// <returns>A new <see cref="CSharpGeneratorDriver"/> instance.</returns>
-        public static CSharpGeneratorDriver Create(IEnumerable<ISourceGenerator> generators, IEnumerable<AdditionalText>? additionalTexts = null, CSharpParseOptions? parseOptions = null, AnalyzerConfigOptionsProvider? optionsProvider = null)
-            => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty());
+        public static CSharpGeneratorDriver Create(IEnumerable<ISourceGenerator> generators, IEnumerable<AdditionalText>? additionalTexts = null, CSharpParseOptions? parseOptions = null, AnalyzerConfigOptionsProvider? optionsProvider = null, IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None)
+            => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty(), disabledOutputs);
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
             => CSharpSyntaxTree.ParseTextLazy(input.Text, (CSharpParseOptions)_state.ParseOptions, fileName);

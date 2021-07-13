@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(state)
         End Sub
 
-        Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText))
-            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False)
+        Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), disabledOutputs As IncrementalGeneratorOutputKind)
+            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False, disabledOutputs)
         End Sub
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
@@ -33,8 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicSyntaxTree.ParseTextLazy(input.Text, CType(_state.ParseOptions, VisualBasicParseOptions), fileName)
         End Function
 
-        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing) As VisualBasicGeneratorDriver
-            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty())
+        Public Shared Function Create(generators As ImmutableArray(Of ISourceGenerator), Optional additionalTexts As ImmutableArray(Of AdditionalText) = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider = Nothing, Optional disabledOutputs As IncrementalGeneratorOutputKind = IncrementalGeneratorOutputKind.None) As VisualBasicGeneratorDriver
+            Return New VisualBasicGeneratorDriver(parseOptions, generators, If(analyzerConfigOptionsProvider, CompilerAnalyzerConfigOptionsProvider.Empty), additionalTexts.NullToEmpty(), disabledOutputs)
         End Function
 
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection

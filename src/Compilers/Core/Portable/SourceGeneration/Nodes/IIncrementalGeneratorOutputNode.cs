@@ -19,9 +19,18 @@ namespace Microsoft.CodeAnalysis
         void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken);
     }
 
-    internal enum IncrementalGeneratorOutputKind
+    /// <summary>
+    /// Represents the various output kinds of an <see cref="IIncrementalGenerator"/>. 
+    /// </summary>
+    /// <remarks>
+    /// Can be passed as a bit field when creating a <see cref="GeneratorDriver"/> to selectively disable outputs.
+    /// </remarks>
+    [Flags]
+    public enum IncrementalGeneratorOutputKind
     {
-        Source,
-        PostInit
+        None = 0,
+        Source = 0b1,
+        PostInit = 0b10,
+        NonSemantic = 0b100
     }
 }
