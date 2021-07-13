@@ -8,11 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="..\ref\12\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
-    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="..\ref\12\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\12\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
+    <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\12\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SupportFiles" GeneratePathProperty="true" Version="1.1.0" PrivateAssets="all" />
     <PackageReference Include="VSSDK.Settings.12" Version="12.0.4" />
   </ItemGroup>
 
