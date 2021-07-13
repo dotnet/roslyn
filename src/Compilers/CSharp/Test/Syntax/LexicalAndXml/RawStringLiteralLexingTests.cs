@@ -107,16 +107,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
 """"""", SyntaxKind.MultiLineRawStringLiteralToken, " abc")]
         [InlineData(
 @"""""""
+ abc 
+""""""", SyntaxKind.MultiLineRawStringLiteralToken, " abc ")]
+        [InlineData(
+@"""""""
  abc
  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
+        [InlineData(
+@"""""""
+ abc 
+ """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc ")]
         [InlineData(
 @"""""""
   abc
   """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
         [InlineData(
 @"""""""
+  abc 
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc ")]
+        [InlineData(
+@"""""""
     abc
   """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc")]
+        [InlineData(
+@"""""""
+    abc 
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc ")]
+        [InlineData(
+@"""""""
+    abc  
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  abc  ")]
         [InlineData(
 @"""""""
 {|CS9103:|}abc
@@ -136,6 +156,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
   abc
      def
   """"""", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   def")]
+        [InlineData(
+@"""""""
+     abc
+  def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "   abc\r\ndef")]
+        [InlineData(
+@"""""""
+     abc
+     def
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "   abc\r\n   def")]
+        [InlineData(
+@"""""""
+     ""abc""
+     """"def""""
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "   \"abc\"\r\n   \"\"def\"\"")]
+        [InlineData(
+@"""""""
+    "" abc ""
+    """" def """"
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "  \" abc \"\r\n  \"\" def \"\"")]
+        [InlineData(
+@"""""""
+   ""  abc  ""
+   """"  def  """"
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, " \"  abc  \"\r\n \"\"  def  \"\"")]
+        [InlineData(
+@"""""""
+  ""   abc   ""
+  """"   def   """"
+  """"""", SyntaxKind.MultiLineRawStringLiteralToken, "\"   abc   \"\r\n\"\"   def   \"\"")]
         [InlineData(
 @"""""""
   abc
