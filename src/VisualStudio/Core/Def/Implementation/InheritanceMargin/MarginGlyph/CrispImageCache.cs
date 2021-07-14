@@ -16,24 +16,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     {
         private static ImageAttributes? s_attributes;
         private static readonly Dictionary<ImageMoniker, BitmapSource> s_ImageCache = new();
+        private static object s_updateLock = new();
 
         public static BitmapSource GetBitmapSource(ImageMoniker imageMoniker, ImageAttributes currentAttributes)
         {
-            if (!currentAttributes.Equals(s_attributes))
+            lock (s_updateLock)
             {
-                s_attributes = currentAttributes;
-                var imageLibrary = CrispImage.DefaultImageLibrary;
-                s_ImageCache[KnownMonikers.Implementing] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Implementing, currentAttributes);
-                s_ImageCache[KnownMonikers.Implemented] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Implemented, currentAttributes);
-                s_ImageCache[KnownMonikers.Overridden] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Overridden, currentAttributes);
-                s_ImageCache[KnownMonikers.Overriding] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Overriding, currentAttributes);
-                s_ImageCache[KnownMonikers.ImplementingOverridden] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.ImplementingOverridden, currentAttributes);
-                s_ImageCache[KnownMonikers.ImplementingOverriding] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.ImplementingOverriding, currentAttributes);
-            }
+                if (!currentAttributes.Equals(s_attributes))
+                {
+                    s_attributes = currentAttributes;
+                    var imageLibrary = CrispImage.DefaultImageLibrary;
+                    s_ImageCache[KnownMonikers.Implementing] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Implementing, currentAttributes);
+                    s_ImageCache[KnownMonikers.Implemented] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Implemented, currentAttributes);
+                    s_ImageCache[KnownMonikers.Overridden] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Overridden, currentAttributes);
+                    s_ImageCache[KnownMonikers.Overriding] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.Overriding, currentAttributes);
+                    s_ImageCache[KnownMonikers.ImplementingOverridden] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.ImplementingOverridden, currentAttributes);
+                    s_ImageCache[KnownMonikers.ImplementingOverriding] = (BitmapSource)imageLibrary.GetImage(KnownMonikers.ImplementingOverriding, currentAttributes);
+                }
 
-            if (s_ImageCache.TryGetValue(imageMoniker, out var bitmapSource))
-            {
-                return bitmapSource;
+                if (s_ImageCache.TryGetValue(imageMoniker, out var bitmapSource))
+                {
+                    return bitmapSource;
+                }
             }
 
             throw ExceptionUtilities.UnexpectedValue(imageMoniker);
