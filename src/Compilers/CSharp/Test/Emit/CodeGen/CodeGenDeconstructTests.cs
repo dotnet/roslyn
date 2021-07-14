@@ -9361,7 +9361,10 @@ class C
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 22),
                 // (6,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 's'.
                 //         (int x, var (i, s)) = (0, default);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "s").WithArguments("s").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "s").WithArguments("s").WithLocation(6, 25),
+                // (6,35): error CS8716: There is no target type for the default literal.
+                //         (int x, var (i, s)) = (0, default);
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 35)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -9369,8 +9372,8 @@ class C
             var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("default", node.ToString());
             var defaultType = model.GetTypeInfo(node);
-            Assert.Null(defaultType.Type);
-            Assert.Null(defaultType.ConvertedType);
+            Assert.True(defaultType.Type.IsErrorType());
+            Assert.True(defaultType.ConvertedType.IsErrorType());
         }
 
         [Fact]

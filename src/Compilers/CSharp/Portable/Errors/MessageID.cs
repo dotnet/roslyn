@@ -165,9 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureExpressionVariablesInQueriesAndInitializers = MessageBase + 12742,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12743,
         IDS_FeatureIndexingMovableFixedBuffers = MessageBase + 12744,
-<<<<<<< HEAD
-        IDS_FeatureDeconstructDefault = MessageBase + 12745,
-=======
 
         IDS_FeatureAltInterpolatedVerbatimStrings = MessageBase + 12745,
         IDS_FeatureCoalesceAssignmentExpression = MessageBase + 12746,
@@ -236,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLineSpanDirective = MessageBase + 12807,
         IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
->>>>>>> dotnet/main
+        IDS_FeatureDeconstructDefault = MessageBase + 12810,
     }
 
     // Message IDs may refer to strings that need to be localized.

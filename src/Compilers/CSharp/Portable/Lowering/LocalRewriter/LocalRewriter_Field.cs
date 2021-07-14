@@ -52,17 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol tupleField,
             BoundExpression? rewrittenReceiver)
         {
-            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            if (rewrittenReceiver?.Kind == BoundKind.DefaultExpression)
             {
                 return new BoundDefaultExpression(syntax, tupleField.Type);
             }
 
-<<<<<<< HEAD
             NamedTypeSymbol tupleType = tupleField.ContainingType;
-            NamedTypeSymbol currentLinkType = tupleType.TupleUnderlyingType;
-=======
             NamedTypeSymbol currentLinkType = tupleType;
->>>>>>> dotnet/main
             FieldSymbol underlyingField = tupleField.TupleUnderlyingField;
 
             if ((object)underlyingField == null)

@@ -209,13 +209,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>When boundRHS is a tuple literal, fix it up by inferring its types.</summary>
         private BoundExpression FixTupleLiteral(ArrayBuilder<DeconstructionVariable> checkedVariables, BoundExpression boundRHS, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
-<<<<<<< HEAD
-            if (DeconstructionTypeIsFixable(boundRHS, diagnostics))
-=======
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
-            if (boundRHS.Kind == BoundKind.TupleLiteral)
->>>>>>> dotnet/main
+            if (DeconstructionTypeIsFixable(boundRHS, diagnostics))
             {
                 // Let's fix the tuple (or `default`) literal up by figuring out its type
                 // For declarations, that means merging type information from the LHS and RHS
@@ -223,22 +219,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we already have diagnostics at this point, it is not worth collecting likely duplicate diagnostics from making the merged type
                 bool hadErrors = diagnostics.HasAnyErrors();
-<<<<<<< HEAD
-                TypeSymbol mergedTupleType = MakeMergedTupleType(checkedVariables, boundRHS, syntax, Compilation, hadErrors ? null : diagnostics);
-                if ((object)mergedTupleType != null)
-=======
-                TypeSymbol? mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, hadErrors ? null : diagnostics);
+                TypeSymbol? mergedTupleType = MakeMergedTupleType(checkedVariables, boundRHS, syntax, Compilation, hadErrors ? null : diagnostics);
                 if ((object?)mergedTupleType != null)
->>>>>>> dotnet/main
                 {
                     boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
                 }
             }
-<<<<<<< HEAD
             else if (boundRHS.Type is null)
-=======
-            else if ((object?)boundRHS.Type == null)
->>>>>>> dotnet/main
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, boundRHS.Syntax);
             }
@@ -246,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundRHS;
         }
 
-        private static bool DeconstructionTypeIsFixable(BoundExpression boundRHS, DiagnosticBag diagnostics)
+        private static bool DeconstructionTypeIsFixable(BoundExpression boundRHS, BindingDiagnosticBag? diagnostics)
         {
             if (boundRHS.Kind == BoundKind.TupleLiteral)
             {
@@ -496,31 +483,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For cases where the RHS is a `default` literal, the type information from the LHS determines the merged type.
         /// Returns null if a merged tuple type could not be fabricated.
         /// </summary>
-<<<<<<< HEAD
-        private static TypeSymbol MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundExpression rhs, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
-=======
-        private TypeSymbol? MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundTupleLiteral rhsLiteral, CSharpSyntaxNode syntax, BindingDiagnosticBag? diagnostics)
->>>>>>> dotnet/main
+        private static TypeSymbol? MakeMergedTupleType(ArrayBuilder<DeconstructionVariable> lhsVariables, BoundExpression rhs, CSharpSyntaxNode syntax, CSharpCompilation compilation, BindingDiagnosticBag? diagnostics)
         {
             Debug.Assert(rhs.Kind == BoundKind.TupleLiteral || rhs.IsLiteralDefault());
 
             bool rhsIsDefault = rhs.IsLiteralDefault();
-            BoundTupleLiteral rhsAsTupleLiteral = rhsIsDefault ? null : (BoundTupleLiteral)rhs;
+            BoundTupleLiteral? rhsAsTupleLiteral = rhsIsDefault ? null : (BoundTupleLiteral)rhs;
             int leftLength = lhsVariables.Count;
-            int rightLength = rhsIsDefault ? leftLength : rhsAsTupleLiteral.Arguments.Length;
+            int rightLength = rhsIsDefault ? leftLength : rhsAsTupleLiteral!.Arguments.Length;
 
             var typesWithAnnotationsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(leftLength);
             var locationsBuilder = ArrayBuilder<Location?>.GetInstance(leftLength);
             for (int i = 0; i < rightLength; i++)
             {
-<<<<<<< HEAD
                 // In the `default` literal case, we'll pretend that it is a tuple literal with all elements also `default`.
-                BoundExpression element = rhsIsDefault ? rhs : rhsAsTupleLiteral.Arguments[i];
-                TypeSymbol mergedType = element.Type;
-=======
-                BoundExpression element = rhsLiteral.Arguments[i];
+                BoundExpression element = rhsIsDefault ? rhs : rhsAsTupleLiteral!.Arguments[i];
                 TypeSymbol? mergedType = element.Type;
->>>>>>> dotnet/main
 
                 if (i < leftLength)
                 {
@@ -529,17 +507,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (DeconstructionTypeIsFixable(element, diagnostics))
                         {
-<<<<<<< HEAD
                             // (variables) on the left and (elements) or `default` on the right
                             mergedType = MakeMergedTupleType(variable.NestedVariables, element, syntax, compilation, diagnostics);
                         }
-                        else if (mergedType is null)
-=======
-                            // (variables) on the left and (elements) on the right
-                            mergedType = MakeMergedTupleType(variable.NestedVariables, (BoundTupleLiteral)element, syntax, diagnostics);
-                        }
                         else if ((object?)mergedType == null && diagnostics is object)
->>>>>>> dotnet/main
                         {
                             // (variables) on the left and null on the right
                             Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
@@ -557,11 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-<<<<<<< HEAD
-                    if (mergedType is null)
-=======
                     if ((object?)mergedType == null && diagnostics is object)
->>>>>>> dotnet/main
                     {
                         // a typeless element on the right, matching no variable on the left
                         Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, element.Syntax);
@@ -572,11 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locationsBuilder.Add(element.Syntax.Location);
             }
 
-<<<<<<< HEAD
-            if (typesBuilder.Any(t => t is null))
-=======
             if (typesWithAnnotationsBuilder.Any(t => !t.HasType))
->>>>>>> dotnet/main
             {
                 typesWithAnnotationsBuilder.Free();
                 locationsBuilder.Free();
@@ -590,20 +553,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locationOpt: null,
                 elementTypesWithAnnotations: typesWithAnnotationsBuilder.ToImmutableAndFree(),
                 elementLocations: locationsBuilder.ToImmutableAndFree(),
-<<<<<<< HEAD
                 elementNames: default,
                 compilation: compilation,
                 diagnostics: diagnostics,
                 shouldCheckConstraints: true,
-                errorPositions: default,
-=======
-                elementNames: default(ImmutableArray<string?>),
-                compilation: Compilation,
-                diagnostics: diagnostics,
-                shouldCheckConstraints: true,
                 includeNullability: false,
-                errorPositions: default(ImmutableArray<bool>),
->>>>>>> dotnet/main
+                errorPositions: default,
                 syntax: syntax);
         }
 
