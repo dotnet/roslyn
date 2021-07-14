@@ -30,13 +30,19 @@ namespace Xunit.InProcess
             => Application.Current.Dispatcher;
 
         protected static void BeginInvokeOnUIThread(Action action)
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             => CurrentApplicationDispatcher.BeginInvoke(action, DispatcherPriority.Background);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void InvokeOnUIThread(Action action)
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static T InvokeOnUIThread<T>(Func<T> action)
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             => CurrentApplicationDispatcher.Invoke(action, DispatcherPriority.Background);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static TInterface GetGlobalService<TService, TInterface>()
             where TService : class
@@ -56,10 +62,14 @@ namespace Xunit.InProcess
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
         /// </summary>
         protected static void WaitForApplicationIdle()
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         protected static void WaitForSystemIdle()
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
         public override object InitializeLifetimeService() => null;

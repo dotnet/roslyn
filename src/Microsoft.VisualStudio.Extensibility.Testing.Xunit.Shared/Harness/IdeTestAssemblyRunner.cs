@@ -124,7 +124,9 @@ namespace Xunit.Harness
                 staThread.Start();
 
                 staThreadStartedEvent.Wait();
+#pragma warning disable CA1508 // Avoid dead conditional code
                 Debug.Assert(synchronizationContext != null, "Assertion failed: synchronizationContext != null");
+#pragma warning restore CA1508 // Avoid dead conditional code
             }
 
             var taskScheduler = new SynchronizationContextTaskScheduler(synchronizationContext);
@@ -149,7 +151,9 @@ namespace Xunit.Harness
                 {
                     try
                     {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
                         return await task.ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
                     finally
                     {
