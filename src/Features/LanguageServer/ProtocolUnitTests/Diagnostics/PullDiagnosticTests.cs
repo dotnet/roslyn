@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             // Ensure we get no diagnostics when feature flag is off.
             var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
-            testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, false);
+            testExperimentationService.EnableExperiment(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, false);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
             Assert.Empty(results.Single().Diagnostics);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await OpenDocumentAsync(testLspServer, document);
 
             var testExperimentationService = (TestExperimentationService)testLspServer.TestWorkspace.Services.GetRequiredService<IExperimentationService>();
-            testExperimentationService.SetExperimentOption(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, true);
+            testExperimentationService.EnableExperiment(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
