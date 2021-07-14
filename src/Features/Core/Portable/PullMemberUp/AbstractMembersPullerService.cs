@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,8 +24,10 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
-    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax> : IMembersPullerService
+    internal abstract class AbstractMembersPullerService<TUsingOrAliasSyntax, TCompilationSyntax, TNamespaceSyntax> : IMembersPullerService
         where TUsingOrAliasSyntax : SyntaxNode
+        where TCompilationSyntax : SyntaxNode
+        where TNamespaceSyntax : SyntaxNode
     {
         /// <summary>
         /// Gets all the imports/aliases in scope of <paramref name="node"/>.
@@ -271,7 +274,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options: options, cancellationToken: cancellationToken);
 
-            var sourceImports = new HashSet<TUsingOrAliasSyntax>();
+            using var _ = PooledHashSet<TUsingOrAliasSyntax>.GetInstance(out var sourceImports);
+            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
+                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
+                cancellationToken).ConfigureAwait(false);
+
+            var syntaxFacts = destinationEditor.OriginalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // Remove some original members since we are pulling members into class.
             // Note: If the user chooses to make the member abstract, then the original member will be changed to an override,
@@ -285,7 +293,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                         solution.GetDocumentId(syntax.SyntaxTree),
                         cancellationToken).ConfigureAwait(false);
 
-                    sourceImports.AddRange(GetImports(syntax).Select(import => import.WithAdditionalAnnotations(Annotation)));
+                    sourceImports.AddRange(GetImports(syntax)
+                        .Select(import => import
+                            .NormalizeWhitespace()
+                            .WithTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed)
+                            .WithAdditionalAnnotations(Annotation)));
 
                     if (!analysisResult.MakeMemberDeclarationAbstract || analysisResult.Member.IsAbstract)
                     {
@@ -300,9 +312,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             // Change the destination to abstract class if needed.
-            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
-                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
-                cancellationToken).ConfigureAwait(false);
             if (!result.Destination.IsAbstract &&
                 result.MemberAnalysisResults.Any(analysis => analysis.Member.IsAbstract || analysis.MakeMemberDeclarationAbstract))
             {
@@ -312,9 +321,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             // add imports by moving all source imports to destination container, then taking out unneccessary
             // imports that we just added.
-            var syntaxFactsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-            var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFactsService);
-            var addImportsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<IAddImportsService>();
+            var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
+            var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
             var semanticModel = await destinationEditor.GetChangedDocument().GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
                 semanticModel.Compilation,
@@ -328,16 +336,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             destinationEditor.ReplaceNode(destinationSyntaxNode, newDestination);
 
-            var removeImportsService = destinationEditor.OriginalDocument.Project.LanguageServices.GetRequiredService<IRemoveUnnecessaryImportsService>();
+            var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
-                node => node.GetAnnotations(Kind).Any(),
+                node => node.HasAnnotations(Kind),
                 cancellationToken)
                 .ConfigureAwait(false);
 
             var destinationRoot = AddLeadingTriviaBeforeFirstMember(
                 await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),
-                syntaxFactsService,
+                syntaxFacts,
                 destinationTrivia);
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, destinationRoot);
 
@@ -347,16 +355,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         // In the case where we have imports from the source that get moved up, but none are necessary
         // and are all removed, the adding/removing can destroy or copy leading trivia, including comments.
         // So, we grab the leading trivia before we do import operations, and add it back in after.
-        private static SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService factsService)
+        private static SyntaxTriviaList GetLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts)
         {
-            var members = factsService.GetMembersOfCompilationUnit(root);
+            var members = syntaxFacts.GetMembersOfCompilationUnit(root);
             // guaranteed to have at least one member, as we need a base class
             return members.First().GetLeadingTrivia();
         }
 
-        private static SyntaxNode AddLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService factsService, SyntaxTriviaList trivia)
+        private static SyntaxNode AddLeadingTriviaBeforeFirstMember(SyntaxNode root, ISyntaxFactsService syntaxFacts, SyntaxTriviaList trivia)
         {
-            var members = factsService.GetMembersOfCompilationUnit(root);
+            var members = syntaxFacts.GetMembersOfCompilationUnit(root);
             // guaranteed to have at least one member, as we need a base class
             var firstMember = members.First();
             return root.ReplaceNode(firstMember, firstMember.WithLeadingTrivia(trivia));

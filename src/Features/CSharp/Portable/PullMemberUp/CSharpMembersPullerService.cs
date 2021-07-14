@@ -6,15 +6,16 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CSharp.PullMemberUp
 {
     [ExportLanguageService(typeof(IMembersPullerService), LanguageNames.CSharp), Shared]
-    internal class CSharpMembersPullerService : AbstractMembersPullerService<UsingDirectiveSyntax>
+    internal class CSharpMembersPullerService : AbstractMembersPullerService<UsingDirectiveSyntax, CompilationUnitSyntax, NamespaceDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,9 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     NamespaceDeclarationSyntax n => n.Usings,
                     _ => throw ExceptionUtilities.UnexpectedValue(node),
                 })
-                .SelectAsArray(import => import
-                    .NormalizeWhitespace()
-                    .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));
+                .ToImmutableArray();
         }
     }
 }
