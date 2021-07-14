@@ -149,7 +149,7 @@ namespace N {
     }
 }
 
-namespace N.Goo;
+namespace N.;
 ");
 
             EmitResult emitResult;
@@ -161,22 +161,21 @@ namespace N.Goo;
             Assert.False(emitResult.Success);
 
             emitResult.Diagnostics.Verify(
-                // (13,16): error CS1514: { expected
-                // namespace N.Foo;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(13, 16),
-                // (13,17): error CS1513: } expected
-                // namespace N.Foo;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 17),
-                // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
-                //         public Blah field;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
-                // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //             ro = 4;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
-                // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
-                //         public Blah field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21)
-                );
+                    // (13,13): error CS1001: Identifier expected
+                    // namespace N.;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(13, 13),
+                    // (13,11): error CS8942: File-scoped namespace must precede all other members in a file.
+                    // namespace N.;
+                    Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "N.").WithLocation(13, 11),
+                    // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
+                    //         public Blah field;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
+                    // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                    //             ro = 4;
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
+                    // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
+                    //         public Blah field;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21));
         }
 
         // Check that EmitMetadataOnly works
@@ -2419,7 +2418,7 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
 
             var class1TypeDef = (Cci.ITypeDefinition)class1.GetCciAdapter();
 
-            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
             var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m.GetInternalSymbol()).MethodKind != MethodKind.Constructor);

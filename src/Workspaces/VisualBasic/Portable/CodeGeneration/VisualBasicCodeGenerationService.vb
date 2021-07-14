@@ -604,6 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return SyntaxFactory.TokenList(newModifiers)
                                                                                        End Function
+
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
@@ -611,6 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList) = Function(modifiersList As SyntaxTokenList)
                                                                                            Return UpdateDeclarationAccessibility(modifiersList, newAccessibility, options)
                                                                                        End Function
+
             Return UpdateDeclarationModifiers(declaration, computeNewModifiersList)
         End Function
 
@@ -656,6 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Case Else
                             Return asClause
                     End Select
+
                     Return asNewClause.WithNewExpression(updatedNewExpression)
             End Select
         End Function

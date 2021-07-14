@@ -63,8 +63,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 // doesn't block the UI thread.
                 await TaskScheduler.Default;
 
-                await _languageClientBroker.Value.LoadAsync(
-                    new LanguageClientMetadata(new[] { ContentTypeNames.CSharpContentType, ContentTypeNames.VisualBasicContentType }), _languageClient).ConfigureAwait(false);
+                await _languageClientBroker.Value.LoadAsync(new LanguageClientMetadata(new[]
+                {
+                        ContentTypeNames.CSharpContentType,
+                        ContentTypeNames.VisualBasicContentType,
+                        ContentTypeNames.FSharpContentType
+                }), _languageClient).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {

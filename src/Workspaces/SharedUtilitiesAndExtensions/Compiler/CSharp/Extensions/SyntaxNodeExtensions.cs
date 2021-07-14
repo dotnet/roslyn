@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ParenthesizedLambdaExpression => ((ParenthesizedLambdaExpressionSyntax)declaration).ParameterList,
                 SyntaxKind.LocalFunctionStatement => ((LocalFunctionStatementSyntax)declaration).ParameterList,
                 SyntaxKind.AnonymousMethodExpression => ((AnonymousMethodExpressionSyntax)declaration).ParameterList,
-                SyntaxKind.RecordDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
+                SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration => ((RecordDeclarationSyntax)declaration).ParameterList,
                 _ => null,
             };
 
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case CompilationUnitSyntax compilation:
                     return compilation.Members;
-                case NamespaceDeclarationSyntax @namespace:
+                case BaseNamespaceDeclarationSyntax @namespace:
                     return @namespace.Members;
                 case TypeDeclarationSyntax type:
                     return type.Members;
