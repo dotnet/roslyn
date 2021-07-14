@@ -82,14 +82,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
             ImmutableArray<TypeWithAnnotations> typeArgs = default(ImmutableArray<TypeWithAnnotations>),
+            ImmutableArray<(string Name, Location Location)?> names = default,
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            bool searchExtensionMethodsIfNecessary = true)
         {
             Debug.Assert(receiver != null);
+            Debug.Assert(names.IsDefault || names.Length == args.Length);
 
             receiver = BindToNaturalType(receiver, diagnostics);
-            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics);
+            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     msgId.Localize(),
                     MessageID.IDS_SK_METHOD.Localize());
 
-                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver));
+                return BadExpression(node, LookupResultKind.Empty, ImmutableArray.Create(symbol), args.Add(receiver), wasCompilerGenerated: true);
             }
 
             boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
@@ -125,6 +128,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         e.Kind == BoundKind.OutDeconstructVarPendingInference ||
                                         e.Kind == BoundKind.DiscardExpression && !e.HasExpressionType()));
             analyzedArguments.Arguments.AddRange(args);
+
+            if (!names.IsDefault)
+            {
+                analyzedArguments.Names.AddRange(names);
+            }
+
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
                 allowUnexpandedForm: allowUnexpandedForm);
@@ -1000,13 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodResult = result.ValidResult;
             var returnType = methodResult.Member.ReturnType;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
-
             var method = methodResult.Member;
-            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
-
-            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -1016,6 +1019,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution.
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+
+            var receiverRefKind = receiver?.GetRefKind();
+            uint receiverValEscapeScope = method.RequiresInstanceReceiver && receiver != null
+                ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
+                : Binder.ExternalScope;
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverRefKind, receiverValEscapeScope);
+
+            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+            var argsToParams = methodResult.Result.ArgsToParamsOpt;
+
+            BindDefaultArguments(node, method.Parameters, analyzedArguments.Arguments, analyzedArguments.RefKinds, ref argsToParams, out var defaultArguments, expanded, enableCallerInfo: true, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -2016,7 +2030,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             CoerceArguments(
                 methodResult,
                 analyzedArguments.Arguments,
-                diagnostics);
+                diagnostics,
+                receiverType: null,
+                receiverRefKind: null,
+                receiverEscapeScope: Binder.ExternalScope);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

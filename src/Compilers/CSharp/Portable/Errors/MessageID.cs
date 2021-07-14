@@ -223,13 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureGlobalUsing = MessageBase + 12798,
         IDS_FeatureInferredDelegateType = MessageBase + 12799,
         IDS_FeatureLambdaAttributes = MessageBase + 12800,
+
         IDS_FeatureWithOnAnonymousTypes = MessageBase + 12801,
         IDS_FeatureExtendedPropertyPatterns = MessageBase + 12802,
         IDS_FeatureStaticAbstractMembersInInterfaces = MessageBase + 12803,
         IDS_FeatureLambdaReturnType = MessageBase + 12804,
         IDS_AsyncMethodBuilderOverride = MessageBase + 12805,
         IDS_FeatureImplicitImplementationOfNonPublicMemebers = MessageBase + 12806,
-
+        IDS_FeatureLineSpanDirective = MessageBase + 12807,
+        IDS_FeatureImprovedInterpolatedStrings = MessageBase + 12808,
+        IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         // PROTOTYPE: compact before merge
         IDS_FeatureCallerArgumentExpression = MessageBase + 13000,
     }
@@ -346,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction: // semantic check
                 case MessageID.IDS_FeatureCallerArgumentExpression: // semantic check
                 case MessageID.IDS_FeatureSealedToStringInRecord: // semantic check
+                case MessageID.IDS_FeatureImprovedInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureRecordStructs:
                 case MessageID.IDS_FeatureWithOnStructs: // semantic check
                 case MessageID.IDS_FeatureWithOnAnonymousTypes: // semantic check
@@ -358,6 +362,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_AsyncMethodBuilderOverride: // semantic check
                 case MessageID.IDS_FeatureConstantInterpolatedStrings: // semantic check
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers: // semantic check
+                case MessageID.IDS_FeatureLineSpanDirective:
+                case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
                     return LanguageVersion.CSharp10;
 
                 // C# 9.0 features.

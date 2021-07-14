@@ -645,6 +645,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { throw ExceptionUtilities.Unreachable; }
             }
 
+            internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+            internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+
             public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {
                 if ((object)this == obj)

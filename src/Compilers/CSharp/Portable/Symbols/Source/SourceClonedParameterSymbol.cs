@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -137,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return ImmutableHashSet<string>.Empty; }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
 
         #endregion
     }

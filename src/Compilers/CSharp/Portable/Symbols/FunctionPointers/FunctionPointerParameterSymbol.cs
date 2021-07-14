@@ -79,5 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override int CallerArgumentExpressionParameterIndex => -1;
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 }

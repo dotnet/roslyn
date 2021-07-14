@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<string> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
+            ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
@@ -591,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<int> constructorArgumentsSourceIndices,
             MethodSymbol attributeConstructor,
             ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt,
+            ImmutableArray<string?> constructorArgumentNamesOpt,
             AttributeSyntax syntax,
             ImmutableArray<int> argumentsToParams,
             BindingDiagnosticBag diagnostics,
@@ -738,6 +738,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sourceIndices;
         }
 
+        private static int GetMatchingNamedConstructorArgumentIndex(string parameterName, ImmutableArray<string?> argumentNamesOpt, int startIndex, int argumentsCount)
+        {
+            RoslynDebug.Assert(parameterName != null);
+            Debug.Assert(startIndex >= 0 && startIndex < argumentsCount);
+
+            if (parameterName.IsEmpty() || !argumentNamesOpt.Any())
+            {
+                return argumentsCount;
+            }
+
+            // get the matching named (constructor) argument
+            int argIndex = startIndex;
+            while (argIndex < argumentsCount)
+            {
+                var name = argumentNamesOpt[argIndex];
+
+                if (string.Equals(name, parameterName, StringComparison.Ordinal))
+                {
+                    break;
+                }
+
+                argIndex++;
+            }
+
+            return argIndex;
+        }
+
         private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, int argumentsCount, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
@@ -858,7 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
+            ImmutableArray<string?> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 

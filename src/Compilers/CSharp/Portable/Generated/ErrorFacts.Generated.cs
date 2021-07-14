@@ -269,6 +269,7 @@
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
                 case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:

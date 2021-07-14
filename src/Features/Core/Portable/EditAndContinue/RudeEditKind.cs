@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         VarianceUpdate = 7,
         FieldKindUpdate = 8,
         TypeUpdate = 9,
-        ConstraintKindUpdate = 10,
+        //ConstraintKindUpdate = 10,
         InitializerUpdate = 11,
         FixedSizeFieldUpdate = 12,
         EnumUnderlyingTypeUpdate = 13,
         BaseTypeOrInterfaceUpdate = 14,
         TypeKindUpdate = 15,
         AccessorKindUpdate = 16,
-        MethodKindUpdate = 17,
+        //MethodKindUpdate = 17,
         DeclareLibraryUpdate = 18,
         DeclareAliasUpdate = 19,
         Renamed = 20,
@@ -120,14 +120,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ImplementRecordParameterAsReadOnly = 92,
         ImplementRecordParameterWithSet = 93,
-        AddRecordPositionalParameter = 94,
-        DeleteRecordPositionalParameter = 95,
+        //AddRecordPositionalParameter = 94,
+        //DeleteRecordPositionalParameter = 95,
         ExplicitRecordMethodParameterNamesMustMatch = 96,
 
         NotSupportedByRuntime = 97,
         MakeMethodAsync = 98,
         MakeMethodIterator = 99,
         InsertNotSupportedByRuntime = 100,
-        ChangingAttributesNotSupportedByRuntime = 101
+        ChangingAttributesNotSupportedByRuntime = 101,
+
+        ChangeImplicitMainReturnType = 102,
+        ChangingParameterTypes = 103,
+        ChangingTypeParameters = 104,
+        ChangingConstraints = 105,
     }
 }

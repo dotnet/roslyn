@@ -167,5 +167,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 }
