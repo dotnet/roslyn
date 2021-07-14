@@ -392,22 +392,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IncludeFieldInitializersInBody(this MethodSymbol methodSymbol)
         {
-            return methodSymbol.IsConstructor()
-                && !(methodSymbol.HasThisConstructorInitializer(out var initializerSyntax) && !isDefaultValueTypeConstructor(methodSymbol.ContainingType, initializerSyntax))
-                && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
-                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
-
             // A struct constructor that calls ": this()" will need to include field initializers if the
             // parameterless constructor is a synthesized default constructor that is not emitted.
-            static bool isDefaultValueTypeConstructor(NamedTypeSymbol containingType, ConstructorInitializerSyntax initializerSyntax)
-            {
-                if (initializerSyntax.ArgumentList.Arguments.Count > 0)
-                {
-                    return false;
-                }
-                var constructor = containingType.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
-                return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
-            }
+
+            return methodSymbol.IsConstructor()
+                && !(methodSymbol.HasThisConstructorInitializer(out var initializerSyntax) && !Binder.IsDefaultValueTypeConstructor(methodSymbol.ContainingType, initializerSyntax))
+                && !(methodSymbol is SynthesizedRecordCopyCtor) // A record copy constructor is special, regular initializers are not supposed to be executed by it.
+                && !Binder.IsUserDefinedRecordCopyConstructor(methodSymbol);
         }
 
         /// <summary>

@@ -3306,7 +3306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
         {
             switch (syntax)
             {
@@ -3316,7 +3316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3388,9 +3388,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
         {
-            if (constructor.Initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
+            ConstructorInitializerSyntax initializer = constructor.Initializer;
+            if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
             {
                 return null;
             }
@@ -3398,7 +3399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(constructor);
             Debug.Assert(bodyBinder != null);
 
-            if (constructor.Initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) != true &&
+            bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
+            if (!thisInitializer &&
                 ContainingType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().Any())
             {
                 var constructorSymbol = (MethodSymbol)this.ContainingMember();
@@ -3406,19 +3408,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
                 {
                     // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, constructor.Initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
+            }
+
+            bool skipInitializer = false;
+            if (includesFieldInitializers
+                && thisInitializer
+                && IsDefaultValueTypeConstructor(ContainingType, initializer))
+            {
+                // The `: this()` initializer is ignored when it is a default value type constructor
+                // and we need to include field initializers into the constructor.
+                skipInitializer = true;
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  constructor.Initializer == null ? null : bodyBinder.BindConstructorInitializer(constructor.Initializer, diagnostics),
+                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
+                                                      : initializer == null ? null
+                                                      : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :
                                                       bodyBinder.BindExpressionBodyAsBlock(constructor.ExpressionBody,
                                                                                            constructor.Body == null ? diagnostics : BindingDiagnosticBag.Discarded));
+        }
+
+        internal static bool IsDefaultValueTypeConstructor(NamedTypeSymbol type, ConstructorInitializerSyntax initializerSyntax)
+        {
+            if (initializerSyntax.ArgumentList.Arguments.Count > 0)
+            {
+                return false;
+            }
+            var constructor = type.InstanceConstructors.SingleOrDefault(m => m.ParameterCount == 0);
+            return constructor?.IsDefaultValueTypeConstructor(requireZeroInit: true) == true;
         }
 
         internal virtual BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax initializer, BindingDiagnosticBag diagnostics)

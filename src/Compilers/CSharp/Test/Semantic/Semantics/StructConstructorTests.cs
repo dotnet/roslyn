@@ -478,12 +478,10 @@ class Program
     }
 }";
 
-            // PROTOTYPE: S0(object) should set Value after initobj, not before,
-            // and should report: new S0(null).Value: 1.
-            var verifier = CompileAndVerify(source, expectedOutput:
-@"new S0().Value: 0
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+new S0().Value: 0
 One()
-new S0(null).Value: 0
+new S0(null).Value: 1
 One()
 new S1().Value: 1
 One()
@@ -495,14 +493,12 @@ new S2().Value: 1
             verifier.VerifyMissing("S0..ctor()");
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       19 (0x13)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  call       ""int Program.One()""
   IL_0006:  stfld      ""int S0.Value""
-  IL_000b:  ldarg.0
-  IL_000c:  initobj    ""S0""
-  IL_0012:  ret
+  IL_000b:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -598,20 +594,17 @@ new S2().Value: 2
 ");
 
             verifier.VerifyMissing("S0..ctor()");
-            // PROTOTYPE: S0(object) should set Value twice after initobj, not once before, once after.
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       30 (0x1e)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  call       ""int Program.One()""
   IL_0006:  stfld      ""int S0.Value""
   IL_000b:  ldarg.0
-  IL_000c:  initobj    ""S0""
-  IL_0012:  ldarg.0
-  IL_0013:  call       ""int Program.Two()""
-  IL_0018:  stfld      ""int S0.Value""
-  IL_001d:  ret
+  IL_000c:  call       ""int Program.Two()""
+  IL_0011:  stfld      ""int S0.Value""
+  IL_0016:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
@@ -718,20 +711,17 @@ new S2().Value: 2
 ");
 
             verifier.VerifyMissing("S0..ctor()");
-            // PROTOTYPE: S0(object) should set Value twice after initobj, not once before, once after.
             verifier.VerifyIL("S0..ctor(object)",
 @"{
-  // Code size       26 (0x1a)
+  // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int S0.Value""
   IL_0007:  ldarg.0
-  IL_0008:  initobj    ""S0""
-  IL_000e:  ldarg.0
-  IL_000f:  call       ""int Program.Two()""
-  IL_0014:  stfld      ""int S0.Value""
-  IL_0019:  ret
+  IL_0008:  call       ""int Program.Two()""
+  IL_000d:  stfld      ""int S0.Value""
+  IL_0012:  ret
 }");
             verifier.VerifyIL("S1..ctor()",
 @"{
