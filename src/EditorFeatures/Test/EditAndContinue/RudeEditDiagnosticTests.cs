@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.DeclareLibraryUpdate,
                 RudeEditKind.DeclareAliasUpdate,
                 RudeEditKind.InsertDllImport,
-                RudeEditKind.MethodBodyAdd,
-                RudeEditKind.MethodBodyDelete,
                 RudeEditKind.GenericMethodUpdate,
                 RudeEditKind.GenericTypeUpdate,
                 RudeEditKind.ExperimentalFeaturesEnabled,
