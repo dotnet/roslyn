@@ -2,14 +2,18 @@
   "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
   "settings": {
     "documentationRules": {
-      "companyName": "Microsoft Corporation",
-      "copyrightText": "Copyright (c) {companyName}. All rights reserved.\nLicensed under the {licenseName} license. See {licenseFile} file in the project root for full license information.",
+      "companyName": "Microsoft",
+      "copyrightText": "Copyright (c) {companyName}. All rights reserved.\nLicensed under the {licenseName}. See {licenseFile} in the project root for more information.",
       "variables": {
-        "licenseName": "MIT",
+        "licenseName": "MIT License",
         "licenseFile": "LICENSE"
       },
       "fileNamingConvention": "metadata",
       "xmlHeader": false
+    },
+    "layoutRules": {
+      "allowConsecutiveUsings": true,
+      "newlineAtEndOfFile": "require"
     }
   }
 }
