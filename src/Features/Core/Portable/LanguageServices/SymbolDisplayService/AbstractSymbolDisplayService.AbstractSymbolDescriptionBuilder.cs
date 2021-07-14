@@ -168,13 +168,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 var formatter = Workspace.Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
 
+                if (symbol is IParameterSymbol or ITypeParameterSymbol)
+                {
+                    _documentationMap.Add(
+                        SymbolDescriptionGroups.Documentation,
+                        symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
+                    return;
+                }
+
+                if (symbol is IAliasSymbol alias)
+                    symbol = alias.Target;
+
+                var original = symbol.OriginalDefinition;
+                var format = ISymbolExtensions2.CrefFormat;
+                var compilation = _semanticModel.Compilation;
+
+                var documentationComment = original is IMethodSymbol method
+                    ? ISymbolExtensions2.GetMethodDocumentation(method, compilation, CancellationToken)
+                    : original.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken);
+
                 _documentationMap.Add(
                     SymbolDescriptionGroups.Documentation,
-                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
+                    formatter.Format(documentationComment.SummaryText, symbol, _semanticModel, _position, format, CancellationToken));
 
                 _documentationMap.Add(
                     SymbolDescriptionGroups.RemarksDocumentation,
-                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken));
+                    formatter.Format(documentationComment.RemarksText, symbol, _semanticModel, _position, format, CancellationToken));
 
                 AddReturnsDocumentationParts(symbol, formatter);
                 AddValueDocumentationParts(symbol, formatter);
@@ -183,10 +202,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 void AddReturnsDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
-                    var parts = symbol.GetReturnsDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+                    var parts = formatter.Format(documentationComment.ReturnsText, symbol, _semanticModel, _position, format, CancellationToken);
                     if (!parts.IsDefaultOrEmpty)
                     {
-                        var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
 
                         builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
                         builder.AddRange(LineBreak().ToTaggedText());
@@ -194,23 +213,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         builder.AddRange(parts);
                         builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                        _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
+                        _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutable());
                     }
                 }
 
                 void AddValueDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
-                    var parts = symbol.GetValueDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+                    var parts = formatter.Format(documentationComment.ValueText, symbol, _semanticModel, _position, format, CancellationToken);
                     if (!parts.IsDefaultOrEmpty)
                     {
-                        var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                        using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
                         builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
                         builder.AddRange(LineBreak().ToTaggedText());
                         builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
                         builder.AddRange(parts);
                         builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                        _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutableArray());
+                        _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutable());
                     }
                 }
             }
