@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis
         {
             _source = source;
             _action = action;
+
+            Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
             _outputKind = outputKind;
         }
 
