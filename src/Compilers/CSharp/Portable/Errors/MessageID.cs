@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers: // semantic check
                 case MessageID.IDS_FeatureLineSpanDirective:
                 case MessageID.IDS_FeatureFileScopedNamespace: // syntax check
+                case MessageID.IDS_FeatureDeconstructDefault: // semantic check
                     return LanguageVersion.CSharp10;
 
                 // C# 9.0 features.
@@ -420,7 +421,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
                 case MessageID.IDS_FeatureTupleEquality: // semantic check
-                case MessageID.IDS_FeatureDeconstructDefault: // semantic check
                 case MessageID.IDS_FeatureRefReassignment:
                 case MessageID.IDS_FeatureRefFor:
                 case MessageID.IDS_FeatureRefForEach:
