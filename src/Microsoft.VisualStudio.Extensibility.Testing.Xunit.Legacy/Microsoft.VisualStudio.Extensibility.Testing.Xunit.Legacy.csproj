@@ -3,9 +3,11 @@
 
   <PropertyGroup>
     <TargetFramework>net452</TargetFramework>
+    <!-- The assembly name must be consistent so consumers don't need to conditionally-specify TestFrameworkAttribute -->
     <AssemblyName>Microsoft.VisualStudio.Extensibility.Testing.Xunit</AssemblyName>
     <RootNamespace>Xunit</RootNamespace>
 
+    <PackageId>Microsoft.VisualStudio.Extensibility.Testing.Xunit.Legacy</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
