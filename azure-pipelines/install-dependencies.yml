@@ -1,0 +1,25 @@
+parameters:
+  initArgs:
+
+steps:
+
+- task: NuGetAuthenticate@0
+  displayName: Authenticate NuGet feeds
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- powershell: |
+    $AccessToken = '$(System.AccessToken)' # Avoid specifying the access token directly on the init.ps1 command line to avoid it showing up in errors
+    .\init.ps1 -AccessToken $AccessToken ${{ parameters['initArgs'] }} -UpgradePrerequisites -NoNuGetCredProvider
+    dotnet --info
+
+    # Print mono version if it is present.
+    if (Get-Command mono -ErrorAction SilentlyContinue) {
+      mono --version
+    }
+  displayName: Install prerequisites
+
+- powershell: azure-pipelines/variables/_pipelines.ps1
+  failOnStderr: true
+  displayName: Set pipeline variables based on source
+  name: SetPipelineVariables

@@ -1,0 +1,84 @@
+<Project>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <RepoRootPath>$(MSBuildThisFileDirectory)</RepoRootPath>
+    <BaseIntermediateOutputPath>$(RepoRootPath)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoRootPath)bin\$(MSBuildProjectName)\</BaseOutputPath>
+    <PackageOutputPath>$(RepoRootPath)bin\Packages\$(Configuration)\NuGet\</PackageOutputPath>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+
+    <!-- Local builds should embed PDBs so we never lose them when a subsequent build occurs. -->
+    <DebugType Condition=" '$(CI)' != 'true' and '$(TF_BUILD)' != 'true' ">embedded</DebugType>
+
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols Condition=" '$(DebugType)' != 'embedded' ">true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <MicroBuildVersion>2.0.65</MicroBuildVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.10.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="all" />
+    <!-- <PackageReference Include="Microsoft.SourceLink.AzureRepos.Git" Version="1.0.0" PrivateAssets="All" /> -->
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.4.216" PrivateAssets="all" />
+    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <!-- We always want MSBuild properties generated that point at the restored location of each package. -->
+    <PackageReference GeneratePathProperty="true" />
+  </ItemDefinitionGroup>
+
+  <Target Name="PrepareReleaseNotes" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <!-- TEMPLATE USER: replace the ORG/REPO (or entire link) below and uncomment. -->
+      <!-- <PackageReleaseNotes>https://github.com/ORG/REPO/releases/tag/v$(Version)</PackageReleaseNotes> -->
+    </PropertyGroup>
+  </Target>
+
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == ''">
+    <IsWpfTempProject>false</IsWpfTempProject>
+    <IsWpfTempProject Condition="$(MSBuildProjectName.EndsWith('_wpftmp'))">true</IsWpfTempProject>
+  </PropertyGroup>
+
+  <!--
+    Inspired by https://github.com/dotnet/arcade/blob/cbfa29d4e859622ada3d226f90f103f659665d31/src/Microsoft.DotNet.Arcade.Sdk/tools/Workarounds.props#L14-L31
+    WPF temp-projects do not import .props and .targets files from NuGet packages.
+    (see https://github.com/dotnet/sourcelink/issues/91).
+
+    Property _TargetAssemblyProjectName is set by GenerateTemporaryTargetAssembly task.
+    Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
+    The project name is non-deterministic and is included in the Source Link json file name and xlf directory names.
+    It's also not necessary to generate these assets.
+  -->
+  <PropertyGroup Condition="'$(IsWpfTempProject)' == 'true'">
+    <_WpfTempProjectNuGetFilePathNoExt>$(RepoRootPath)obj\$(_TargetAssemblyProjectName)\$(_TargetAssemblyProjectName)$(MSBuildProjectExtension).nuget.g</_WpfTempProjectNuGetFilePathNoExt>
+
+    <EnableSourceLink>false</EnableSourceLink>
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+  </PropertyGroup>
+
+  <!-- Workaround https://github.com/dotnet/wpf/issues/810 -->
+  <Import Project="$(_WpfTempProjectNuGetFilePathNoExt).props" Condition="'$(_WpfTempProjectNuGetFilePathNoExt)' != '' and Exists('$(_WpfTempProjectNuGetFilePathNoExt).props')"/>
+</Project>

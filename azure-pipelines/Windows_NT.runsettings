@@ -1,0 +1,14 @@
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="blame" enabled="True">
+        <Configuration>
+          <CollectDump DumpType="full" />
+          <CollectDumpOnTestSessionHang TestTimeout="30000" DumpType="full" />
+          <!-- This ResultsDirectory must exist, but it is totally ignored. -->
+          <ResultsDirectory>%BUILD_ARTIFACTSTAGINGDIRECTORY%</ResultsDirectory>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

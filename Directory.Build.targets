@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Workaround https://github.com/dotnet/wpf/issues/1718 -->
+    <EmbedUntrackedSources Condition=" '$(UseWPF)' == 'true' ">false</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <Import Project="$(_WpfTempProjectNuGetFilePathNoExt).targets" Condition="'$(_WpfTempProjectNuGetFilePathNoExt)' != '' and Exists('$(_WpfTempProjectNuGetFilePathNoExt).targets')"/>
+</Project>

@@ -1,0 +1,16 @@
+#------------------------------------------------------------------------------
+# This file contains command-line options that MSBuild will process as part of
+# every build, unless the "/noautoresponse" switch is specified.
+#
+# MSBuild processes the options in this file first, before processing the
+# options on the command line. As a result, options on the command line can
+# override the options in this file. However, depending on the options being
+# set, the overriding can also result in conflicts.
+#
+# NOTE: The "/noautoresponse" switch cannot be specified in this file, nor in
+# any response file that is referenced by this file.
+#------------------------------------------------------------------------------
+/nr:false
+/m
+/verbosity:minimal
+/clp:Summary;ForceNoAlign

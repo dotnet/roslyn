@@ -1,100 +1,41 @@
-# Visual Studio Extension Testing
+# Your Library
 
-This project allows Visual Studio extension developers to write integration tests that run inside an experimental
-instance of Visual Studio.
+***An awesome template for your awesome library***
 
-[![License](https://img.shields.io/github/license/Microsoft/vs-extension-testing.svg)](https://raw.githubusercontent.com/Microsoft/vs-extension-testing/master/LICENSE)
+![NuGet package](https://img.shields.io/badge/nuget-your--package--here-yellow.svg)
 
-# Installation and Use
+[![Azure Pipelines status](https://dev.azure.com/andrewarnott/OSS/_apis/build/status/AArnott.Library.Template?branchName=main)](https://dev.azure.com/andrewarnott/OSS/_build/latest?definitionId=29&branchName=main)
+![GitHub Actions status](https://github.com/aarnott/Library.Template/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/gh/aarnott/library.template/branch/main/graph/badge.svg)](https://codecov.io/gh/aarnott/library.template)
 
-## Requirements
+## Features
 
-* Extension development requires [Visual Studio 2017](https://visualstudio.microsoft.com/vs/) or newer. Version 15.7 or
-  newer is recommended for the best Test Explorer experience.
-* Extensions themselves must target one or more versions of Visual Studio from the following list:
-    * Visual Studio 2012
-    * Visual Studio 2013
-    * Visual Studio 2015
-    * Visual Studio 2017
-    * Visual Studio 2019
-    * Visual Studio 2022
-* Extensions must be deployed via one or more VSIX packages.
-* Test execution and debugging is only supported for versions of Visual Studio available on the same machine as the
-  development IDE.
+* Follow the best and simplest patterns of build, pack and test with dotnet CLI.
+* Init script that installs prerequisites and auth helpers, supporting both non-elevation and elevation modes.
+* Static analyzers: [FxCop](https://docs.microsoft.com/en-us/visualstudio/code-quality/fxcop-analyzers?view=vs-2019) and [StyleCop](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
+* Read-only source tree (builds to top-level bin/obj folders)
+* Auto-versioning (via [Nerdbank.GitVersioning](https://github.com/dotnet/nerdbank.gitversioning))
+* Builds with a "pinned" .NET Core SDK to ensure reproducible builds across machines and across time.
+* Automatically pack the library and publish it as an artifact, and even push it to some NuGet feed for consumption.
+* Testing
+  * Testing on .NET Framework, multiple .NET Core versions
+  * Testing on Windows, Linux and OSX
+  * Tests that crash or hang in Azure Pipelines automatically collect dumps and publish as a pipeline artifact for later investigation.
+* Cloud build support
+  * YAML based build for long-term serviceability, and PR review opportunities for any changes.
+  * Azure Pipelines and GitHub Action support
+  * Emphasis on PowerShell scripts over reliance on tasks for a more locally reproducible build.
+  * Code coverage published to Azure Pipelines
+  * Code coverage published to codecov.io so GitHub PRs get code coverage results added as a PR comment
+* MicroBuild ready
+  * MicroBuild signing built-in, with several more MicroBuild plugins' use streamlined for local installation via a switch passed to `init.ps1`.
+  * Insertions to VS streamlined and automated with all inputs computed during the build and saved for the release pipeline.
 
-## Install the test harness
+## Consumption
 
-### Install the *to be determined* package
+Once you've expanded this template for your own use, you should **run the `Expand-Template.ps1` script** to customize the template for your own project.
 
-*TODO*
+Further customize your repo by:
 
-### Configure the `appDomain` xUnit property
-
-1. Add a file **xunit.runner.json** to the test project if it does not already exist
-2. Set the **Copy to Output Directory** property for the file to **Copy if newer**
-3. Update the file to set the `appDomain` property to `denied`:
-
-    ```json
-    {
-      "appDomain": "denied"
-    }
-    ```
-
-:link: See https://github.com/Microsoft/vs-extension-testing/issues/3
-
-### Configure the test framework
-
-#### Classic projects
-
-Add the following to **AssemblyInfo.cs** to enable the test framework:
-
-```csharp
-using Xunit;
-
-[assembly: TestFramework("Xunit.Harness.IdeTestFramework", "Microsoft.VisualStudio.Extensibility.Testing.Xunit")]
-```
-
-#### SDK projects
-
-SDK projects have the ability to automatically generate assembly attributes. This functionality can be leveraged to
-configured the required test framework attribute. Simply add the following to your project file:
-
-```xml
-<ItemGroup>
-  <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
-    <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
-    <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
-  </AssemblyAttribute>
-</ItemGroup>
-```
-
-### Configure extensions for deployment
-
-Add the following to **AssemblyInfo.cs** to deploy extensions required for testing.
-
-```csharp
-using Xunit.Harness;
-
-[assembly: RequireExtension("Extension.File.Name.vsix")]
-```
-
-## Ensure test discovery is enabled
-
-Test projects using a customized xUnit test framework cannot currently be discovered while tests are being written. The
-test discovery process that runs after a build completes will detect the required tests. Ensure this feature is enabled
-by the following steps:
-
-1. Open **Tools** &rarr; **Options...**
-2. Select the **Test** page on the left
-3. Ensure **Additionally discover tests from built assemblies after builds** is checked
-
-Tests will be automatically discovered and **Test Explorer** updated after each successful build.
-
-## Write tests
-
-Apply the `[IdeFact]` attribute to tests that need to run in the IDE. After building the project, the tests will
-appear in **Test Explorer** where they can be launched for running and/or debugging directly.
-
-# Contributing
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information about our Code of Conduct and contributing guidelines.
+1. Verify the license is suitable for your goal as it appears in the LICENSE and stylecop.json files and the Directory.Build.props file's `PackageLicenseExpression` property.
+1. Reset or replace the badges at the top of this file.
